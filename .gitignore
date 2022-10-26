@@ -9,6 +9,12 @@
 /test/tmp/
 /test/version_tmp/
 /tmp/
+/.tmp/
+/.private/
+_*
+
+# vagrant
+**/.vagrant/
 
 # Used by dotenv library to load environment variables.
 # .env

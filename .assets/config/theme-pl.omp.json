@@ -1,0 +1,100 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "blocks": [
+    {
+      "alignment": "left",
+      "segments": [
+        {
+          "type": "root",
+          "style": "plain",
+          "foreground": "#ff6666",
+          "template": "# "
+        },
+        {
+          "foreground": "#CCCCCC",
+          "properties": {
+            "fetch_version": false
+          },
+          "style": "plain",
+          "template": "({{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }}{{ end }}{{ .Full }}{{ end }}) ",
+          "type": "python"
+        },
+        {
+          "foreground": "#F5F543",
+          "properties": {
+            "threshold": 1
+          },
+          "style": "plain",
+          "template": "<#CCCCCC>[</>{{ .FormattedMs }}<#CCCCCC>]</> ",
+          "type": "executiontime"
+        },
+        {
+          "foreground": "#2cc7ee",
+          "style": "plain",
+          "template": "{{ if .SSHSession }}{{ .UserName }}<#4cd7ff>@</>{{ .HostName }} {{ end }}",
+          "type": "session"
+        },
+        {
+          "background": "#3B8EEA",
+          "leading_diamond": "\ue0b3\ue0b2",
+          "properties": {
+            "folder_separator_icon": "/",
+            "style": "agnoster_short"
+          },
+          "style": "diamond",
+          "template": "<b>{{ .Path }}</b>",
+          "trailing_diamond": "\ue0b0\ue0b1 ",
+          "type": "path"
+        },
+        {
+          "foreground": "#D4AAFC",
+          "foreground_templates": [
+            "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}",
+            "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#FF4500{{ end }}",
+            "{{ if gt .Ahead 0 }}#B388FF{{ end }}",
+            "{{ if gt .Behind 0 }}#B388FF{{ end }}"
+          ],
+          "properties": {
+            "branch_max_length": 25,
+            "branch_icon": " ",
+            "commit_icon": "",
+            "fetch_status": true,
+            "tag_icon": ""
+          },
+          "style": "plain",
+          "template": "{{ .HEAD }} ",
+          "type": "git"
+        },
+        {
+          "foreground": "#23d18b",
+          "properties": {
+            "mapped_shell_names": {
+              "bash": "$",
+              "pwsh": "\u276d",
+              "zsh": "%"
+            }
+          },
+          "style": "plain",
+          "template": "{{ .Name }} ",
+          "type": "shell"
+        }
+      ],
+      "type": "prompt"
+    },
+    {
+      "segments": [
+        {
+          "foreground": "#2E6CE6",
+          "properties": {
+            "parse_kubeconfig": true
+          },
+          "style": "plain",
+          "template": "{{ .Context }}{{ if and (.Namespace) (ne .Namespace \"default\") }}::<i>{{ .Namespace }}</i>{{ end }}",
+          "type": "kubectl"
+        }
+      ],
+      "type": "rprompt"
+    }
+  ],
+  "version": 2
+}

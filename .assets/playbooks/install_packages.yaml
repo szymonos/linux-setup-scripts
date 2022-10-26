@@ -1,0 +1,9 @@
+- name: Packages
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Install Packages
+      ansible.builtin.package:
+        name: git
+        state: present

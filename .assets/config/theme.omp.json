@@ -1,0 +1,112 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "blocks": [
+    {
+      "alignment": "left",
+      "segments": [
+        {
+          "type": "root",
+          "style": "plain",
+          "foreground": "#ff6666",
+          "template": "# "
+        },
+        {
+          "foreground": "#CCCCCC",
+          "properties": {
+            "fetch_version": false
+          },
+          "style": "plain",
+          "template": "({{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }}{{ end }}{{ .Full }}{{ end }}) ",
+          "type": "python"
+        },
+        {
+          "foreground": "#F5F543",
+          "properties": {
+            "threshold": 1
+          },
+          "style": "plain",
+          "template": "<#CCCCCC>[</>{{ .FormattedMs }}<#CCCCCC>]</> ",
+          "type": "executiontime"
+        },
+        {
+          "foreground": "#23D18B",
+          "foreground_templates": [
+            "{{ if gt .Code 0 }}#F14C4C{{ end }}"
+          ],
+          "properties": {
+            "always_enabled": true
+          },
+          "style": "plain",
+          "template": "<b>\u2192</b> ",
+          "type": "exit"
+        },
+        {
+          "foreground": "#2cc7ee",
+          "style": "plain",
+          "template": "{{ if .SSHSession }}{{ .UserName }}<#4cd7ff>@</>{{ .HostName }} {{ end }}",
+          "type": "session"
+        },
+        {
+          "foreground": "#3B8EEA",
+          "properties": {
+            "folder_separator_icon": "/",
+            "style": "agnoster_short"
+          },
+          "style": "plain",
+          "template": "<b>{{ .Path }}</b> ",
+          "type": "path"
+        },
+        {
+          "foreground": "#D4AAFC",
+          "foreground_templates": [
+            "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}",
+            "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#FF4500{{ end }}",
+            "{{ if gt .Ahead 0 }}#B388FF{{ end }}",
+            "{{ if gt .Behind 0 }}#B388FF{{ end }}"
+          ],
+          "properties": {
+            "branch_max_length": 25,
+            "commit_icon": "",
+            "branch_icon": "",
+            "fetch_status": true,
+            "tag_icon": ""
+          },
+          "style": "diamond",
+          "leading_diamond": "(",
+          "template": "{{ .HEAD }}",
+          "trailing_diamond": ") ",
+          "type": "git"
+        },
+        {
+          "foreground": "#29B8DB",
+          "properties": {
+            "mapped_shell_names": {
+              "bash": "$",
+              "pwsh": ">",
+              "zsh": "%"
+            }
+          },
+          "style": "plain",
+          "template": "{{ .Name }} ",
+          "type": "shell"
+        }
+      ],
+      "type": "prompt"
+    },
+    {
+      "segments": [
+        {
+          "foreground": "#2E6CE6",
+          "properties": {
+            "parse_kubeconfig": true
+          },
+          "style": "plain",
+          "template": "{{ .Context }}{{ if and (.Namespace) (ne .Namespace \"default\") }}::<i>{{ .Namespace }}</i>{{ end }}",
+          "type": "kubectl"
+        }
+      ],
+      "type": "rprompt"
+    }
+  ],
+  "version": 2
+}
