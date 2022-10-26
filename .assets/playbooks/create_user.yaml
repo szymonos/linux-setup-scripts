@@ -1,0 +1,26 @@
+- name: User Playbook
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    user: "{{ lookup('env', 'USER') }}"
+  tasks:
+    - name: Create user
+      ansible.builtin.user:
+        name: "{{ user }}"
+        state: present
+        shell: /bin/bash
+        password: "{{ 'vagrant' | password_hash('sha512') }}"
+        update_password: on_create
+    - name: Escalation of priviliges for the user
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ user }}"
+        content: "{{ user }} ALL=(root) NOPASSWD: ALL"
+        mode: 0440
+        owner: root
+        group: root
+    - name: Set authorized ssh key
+      ansible.posix.authorized_key:
+        user: "{{ user }}"
+        state: present
+        key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"

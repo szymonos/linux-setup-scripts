@@ -1,0 +1,12 @@
+- name: Git clone
+  hosts: all
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Clone vagrant repository from GitHub
+      ansible.builtin.git:
+        repo: https://github.com/szymonos/vagrant
+        dest: "/home/{{ ansible_user }}/source/repos/vagrant"
+        accept_hostkey: true
+        clone: true
+        update: true

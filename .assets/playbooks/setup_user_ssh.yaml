@@ -1,0 +1,17 @@
+- name: Setup user profile
+  hosts: all
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Set ssh authorized_key
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"
+    - name: Copy ssh private key
+      ansible.builtin.copy:
+        src: "{{ lookup('env', 'HOME') }}/.ssh/id_rsa"
+        dest: "/home/{{ ansible_user }}/.ssh/"
+        mode: 0400
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"

@@ -1,0 +1,108 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# *Variables
+box      = "generic/arch"
+provider = "hyperv"
+boxname  = "ArchHV"
+# network configuration
+nat_net  = "192.168.121.0/24"
+ip_addr  = "192.168.121.91"
+dns      = "9.9.9.9,149.112.112.112"
+# vm configuration
+memory   = 4096
+cpu      = 4
+
+# calculate variables
+hostname = boxname.downcase
+switch_ip, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
+dns1, dns2 = dns.split(",")
+
+# *Scripts
+script_install_packages = <<~SCRIPT
+  pacman -Sy --needed --noconfirm \\
+    base-devel btop nano
+  su - vagrant -c 'git clone https://aur.archlinux.org/paru-bin.git \\
+    && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
+SCRIPT
+
+script_configure_static_ip = <<~SCRIPT
+  cat <<'EOF' >/etc/systemd/network/eth0.network
+  [Match]
+  Name=eth0
+
+  [Network]
+  Address=#{ip_addr}/#{prefix}
+  Gateway=#{switch_ip}
+  DNS=#{dns1}
+  DNS=#{dns2}
+  EOF
+SCRIPT
+
+# *VM provisioning
+Vagrant.configure("2") do |config|
+  # common triggers
+  config.trigger.before :up do |trigger|
+    trigger.info = "Creating 'NATSwitch' Hyper-V switch if it does not exist..."
+    trigger.run = {
+      privileged: "true", powershell_elevated_interactive: "true",
+      path: "../../.assets/trigger/create_hyperv_natswitch.ps1", :args => [nat_net]
+    }
+  end
+  # common config
+  config.vm.network "public_network"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.define boxname do |node|
+    identity_file = "#{Dir.pwd}/.vagrant/machines/#{boxname}/#{provider}/private_key"
+    # node triggers
+    node.trigger.before :reload do |trigger|
+      trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
+      trigger.run = {
+        privileged: "true", powershell_elevated_interactive: "true",
+        path: "../../.assets/trigger/set_hyperv_switch.ps1", :args => [boxname]
+      }
+    end
+    node.trigger.after :reload do |trigger|
+      trigger.info = "Add vagrant configuration to ssh config file..."
+      trigger.run = {
+        privileged: "false", powershell_elevated_interactive: "false",
+        path: "../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, hostname, identity_file]
+      }
+    end
+    config.trigger.after :destroy do |trigger|
+      trigger.info = "Cleaning up ssh config, known_hosts files and .vagrant directory..."
+      trigger.run = {
+        privileged: "false", powershell_elevated_interactive: "false",
+        path: "../../.assets/trigger/delete_ssh_config.ps1", :args => [ip_addr, hostname]
+      }
+    end
+    # node setup
+    node.vm.box = box
+    node.vm.hostname = hostname
+    node.vm.provider provider do |h|
+      h.enable_virtualization_extensions = true
+      h.linked_clone = true
+      h.memory = memory
+      h.maxmemory = memory
+      h.cpus = cpu
+      h.vmname = boxname
+    end
+    # node provision
+    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
+    node.vm.provision "shell", name: "install base...", path: "../../.assets/provision/install_base.sh"
+    node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
+    node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
+    node.vm.provision "shell", name: "install ripgrep...", path: "../../.assets/provision/install_ripgrep.sh"
+    # ~setting up profiles
+    node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
+    node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
+    node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
+    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
+    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
+    # ~upgrade system
+    node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
+    # ~reload vm
+    node.vm.provision :reload
+  end
+end
