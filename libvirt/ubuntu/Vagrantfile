@@ -1,14 +1,14 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 # *Variables
-box      = "generic/fedora36"
+box      = "generic/ubuntu2204"
 provider = "libvirt"
-boxname  = "fedora"
+boxname  = "ubuntu"
 # network configuration
 net_name = "vagrant-33"
-ip_addr  = "192.168.33.7"
+ip_addr  = "192.168.33.4"
 # vm configuration
-memory   = 8192
+memory   = 4096
 cpu      = 4
 
 # calculate global variables
@@ -16,17 +16,20 @@ hostname = "vg-#{boxname}".downcase
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  dnf install -y \\
-    @development-tools \\
-    fedora-workstation-repositories \\
-    dnf-plugins-core 'dnf-command(offline-upgrade)' \\
-    btop nano npm sassc
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y btop nano
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  nmcli connection modify 'Wired connection 1' \\
-    ipv4.method manual \\
-    ipv4.addresses #{ip_addr}/24
+  cat <<'EOF' >/etc/netplan/50-vagrant.yaml
+  ---
+  network:
+    version: 2
+    renderer: networkd
+    ethernets:
+      eth1:
+        addresses: [#{ip_addr}/24]
+  EOF
 SCRIPT
 
 # *VM provisioning
@@ -72,21 +75,6 @@ Vagrant.configure("2") do |config|
     node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
     node.vm.provision "shell", name: "install ripgrep...", path: "../../.assets/provision/install_ripgrep.sh"
     node.vm.provision "shell", name: "install yq", path: "../../.assets/provision/install_yq.sh"
-    node.vm.provision "shell", name: "install docker...", path: "../../.assets/provision/install_docker.sh"
-    node.vm.provision "shell", name: "set ulimits on systemd", path: "../../.assets/provision/set_ulimits.sh"
-    node.vm.provision "shell", name: "install kubectl...", path: "../../.assets/provision/install_kubectl.sh"
-    node.vm.provision "shell", name: "install helm...", path: "../../.assets/provision/install_helm.sh"
-    node.vm.provision "shell", name: "install minikube...", path: "../../.assets/provision/install_minikube.sh"
-    node.vm.provision "shell", name: "install k3d...", path: "../../.assets/provision/install_k3d.sh"
-    node.vm.provision "shell", name: "install k9s...", path: "../../.assets/provision/install_k9s.sh"
-    node.vm.provision "shell", name: "install flux", path: "../../.assets/provision/install_flux.sh"
-    node.vm.provision "shell", name: "install smee", path: "../../.assets/provision/install_smee.sh"
-    node.vm.provision "shell", name: "install kubeseal", path: "../../.assets/provision/install_kubeseal.sh"
-    node.vm.provision "shell", name: "install kustomize", path: "../../.assets/provision/install_kustomize.sh"
-    node.vm.provision "shell", name: "install argo-rollouts cli", path: "../../.assets/provision/install_argorolloutscli.sh"
-    node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
-    node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
-    node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
     # ~setting up profiles
     node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
     node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"

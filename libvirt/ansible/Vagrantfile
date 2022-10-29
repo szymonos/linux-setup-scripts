@@ -3,11 +3,11 @@
 
 # *Variables
 provider     = "libvirt"
+# network configuration
+net_name = "vagrant-33"
 # vm configuration
 memory       = 2048
 cpu          = 2
-# vagrant data location
-vagrant_home ="/mnt/ext/vagrant.d"
 
 # *VMs spec
 vm_boxes = {
@@ -39,9 +39,10 @@ vm_boxes = {
 # *VM provisioning
 Vagrant.configure("2") do |config|
   # common config
-  config.vm.provider provider do |v|
-    v.memory = memory
-    v.cpus = cpu
+  config.vm.provider provider do |libvirt|
+    libvirt.management_network_keep = true
+    libvirt.memory = memory
+    libvirt.cpus = cpu
   end
   vm_boxes.each do |key, value|
     ip_addr = value[:ip]
@@ -66,7 +67,12 @@ Vagrant.configure("2") do |config|
       # node setup
       node.vm.box = value[:box]
       node.vm.hostname = hostname
-      node.vm.network "private_network", ip: ip_addr
+      node.vm.network :private_network,
+        :ip => ip_addr,
+        :libvirt__network_name => net_name,
+        :libvirt__dhcp_enabled => false,
+        :libvirt__always_destroy => false,
+        :autostart => true
       # node provision
       node.vm.provision "shell", name: "run inline script...", inline: value[:script]
       node.vm.provision "ansible", playbook: "../../.assets/playbooks/setup_user_ssh.yaml"
