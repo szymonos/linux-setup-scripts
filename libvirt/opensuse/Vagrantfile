@@ -3,8 +3,7 @@
 # *Variables
 box          = "opensuse/Tumbleweed.x86_64"
 provider     = "libvirt"
-boxname      = "tumbleweed"
-hostname     = "suse"
+boxname      = "lv"
 # network configuration
 ip_addr      = "192.168.33.5"
 # vm configuration
@@ -18,15 +17,7 @@ hostname = "#{File.basename(Dir.pwd)}-#{boxname}".downcase
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  zypper in -y git btop nano
-SCRIPT
-
-script_configure_static_ip = <<~SCRIPT
-  cat <<EOF | tee /etc/sysconfig/network/ifcfg-eth1 >/dev/null
-  BOOTPROTO='static'
-  IPADDR='#{ip_addr}/24'
-  STARTMODE='nfsroot'
-  EOF
+  zypper in -y btop nano
 SCRIPT
 
 # *VM provisioning
@@ -58,9 +49,8 @@ Vagrant.configure("2") do |config|
     node.vm.hostname = hostname
     node.vm.network "private_network", ip: ip_addr
     # node provision
-    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
-    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
     node.vm.provision "shell", name: "install base...", path: "../../.assets/provision/install_base.sh"
+    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
     node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
     node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
     node.vm.provision "shell", name: "install ripgrep...", path: "../../.assets/provision/install_ripgrep.sh"
@@ -72,6 +62,8 @@ Vagrant.configure("2") do |config|
     node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
     node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
     node.vm.provision "ansible", playbook: "../../.assets/playbooks/setup_user_ssh.yaml"
+    # ~upgrade system
+    node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     # ~reload vm
     node.vm.provision :reload
   end
