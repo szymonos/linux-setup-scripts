@@ -24,7 +24,7 @@ fi
 
 # *bash profile
 # add common bash aliases
-grep -qw 'd/bash_aliases' ~/.bashrc || cat <<EOF >>~/.bashrc
+grep -qw 'd/bash_aliases' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
 # common aliases
 if [ -f $PROFILE_PATH/bash_aliases ]; then
   source $PROFILE_PATH/bash_aliases
@@ -32,7 +32,7 @@ fi
 EOF
 
 # add oh-my-posh invocation
-if ! grep -qw 'oh-my-posh' ~/.bashrc && type oh-my-posh &>/dev/null; then
+if ! grep -qw 'oh-my-posh' ~/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then
   cat <<EOF >>~/.bashrc
 # initialize oh-my-posh prompt
 if [ -f $OMP_PATH/theme.omp.json ] && type oh-my-posh &>/dev/null; then

@@ -7,7 +7,7 @@ PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 
 # add common bash aliases
-grep -qw 'd/bash_aliases' ~/.bashrc || cat <<EOF >>~/.bashrc
+grep -qw 'd/bash_aliases' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
 # common aliases
 if [ -f $PROFILE_PATH/bash_aliases ]; then
   source $PROFILE_PATH/bash_aliases
@@ -15,7 +15,7 @@ fi
 EOF
 
 # add git aliases
-if ! grep -qw 'd/bash_aliases_git' ~/.bashrc && type git &>/dev/null; then
+if ! grep -qw 'd/bash_aliases_git' ~/.bashrc 2>/dev/null && type git &>/dev/null; then
   cat <<EOF >>~/.bashrc
 # git aliases
 if [ -f $PROFILE_PATH/bash_aliases_git ] && type git &>/dev/null; then
@@ -25,7 +25,7 @@ EOF
 fi
 
 # add kubectl autocompletion and aliases
-if ! grep -qw 'kubectl' ~/.bashrc && type -f kubectl &>/dev/null; then
+if ! grep -qw 'kubectl' ~/.bashrc 2>/dev/null && type -f kubectl &>/dev/null; then
   cat <<EOF >>~/.bashrc
 # kubectl autocompletion and aliases
 if type -f kubectl &>/dev/null; then
@@ -43,7 +43,7 @@ EOF
 fi
 
 # add oh-my-posh invocation
-if ! grep -qw 'oh-my-posh' ~/.bashrc && type oh-my-posh &>/dev/null; then
+if ! grep -qw 'oh-my-posh' ~/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then
   cat <<EOF >>~/.bashrc
 # initialize oh-my-posh prompt
 if [ -f $OMP_PATH/theme.omp.json ] && type oh-my-posh &>/dev/null; then

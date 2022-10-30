@@ -15,7 +15,7 @@ alpine)
   apk add --no-cache bash-completion curl git jq man-db nano openssl tree vim
   ;;
 arch)
-  pacman -Sy --noconfirm bash-completion curl git jq man-db nano openssl tree vim
+  pacman -Sy --noconfirm base-devel bash-completion curl git jq man-db nano openssl tree vim
   ;;
 fedora)
   dnf install -y bash-completion curl git jq man-db nano openssl tree vim
