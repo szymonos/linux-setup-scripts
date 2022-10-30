@@ -4,8 +4,9 @@ sudo .assets/provision/install_omp.sh
 '
 
 APP='oh-my-posh'
-while [[ -z $REL ]]; do
+while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  [ -n "$REL" ] || echo 'retrying...'
 done
 
 if type $APP &>/dev/null; then
