@@ -2,12 +2,12 @@
 # vi: set ft=ruby :
 
 # *Variables
-box      = "opensuse/Tumbleweed.x86_64"
+box      = "generic/ubuntu2204"
 provider = "libvirt"
-boxname  = "tumbleweed"
+boxname  = "ubuntu"
 # network configuration
 net_name = "vagrant-33"
-ip_addr  = "192.168.33.55"
+ip_addr  = "192.168.33.54"
 # vm configuration
 memory   = 4096
 cpu      = 4
@@ -24,19 +24,21 @@ hostname = "vg-#{boxname.downcase}"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  zypper in -y btop
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y btop
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  cat <<'EOF' >/etc/sysconfig/network/ifcfg-eth1
-  BOOTPROTO='static'
-  IPADDR='#{ip_addr}'
-  NETMASK='255.255.255.0'
-  DEVICE='eth1'
-  PEERDNS='no'
-  STARTMODE='auto'
-  USERCONTROL='no'
+  cat <<'EOF' >/etc/netplan/50-vagrant.yaml
+  ---
+  network:
+    version: 2
+    renderer: networkd
+    ethernets:
+      eth1:
+        addresses: [#{ip_addr}/24]
   EOF
+  netplan generate
 SCRIPT
 
 # *VM provisioning

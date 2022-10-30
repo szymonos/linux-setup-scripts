@@ -10,6 +10,7 @@ function ... { Set-Location ../../ }
 function cd.. { Set-Location ../ }
 function grep { $input | & /usr/bin/env grep --color=auto $args }
 function less { $input | & /usr/bin/env less -FSRXc $args }
+function ip { $input | & /usr/bin/env ip --color=auto $args }
 function la {
     $arguments = $args.ForEach({ $_ -match ' ' ? "'$_'" : $_ })
     Invoke-Expression "Get-ChildItem $arguments -Force"

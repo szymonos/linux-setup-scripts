@@ -2,9 +2,14 @@
 .SYNOPSIS
 Setting up fresh WSL distro.
 .EXAMPLE
-$distro = 'Fedora'
+$distro = 'fedoraremix'
 $gh_user = 'szymonos'
-$repos = 'devops-scripts,powershell-scripts,ps-szymonos,vagrant'
+$repos = @(
+    'devops-scripts'
+    'powershell-scripts'
+    'ps-szymonos'
+    'vagrant'
+)
 $scope = 'k8s_basic'
 $theme_font = 'powerline'
 ~install packages and setup profile
@@ -34,7 +39,7 @@ param (
 
     [Alias('r')]
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [string]$repos,
+    [string[]]$repos,
 
     [Alias('g')]
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
@@ -80,52 +85,40 @@ if ($scope -eq 'k8s_full') {
 Write-Host "copying files..." -ForegroundColor Green
 $OMP_THEME = switch ($theme_font) {
     'base' {
-        '.assets/config/theme.omp.json'
+        '.assets/config/omp_cfg/theme.omp.json'
     }
     'powerline' {
-        '.assets/config/theme-pl.omp.json'
+        '.assets/config/omp_cfg/theme-pl.omp.json'
     }
 }
 $SH_PROFILE_PATH = '/etc/profile.d'
-$PS_PROFILE_PATH = wsl.exe --distribution $distro --exec pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)'
 $PS_SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
 $OH_MY_POSH_PATH = '/usr/local/share/oh-my-posh'
 
 # bash aliases
-wsl.exe --distribution $distro --user root --exec cp .assets/config/bash_aliases $SH_PROFILE_PATH
-wsl.exe --distribution $distro --user root --exec chmod 644 $SH_PROFILE_PATH/bash_aliases
+wsl.exe --distribution $distro --user root --exec bash -c "cp -f .assets/config/bash_cfg/bash_aliases* $SH_PROFILE_PATH && chmod 644 $SH_PROFILE_PATH/bash_aliases*"
 # oh-my-posh theme
-wsl.exe --distribution $distro --user root --exec mkdir -p $OH_MY_POSH_PATH
-wsl.exe --distribution $distro --user root --exec cp -f $OMP_THEME "$OH_MY_POSH_PATH/theme.omp.json"
-wsl.exe --distribution $distro --user root --exec chmod 644 "$OH_MY_POSH_PATH/theme.omp.json"
+wsl.exe --distribution $distro --user root --exec bash -c "mkdir -p $OH_MY_POSH_PATH && cp -f $OMP_THEME $OH_MY_POSH_PATH/theme.omp.json && chmod 644 $OH_MY_POSH_PATH/theme.omp.json"
 # PowerShell profile
-wsl.exe --distribution $distro --user root --exec cp -f .assets/config/profile.ps1 $PS_PROFILE_PATH
-wsl.exe --distribution $distro --user root --exec chmod 644 "$PS_PROFILE_PATH/profile.ps1"
+wsl.exe --distribution $distro --user root --exec pwsh -nop -c 'cp -f .assets/config/pwsh_cfg/profile.ps1 $PROFILE.AllUsersAllHosts && chmod 644 $PROFILE.AllUsersAllHosts'
 # PowerShell functions
-wsl.exe --distribution $distro --user root --exec mkdir -p $PS_SCRIPTS_PATH
-wsl.exe --distribution $distro --user root --exec cp -f .assets/config/ps_aliases_common.ps1 $PS_SCRIPTS_PATH
-wsl.exe --distribution $distro --user root --exec chmod 644 "$PS_SCRIPTS_PATH/ps_aliases_common.ps1"
-# git functions
-wsl.exe --distribution $distro --user root --exec cp -f .assets/config/bash_aliases_git $SH_PROFILE_PATH
-wsl.exe --distribution $distro --user root --exec chmod 644 "$SH_PROFILE_PATH/bash_aliases_git"
-wsl.exe --distribution $distro --user root --exec cp -f .assets/config/ps_aliases_git.ps1 $PS_SCRIPTS_PATH
-wsl.exe --distribution $distro --user root --exec chmod 644 "$PS_SCRIPTS_PATH/ps_aliases_git.ps1"
-# kubectl functions
-if ($scope -in @('k8s_basic', 'k8s_full')) {
-    wsl.exe --distribution $distro --user root --exec cp -f .assets/config/bash_aliases_kubectl $SH_PROFILE_PATH
-    wsl.exe --distribution $distro --user root --exec chmod 644 "$SH_PROFILE_PATH/bash_aliases_kubectl"
-    wsl.exe --distribution $distro --user root --exec cp -f .assets/config/ps_aliases_kubectl.ps1 $PS_SCRIPTS_PATH
-    wsl.exe --distribution $distro --user root --exec chmod 644 "$PS_SCRIPTS_PATH/ps_aliases_kubectl.ps1"
+wsl.exe --distribution $distro --user root --exec bash -c "mkdir -p $PS_SCRIPTS_PATH && cp -f .assets/config/pwsh_cfg/ps_aliases* $PS_SCRIPTS_PATH && chmod 644 $PS_SCRIPTS_PATH/ps_aliases*"
+# remove kubectl aliases
+if ($scope -notin @('k8s_basic', 'k8s_full')) {
+    wsl.exe --distribution $distro --user root --exec rm -f $SH_PROFILE_PATH/bash_aliases_kubectl $PS_SCRIPTS_PATH/ps_aliases_kubectl.ps1
 }
 
 # *setup profiles
 Write-Host "setting up profile for all users..." -ForegroundColor Green
+wsl.exe --distribution $distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
 wsl.exe --distribution $distro --user root --exec .assets/provision/setup_profiles_allusers.sh
+wsl.exe --distribution $distro --user root --exec .assets/provision/setup_omp.sh
 Write-Host "setting up profile for current user..." -ForegroundColor Green
+wsl.exe --distribution $distro --exec .assets/provision/setup_profiles_user.ps1
 wsl.exe --distribution $distro --exec .assets/provision/setup_profiles_user.sh
 
 # *setup GitHub repositories
 if ($repos) {
     Write-Host "setting up GitHub repositories..." -ForegroundColor Green
-    wsl.exe --distribution $distro --exec .assets/provision/setup_gh_repos.sh "$($distro.ToLower())" "$repos" "$gh_user" "$env:USERNAME"
+    wsl.exe --distribution $distro --exec .assets/provision/setup_gh_repos.ps1 -d $distro -r "$repos" -g $gh_user -w $env:USERNAME
 }

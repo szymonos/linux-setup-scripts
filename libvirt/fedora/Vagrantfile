@@ -1,19 +1,26 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+
 # *Variables
-box          = "generic/fedora36"
-provider     = "libvirt"
-boxname      = "f36"
+box      = "generic/fedora36"
+provider = "libvirt"
+boxname  = "fedora"
 # network configuration
-ip_addr      = "192.168.33.7"
+net_name = "vagrant-33"
+ip_addr  = "192.168.33.57"
 # vm configuration
-memory       = 8192
-cpu          = 4
-# vagrant data location
-vagrant_home ="/mnt/ext/vagrant.d"
+memory   = 8192
+cpu      = 4
+# conditions
+install_packages   = true
+install_kubernetes = true
+install_gnome      = true
+setup_bash         = true
+setup_pwsh         = true
+upgrade_system     = true
 
 # calculate global variables
-hostname = "#{File.basename(Dir.pwd)}-#{boxname}".downcase
+hostname = "vg-#{boxname.downcase}"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
@@ -21,7 +28,7 @@ script_install_packages = <<~SCRIPT
     @development-tools \\
     fedora-workstation-repositories \\
     dnf-plugins-core 'dnf-command(offline-upgrade)' \\
-    btop nano npm sassc
+    btop
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
@@ -33,9 +40,11 @@ SCRIPT
 # *VM provisioning
 Vagrant.configure("2") do |config|
   # common config
-  config.vm.provider provider do |v|
-    v.memory = memory
-    v.cpus = cpu
+  config.vm.provider provider do |libvirt|
+    libvirt.default_prefix = "vg_"
+    libvirt.management_network_keep = true
+    libvirt.memory = memory
+    libvirt.cpus = cpu
   end
   config.vm.define boxname do |node|
     identity_file = "#{Dir.pwd}/.vagrant/machines/#{boxname}/#{provider}/private_key"
@@ -57,39 +66,59 @@ Vagrant.configure("2") do |config|
     # node setup
     node.vm.box = box
     node.vm.hostname = hostname
-    node.vm.network "private_network", ip: ip_addr
+    node.vm.network :private_network,
+      :ip => ip_addr,
+      :libvirt__network_name => net_name,
+      :libvirt__dhcp_enabled => false,
+      :libvirt__always_destroy => false,
+      :autostart => true
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
-    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
     node.vm.provision "shell", name: "install base...", path: "../../.assets/provision/install_base.sh"
-    node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
-    node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
-    node.vm.provision "shell", name: "install ripgrep...", path: "../../.assets/provision/install_ripgrep.sh"
-    node.vm.provision "shell", name: "install yq", path: "../../.assets/provision/install_yq.sh"
-    node.vm.provision "shell", name: "install docker...", path: "../../.assets/provision/install_docker.sh"
-    node.vm.provision "shell", name: "set ulimits on systemd", path: "../../.assets/provision/set_ulimits.sh"
-    node.vm.provision "shell", name: "install kubectl...", path: "../../.assets/provision/install_kubectl.sh"
-    node.vm.provision "shell", name: "install helm...", path: "../../.assets/provision/install_helm.sh"
-    node.vm.provision "shell", name: "install minikube...", path: "../../.assets/provision/install_minikube.sh"
-    node.vm.provision "shell", name: "install k3d...", path: "../../.assets/provision/install_k3d.sh"
-    node.vm.provision "shell", name: "install k9s...", path: "../../.assets/provision/install_k9s.sh"
-    node.vm.provision "shell", name: "install flux", path: "../../.assets/provision/install_flux.sh"
-    node.vm.provision "shell", name: "install smee", path: "../../.assets/provision/install_smee.sh"
-    node.vm.provision "shell", name: "install kubeseal", path: "../../.assets/provision/install_kubeseal.sh"
-    node.vm.provision "shell", name: "install kustomize", path: "../../.assets/provision/install_kustomize.sh"
-    node.vm.provision "shell", name: "install argo-rollouts cli", path: "../../.assets/provision/install_argorolloutscli.sh"
-    node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
-    node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
-    node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
-    # ~setting up profiles
-    node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
-    node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
-    node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
-    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
-    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
-    node.vm.provision "ansible", playbook: "../../.assets/playbooks/setup_user_ssh.yaml"
-    # ~upgrade system
-    node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
+    if install_packages
+      node.vm.provision "shell", name: "install packages...", inline: script_install_packages
+      node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
+      node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
+      node.vm.provision "shell", name: "install ripgrep...", path: "../../.assets/provision/install_ripgrep.sh"
+    end
+    if install_kubernetes
+      node.vm.provision "shell", name: "install yq...", path: "../../.assets/provision/install_yq.sh"
+      node.vm.provision "shell", name: "install docker...", path: "../../.assets/provision/install_docker.sh"
+      node.vm.provision "shell", name: "install kubectl...", path: "../../.assets/provision/install_kubectl.sh"
+      node.vm.provision "shell", name: "install helm...", path: "../../.assets/provision/install_helm.sh"
+      node.vm.provision "shell", name: "install minikube...", path: "../../.assets/provision/install_minikube.sh"
+      node.vm.provision "shell", name: "install k3d...", path: "../../.assets/provision/install_k3d.sh"
+      node.vm.provision "shell", name: "install k9s...", path: "../../.assets/provision/install_k9s.sh"
+      node.vm.provision "shell", name: "install flux...", path: "../../.assets/provision/install_flux.sh"
+      node.vm.provision "shell", name: "install kubeseal...", path: "../../.assets/provision/install_kubeseal.sh"
+      node.vm.provision "shell", name: "install kustomize...", path: "../../.assets/provision/install_kustomize.sh"
+      node.vm.provision "shell", name: "install argo-rollouts cli...", path: "../../.assets/provision/install_argorolloutscli.sh"
+      node.vm.provision "shell", name: "install npm...", path: "../../.assets/provision/install_npm.sh"
+      node.vm.provision "shell", name: "install smee...", path: "../../.assets/provision/install_smee.sh"
+    end
+    if install_gnome
+      node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
+      node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
+      node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+      node.vm.provision "shell", name: "install xrdp...", path: "../../.assets/provision/install_xrdp.sh"
+    end
+    if setup_bash || setup_pwsh
+      node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
+      node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
+      node.vm.provision "shell", name: "set up oh-my-posh...", path: "../../.assets/provision/setup_omp.sh"
+    end
+    if setup_bash
+      node.vm.provision "shell", name: "set up bash for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
+      node.vm.provision "shell", name: "set up bash for current user...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
+    end
+    if setup_pwsh
+      node.vm.provision "shell", name: "install pwsh...", path: "../../.assets/provision/install_pwsh.sh"
+      node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../.assets/provision/setup_profiles_allusers.ps1"
+      node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../.assets/provision/setup_profiles_user.ps1", privileged: false
+    end
+    if upgrade_system
+      node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
+    end
     # ~reload vm
     node.vm.provision :reload
   end

@@ -2,12 +2,12 @@
 # vi: set ft=ruby :
 
 # *Variables
-box      = "opensuse/Tumbleweed.x86_64"
+box      = "generic/arch"
 provider = "libvirt"
-boxname  = "tumbleweed"
+boxname  = "arch"
 # network configuration
 net_name = "vagrant-33"
-ip_addr  = "192.168.33.55"
+ip_addr  = "192.168.33.56"
 # vm configuration
 memory   = 4096
 cpu      = 4
@@ -24,18 +24,18 @@ hostname = "vg-#{boxname.downcase}"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  zypper in -y btop
+  pacman -Sy --needed --noconfirm btop
+  type paru &>/dev/null || su - vagrant -c 'git clone https://aur.archlinux.org/paru-bin.git \\
+    && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  cat <<'EOF' >/etc/sysconfig/network/ifcfg-eth1
-  BOOTPROTO='static'
-  IPADDR='#{ip_addr}'
-  NETMASK='255.255.255.0'
-  DEVICE='eth1'
-  PEERDNS='no'
-  STARTMODE='auto'
-  USERCONTROL='no'
+  cat <<'EOF' >/etc/systemd/network/eth1.network
+  [Match]
+  Name=eth1
+
+  [Network]
+  Address=#{ip_addr}/24
   EOF
 SCRIPT
 
@@ -48,6 +48,7 @@ Vagrant.configure("2") do |config|
     libvirt.memory = memory
     libvirt.cpus = cpu
   end
+  # node config
   config.vm.define boxname do |node|
     identity_file = "#{Dir.pwd}/.vagrant/machines/#{boxname}/#{provider}/private_key"
     # node triggers

@@ -4,8 +4,9 @@ sudo .assets/provision/install_yq.sh
 '
 
 APP='yq'
-while [[ -z $REL ]]; do
+while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/mikefarah/yq/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  [ -n "$REL" ] || echo 'retrying...'
 done
 
 if type $APP &>/dev/null; then

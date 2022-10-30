@@ -4,8 +4,9 @@ sudo .assets/provision/install_argorolloutscli.sh
 '
 
 APP='kubectl-argo-rollouts'
-while [[ -z $REL ]]; do
+while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/argoproj/argo-rollouts/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  [ -n "$REL" ] || echo 'retrying...'
 done
 
 if type $APP &>/dev/null; then

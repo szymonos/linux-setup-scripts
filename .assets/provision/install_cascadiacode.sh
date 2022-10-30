@@ -3,8 +3,9 @@
 sudo .assets/provision/install_cascadiacode.sh
 '
 
-while [[ -z $REL ]]; do
+while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/microsoft/cascadia-code/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  [ -n "$REL" ] || echo 'retrying...'
 done
 
 echo "Install CascadiaCode v$REL"

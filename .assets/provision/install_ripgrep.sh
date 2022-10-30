@@ -4,8 +4,9 @@ sudo .assets/provision/install_ripgrep.sh
 '
 
 APP='rg'
-while [[ -z $REL ]]; do
+while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/BurntSushi/ripgrep/releases/latest | grep -Po '"tag_name": *"\K.*?(?=")')
+  [ -n "$REL" ] || echo 'retrying...'
 done
 
 if type $APP &>/dev/null; then
