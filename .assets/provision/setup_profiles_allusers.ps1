@@ -33,26 +33,26 @@ if (Test-Path /tmp/config/pwsh_cfg -PathType Container) {
 
 # *PowerShell profile
 if (-not ((Get-Module PowerShellGet -ListAvailable -ErrorAction SilentlyContinue).Version.Major -ge 3)) {
-    Write-Host 'installing PowerShellGet...' -ForegroundColor Cyan
+    Write-Host 'installing PowerShellGet...'
     Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force
 }
 if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
-    Write-Host 'setting PSGallery trusted...' -ForegroundColor Cyan
+    Write-Host 'setting PSGallery trusted...'
     Set-PSResourceRepository -Name PSGallery -Trusted
 }
 if (-not ((Get-Module PSReadLine -ListAvailable -ErrorAction SilentlyContinue).Version.Minor -ge 2)) {
-    Write-Host 'installing PSReadLine...' -ForegroundColor Cyan
+    Write-Host 'installing PSReadLine...'
     Install-PSResource -Name PSReadLine -Scope AllUsers
 }
 if (-not (Get-Module posh-git -ListAvailable)) {
-    Write-Host 'installing posh-git...' -ForegroundColor Cyan
+    Write-Host 'installing posh-git...'
     Install-PSResource -Name posh-git -Scope AllUsers
 }
 if (-not $PSNativeCommandArgumentPassing) {
-    Write-Host 'enabling PSNativeCommandArgumentPassing...' -ForegroundColor Cyan
+    Write-Host 'enabling PSNativeCommandArgumentPassing...'
     Enable-ExperimentalFeature PSNativeCommandArgumentPassing
 }
 if (-not $PSStyle) {
-    Write-Host 'enabling PSAnsiRenderingFileInfo...' -ForegroundColor Cyan
+    Write-Host 'enabling PSAnsiRenderingFileInfo...'
     Enable-ExperimentalFeature PSAnsiRenderingFileInfo
 }

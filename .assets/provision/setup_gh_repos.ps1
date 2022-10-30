@@ -31,7 +31,7 @@ $ws_path = "$HOME/source/workspaces/$($distro.ToLower())-devops.code-workspace"
 
 # *copy ssh keys on WSL
 if ($env:WSL_DISTRO_NAME) {
-    Write-Host 'copying ssh keys from the host...' -ForegroundColor Cyan
+    Write-Host 'copying ssh keys from the host...'
     New-Item ~/.ssh -ItemType Directory | Out-Null
     Copy-Item /mnt/c/Users/$win_user/.ssh/id_* ~/.ssh/
     chmod 400 ~/.ssh/id_*
@@ -41,7 +41,7 @@ if ($env:WSL_DISTRO_NAME) {
 $knownHosts = "$HOME/.ssh/known_hosts"
 $keysExist = try { Select-String 'github.com' $knownHosts -Quiet } catch { $false }
 if (-not $keysExist) {
-    Write-Host 'adding github public keys...' -ForegroundColor Cyan
+    Write-Host 'adding github public keys...'
     [string[]]$ghKeys = ssh-keyscan 'github.com' 2>$null
     [IO.File]::AppendAllLines($knownHosts, $ghKeys)
 }
@@ -57,7 +57,7 @@ if (-not (Test-Path $ws_path -PathType Leaf)) {
 # clone repositories and add them to workspace file
 Set-Location ~/source/repos/$gh_user
 $content = [IO.File]::ReadAllText($ws_path).TrimEnd()
-Write-Host 'cloning repositories...' -ForegroundColor Cyan
+Write-Host 'cloning repositories...'
 foreach ($repo in $repos) {
     git clone "git@github.com:$gh_user/$repo.git" 2>$null
     if ((Test-Path $repo -PathType Container) -and -not (Select-String -Pattern $repo -Path $ws_path -Quiet)) {
