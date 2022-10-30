@@ -15,15 +15,13 @@ sudo .assets/provision/install_pwsh.sh
 sudo .assets/provision/install_bat.sh
 sudo .assets/provision/install_exa.sh
 sudo .assets/provision/install_ripgrep.sh
-sudo .assets/provision/setup_profiles_allusers.sh
-.assets/provision/setup_profiles_user.sh
 
 # *Copy config files
 # calculate variables
 if [[ "$1" = 'pl' ]]; then
-  OMP_THEME='.assets/config/theme-pl.omp.json'
+  OMP_THEME='.assets/config/omp_cfg/theme-pl.omp.json'
 else
-  OMP_THEME='.assets/config/theme.omp.json'
+  OMP_THEME='.assets/config/omp_cfg/theme.omp.json'
 fi
 SH_PROFILE_PATH='/etc/profile.d'
 PS_PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
@@ -31,7 +29,7 @@ PS_SCRIPTS_PATH='/usr/local/share/powershell/Scripts'
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 
 # bash aliases
-sudo \cp -f .assets/config/bash_aliases $SH_PROFILE_PATH
+sudo \cp -f .assets/config/bash_cfg/bash_aliases $SH_PROFILE_PATH
 # oh-my-posh theme
 sudo \mkdir -p $OH_MY_POSH_PATH
 sudo \cp -f $OMP_THEME "$OH_MY_POSH_PATH/theme.omp.json"
@@ -39,14 +37,21 @@ sudo \cp -f $OMP_THEME "$OH_MY_POSH_PATH/theme.omp.json"
 sudo \cp -f .assets/config/profile.ps1 $PS_PROFILE_PATH
 # PowerShell functions
 sudo \mkdir -p $PS_SCRIPTS_PATH
-sudo \cp -f .assets/config/ps_aliases_common.ps1 $PS_SCRIPTS_PATH
+sudo \cp -f .assets/config/pwsh_cfg/ps_aliases_common.ps1 $PS_SCRIPTS_PATH
 # git functions
 if type git &>/dev/null; then
-  sudo \cp -f .assets/config/bash_aliases_git $SH_PROFILE_PATH
-  sudo \cp -f .assets/config/ps_aliases_git.ps1 $PS_SCRIPTS_PATH
+  sudo \cp -f .assets/config/bash_cfg/bash_aliases_git $SH_PROFILE_PATH
+  sudo \cp -f .assets/config/pwsh_cfg/ps_aliases_git.ps1 $PS_SCRIPTS_PATH
 fi
 # kubectl functions
 if type -f kubectl &>/dev/null; then
-  sudo \cp -f .assets/config/bash_aliases_kubectl $SH_PROFILE_PATH
-  sudo \cp -f .assets/config/ps_aliases_kubectl.ps1 $PS_SCRIPTS_PATH
+  sudo \cp -f .assets/config/bash_cfg/bash_aliases_kubectl $SH_PROFILE_PATH
+  sudo \cp -f .assets/config/pwsh_cfg/ps_aliases_kubectl.ps1 $PS_SCRIPTS_PATH
 fi
+
+# *setup profiles
+sudo .assets/provision/setup_profiles_allusers.sh
+sudo .assets/provision/setup_profiles_allusers.ps1
+sudo .assets/provision/setup_omp.sh
+.assets/provision/setup_profiles_user.sh
+.assets/provision/setup_profiles_user.ps1
