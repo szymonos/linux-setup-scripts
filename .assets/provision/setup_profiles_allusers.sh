@@ -7,19 +7,19 @@ PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 
 # *Copy global profiles
-if [ -d /tmp/bash_cfg ]; then
+if [ -d /tmp/config/bash_cfg ]; then
   # bash aliases
-  \mv -f /tmp/bash_cfg/bash_aliases $PROFILE_PATH
+  \mv -f /tmp/config/bash_cfg/bash_aliases $PROFILE_PATH
   # git aliases
   if type git &>/dev/null; then
-    \mv -f /tmp/bash_cfg/bash_aliases_git $PROFILE_PATH
+    \mv -f /tmp/config/bash_cfg/bash_aliases_git $PROFILE_PATH
   fi
   # kubectl aliases
   if type -f kubectl &>/dev/null; then
-    \mv -f /tmp/bash_cfg/bash_aliases_kubectl $PROFILE_PATH
+    \mv -f /tmp/config/bash_cfg/bash_aliases_kubectl $PROFILE_PATH
   fi
   # clean config folder
-  \rm -fr /tmp/bash_cfg
+  \rm -fr /tmp/config/bash_cfg
 fi
 
 # *bash profile
@@ -46,3 +46,20 @@ grep -qw 'completion-ignore-case' /etc/inputrc || echo 'set completion-ignore-ca
 
 # *set localtime to UTC
 [ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime
+
+# *add reboot/shutdown polkit rule for vagrant group
+if getent group | grep -qw '^vagrant' && [ ! -f /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules ]; then
+  cat <<EOF >/usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules
+/* Allow members of the vagrant group to shutdown or restart
+ * without password authentication.
+ */
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.login1.power-off" ||
+         action.id == "org.freedesktop.login1.reboot") &&
+        subject.isInGroup("vagrant"))
+    {
+        return polkit.Result.YES;
+    }
+});
+EOF
+fi

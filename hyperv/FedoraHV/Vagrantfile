@@ -4,18 +4,20 @@
 # *Variables
 box      = "generic/fedora36"
 provider = "hyperv"
-boxname  = "FedoraHV"
+boxname  = "Fedora"
 # network configuration
 nat_net  = "192.168.121.0/24"
-ip_addr  = "192.168.121.88"
+ip_addr  = "192.168.121.57"
 dns      = "9.9.9.9,149.112.112.112"
 # vm configuration
 memory   = 8192
 cpu      = 4
 
 # calculate global variables
-hostname = boxname.downcase
+vmname            = "Vg-#{boxname}"
+hostname          = "#{vmname.downcase}-hv"
 switch_ip, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
+dns1, dns2        = dns.split(",")
 
 # *Scripts
 script_install_packages = <<~SCRIPT
@@ -60,7 +62,7 @@ Vagrant.configure("2") do |config|
       trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
       trigger.run = {
         privileged: "true", powershell_elevated_interactive: "true",
-        path: "../../.assets/trigger/set_hyperv_switch.ps1", :args => [boxname]
+        path: "../../.assets/trigger/set_hyperv_switch.ps1", :args => [vmname]
       }
     end
     node.trigger.after :reload do |trigger|
@@ -81,12 +83,12 @@ Vagrant.configure("2") do |config|
     node.vm.box = box
     node.vm.hostname = hostname
     node.vm.provider provider do |h|
-      h.enable_virtualization_extensions = true
-      h.linked_clone = true
+      h.vmname = vmname
       h.memory = memory
       h.maxmemory = memory
       h.cpus = cpu
-      h.vmname = boxname
+      h.linked_clone = true
+      h.enable_virtualization_extensions = true
     end
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
@@ -115,10 +117,13 @@ Vagrant.configure("2") do |config|
     node.vm.provision "shell", name: "install xrdp...", path: "../../.assets/provision/install_xrdp.sh"
     # ~setting up profiles
     node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
-    node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
-    node.vm.provision "file", source: "../../.assets/config/*", destination: "/tmp/"
-    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
-    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
+    node.vm.provision "shell", name: "install pwsh...", path: "../../.assets/provision/install_pwsh.sh"
+    node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
+    node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../.assets/provision/setup_profiles_allusers.ps1"
+    node.vm.provision "shell", name: "set up bash for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
+    node.vm.provision "shell", name: "set up oh-my-posh...", path: "../../.assets/provision/setup_omp.sh"
+    node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../.assets/provision/setup_profiles_user.ps1", privileged: false
+    node.vm.provision "shell", name: "set up bash for current user...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
     # ~upgrade system
     node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     # ~reload vm

@@ -11,12 +11,12 @@ done
 if type $APP &>/dev/null; then
   VER=$(kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
-    echo "$APP $VER is already latest"
+    echo -e "\e[36m$APP $VER is already latest\e[0m"
     exit 0
   fi
 fi
 
-echo "Install $APP $REL"
+echo -e "\e[96minstalling $APP $REL\e[0m"
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 

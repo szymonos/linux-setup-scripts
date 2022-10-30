@@ -21,7 +21,8 @@ if (-not $PSStyle) {
     Enable-ExperimentalFeature PSAnsiRenderingFileInfo
 }
 
-if ((Test-Path /usr/bin/kubectl) -and -not (Select-String '__kubectl_debug' -Path $PROFILE -Quiet)) {
+$profileSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
+if ((Test-Path /usr/bin/kubectl) -and -not $profileSet) {
     Write-Host 'setting kubectl auto-completion...' -ForegroundColor Cyan
     (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
 }

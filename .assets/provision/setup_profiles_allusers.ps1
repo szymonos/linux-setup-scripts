@@ -13,22 +13,22 @@ $PROFILE_PATH = [IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)
 $SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
 
 # *Copy global profiles
-if (Test-Path /tmp/pwsh_cfg -PathType Container) {
+if (Test-Path /tmp/config/pwsh_cfg -PathType Container) {
     # PowerShell profile
-    Move-Item /tmp/pwsh_cfg/profile.ps1 -Destination $PROFILE_PATH
+    Move-Item /tmp/config/pwsh_cfg/profile.ps1 -Destination $PROFILE_PATH
     # PowerShell functions
-    New-Item $SCRIPTS_PATH -ItemType Directory
-    Move-Item /tmp/pwsh_cfg/ps_aliases_common.ps1 -Destination $SCRIPTS_PATH
+    New-Item $SCRIPTS_PATH -ItemType Directory | Out-Null
+    Move-Item /tmp/config/pwsh_cfg/ps_aliases_common.ps1 -Destination $SCRIPTS_PATH
     # git functions
     if (Test-Path /usr/bin/git -PathType Leaf) {
-        Move-Item /tmp/pwsh_cfg/ps_aliases_git.ps1 -Destination $SCRIPTS_PATH
+        Move-Item /tmp/config/pwsh_cfg/ps_aliases_git.ps1 -Destination $SCRIPTS_PATH
     }
     # kubectl functions
     if (Test-Path /usr/bin/kubectl -PathType Leaf) {
-        Move-Item /tmp/pwsh_cfg/ps_aliases_kubectl.ps1 -Destination $SCRIPTS_PATH
+        Move-Item /tmp/config/pwsh_cfg/ps_aliases_kubectl.ps1 -Destination $SCRIPTS_PATH
     }
     # clean config folder
-    Remove-Item -Force -Recurse /tmp/pwsh_cfg
+    Remove-Item -Force -Recurse /tmp/config/pwsh_cfg
 }
 
 # *PowerShell profile

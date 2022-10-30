@@ -2,17 +2,18 @@
 # vi: set ft=ruby :
 
 # *Variables
-box        = "ubuntu/jammy64"
-provider   = "virtualbox"
-boxname    = "UbuntuVB"
+box      = "ubuntu/jammy64"
+provider = "virtualbox"
+boxname  = "Ubuntu"
 # network configuration
-ip_addr    = "192.168.56.61"
+ip_addr  = "192.168.56.54"
 # vm configuration
-memory     = 4096
-cpu        = 2
+memory   = 4096
+cpu      = 2
 
 # calculate global variables
-hostname = boxname.downcase
+vmname   = "Vg-#{boxname}"
+hostname = "#{vmname.downcase}-vb"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
@@ -21,7 +22,12 @@ script_install_packages = <<~SCRIPT
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  grep -qw "eth1:$" /etc/netplan/01-netcfg.yaml || cat <<"EOF" >>/etc/netplan/01-netcfg.yaml
+  cat <<'EOF' >/etc/netplan/50-vagrant.yaml
+  ---
+  network:
+    version: 2
+    renderer: networkd
+    ethernets:
       eth1:
         dhcp4: false
         dhcp6: false
@@ -73,7 +79,7 @@ Vagrant.configure("2") do |config|
     node.vm.hostname = hostname
     node.vm.network "private_network", ip: ip_addr
     node.vm.provider provider do |vb|
-      vb.name = boxname
+      vb.name = vmname
       vb.memory = memory
       vb.cpus = cpu
       vb.customize [
@@ -94,10 +100,13 @@ Vagrant.configure("2") do |config|
     node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
     # ~setting up profiles
     node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
-    node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
-    node.vm.provision "file", source: "../../.assets/config/*", destination: "/tmp/"
-    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
-    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
+    node.vm.provision "shell", name: "install pwsh...", path: "../../.assets/provision/install_pwsh.sh"
+    node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
+    node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../.assets/provision/setup_profiles_allusers.ps1"
+    node.vm.provision "shell", name: "set up bash for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
+    node.vm.provision "shell", name: "set up oh-my-posh...", path: "../../.assets/provision/setup_omp.sh"
+    node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../.assets/provision/setup_profiles_user.ps1", privileged: false
+    node.vm.provision "shell", name: "set up bash for current user...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
     # ~upgrade system
     node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     # ~reload vm
