@@ -4,7 +4,12 @@ Setting up fresh WSL distro.
 .EXAMPLE
 $distro = 'Fedora'
 $gh_user = 'szymonos'
-$repos = 'devops-scripts,powershell-scripts,ps-szymonos,vagrant'
+$repos = @(
+    'devops-scripts'
+    'powershell-scripts'
+    'ps-szymonos'
+    'vagrant'
+)
 $scope = 'k8s_basic'
 $theme_font = 'powerline'
 ~install packages and setup profile
@@ -34,7 +39,7 @@ param (
 
     [Alias('r')]
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [string]$repos,
+    [string[]]$repos,
 
     [Alias('g')]
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
@@ -127,5 +132,5 @@ wsl.exe --distribution $distro --exec .assets/provision/setup_profiles_user.sh
 # *setup GitHub repositories
 if ($repos) {
     Write-Host "setting up GitHub repositories..." -ForegroundColor Green
-    wsl.exe --distribution $distro --exec .assets/provision/setup_gh_repos.sh "$($distro.ToLower())" "$repos" "$gh_user" "$env:USERNAME"
+    wsl.exe --distribution $distro --exec .assets/provision/setup_gh_repos.ps1 -d $distro -r "$repos" -g $gh_user -w $env:USERNAME
 }
