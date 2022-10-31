@@ -9,17 +9,17 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/
 INSTALL_DASH=true
 case $SYS_ID in
 arch)
-  pacman -Sy --noconfirm sassc
+  sudo pacman -Sy --noconfirm sassc
   ;;
 fedora)
-  dnf install -y @development-tools sassc
+  sudo dnf install -y @development-tools sassc
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y build-essential sassc
+  sudo apt-get update && sudo apt-get install -y build-essential sassc
   ;;
 opensuse)
-  zypper in -y -t pattern devel_basis
+  sudo zypper in -y -t pattern devel_basis
   INSTALL_DASH=false
   ;;
 *)
