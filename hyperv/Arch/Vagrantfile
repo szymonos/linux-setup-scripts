@@ -29,10 +29,11 @@ dns1, dns2        = dns.split(",")
 # *Scripts
 script_install_packages = <<~SCRIPT
   pacman -Sy --needed --noconfirm btop
-  type paru &>/dev/null || su - vagrant -c 'git clone https://aur.archlinux.org/paru-bin.git \\
-    && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
+  type paru &>/dev/null || sudo -u vagrant git clone https://aur.archlinux.org/paru-bin.git \\
+    && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin
+  sed -i 's/^#Color/Color/' /etc/pacman.conf
+  sed -i 's/^#BottomUp/BottomUp/' /etc/paru.conf
 SCRIPT
-
 script_configure_static_ip = <<~SCRIPT
   cat <<'EOF' >/etc/systemd/network/eth0.network
   [Match]
