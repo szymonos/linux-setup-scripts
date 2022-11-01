@@ -14,6 +14,7 @@ cpu      = 2
 install_packages   = true
 install_kubernetes = false
 install_gnome      = false
+install_edge       = false
 setup_bash         = true
 setup_pwsh         = true
 upgrade_system     = true
@@ -123,7 +124,9 @@ Vagrant.configure("2") do |config|
     if install_gnome
       node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
       node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
-      node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+      if install_edge
+        node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+      end
     end
     if setup_bash || setup_pwsh
       node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
