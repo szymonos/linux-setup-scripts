@@ -12,7 +12,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|fedora|debian|ubuntu|opensuse)
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache bash-completion curl git jq man-db nano openssl tree vim
+  apk add --no-cache bash bash-completion curl git jq mandoc nano openssl tree vim
   ;;
 arch)
   pacman -Sy --noconfirm base-devel bash-completion curl git jq man-db nano openssl tree vim

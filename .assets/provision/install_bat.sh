@@ -19,31 +19,32 @@ fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m"
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
-INSTALLED=false
 case $SYS_ID in
+alpine)
+  apk add --no-cache bat
+  ;;
 arch)
-  pacman -Sy --needed --noconfirm bat && INSTALLED=true
+  pacman -Sy --needed --noconfirm bat
   ;;
 fedora)
-  dnf install -y bat && INSTALLED=true
+  dnf install -y bat
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f bat.deb ]]; do
     curl -Lsk -o bat.deb "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
   done
-  dpkg -i bat.deb && rm -f bat.deb && INSTALLED=true
+  dpkg -i bat.deb && rm -f bat.deb
   ;;
 opensuse)
-  zypper in -y bat && INSTALLED=true
+  zypper in -y bat
+  ;;
+*)
+  while [[ ! -d "bat-v${REL}-x86_64-unknown-linux-gnu" ]]; do
+    curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx
+  done
+  install -o root -g root -m 0755 "bat-v${REL}-x86_64-unknown-linux-gnu/bat" /usr/bin/bat && rm -fr "bat-v${REL}-x86_64-unknown-linux-gnu"
   ;;
 esac
-$INSTALLED && exit 0
-
-# install from binary if above didn't work
-while [[ ! -d "bat-v${REL}-x86_64-unknown-linux-gnu" ]]; do
-  curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx
-done
-install -o root -g root -m 0755 "bat-v${REL}-x86_64-unknown-linux-gnu/bat" /usr/bin/bat && rm -fr "bat-v${REL}-x86_64-unknown-linux-gnu"
