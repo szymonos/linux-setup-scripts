@@ -30,29 +30,30 @@ function cds { Set-Location $SWD }
 #endregion
 
 #region environment variables and aliases
-# PATH env
-$private:pPaths = @(
-    [IO.Path]::Join($HOME, '.local', 'bin')
-)
-foreach ($p in $pPaths) {
-    if ((Test-Path $p) -and $env:PATH -NotMatch "$p/?($([IO.Path]::PathSeparator)|$)") {
-        $env:PATH = [string]::Join([IO.Path]::PathSeparator, $p, $env:PATH)
-    }
-}
+$env:OS_EDITION = (Select-String -Pattern '^PRETTY_NAME=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
+$env:OMP_PATH = '/usr/local/share/oh-my-posh'
+$env:SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
+$env:COMPUTERNAME = $env:HOSTNAME
 # aliases
-$private:pAliasFiles = Get-ChildItem -Path /usr/local/share/powershell/Scripts -Filter 'ps_aliases_*.ps1' -File -ErrorAction SilentlyContinue
-foreach ($file in $pAliasFiles) {
-    . $file.FullName
+(Get-ChildItem -Path $env:SCRIPTS_PATH -Filter 'ps_aliases_*.ps1' -File).ForEach{
+    . $_.FullName
+}
+#endregion
+
+#region PATH
+@(
+    [IO.Path]::Join($HOME, '.local', 'bin')
+).ForEach{
+    if ((Test-Path $_) -and $env:PATH -NotMatch "$_/?($([IO.Path]::PathSeparator)|$)") {
+        $env:PATH = [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH)
+    }
 }
 #endregion
 
 #region startup
-$private:pOSEdition = (Select-String -Pattern '^PRETTY_NAME=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
-Write-Host "$($PSStyle.Foreground.BrightWhite)$pOSEdition | PowerShell $($PSVersionTable.PSVersion)$($PSStyle.Reset)"
+Write-Host "$($PSStyle.Foreground.BrightWhite)$env:OS_EDITION | PowerShell $($PSVersionTable.PSVersion)$($PSStyle.Reset)"
 
-# oh-my-posh initialization
-$private:pOmpTheme = '/usr/local/share/oh-my-posh/theme.omp.json'
-if ((Get-Command oh-my-posh -CommandType Application -ErrorAction SilentlyContinue) -and (Test-Path $pOmpTheme -PathType Leaf)) {
-    oh-my-posh --init --shell pwsh --config $pOmpTheme | Invoke-Expression
+if ((Get-Command oh-my-posh -ErrorAction SilentlyContinue) -and (Test-Path "$env:OMP_PATH/theme.omp.json")) {
+    oh-my-posh --init --shell pwsh --config "$env:OMP_PATH/theme.omp.json" | Invoke-Expression
 }
 #endregion
