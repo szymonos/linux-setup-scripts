@@ -19,32 +19,33 @@ fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m"
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
-INSTALLED=false
 case $SYS_ID in
+alpine)
+  apk add --no-cache exa
+  ;;
 arch)
-  pacman -Sy --needed --noconfirm exa && INSTALLED=true
+  pacman -Sy --needed --noconfirm exa
   ;;
 fedora)
-  dnf install -y exa && INSTALLED=true
+  dnf install -y exa
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y exa && INSTALLED=true
+  apt-get update && apt-get install -y exa
   ;;
 opensuse)
-  zypper in -y exa && INSTALLED=true
+  zypper in -y exa
+  ;;
+*)
+  while [[ ! -f exa-linux-x86_64.zip ]]; do
+    curl -Lsk -o exa-linux-x86_64.zip "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
+  done
+  unzip exa-linux-x86_64.zip
+  \mv -f bin/exa /usr/bin/exa
+  \mv -f man/* $(manpath | cut -d : -f 1)/man1
+  \mv -f completions/exa.bash /etc/bash_completion.d
+  rm -fr bin completions man exa-linux-x86_64.zip
   ;;
 esac
-$INSTALLED && exit 0
-
-# install from binary if above didn't work
-while [[ ! -f exa-linux-x86_64.zip ]]; do
-  curl -Lsk -o exa-linux-x86_64.zip "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
-done
-unzip exa-linux-x86_64.zip
-\mv -f bin/exa /usr/bin/exa
-\mv -f man/* $(manpath | cut -d : -f 1)/man1
-\mv -f completions/exa.bash /etc/bash_completion.d
-rm -fr bin completions man exa-linux-x86_64.zip

@@ -2,25 +2,30 @@
 # vi: set ft=ruby :
 
 # *Variables
-box      = "ubuntu/jammy64"
-provider = "virtualbox"
+box      = "generic/ubuntu2204"
+provider = "hyperv"
 boxname  = "Ubuntu"
 # network configuration
-ip_addr  = "192.168.56.54"
+nat_net  = "192.168.121.0/24"
+ip_addr  = "192.168.121.54"
+dns      = "9.9.9.9,149.112.112.112"
 # vm configuration
 memory   = 4096
-cpu      = 2
+cpu      = 4
 # conditions
 install_packages   = true
 install_kubernetes = false
 install_gnome      = false
+install_edge       = false
 setup_bash         = true
 setup_pwsh         = true
 upgrade_system     = true
 
 # calculate global variables
-vmname   = "Vg-#{boxname}"
-hostname = "#{vmname.downcase}-vb"
+vmname            = "Vg-#{boxname}"
+hostname          = "#{vmname.downcase}-hv"
+switch_ip, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
+dns1, dns2        = dns.split(",")
 
 # *Scripts
 script_install_packages = <<~SCRIPT
@@ -29,43 +34,46 @@ script_install_packages = <<~SCRIPT
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  cat <<'EOF' >/etc/netplan/50-vagrant.yaml
-  ---
+  cat <<'EOF' >/etc/netplan/01-netcfg.yaml
   network:
     version: 2
     renderer: networkd
     ethernets:
-      eth1:
+      eth0:
         dhcp4: false
         dhcp6: false
-        addresses: [#{ip_addr}/24]
+        optional: true
+        nameservers:
+          addresses: [#{dns}]
+        addresses: [#{ip_addr}/#{prefix}]
+        routes:
+          - to: default
+            via: #{switch_ip}
   EOF
-  netplan generate
 SCRIPT
 
 # *VM provisioning
 Vagrant.configure("2") do |config|
   # common triggers
   config.trigger.before :up do |trigger|
-    trigger.info = "Cleaning up VirtualBox VM folder..."
+    trigger.info = "Creating 'NATSwitch' Hyper-V switch if it does not exist..."
     trigger.run = {
-      privileged: "false", powershell_elevated_interactive: "false",
-      path: "../../.assets/trigger/cleanup_vbox_vm.ps1", :args => [boxname]
+      privileged: "true", powershell_elevated_interactive: "true",
+      path: "../../.assets/trigger/create_hyperv_natswitch.ps1", :args => [nat_net]
     }
   end
   # common config
-  if Vagrant.has_plugin?("vagrant-vbguest") then
-    config.vbguest.auto_update = false
-  end
-  config.vm.boot_timeout = 300
-  config.vm.graceful_halt_timeout = 300
-  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+  config.vm.network "public_network"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.define boxname do |node|
     identity_file = "#{Dir.pwd}/.vagrant/machines/#{boxname}/#{provider}/private_key"
     # node triggers
-    node.trigger.after :up do |trigger|
-      trigger.info = "Set inotify settings..."
-      trigger.run_remote = { privileged: true, path: "../../.assets/trigger/set_inotify.sh" }
+    node.trigger.before :reload do |trigger|
+      trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
+      trigger.run = {
+        privileged: "true", powershell_elevated_interactive: "true",
+        path: "../../.assets/trigger/set_hyperv_switch.ps1", :args => [vmname]
+      }
     end
     node.trigger.after :reload do |trigger|
       trigger.info = "Add vagrant configuration to ssh config file..."
@@ -84,17 +92,13 @@ Vagrant.configure("2") do |config|
     # node setup
     node.vm.box = box
     node.vm.hostname = hostname
-    node.vm.network "private_network", ip: ip_addr
-    node.vm.provider provider do |vb|
-      vb.name = vmname
-      vb.memory = memory
-      vb.cpus = cpu
-      vb.customize [
-        "modifyvm", :id,
-        "--cableconnected1", "on",
-        "--graphicscontroller", "vmsvga",
-        "--accelerate3d", "on"
-      ]
+    node.vm.provider provider do |h|
+      h.vmname = vmname
+      h.memory = memory
+      h.maxmemory = memory
+      h.cpus = cpu
+      h.linked_clone = true
+      h.enable_virtualization_extensions = true
     end
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
@@ -123,8 +127,10 @@ Vagrant.configure("2") do |config|
     if install_gnome
       node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
       node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
-      node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
       node.vm.provision "shell", name: "install xrdp...", path: "../../.assets/provision/install_xrdp.sh"
+      if install_edge
+        node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+      end
     end
     if setup_bash || setup_pwsh
       node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"

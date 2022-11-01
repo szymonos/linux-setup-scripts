@@ -10,7 +10,7 @@ while [[ -z "$REL" ]]; do
 done
 
 if type $APP &>/dev/null; then
-  VER=$(rg --version | grep -Po '(?<=ripgrep )[\d\.]+$')
+  VER=$(rg --version | grep -Po '(?<=^ripgrep )[\d\.]+')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[36m$APP v$VER is already latest\e[0m"
     exit 0
@@ -19,9 +19,12 @@ fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m"
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|centos|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|centos|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
 case $SYS_ID in
+alpine)
+  apk add --no-cache exa && INSTALLED=true
+  ;;
 arch)
   pacman -Sy --needed --noconfirm ripgrep
   ;;

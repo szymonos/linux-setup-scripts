@@ -8,7 +8,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/
 
 case $SYS_ID in
 arch)
-  su - vagrant -c 'paru -Sy --needed --noconfirm xrdp'
+  sudo -u vagrant paru -Sy --needed --noconfirm xrdp
   ;;
 fedora)
   # Load the Hyper-V kernel module
@@ -17,8 +17,7 @@ fedora)
   fi
   dnf -y install xrdp tigervnc-server
   # enable firewall rules
-  firewall-cmd --add-port=3389/tcp
-  firewall-cmd --runtime-to-permanent
+  firewall-cmd --permanent --add-service=rdp
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive

@@ -16,6 +16,7 @@ cpu      = 4
 install_packages   = true
 install_kubernetes = false
 install_gnome      = false
+install_edge       = false
 setup_bash         = true
 setup_pwsh         = true
 upgrade_system     = true
@@ -28,9 +29,14 @@ dns1, dns2        = dns.split(",")
 
 # *Scripts
 script_install_packages = <<~SCRIPT
+  sed -i 's/^#Color/Color/' /etc/pacman.conf
   pacman -Sy --needed --noconfirm btop
-  type paru &>/dev/null || su - vagrant -c 'git clone https://aur.archlinux.org/paru-bin.git \\
-    && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
+  if ! type paru &>/dev/null; then
+    git clone https://aur.archlinux.org/paru-bin.git
+    cd paru-bin && sudo -u vagrant makepkg -si --noconfirm
+    cd .. && rm -fr paru-bin
+  fi
+  sed -i 's/^#BottomUp/BottomUp/' /etc/paru.conf
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
@@ -121,8 +127,10 @@ Vagrant.configure("2") do |config|
     if install_gnome
       node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
       node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
-      node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
       node.vm.provision "shell", name: "install xrdp...", path: "../../.assets/provision/install_xrdp.sh"
+      if install_edge
+        node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+      end
     end
     if setup_bash || setup_pwsh
       node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"

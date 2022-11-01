@@ -34,7 +34,7 @@ sudo \cp -f .assets/config/bash_cfg/bash_aliases $SH_PROFILE_PATH
 sudo \mkdir -p $OH_MY_POSH_PATH
 sudo \cp -f $OMP_THEME "$OH_MY_POSH_PATH/theme.omp.json"
 # PowerShell profile
-sudo \cp -f .assets/config/profile.ps1 $PS_PROFILE_PATH
+sudo \cp -f .assets/config/pwsh_cfg/profile.ps1 $PS_PROFILE_PATH
 # PowerShell functions
 sudo \mkdir -p $PS_SCRIPTS_PATH
 sudo \cp -f .assets/config/pwsh_cfg/ps_aliases_common.ps1 $PS_SCRIPTS_PATH
