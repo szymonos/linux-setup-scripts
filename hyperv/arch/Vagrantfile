@@ -30,7 +30,7 @@ dns1, dns2        = dns.split(",")
 # *Scripts
 script_install_packages = <<~SCRIPT
   sed -i 's/^#Color/Color/' /etc/pacman.conf
-  pacman -Sy --needed --noconfirm btop
+  pacman -Sy --needed --noconfirm btop nano
   if ! type paru &>/dev/null; then
     git clone https://aur.archlinux.org/paru-bin.git
     cd paru-bin && sudo -u vagrant makepkg -si --noconfirm
