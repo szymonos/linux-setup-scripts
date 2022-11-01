@@ -17,8 +17,7 @@ fedora)
   fi
   dnf -y install xrdp tigervnc-server
   # enable firewall rules
-  firewall-cmd --add-port=3389/tcp
-  firewall-cmd --runtime-to-permanent
+  firewall-cmd --permanent --add-service=rdp
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
