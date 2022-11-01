@@ -2,7 +2,7 @@
 .SYNOPSIS
 Setting up fresh WSL distro.
 .EXAMPLE
-$distro = 'fedoraremix'
+$distro = 'Arch'
 $gh_user = 'szymonos'
 $repos = @(
     'devops-scripts'
@@ -10,12 +10,14 @@ $repos = @(
     'ps-szymonos'
     'vagrant'
 )
-$scope = 'k8s_basic'
 $theme_font = 'powerline'
+$scope = 'k8s_basic'
 ~install packages and setup profile
-.assets/scripts/setup_wsl.ps1 -d $distro -s $scope -f $theme_font
+.assets/scripts/setup_wsl.ps1 $distro -f $theme_font
+.assets/scripts/setup_wsl.ps1 $distro -s $scope -f $theme_font
 ~install packages, setup profiles and clone repositories
-.assets/scripts/setup_wsl.ps1 -d $distro -s $scope -f $theme_font -r $repos -g $gh_user
+.assets/scripts/setup_wsl.ps1 $distro -f $theme_font -r $repos -g $gh_user
+.assets/scripts/setup_wsl.ps1 $distro -s $scope -f $theme_font -r $repos -g $gh_user
 #>
 [CmdletBinding()]
 [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -26,14 +28,14 @@ param (
     [string]$distro,
 
     [Alias('s')]
-    [Parameter(Mandatory, Position = 1, ParameterSetName = 'Default')]
-    [Parameter(Mandatory, Position = 1, ParameterSetName = 'GitHub')]
+    [Parameter(ParameterSetName = 'Default')]
+    [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('base', 'k8s_basic', 'k8s_full')]
     [string]$scope = 'base',
 
     [Alias('f')]
-    [Parameter(Mandatory, Position = 2, ParameterSetName = 'Default')]
-    [Parameter(Mandatory, Position = 2, ParameterSetName = 'GitHub')]
+    [Parameter(ParameterSetName = 'Default')]
+    [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('base', 'powerline')]
     [string]$theme_font = 'base',
 
