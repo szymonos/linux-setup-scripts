@@ -2,50 +2,44 @@
 .SYNOPSIS
 Setting up fresh WSL distro.
 .EXAMPLE
-$distro = 'Arch'
-$gh_user = 'szymonos'
+$distro     = 'fedoraremix'
+$theme_font = 'powerline'
+$scope      = 'k8s_basic'
+$gh_user    = 'szymonos'
 $repos = @(
     'devops-scripts'
-    'powershell-scripts'
     'ps-szymonos'
-    'vagrant'
+    'vagrant-scripts'
 )
-$theme_font = 'powerline'
-$scope = 'k8s_basic'
 ~install packages and setup profile
-.assets/scripts/setup_wsl.ps1 $distro -f $theme_font
-.assets/scripts/setup_wsl.ps1 $distro -s $scope -f $theme_font
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -s $scope
 ~install packages, setup profiles and clone repositories
-.assets/scripts/setup_wsl.ps1 $distro -f $theme_font -r $repos -g $gh_user
-.assets/scripts/setup_wsl.ps1 $distro -s $scope -f $theme_font -r $repos -g $gh_user
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos -s $scope
 #>
 [CmdletBinding()]
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param (
-    [Alias('d')]
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'Default')]
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'GitHub')]
     [string]$distro,
 
-    [Alias('s')]
-    [Parameter(ParameterSetName = 'Default')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateSet('base', 'k8s_basic', 'k8s_full')]
-    [string]$scope = 'base',
-
-    [Alias('f')]
     [Parameter(ParameterSetName = 'Default')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('base', 'powerline')]
     [string]$theme_font = 'base',
 
-    [Alias('r')]
-    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [string[]]$repos,
+    [Parameter(ParameterSetName = 'Default')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [ValidateSet('base', 'k8s_basic', 'k8s_full')]
+    [string]$scope = 'base',
 
-    [Alias('g')]
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [string]$gh_user
+    [string]$gh_user,
+
+    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
+    [string[]]$repos
 )
 
 # change temporarily encoding to utf-16 to match wsl output
@@ -66,7 +60,7 @@ wsl.exe --distribution $distro --user root --exec .assets/provision/install_bat.
 wsl.exe --distribution $distro --user root --exec .assets/provision/install_exa.sh
 wsl.exe --distribution $distro --user root --exec .assets/provision/install_ripgrep.sh
 if ($scope -in @('k8s_basic', 'k8s_full')) {
-    Write-Host "installing kubernetes base packages..." -ForegroundColor Green
+    Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_kubectl.sh
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_helm.sh
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_minikube.sh
@@ -75,7 +69,7 @@ if ($scope -in @('k8s_basic', 'k8s_full')) {
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_yq.sh
 }
 if ($scope -eq 'k8s_full') {
-    Write-Host "installing kubernetes additional packages..." -ForegroundColor Green
+    Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_flux.sh
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_kubeseal.sh
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_kustomize.sh
@@ -84,7 +78,7 @@ if ($scope -eq 'k8s_full') {
 
 # *copy files
 # calculate variables
-Write-Host "copying files..." -ForegroundColor Green
+Write-Host 'copying files...' -ForegroundColor Green
 $OMP_THEME = switch ($theme_font) {
     'base' {
         '.assets/config/omp_cfg/theme.omp.json'
@@ -111,16 +105,16 @@ if ($scope -notin @('k8s_basic', 'k8s_full')) {
 }
 
 # *setup profiles
-Write-Host "setting up profile for all users..." -ForegroundColor Green
+Write-Host 'setting up profile for all users...' -ForegroundColor Green
 wsl.exe --distribution $distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
 wsl.exe --distribution $distro --user root --exec .assets/provision/setup_profiles_allusers.sh
 wsl.exe --distribution $distro --user root --exec .assets/provision/setup_omp.sh
-Write-Host "setting up profile for current user..." -ForegroundColor Green
+Write-Host 'setting up profile for current user...' -ForegroundColor Green
 wsl.exe --distribution $distro --exec .assets/provision/setup_profiles_user.ps1
 wsl.exe --distribution $distro --exec .assets/provision/setup_profiles_user.sh
 
 # *setup GitHub repositories
 if ($repos) {
-    Write-Host "setting up GitHub repositories..." -ForegroundColor Green
+    Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
     wsl.exe --distribution $distro --exec .assets/provision/setup_gh_repos.ps1 -d $distro -r "$repos" -g $gh_user -w $env:USERNAME
 }
