@@ -48,7 +48,7 @@ grep -qw 'completion-ignore-case' /etc/inputrc || echo 'set completion-ignore-ca
 [ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime
 
 # *add reboot/shutdown polkit rule for vagrant group
-if getent group | grep -qw '^vagrant' && [ ! -f /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules ]; then
+if getent group | grep -qw '^vagrant' && [ -d /usr/share/polkit-1/rules.d ] && [ ! -f /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules ]; then
   cat <<EOF >/usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules
 /* Allow members of the vagrant group to shutdown or restart
  * without password authentication.
