@@ -19,9 +19,9 @@ $repos = @(
 ~install root certificate and install packages
 .assets/scripts/setup_wsl.ps1 $distro -t $theme_font -AddRootCert
 .assets/scripts/setup_wsl.ps1 $distro -t $theme_font -s $scope -AddRootCert
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos -AddRootCert
 .assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos -s $scope -AddRootCert
 #>
-[CmdletBinding()]
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param (
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'Default')]
