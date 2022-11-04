@@ -22,7 +22,7 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions
+  apt-get update && apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions firefox
   systemctl set-default graphical.target
   ;;
 opensuse)
