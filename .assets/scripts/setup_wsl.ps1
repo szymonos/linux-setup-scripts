@@ -16,7 +16,10 @@ $repos = @(
 .assets/scripts/setup_wsl.ps1 $distro -t $theme_font -s $scope
 ~install packages, setup profiles and clone repositories
 .assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos
-.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos -s $scope
+~install root certificate and install packages
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -AddRootCert
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -s $scope -AddRootCert
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos -s $scope -AddRootCert
 #>
 [CmdletBinding()]
 [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -25,13 +28,9 @@ param (
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'GitHub')]
     [string]$distro,
 
-    [Parameter(ParameterSetName = 'Default')]
-    [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('base', 'powerline')]
     [string]$theme_font = 'base',
 
-    [Parameter(ParameterSetName = 'Default')]
-    [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('base', 'k8s_basic', 'k8s_full')]
     [string]$scope = 'base',
 
@@ -39,7 +38,9 @@ param (
     [string]$gh_user,
 
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [string[]]$repos
+    [string[]]$repos,
+
+    [switch]$AddRootCert
 )
 
 # change temporarily encoding to utf-16 to match wsl output
@@ -49,6 +50,49 @@ $distroExists = [bool](wsl.exe -l | Select-String -Pattern "\b$distro\b")
 if (-not $distroExists) {
     Write-Warning "Specified distro doesn't exist!"
     break
+}
+
+if ($AddRootCert) {
+    $sysId = wsl.exe -d $distro --exec grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
+    if ($sysId -in @('debian', 'ubuntu')) {
+        wsl -d $distro -u root --exec bash -c "export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y ca-certificates"
+    }
+    # determine update ca parameters
+    $sysCmd = switch -Regex ($sysId) {
+        arch {
+            @{
+                CertPath    = '/etc/ca-certificates/trust-source/anchors'
+                UpdateCaCmd = 'trust extract-compat'
+            }
+            continue
+        }
+        fedora {
+            @{
+                CertPath    = '/etc/pki/ca-trust/source/anchors'
+                UpdateCaCmd = 'update-ca-trust'
+            }
+            continue
+        }
+        'debian|ubuntu' {
+            @{
+                CertPath    = '/usr/local/share/ca-certificates'
+                UpdateCaCmd = 'update-ca-certificates'
+            }
+            continue
+        }
+        opensuse {
+            @{
+                CertPath    = '/usr/share/pki/trust/anchors'
+                UpdateCaCmd = 'update-ca-certificates'
+            }
+            continue
+        }
+    }
+    # get root certificate
+    $chain = (Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n" 2>$null
+    $root_cert = ($chain | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value[-1]
+    # move cert to distro destination folder and update ca certificates
+    wsl -d $distro -u root --exec bash -c "mkdir -p $($sysCmd.CertPath) && echo '$root_cert' >$($sysCmd.CertPath)/root_ca.crt && $($sysCmd.UpdateCaCmd)"
 }
 
 # *install packages
