@@ -32,7 +32,7 @@ script_install_packages = <<~SCRIPT
   dnf install -y \\
     fedora-workstation-repositories \\
     dnf-plugins-core 'dnf-command(offline-upgrade)' \\
-    btop
+    btop nano
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT

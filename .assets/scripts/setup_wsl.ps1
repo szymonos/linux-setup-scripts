@@ -2,48 +2,45 @@
 .SYNOPSIS
 Setting up fresh WSL distro.
 .EXAMPLE
-$distro = 'fedoraremix'
-$gh_user = 'szymonos'
+$distro     = 'fedoraremix'
+$theme_font = 'powerline'
+$scope      = 'k8s_basic'
+$gh_user    = 'szymonos'
 $repos = @(
     'devops-scripts'
-    'powershell-scripts'
     'ps-szymonos'
-    'vagrant'
+    'vagrant-scripts'
 )
-$scope = 'k8s_basic'
-$theme_font = 'powerline'
 ~install packages and setup profile
-.assets/scripts/setup_wsl.ps1 -d $distro -s $scope -f $theme_font
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -s $scope
 ~install packages, setup profiles and clone repositories
-.assets/scripts/setup_wsl.ps1 -d $distro -s $scope -f $theme_font -r $repos -g $gh_user
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos
+~install root certificate and install packages
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -AddRootCert
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -s $scope -AddRootCert
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos -AddRootCert
+.assets/scripts/setup_wsl.ps1 $distro -t $theme_font -g $gh_user -r $repos -s $scope -AddRootCert
 #>
-[CmdletBinding()]
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param (
-    [Alias('d')]
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'Default')]
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'GitHub')]
     [string]$distro,
 
-    [Alias('s')]
-    [Parameter(Mandatory, Position = 1, ParameterSetName = 'Default')]
-    [Parameter(Mandatory, Position = 1, ParameterSetName = 'GitHub')]
-    [ValidateSet('base', 'k8s_basic', 'k8s_full')]
-    [string]$scope = 'base',
-
-    [Alias('f')]
-    [Parameter(Mandatory, Position = 2, ParameterSetName = 'Default')]
-    [Parameter(Mandatory, Position = 2, ParameterSetName = 'GitHub')]
     [ValidateSet('base', 'powerline')]
     [string]$theme_font = 'base',
 
-    [Alias('r')]
+    [ValidateSet('base', 'k8s_basic', 'k8s_full')]
+    [string]$scope = 'base',
+
+    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
+    [string]$gh_user,
+
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
     [string[]]$repos,
 
-    [Alias('g')]
-    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [string]$gh_user
+    [switch]$AddRootCert
 )
 
 # change temporarily encoding to utf-16 to match wsl output
@@ -55,6 +52,49 @@ if (-not $distroExists) {
     break
 }
 
+if ($AddRootCert) {
+    $sysId = wsl.exe -d $distro --exec grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
+    if ($sysId -in @('debian', 'ubuntu')) {
+        wsl -d $distro -u root --exec bash -c "export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y ca-certificates"
+    }
+    # determine update ca parameters
+    $sysCmd = switch -Regex ($sysId) {
+        arch {
+            @{
+                CertPath    = '/etc/ca-certificates/trust-source/anchors'
+                UpdateCaCmd = 'trust extract-compat'
+            }
+            continue
+        }
+        fedora {
+            @{
+                CertPath    = '/etc/pki/ca-trust/source/anchors'
+                UpdateCaCmd = 'update-ca-trust'
+            }
+            continue
+        }
+        'debian|ubuntu' {
+            @{
+                CertPath    = '/usr/local/share/ca-certificates'
+                UpdateCaCmd = 'update-ca-certificates'
+            }
+            continue
+        }
+        opensuse {
+            @{
+                CertPath    = '/usr/share/pki/trust/anchors'
+                UpdateCaCmd = 'update-ca-certificates'
+            }
+            continue
+        }
+    }
+    # get root certificate
+    $chain = (Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n" 2>$null
+    $root_cert = ($chain | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value[-1]
+    # move cert to distro destination folder and update ca certificates
+    wsl -d $distro -u root --exec bash -c "mkdir -p $($sysCmd.CertPath) && echo '$root_cert' >$($sysCmd.CertPath)/root_ca.crt && $($sysCmd.UpdateCaCmd)"
+}
+
 # *install packages
 Write-Host 'installing base packages...' -ForegroundColor Green
 wsl.exe --distribution $distro --user root --exec .assets/provision/install_base.sh
@@ -64,7 +104,7 @@ wsl.exe --distribution $distro --user root --exec .assets/provision/install_bat.
 wsl.exe --distribution $distro --user root --exec .assets/provision/install_exa.sh
 wsl.exe --distribution $distro --user root --exec .assets/provision/install_ripgrep.sh
 if ($scope -in @('k8s_basic', 'k8s_full')) {
-    Write-Host "installing kubernetes base packages..." -ForegroundColor Green
+    Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_kubectl.sh
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_helm.sh
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_minikube.sh
@@ -73,7 +113,7 @@ if ($scope -in @('k8s_basic', 'k8s_full')) {
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_yq.sh
 }
 if ($scope -eq 'k8s_full') {
-    Write-Host "installing kubernetes additional packages..." -ForegroundColor Green
+    Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_flux.sh
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_kubeseal.sh
     wsl.exe --distribution $distro --user root --exec .assets/provision/install_kustomize.sh
@@ -82,7 +122,7 @@ if ($scope -eq 'k8s_full') {
 
 # *copy files
 # calculate variables
-Write-Host "copying files..." -ForegroundColor Green
+Write-Host 'copying files...' -ForegroundColor Green
 $OMP_THEME = switch ($theme_font) {
     'base' {
         '.assets/config/omp_cfg/theme.omp.json'
@@ -109,16 +149,16 @@ if ($scope -notin @('k8s_basic', 'k8s_full')) {
 }
 
 # *setup profiles
-Write-Host "setting up profile for all users..." -ForegroundColor Green
+Write-Host 'setting up profile for all users...' -ForegroundColor Green
 wsl.exe --distribution $distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
 wsl.exe --distribution $distro --user root --exec .assets/provision/setup_profiles_allusers.sh
 wsl.exe --distribution $distro --user root --exec .assets/provision/setup_omp.sh
-Write-Host "setting up profile for current user..." -ForegroundColor Green
+Write-Host 'setting up profile for current user...' -ForegroundColor Green
 wsl.exe --distribution $distro --exec .assets/provision/setup_profiles_user.ps1
 wsl.exe --distribution $distro --exec .assets/provision/setup_profiles_user.sh
 
 # *setup GitHub repositories
 if ($repos) {
-    Write-Host "setting up GitHub repositories..." -ForegroundColor Green
+    Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
     wsl.exe --distribution $distro --exec .assets/provision/setup_gh_repos.ps1 -d $distro -r "$repos" -g $gh_user -w $env:USERNAME
 }

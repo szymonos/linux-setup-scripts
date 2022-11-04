@@ -42,7 +42,7 @@ $env:COMPUTERNAME = $env:HOSTNAME
 
 #region PATH
 @(
-    [IO.Path]::Join($HOME, '.local', 'bin')
+    [IO.Path]::Combine($HOME, '.local', 'bin')
 ).ForEach{
     if ((Test-Path $_) -and $env:PATH -NotMatch "$_/?($([IO.Path]::PathSeparator)|$)") {
         $env:PATH = [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH)

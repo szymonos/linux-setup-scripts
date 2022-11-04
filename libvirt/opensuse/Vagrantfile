@@ -25,7 +25,7 @@ hostname = "vg-#{boxname.downcase}"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  zypper in -y btop
+  zypper in -y btop nano
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT

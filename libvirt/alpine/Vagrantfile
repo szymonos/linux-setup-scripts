@@ -23,7 +23,7 @@ hostname = "vg-#{boxname.downcase}"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  apk add --no-cache btop
+  apk add --no-cache btop nano
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT

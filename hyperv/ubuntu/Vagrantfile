@@ -30,7 +30,7 @@ dns1, dns2        = dns.split(",")
 # *Scripts
 script_install_packages = <<~SCRIPT
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y btop
+  apt-get update && apt-get install -y btop nano
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT

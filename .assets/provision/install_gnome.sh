@@ -20,7 +20,12 @@ fedora)
   dnf install -y gnome-tweaks gnome-extensions-app firefox
   systemctl set-default graphical.target
   ;;
-debian | ubuntu)
+debian)
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y gnome/stable gnome-tweaks gnome-shell-extensions firefox-esr
+  systemctl set-default graphical.target
+  ;;
+ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   apt-get update && apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions firefox
   systemctl set-default graphical.target

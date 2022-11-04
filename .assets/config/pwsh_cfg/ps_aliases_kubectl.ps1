@@ -24,20 +24,20 @@ to the client in $HOME/.local/bin directory.
 Function requires the $HOME/.local/bin directory to be preceding path in $PATH environment variable.
 #>
 function Set-KubectlLocal {
-    $LOCAL_BIN = [IO.Path]::Join($HOME, '.local', 'bin')
+    $LOCAL_BIN = [IO.Path]::Combine($HOME, '.local', 'bin')
     $KUBECTL = $IsWindows ? 'kubectl.exe' : 'kubectl'
-    $KUBECTL_LOCAL = [IO.Path]::Join($LOCAL_BIN, $KUBECTL)
-    $KUBECTL_DIR = [IO.Path]::Join($HOME, '.local', 'share', 'kubectl')
+    $KUBECTL_LOCAL = [IO.Path]::Combine($LOCAL_BIN, $KUBECTL)
+    $KUBECTL_DIR = [IO.Path]::Combine($HOME, '.local', 'share', 'kubectl')
 
     $ver = Get-KubectlServerVersion
-    $kctlVer = [IO.Path]::Join($KUBECTL_DIR, $ver, $KUBECTL)
+    $kctlVer = [IO.Path]::Combine($KUBECTL_DIR, $ver, $KUBECTL)
 
     if ((Get-ItemPropertyValue $KUBECTL_LOCAL -Name LinkTarget -ErrorAction SilentlyContinue) -ne $kctlVer) {
         if (-not (Test-Path $LOCAL_BIN)) {
             New-Item $LOCAL_BIN -ItemType Directory | Out-Null
         }
         if (-not (Test-Path $kctlVer -PathType Leaf)) {
-            New-Item $([IO.Path]::Join($KUBECTL_DIR, $ver)) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+            New-Item $([IO.Path]::Combine($KUBECTL_DIR, $ver)) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
             $dlSysArch = if ($IsWindows) {
                 'windows/amd64'
             } elseif ($IsLinux) {

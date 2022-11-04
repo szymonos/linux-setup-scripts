@@ -2,12 +2,12 @@
 # vi: set ft=ruby :
 
 # *Variables
-box      = "generic/arch"
+box      = "generic/ubuntu2204"
 provider = "hyperv"
-boxname  = "Arch"
+boxname  = "Ubuntu"
 # network configuration
 nat_net  = "192.168.121.0/24"
-ip_addr  = "192.168.121.56"
+ip_addr  = "192.168.121.54"
 dns      = "9.9.9.9,149.112.112.112"
 # vm configuration
 memory   = 4096
@@ -29,26 +29,19 @@ dns1, dns2        = dns.split(",")
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  sed -i 's/^#Color/Color/' /etc/pacman.conf
-  pacman -Sy --needed --noconfirm btop nano
-  if ! type paru &>/dev/null; then
-    git clone https://aur.archlinux.org/paru-bin.git
-    cd paru-bin && sudo -u vagrant makepkg -si --noconfirm
-    cd .. && rm -fr paru-bin
-  fi
-  sed -i 's/^#BottomUp/BottomUp/' /etc/paru.conf
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y btop nano
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  cat <<'EOF' >/etc/systemd/network/eth0.network
-  [Match]
-  Name=eth0
-
-  [Network]
-  Address=#{ip_addr}/#{prefix}
-  Gateway=#{switch_ip}
-  DNS=#{dns1}
-  DNS=#{dns2}
+  grep -q '^iface eth1' /etc/network/interfaces || cat <<'EOF' >>/etc/network/interfaces
+  auto eth1
+  iface eth1 inet static
+        address #{ip_addr}
+        netmask 255.255.255.0
+        gateway #{switch_ip}
+        dns-nameserver #{dns1}
+        dns-nameserver #{dns2}
   EOF
 SCRIPT
 

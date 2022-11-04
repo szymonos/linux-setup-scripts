@@ -25,7 +25,9 @@ case $SYS_ID in
 alpine)
   apk add --no-cache ncurses-terminfo-base krb5-libs libgcc libintl libssl1.1 libstdc++ tzdata userspace-rcu zlib icu-libs
   apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache lttng-ust
-  curl -Lsk -o powershell.tar.gz "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
+  while [[ ! -f powershell.tar.gz ]]; do
+    curl -Lsk -o powershell.tar.gz "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
+  done
   mkdir -p /opt/microsoft/powershell/7 && tar zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm powershell.tar.gz
   chmod +x /opt/microsoft/powershell/7/pwsh && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
   ;;
@@ -34,7 +36,10 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  curl -Lsk -o powershell.deb "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
+  [ "$SYS_ID" = 'debian' ] && apt-get update && apt-get install -y libicu67 || true
+  while [[ ! -f powershell.deb ]]; do
+    curl -Lsk -o powershell.deb "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
+  done
   dpkg -i powershell.deb && rm -f powershell.deb
   ;;
 *)
