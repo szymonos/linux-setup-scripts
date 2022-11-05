@@ -64,7 +64,12 @@ function glgg { git log --graph }
 function glgga { git log --graph --decorate --all }
 function glgm { git log --graph --max-count=10 }
 function glgp { git log --stat -p }
-function glo { git log --oneline --decorate }
+function glo {
+    "Commit`u{00A6}Subject`u{00A6}Author`u{00A6}Date", (git log --all --pretty=format:"%h`u{00A6}%s`u{00A6}%an <%ae>`u{00A6}%ai") `
+    | ConvertFrom-Csv -Delimiter "`u{00A6}" `
+    | Select-Object Commit, Subject, Author, @{ Name = 'Date'; Expression = { [System.DateTimeOffset]$_.Date } } `
+    | Sort-Object Date
+}
 function glog { git log --oneline --decorate --graph }
 function gloga { git log --oneline --decorate --graph --all }
 function glol { git log --graph --pretty='%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit }
