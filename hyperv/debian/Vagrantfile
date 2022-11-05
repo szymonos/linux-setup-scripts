@@ -2,12 +2,12 @@
 # vi: set ft=ruby :
 
 # *Variables
-box      = "generic/ubuntu2204"
+box      = "generic/debian11"
 provider = "hyperv"
-boxname  = "Ubuntu"
+boxname  = "Debian"
 # network configuration
 nat_net  = "192.168.121.0/24"
-ip_addr  = "192.168.121.54"
+ip_addr  = "192.168.121.51"
 dns      = "9.9.9.9,149.112.112.112"
 # vm configuration
 memory   = 4096
@@ -30,18 +30,26 @@ dns1, dns2        = dns.split(",")
 # *Scripts
 script_install_packages = <<~SCRIPT
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y btop nano
+  apt-get update && apt-get install -y nano
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  grep -q '^iface eth1' /etc/network/interfaces || cat <<'EOF' >>/etc/network/interfaces
-  auto eth1
-  iface eth1 inet static
-        address #{ip_addr}
-        netmask 255.255.255.0
-        gateway #{switch_ip}
-        dns-nameserver #{dns1}
-        dns-nameserver #{dns2}
+  cat <<'EOF' >/etc/network/interfaces
+  # This file describes the network interfaces available on your system
+  # and how to activate them. For more information, see interfaces(5).
+  source /etc/network/interfaces.d/*
+  # The loopback network interface
+  auto lo
+  iface lo inet loopback
+  # The primary network interface
+  allow-hotplug eth0
+  iface eth0 inet static
+  address #{ip_addr}
+  netmask 255.255.255.0
+  gateway #{switch_ip}
+  dns-nameserver #{dns1}
+  dns-nameserver #{dns2}
+  pre-up sleep 2
   EOF
 SCRIPT
 
