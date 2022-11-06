@@ -25,6 +25,6 @@ debian | ubuntu)
   apt-get update && apt-get install -y bash-completion curl git jq man-db openssl tree vim
   ;;
 opensuse)
-  zypper in -y bash-completion curl git jq man openssl tree vim
+  zypper in -y system-group-wheel bash-completion git jq openssl tree vim
   ;;
 esac
