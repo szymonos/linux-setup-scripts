@@ -62,12 +62,8 @@ function Set-KubectlLocal {
 Prints the command passed as the parameter and then executes it.
 #>
 function Invoke-PrintRunCommand {
-    param (
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [string]$cmd
-    )
-    Write-Host $cmd -ForegroundColor Magenta
-    Invoke-Expression $cmd
+    Write-Host "$args" -ForegroundColor Magenta
+    Invoke-Expression @args
 }
 
 <#

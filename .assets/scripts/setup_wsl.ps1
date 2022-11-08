@@ -1,22 +1,32 @@
 <#
 .SYNOPSIS
 Setting up fresh WSL distro.
+.DESCRIPTION
+You can use the script for:
+- installing SSL certificates from the certificate chain (e.g. when self-signed certificates are used),
+- installing base packages and setting up bash and pwsh shells,
+- cloning GH repositories and setting up VSCode workspace.
+When GH repositories cloning is used, you need to generate and add an SSH key to your GH account.
 
 .PARAMETER Distro
 Name of the WSL distro.
 .PARAMETER ThemeFont
 Choose if oh-my-posh prompt theme should use base or powerline fonts.
 .PARAMETER Scope
-Installation scope, valid values: base, k8s_basic, k8s_full.
+Installation scope - valid values, and packages installed:
+- base: curl, git, jq, tree, vim, oh-my-posh, pwsh, bat, exa, ripgrep
+- k8s_basic: kubectl, helm, minikube, k3d, k9s, yq
+- k8s_full: flux, kubeseal, kustomize, argorolloutts-cli
+Every following option expands the scope.
 .PARAMETER Account
 GH account with the repositories to clone.
 .PARAMETER Repos
 List of repositories to clone into the WSL.
 .PARAMETER AddRootCert
-Switch for installing root CA certificate. Should be used separately.
+Switch for installing root CA certificate. It should be used separately from other options.
 
 .EXAMPLE
-$Distro    = 'Ubuntu'
+$Distro    = 'fedora'
 $ThemeFont = 'powerline'
 $Scope     = 'k8s_basic'
 $Account   = 'szymonos'
@@ -25,12 +35,12 @@ $Repos = @(
     'ps-szymonos'
     'vagrant-scripts'
 )
+~install root certificate in specified distro
+.assets/scripts/setup_wsl.ps1 $Distro -AddRootCert
 ~install packages and setup profile
 .assets/scripts/setup_wsl.ps1 $Distro -t $ThemeFont -s $Scope
 ~install packages, setup profiles and clone repositories
 .assets/scripts/setup_wsl.ps1 $Distro -a $Account -r $Repos -t $ThemeFont -s $Scope
-~install root certificate
-.assets/scripts/setup_wsl.ps1 $Distro -AddRootCert
 #>
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param (
@@ -69,46 +79,38 @@ if (-not $DistroExists) {
 }
 
 if ($AddRootCert) {
+    # determine update ca parameters depending on distro
     $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
-    if ($sysId -in @('debian', 'ubuntu')) {
-        wsl -d $Distro -u root --exec bash -c 'type update-ca-certificates &>/dev/null || (export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y ca-certificates)'
-    }
-    # determine update ca parameters
-    $sysCmd = switch -Regex ($sysId) {
+    switch -Regex ($sysId) {
         arch {
-            @{
-                CertPath    = '/etc/ca-certificates/trust-source/anchors'
-                UpdateCaCmd = 'trust extract-compat'
-            }
+            $crt = @{ path = '/etc/ca-certificates/trust-source/anchors'; cmd = 'trust extract-compat' }
             continue
         }
         fedora {
-            @{
-                CertPath    = '/etc/pki/ca-trust/source/anchors'
-                UpdateCaCmd = 'update-ca-trust'
-            }
+            $crt = @{ path = '/etc/pki/ca-trust/source/anchors'; cmd = 'update-ca-trust' }
             continue
         }
         'debian|ubuntu' {
-            @{
-                CertPath    = '/usr/local/share/ca-certificates'
-                UpdateCaCmd = 'update-ca-certificates'
-            }
+            $crt = @{ path = '/usr/local/share/ca-certificates'; cmd = 'update-ca-certificates' }
+            wsl -d $Distro -u root --exec bash -c 'type update-ca-certificates &>/dev/null || (export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y ca-certificates)'
             continue
         }
         opensuse {
-            @{
-                CertPath    = '/usr/share/pki/trust/anchors'
-                UpdateCaCmd = 'update-ca-certificates'
-            }
+            $crt = @{ path = '/usr/share/pki/trust/anchors'; cmd = 'update-ca-certificates' }
             continue
         }
     }
-    # get root certificate
-    $chain = (Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n" 2>$null
-    $root_cert = ($chain | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value[-1]
-    # move cert to distro destination folder and update ca certificates
-    wsl -d $Distro -u root --exec bash -c "mkdir -p $($sysCmd.CertPath) && echo '$root_cert' >$($sysCmd.CertPath)/root_ca.crt && $($sysCmd.UpdateCaCmd)"
+    # get certificate chain
+    $chain = ((Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n" 2>$null | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value
+    # save root certificate run command to update certificates
+    New-Item '.tmp' -ItemType Directory -ErrorAction SilentlyContinue
+    for ($i = 1; $i -lt $chain.Count; $i++) {
+        $certRawData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
+        $subject = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData).Subject
+        $cn = ($subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"')
+        [IO.File]::WriteAllText(".tmp/$cn.crt", $chain[$i])
+    }
+    wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"
 } else {
     # *install packages
     Write-Host 'installing base packages...' -ForegroundColor Green
