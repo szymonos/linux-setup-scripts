@@ -1,19 +1,29 @@
 <#
 .SYNOPSIS
 Setting up fresh WSL distro.
+.DESCRIPTION
+You can use the script for:
+- installing SSL certificates from the certificate chain (e.g. when self-signed certificates are used),
+- installing base packages and setting up bash and pwsh shells,
+- cloning GH repositories and setting up VSCode workspace.
+When GH repositories cloning is used, you need to generate and add an SSH key to your GH account.
 
 .PARAMETER Distro
 Name of the WSL distro.
 .PARAMETER ThemeFont
 Choose if oh-my-posh prompt theme should use base or powerline fonts.
 .PARAMETER Scope
-Installation scope, valid values: base, k8s_basic, k8s_full.
+Installation scope - valid values, and packages installed:
+- base: curl, git, jq, tree, vim, oh-my-posh, pwsh, bat, exa, ripgrep
+- k8s_basic: kubectl, helm, minikube, k3d, k9s, yq
+- k8s_full: flux, kubeseal, kustomize, argorolloutts-cli
+Every following option expands the scope.
 .PARAMETER Account
 GH account with the repositories to clone.
 .PARAMETER Repos
 List of repositories to clone into the WSL.
 .PARAMETER AddRootCert
-Switch for installing root CA certificate. Should be used separately.
+Switch for installing root CA certificate. It should be used separately from other options.
 
 .EXAMPLE
 $Distro    = 'fedora'
