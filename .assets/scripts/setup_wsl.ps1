@@ -168,16 +168,15 @@ if ($AddRootCert) {
 
     # *setup profiles
     Write-Host 'setting up profile for all users...' -ForegroundColor Green
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
+    wsl.exe --distribution $Distro --user root --exec pwsh -nop -f .assets/provision/setup_profiles_allusers.ps1
     wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.sh
     wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh
     Write-Host 'setting up profile for current user...' -ForegroundColor Green
-    wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.ps1
+    wsl.exe --distribution $Distro --exec pwsh -nop -f .assets/provision/setup_profiles_user.ps1
     wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
-
     # *setup GitHub repositories
     if ($Repos) {
         Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
-        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.ps1 -d $Distro -r "$Repos" -g $Account -w $env:USERNAME
+        wsl.exe --distribution $Distro --exec pwsh -nop -f .assets/provision/setup_gh_repos.ps1 -d $Distro -r "$Repos" -g $Account -w $env:USERNAME
     }
 }
