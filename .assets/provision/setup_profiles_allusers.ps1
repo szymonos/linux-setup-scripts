@@ -48,11 +48,3 @@ if (-not (Get-Module posh-git -ListAvailable)) {
     Write-Host 'installing posh-git...'
     Install-PSResource -Name posh-git -Scope AllUsers
 }
-if (-not $PSNativeCommandArgumentPassing) {
-    Write-Host 'enabling PSNativeCommandArgumentPassing...'
-    Enable-ExperimentalFeature PSNativeCommandArgumentPassing
-}
-if (-not $PSStyle) {
-    Write-Host 'enabling PSAnsiRenderingFileInfo...'
-    Enable-ExperimentalFeature PSAnsiRenderingFileInfo
-}
