@@ -1,4 +1,4 @@
-#!/usr/bin/pwsh -nop
+#!/usr/bin/env pwsh -nop
 <#
 .SYNOPSIS
 Script synopsis.

@@ -1,4 +1,4 @@
-#!/usr/bin/pwsh -nop
+#!/usr/bin/env pwsh -nop
 <#
 .SYNOPSIS
 Update ssh config and known_hosts files.
