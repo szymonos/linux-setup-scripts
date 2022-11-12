@@ -20,8 +20,8 @@ function md { mkdir -p @args }
 function mkdir { & /usr/bin/env mkdir -pv @args }
 function mv { & /usr/bin/env mv -iv @args }
 function nano { & /usr/bin/env nano -W @args }
-function pwsh { & /usr/bin/env pwsh -nol @args }
-function p { & /usr/bin/env pwsh -nol @args }
+function p { & /usr/bin/env pwsh -NoProfileLoadTime @args }
+function pwsh { & /usr/bin/env pwsh -NoProfileLoadTime @args }
 function src { . $PROFILE.CurrentUserAllHosts }
 function tree { & /usr/bin/env tree -C @args }
 function wget { & /usr/bin/env wget -c @args }
