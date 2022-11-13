@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh -nop
+#!/usr/bin/env -S pwsh -nop
 <#
 .SYNOPSIS
 Setting up PowerShell for the all users.
