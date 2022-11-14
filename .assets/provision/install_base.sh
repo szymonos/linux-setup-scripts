@@ -15,7 +15,7 @@ alpine)
   apk add --no-cache ca-certificates bash bash-completion iputils curl git jq less mandoc openssl tree vim
   ;;
 arch)
-  pacman -Sy --noconfirm base-devel bash-completion dnsutils curl git jq man-db openssl tree vim
+  pacman -Sy --noconfirm base-devel bash-completion dnsutils git jq man-db openssl tree vim
   ;;
 fedora)
   dnf install -y bash-completion bind-utils curl git jq man-db openssl tree vim
