@@ -4,6 +4,7 @@ sudo .assets/provision/install_yq.sh
 '
 
 APP='yq'
+REL=$1
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/mikefarah/yq/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
   [ -n "$REL" ] || echo 'retrying...'

@@ -4,6 +4,7 @@ sudo .assets/provision/install_k3d.sh
 '
 
 APP='k3d'
+REL=$1
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/k3d-io/k3d/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
   [ -n "$REL" ] || echo 'retrying...'

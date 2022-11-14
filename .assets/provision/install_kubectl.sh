@@ -4,6 +4,7 @@ sudo .assets/provision/install_kubectl.sh
 '
 
 APP='kubectl'
+REL=$1
 while [[ -z "$REL" ]]; do
   REL=$(curl -Lsk https://dl.k8s.io/release/stable.txt)
   [ -n "$REL" ] || echo 'retrying...'
