@@ -36,11 +36,11 @@ $Repos = @(
     'vagrant-scripts'
 )
 ~install root certificate in specified distro
-.assets/scripts/setup_wsl.ps1 $Distro -AddRootCert
+.assets/scripts/wsl_setup.ps1 $Distro -AddRootCert
 ~install packages and setup profile
-.assets/scripts/setup_wsl.ps1 $Distro -t $ThemeFont -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -t $ThemeFont -s $Scope
 ~install packages, setup profiles and clone repositories
-.assets/scripts/setup_wsl.ps1 $Distro -a $Account -r $Repos -t $ThemeFont -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -a $Account -r $Repos -t $ThemeFont -s $Scope
 #>
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param (
@@ -70,9 +70,8 @@ param (
 )
 
 # change temporarily encoding to utf-16 to match wsl output
-[Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-$DistroExists = [bool](wsl.exe -l | Select-String -Pattern "\b$Distro\b")
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$env:WSL_UTF8=1
+$DistroExists = [bool](wsl.exe --list --quiet | Select-String -Pattern "\b$Distro\b")
 if (-not $DistroExists) {
     Write-Warning "Specified distro doesn't exist!"
     break
@@ -174,6 +173,7 @@ if ($AddRootCert) {
     Write-Host 'setting up profile for current user...' -ForegroundColor Green
     wsl.exe --distribution $Distro --exec pwsh -nop -f .assets/provision/setup_profiles_user.ps1
     wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
+
     # *setup GitHub repositories
     if ($Repos) {
         Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
