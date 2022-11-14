@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 # *Variables
-box      = "generic/fedora36"
+box      = "generic/fedora37"
 provider = "hyperv"
 boxname  = "Fedora"
 # network configuration

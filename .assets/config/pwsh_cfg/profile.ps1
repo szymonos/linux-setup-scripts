@@ -30,22 +30,24 @@ function cds { Set-Location $SWD }
 #endregion
 
 #region environment variables and aliases
+[Environment]::SetEnvironmentVariable('OMP_PATH', '/usr/local/share/oh-my-posh')
+[Environment]::SetEnvironmentVariable('SCRIPTS_PATH', '/usr/local/share/powershell/Scripts')
 # $PATH variable
 @(
     [IO.Path]::Combine($HOME, '.local', 'bin')
 ).ForEach{
     if ((Test-Path $_) -and $env:PATH -NotMatch "$_/?($([IO.Path]::PathSeparator)|$)") {
-        $env:PATH = [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH)
+        [Environment]::SetEnvironmentVariable('PATH', [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH))
     }
 }
 # aliases
-(Get-ChildItem -Path /usr/local/share/powershell/Scripts -Filter 'ps_aliases_*.ps1' -File).ForEach{
+(Get-ChildItem -Path $env:SCRIPTS_PATH -Filter 'ps_aliases_*.ps1' -File).ForEach{
     . $_.FullName
 }
 #endregion
 
 #region startup
-if ((Get-Command oh-my-posh -ErrorAction SilentlyContinue) -and (Test-Path /usr/local/share/oh-my-posh/theme.omp.json)) {
-    oh-my-posh --init --shell pwsh --config /usr/local/share/oh-my-posh/theme.omp.json | Invoke-Expression
+if ((Get-Command oh-my-posh -ErrorAction SilentlyContinue) -and (Test-Path $env:OMP_PATH/theme.omp.json)) {
+    oh-my-posh --init --shell pwsh --config $env:OMP_PATH/theme.omp.json | Invoke-Expression
 }
 #endregion

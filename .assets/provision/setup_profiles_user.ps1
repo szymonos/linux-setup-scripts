@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh -nop
+#!/usr/bin/env -S pwsh -nop
 <#
 .SYNOPSIS
 Setting up PowerShell for the current user.
@@ -11,14 +11,6 @@ $WarningPreference = 'Ignore'
 if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
     Write-Host 'setting PSGallery trusted...'
     Set-PSResourceRepository -Name PSGallery -Trusted
-}
-if (-not $PSNativeCommandArgumentPassing) {
-    Write-Host 'enabling PSNativeCommandArgumentPassing...'
-    Enable-ExperimentalFeature PSNativeCommandArgumentPassing
-}
-if (-not $PSStyle) {
-    Write-Host 'enabling PSAnsiRenderingFileInfo...'
-    Enable-ExperimentalFeature PSAnsiRenderingFileInfo
 }
 
 $profileSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }

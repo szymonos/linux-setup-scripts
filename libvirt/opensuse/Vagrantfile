@@ -18,7 +18,6 @@ install_gnome      = false
 install_edge       = false
 setup_bash         = true
 setup_pwsh         = true
-upgrade_system     = true
 
 # calculate global variables
 hostname = "vg-#{boxname.downcase}"
@@ -77,6 +76,7 @@ Vagrant.configure("2") do |config|
       :autostart => true
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     node.vm.provision "shell", name: "install base...", path: "../../.assets/provision/install_base.sh"
     if install_packages
       node.vm.provision "shell", name: "install packages...", inline: script_install_packages
@@ -120,9 +120,6 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "install pwsh...", path: "../../.assets/provision/install_pwsh.sh"
       node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../.assets/provision/setup_profiles_allusers.ps1"
       node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../.assets/provision/setup_profiles_user.ps1", privileged: false
-    end
-    if upgrade_system
-      node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     end
     # ~reload vm
     node.vm.provision :reload
