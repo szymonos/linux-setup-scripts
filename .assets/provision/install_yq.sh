@@ -11,7 +11,7 @@ while [[ -z "$REL" ]]; do
 done
 
 if type $APP &>/dev/null; then
-  VER=$(yq --version | grep -Po '(?<=version )[\d\.]+$')
+  VER=$(yq --version | grep -Po '[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[36m$APP v$VER is already latest\e[0m"
     exit 0
