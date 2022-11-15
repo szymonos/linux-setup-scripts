@@ -14,10 +14,10 @@ param (
     [string]$ThemeFont = 'base'
 )
 
-# set WSL output to UTF8
-$env:WSL_UTF8 = 1
 # get list of available WSL distros
-$distros = (wsl.exe -l -q) -notmatch '^docker'
+[Console]::OutputEncoding = [System.Text.Encoding]::Unicode
+$distros = (wsl.exe -l -q) -match '\w+' -notmatch '^docker'
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # iterate over all found distros to update packages
 foreach ($distro in $distros) {

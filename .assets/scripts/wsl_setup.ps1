@@ -70,8 +70,9 @@ param (
 )
 
 # change temporarily encoding to utf-16 to match wsl output
-$env:WSL_UTF8=1
+[Console]::OutputEncoding = [System.Text.Encoding]::Unicode
 $DistroExists = [bool](wsl.exe --list --quiet | Select-String -Pattern "\b$Distro\b")
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 if (-not $DistroExists) {
     Write-Warning "Specified distro doesn't exist!"
     break
