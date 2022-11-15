@@ -16,7 +16,7 @@ param (
 
 # get list of available WSL distros
 [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-$distros = (wsl.exe -l -q) -match '\w+' -notmatch '^docker'
+$distros = (wsl.exe -l -q) -notmatch '^docker'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # iterate over all found distros to update packages
