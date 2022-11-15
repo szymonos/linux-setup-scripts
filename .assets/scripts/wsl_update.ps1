@@ -6,7 +6,7 @@ Choose if oh-my-posh prompt theme should use base or powerline fonts.
 
 .EXAMPLE
 $ThemeFont = 'powerline'
-.assets/scripts/wsl_update.ps1
+.assets/scripts/wsl_update.ps1 -t $ThemeFont
 #>
 [CmdletBinding()]
 param (
