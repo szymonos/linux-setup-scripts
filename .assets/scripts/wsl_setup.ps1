@@ -36,11 +36,11 @@ $Repos = @(
     'vagrant-scripts'
 )
 ~install root certificate in specified distro
-.assets/scripts/setup_wsl.ps1 $Distro -AddRootCert
+.assets/scripts/wsl_setup.ps1 $Distro -AddRootCert
 ~install packages and setup profile
-.assets/scripts/setup_wsl.ps1 $Distro -t $ThemeFont -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -t $ThemeFont -s $Scope
 ~install packages, setup profiles and clone repositories
-.assets/scripts/setup_wsl.ps1 $Distro -a $Account -r $Repos -t $ThemeFont -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -a $Account -r $Repos -t $ThemeFont -s $Scope
 #>
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param (
@@ -71,7 +71,7 @@ param (
 
 # change temporarily encoding to utf-16 to match wsl output
 [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-$DistroExists = [bool](wsl.exe -l | Select-String -Pattern "\b$Distro\b")
+$DistroExists = [bool](wsl.exe --list --quiet | Select-String -Pattern "\b$Distro\b")
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 if (-not $DistroExists) {
     Write-Warning "Specified distro doesn't exist!"
@@ -113,40 +113,46 @@ if ($AddRootCert) {
     wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"
 } else {
     # *install packages
-    Write-Host 'installing base packages...' -ForegroundColor Green
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh
-    if ($Scope -in @('k8s_basic', 'k8s_full')) {
-        Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh
-    }
-    if ($Scope -eq 'k8s_full') {
-        Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh
+    switch -Regex ($Scope) {
+        'base|k8s_basic|k8s_full' {
+            Write-Host 'installing base packages...' -ForegroundColor Green
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh
+        }
+        'k8s_basic|k8s_full' {
+            Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh
+        }
+        k8s_full {
+            Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh
+        }
     }
 
     # *copy files
     # calculate variables
     Write-Host 'copying files...' -ForegroundColor Green
     $OMP_THEME = switch ($ThemeFont) {
-        'base' {
+        base {
             '.assets/config/omp_cfg/theme.omp.json'
+            continue
         }
-        'powerline' {
+        powerline {
             '.assets/config/omp_cfg/theme-pl.omp.json'
+            continue
         }
     }
     $SH_PROFILE_PATH = '/etc/profile.d'
@@ -174,6 +180,7 @@ if ($AddRootCert) {
     Write-Host 'setting up profile for current user...' -ForegroundColor Green
     wsl.exe --distribution $Distro --exec pwsh -nop -f .assets/provision/setup_profiles_user.ps1
     wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
+
     # *setup GitHub repositories
     if ($Repos) {
         Write-Host 'setting up GitHub repositories...' -ForegroundColor Green

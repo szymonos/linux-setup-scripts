@@ -4,6 +4,7 @@ sudo .assets/provision/install_exa.sh
 '
 
 APP='exa'
+REL=$1
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/ogham/exa/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
   [ -n "$REL" ] || echo 'retrying...'

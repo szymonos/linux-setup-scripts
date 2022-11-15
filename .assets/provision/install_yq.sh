@@ -4,13 +4,14 @@ sudo .assets/provision/install_yq.sh
 '
 
 APP='yq'
+REL=$1
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/mikefarah/yq/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
   [ -n "$REL" ] || echo 'retrying...'
 done
 
 if type $APP &>/dev/null; then
-  VER=$(yq --version | grep -Po '(?<=version )[\d\.]+$')
+  VER=$(yq --version | grep -Po '[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[36m$APP v$VER is already latest\e[0m"
     exit 0

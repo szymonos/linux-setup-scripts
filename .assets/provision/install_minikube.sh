@@ -3,6 +3,7 @@
 sudo .assets/provision/install_minikube.sh
 '
 APP='minikube'
+REL=$1
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/kubernetes/minikube/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
   [ -n "$REL" ] || echo 'retrying...'
