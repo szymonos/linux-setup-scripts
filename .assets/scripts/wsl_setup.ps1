@@ -113,40 +113,46 @@ if ($AddRootCert) {
     wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"
 } else {
     # *install packages
-    Write-Host 'installing base packages...' -ForegroundColor Green
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh
-    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh
-    if ($Scope -in @('k8s_basic', 'k8s_full')) {
-        Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh
-    }
-    if ($Scope -eq 'k8s_full') {
-        Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh
+    switch -Regex ($Scope) {
+        'base|k8s_basic|k8s_full' {
+            Write-Host 'installing base packages...' -ForegroundColor Green
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh
+        }
+        'k8s_basic|k8s_full' {
+            Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh
+        }
+        k8s_full {
+            Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh
+        }
     }
 
     # *copy files
     # calculate variables
     Write-Host 'copying files...' -ForegroundColor Green
     $OMP_THEME = switch ($ThemeFont) {
-        'base' {
+        base {
             '.assets/config/omp_cfg/theme.omp.json'
+            continue
         }
-        'powerline' {
+        powerline {
             '.assets/config/omp_cfg/theme-pl.omp.json'
+            continue
         }
     }
     $SH_PROFILE_PATH = '/etc/profile.d'
