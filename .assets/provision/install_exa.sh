@@ -5,20 +5,23 @@ sudo .assets/provision/install_exa.sh
 
 APP='exa'
 REL=$1
+# get latest release if not provided as an argument
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/ogham/exa/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
-  [ -n "$REL" ] || echo 'retrying...'
+  [ -n "$REL" ] || echo 'retrying...' >&2
 done
+# return latest release
+echo $REL
 
 if type $APP &>/dev/null; then
   VER=$(exa --version | grep -Po '(?<=^v)[\d\.]+')
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[36m$APP v$VER is already latest\e[0m"
+    echo -e "\e[36m$APP v$VER is already latest\e[0m" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[96minstalling $APP v$REL\e[0m"
+echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
