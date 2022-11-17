@@ -26,20 +26,20 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/
 
 case $SYS_ID in
 arch)
-  pacman -Sy --needed --noconfirm minikube
+  pacman -Sy --needed --noconfirm minikube >&2
   ;;
 fedora)
-  dnf install -y "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm"
+  dnf install -y "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f minikube_latest_amd64.deb ]]; do
     curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
   done
-  dpkg -i minikube_latest_amd64.deb && rm -f minikube_latest_amd64.deb
+  dpkg -i minikube_latest_amd64.deb && rm -f minikube_latest_amd64.deb >&2
   ;;
 opensuse)
-  zypper in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm"
+  zypper in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2
   ;;
 *)
   while [[ ! -f minikube-linux-amd64 ]]; do

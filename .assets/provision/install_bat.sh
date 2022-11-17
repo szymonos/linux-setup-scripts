@@ -27,23 +27,23 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|fedora|debian|ubuntu|opensuse)
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache bat
+  apk add --no-cache bat >&2
   ;;
 arch)
-  pacman -Sy --needed --noconfirm bat
+  pacman -Sy --needed --noconfirm bat >&2
   ;;
 fedora)
-  dnf install -y bat
+  dnf install -y bat >&2
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f bat.deb ]]; do
     curl -Lsk -o bat.deb "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
   done
-  dpkg -i bat.deb && rm -f bat.deb
+  dpkg -i bat.deb && rm -f bat.deb >&2
   ;;
 opensuse)
-  zypper in -y bat
+  zypper in -y bat >&2
   ;;
 *)
   while [[ ! -d "bat-v${REL}-x86_64-unknown-linux-gnu" ]]; do

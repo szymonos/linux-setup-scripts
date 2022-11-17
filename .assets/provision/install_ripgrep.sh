@@ -27,22 +27,22 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|centos|fedora|debian|ubuntu|op
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache exa && INSTALLED=true
+  apk add --no-cache exa >&2
   ;;
 arch)
-  pacman -Sy --needed --noconfirm ripgrep
+  pacman -Sy --needed --noconfirm ripgrep >&2
   ;;
 fedora)
-  dnf install -y ripgrep
+  dnf install -y ripgrep >&2
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y ripgrep
+  apt-get update >&2 && apt-get install -y ripgrep >&2
   ;;
 opensuse)
-  zypper in -y ripgrep
+  zypper in -y ripgrep >&2
   ;;
 *)
-  echo 'ripgrep not available...'
+  echo 'ripgrep not available...' >&2
   ;;
 esac
