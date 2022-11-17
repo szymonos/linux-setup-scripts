@@ -45,7 +45,7 @@ $Repos = @(
 ~update all existing WSL distros
 .assets/scripts/wsl_setup.ps1 -t $ThemeFont
 #>
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'Setup')]
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'GitHub')]
@@ -130,30 +130,6 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
     }
 
     'Setup|Update|GitHub' {
-        Write-Host 'getting package versions...' -ForegroundColor Green
-        if ($PsCmdlet.ParameterSetName -eq 'Update') {
-            $scope = 'k8s_full'
-        }
-        switch -Regex ($Scope) {
-            'base|k8s_basic|k8s_full' {
-                do { $rel_omp = (Invoke-RestMethod 'https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest').tag_name -replace '^v' } until ($rel_omp)
-                do { $rel_pwsh = (Invoke-RestMethod 'https://api.github.com/repos/PowerShell/PowerShell/releases/latest').tag_name -replace '^v' } until ($rel_pwsh)
-                do { $rel_bat = (Invoke-RestMethod 'https://api.github.com/repos/sharkdp/bat/releases/latest').tag_name -replace '^v' } until ($rel_bat)
-                do { $rel_exa = (Invoke-RestMethod 'https://api.github.com/repos/ogham/exa/releases/latest').tag_name -replace '^v' } until ($rel_exa)
-                do { $rel_rg = (Invoke-RestMethod 'https://api.github.com/repos/BurntSushi/ripgrep/releases/latest').tag_name -replace '^v' } until ($rel_rg)
-            }
-            'k8s_basic|k8s_full' {
-                do { $rel_kubectl = Invoke-RestMethod 'https://dl.k8s.io/release/stable.txt' } until ($rel_kubectl)
-                do { $rel_minikube = (Invoke-RestMethod 'https://api.github.com/repos/kubernetes/minikube/releases/latest').tag_name -replace '^v' } until ($rel_minikube)
-                do { $rel_k3d = (Invoke-RestMethod 'https://api.github.com/repos/k3d-io/k3d/releases/latest').tag_name -replace '^v' } until ($rel_k3d)
-                do { $rel_k9s = (Invoke-RestMethod 'https://api.github.com/repos/derailed/k9s/releases/latest').tag_name -replace '^v' } until ($rel_k9s)
-                do { $rel_yq = (Invoke-RestMethod 'https://api.github.com/repos/mikefarah/yq/releases/latest').tag_name -replace '^v' } until ($rel_yq)
-            }
-            'k8s_full' {
-                do { $rel_kubeseal = (Invoke-RestMethod 'https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest').tag_name -replace '^v' } until ($rel_kubeseal)
-                do { $rel_argoroll = (Invoke-RestMethod 'https://api.github.com/repos/argoproj/argo-rollouts/releases/latest').tag_name -replace '^v' } until ($rel_argoroll)
-            }
-        }
         foreach ($Distro in $distros) {
             # *install packages
             if ($PsCmdlet.ParameterSetName -eq 'Update') {
@@ -165,27 +141,27 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
                     Write-Host 'installing base packages...' -ForegroundColor Green
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $rel_omp
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $rel_pwsh
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $rel_bat
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $rel_exa
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $rel_rg
+                    $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
+                    $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
+                    $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
+                    $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
+                    $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 }
                 'k8s_basic|k8s_full' {
                     Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $rel_kubectl
+                    $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $rel_minikube
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $rel_k3d
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $rel_k9s
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $rel_yq
+                    $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
+                    $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
+                    $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
+                    $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
                 }
                 'k8s_full' {
                     Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $rel_kubeseal
+                    $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $rel_argoroll
+                    $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
                 }
             }
             # *copy files
