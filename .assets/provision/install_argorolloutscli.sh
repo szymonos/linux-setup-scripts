@@ -5,7 +5,7 @@ sudo .assets/provision/install_argorolloutscli.sh
 
 APP='kubectl-argo-rollouts'
 REL=$1
-# get latest release if not provided as an argument
+# get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/argoproj/argo-rollouts/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
   [ -n "$REL" ] || echo 'retrying...' >&2

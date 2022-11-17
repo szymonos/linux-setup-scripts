@@ -5,7 +5,7 @@ sudo .assets/provision/install_k9s.sh
 
 APP='k9s'
 REL=$1
-# get latest release if not provided as an argument
+# get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/derailed/k9s/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
   [ -n "$REL" ] || echo 'retrying...' >&2

@@ -5,7 +5,7 @@ sudo .assets/provision/install_kubectl.sh
 
 APP='kubectl'
 REL=$1
-# get latest release if not provided as an argument
+# get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
   REL=$(curl -Lsk https://dl.k8s.io/release/stable.txt)
   [ -n "$REL" ] || echo 'retrying...' >&2
@@ -16,12 +16,12 @@ echo $REL
 if [ -f /usr/bin/kubectl ]; then
   VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[36m$APP $VER is already latest\e[0m"
+    echo -e "\e[36m$APP $VER is already latest\e[0m" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[96minstalling $APP $REL\e[0m"
+echo -e "\e[96minstalling $APP $REL\e[0m" >&2
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 

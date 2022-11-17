@@ -5,7 +5,7 @@ sudo .assets/provision/install_pwsh.sh 7.2.7
 
 APP='pwsh'
 REL=$1
-# get latest release if not provided as an argument
+# get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
   [ -n "$REL" ] || echo 'retrying...' >&2
