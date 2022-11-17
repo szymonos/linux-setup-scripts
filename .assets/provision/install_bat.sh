@@ -5,42 +5,45 @@ sudo .assets/provision/install_bat.sh
 
 APP='bat'
 REL=$1
+# get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/sharkdp/bat/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
-  [ -n "$REL" ] || echo 'retrying...'
+  [ -n "$REL" ] || echo 'retrying...' >&2
 done
+# return latest release
+echo $REL
 
 if type $APP &>/dev/null; then
   VER=$(bat --version | grep -Po '(?<=^bat )[\d\.]+')
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[36m$APP v$VER is already latest\e[0m"
+    echo -e "\e[36m$APP v$VER is already latest\e[0m" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[96minstalling $APP v$REL\e[0m"
+echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache bat
+  apk add --no-cache bat >&2
   ;;
 arch)
-  pacman -Sy --needed --noconfirm bat
+  pacman -Sy --needed --noconfirm bat >&2
   ;;
 fedora)
-  dnf install -y bat
+  dnf install -y bat >&2
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f bat.deb ]]; do
     curl -Lsk -o bat.deb "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
   done
-  dpkg -i bat.deb && rm -f bat.deb
+  dpkg -i bat.deb && rm -f bat.deb >&2
   ;;
 opensuse)
-  zypper in -y bat
+  zypper in -y bat >&2
   ;;
 *)
   while [[ ! -d "bat-v${REL}-x86_64-unknown-linux-gnu" ]]; do

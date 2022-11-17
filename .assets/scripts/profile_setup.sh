@@ -1,7 +1,7 @@
 #!/bin/bash
 : '
-.assets/scripts/install_profile.sh #* base install
-.assets/scripts/install_profile.sh --theme_font powerline --scope k8s_basic
+.assets/scripts/profile_setup.sh #* base install
+.assets/scripts/profile_setup.sh --theme_font powerline --scope k8s_basic
 '
 if [[ $EUID -eq 0 ]]; then
   echo -e '\e[91mDo not run the script with sudo!\e[0m'

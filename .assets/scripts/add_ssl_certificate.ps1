@@ -51,7 +51,7 @@ $content = [IO.File]::ReadAllLines($Path)
 # create installation script
 if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
     New-Item (Split-Path $scriptInstallRootCA) -ItemType Directory -ErrorAction SilentlyContinue
-    $chain = (Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n"
+    $chain = (Out-Null | openssl s_client -showcerts -connect www.google.com:443 2>$null) -join "`n"
     $crt = ($chain | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value[-1]
     # save certificate installation file
     [IO.File]::WriteAllText($scriptInstallRootCA, (Get-SshInstallScript $crt))
