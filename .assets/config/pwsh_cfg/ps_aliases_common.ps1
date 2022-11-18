@@ -51,8 +51,6 @@ function Invoke-Sudo {
     & /usr/bin/env bash -c "/usr/bin/env sudo $args"
 }
 
-function please { Write-Host @args }
-
 # *Aliases
 Set-Alias -Name _ -Value Invoke-Sudo
 Set-Alias -Name alias -Value Get-CmdAlias
