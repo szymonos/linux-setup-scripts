@@ -6,9 +6,9 @@ Script synopsis.
 $Name = 'Debian'
 $Destination = 'F:\Virtual Machines\WSL'
 $NewName = 'debian11'
-.assets\scripts\Move-WSL.ps1 $Name -d $Destination -e $NewName
-.assets\scripts\Move-WSL.ps1 $Name -d $Destination -e $NewName -WhatIf
-.assets\scripts\Move-WSL.ps1 $Name -d $Destination -e $NewName -Confirm
+.assets/scripts/wsl_move.ps1 $Name -d $Destination -e $NewName
+.assets/scripts/wsl_move.ps1 $Name -d $Destination -e $NewName -WhatIf
+.assets/scripts/wsl_move.ps1 $Name -d $Destination -e $NewName -Confirm
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param (
