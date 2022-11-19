@@ -1,33 +1,37 @@
-#!/usr/bin/env -S pwsh -nop
 <#
 .SYNOPSIS
-Script synopsis.
+Move and optionally remove existing WSL distro.
+.PARAMETER Name
+Name of the existing WSL distro.
+.PARAMETER Destination
+Destination path
+.PARAMETER NewName
+Optional new name of the WSL distro.
+
 .EXAMPLE
-$Name = 'Debian'
+$Name = 'openSUSE-Tumbleweed'
 $Destination = 'F:\Virtual Machines\WSL'
-$NewName = 'debian11'
+$NewName = 'tumbleweed'
 .assets/scripts/wsl_move.ps1 $Name -d $Destination -e $NewName
 .assets/scripts/wsl_move.ps1 $Name -d $Destination -e $NewName -WhatIf
-.assets/scripts/wsl_move.ps1 $Name -d $Destination -e $NewName -Confirm
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param (
     [Parameter(Mandatory, Position = 0)]
-    [ValidateScript({ [regex]::IsMatch($_, '^\w+$') }, ErrorMessage = "'{0}' is not a valid folder path.")]
+    [ValidateScript({ [regex]::IsMatch($_, '^\w+$') })]
     [string]$Name,
 
     [Parameter(Mandatory)]
-    [ValidateScript({ Test-Path $_ -PathType 'Container' }, ErrorMessage = "'{0}' is not a valid folder path.")]
+    [ValidateScript({ Test-Path $_ -PathType 'Container' })]
     [string]$Destination,
 
     [Alias('e')]
-    [ValidateNotNullorEmpty()]
-    [object]$NewName
+    [string]$NewName
 )
 
 begin {
     $ErrorActionPreference = 'Stop'
-    $NewName ??= $Name
+    if (-not $NewName) { $NewName = $Name }
 
     # get list of all registered WSL distros
     $distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss
@@ -46,7 +50,7 @@ begin {
 }
 
 process {
-    if ($PSCmdlet.ShouldProcess("Move `e[4m$Name`e[24m to `e[4m$destPath`e[0m")) {
+    if ($PSCmdlet.ShouldProcess("Move '$Name' to '$destPath'")) {
         # copy distro disk image to new location
         New-Item $Destination -Name $NewName.ToLower() -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
         Copy-Item ([IO.Path]::Combine($srcDistro.BasePath.Replace('\\?\', ''), '*')) -Destination $destPath -ErrorAction Stop
@@ -64,5 +68,5 @@ process {
 }
 
 end {
-    Write-Host "`e[92mDone.`e[0m"
+    Write-Host "Done." -ForegroundColor Green
 }
