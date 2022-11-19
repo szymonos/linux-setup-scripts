@@ -42,14 +42,15 @@ debian | ubuntu)
 opensuse)
   zypper in -y exa >&2
   ;;
-*)
+esac
+
+if ! type exa &>/dev/null; then
   while [[ ! -f exa-linux-x86_64.zip ]]; do
     curl -Lsk -o exa-linux-x86_64.zip "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
   done
-  unzip exa-linux-x86_64.zip >&2
-  mv -f bin/exa /usr/bin/exa >&2
-  mv -f man/* $(manpath | cut -d : -f 1)/man1 >&2
-  mv -f completions/exa.bash /etc/bash_completion.d >&2
+  unzip exa-linux-x86_64.zip &>/dev/null
+  mv -f bin/exa /usr/bin/exa &>/dev/null
+  mv -f man/* $(manpath | cut -d : -f 1)/man1 &>/dev/null
+  mv -f completions/exa.bash /etc/bash_completion.d &>/dev/null
   rm -fr bin completions man exa-linux-x86_64.zip
-  ;;
-esac
+fi

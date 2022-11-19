@@ -42,7 +42,15 @@ debian | ubuntu)
 opensuse)
   zypper in -y ripgrep >&2
   ;;
-*)
-  echo 'ripgrep not available...' >&2
-  ;;
 esac
+
+if ! type rg &>/dev/null; then
+  while [[ ! -f kubectl-argo-rollouts-linux-amd64 ]]; do
+    curl -Lsk -o ripgrep.tgz "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz"
+  done
+  tar zxf ripgrep.tgz
+  install -o root -g root -m 0755 "ripgrep-${REL}-x86_64-unknown-linux-musl/rg" /usr/bin/rg
+  mv -f "ripgrep-${REL}-x86_64-unknown-linux-musl/doc/rg.1" $(manpath | cut -d : -f 1)/man1 &>/dev/null
+  mv -f "ripgrep-${REL}-x86_64-unknown-linux-musl/complete/rg.bash" /etc/bash_completion.d &>/dev/null
+  rm -fr ripgrep*
+fi
