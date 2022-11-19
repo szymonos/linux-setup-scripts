@@ -11,8 +11,12 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 
 .PARAMETER Distro
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
-.PARAMETER ThemeFont
+.PARAMETER OmpTheme
 Choose if oh-my-posh prompt theme should use base or powerline fonts.
+Available values: 'base', 'powerline'
+.PARAMETER GtkTheme
+Specify gtk theme for wslg.
+Available values: 'light', 'dark'
 .PARAMETER Scope
 Installation scope - valid values, and packages installed:
 - base: curl, git, jq, tree, vim, oh-my-posh, pwsh, bat, exa, ripgrep
@@ -183,7 +187,7 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
             # *copy files
             # calculate variables
             Write-Host 'copying files...' -ForegroundColor Green
-            $OMP_THEME = switch ($ThemeFont) {
+            $OMP_THEME = switch ($OmpTheme) {
                 'base' {
                     '.assets/config/omp_cfg/theme.omp.json'
                     continue
