@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-Move and optionally remove existing WSL distro.
+Move (and optionally rename) existing WSL distro.
 .PARAMETER Name
 Name of the existing WSL distro.
 .PARAMETER Destination
-Destination path
+Existing destination path, where distro folder will be created.
 .PARAMETER NewName
 Optional new name of the WSL distro.
 
