@@ -84,7 +84,7 @@ param (
 if ($PsCmdlet.ParameterSetName -ne 'Update') {
     if ($Distro -notin $distros) {
         Write-Warning "The specified distro does not exist ($Distro)."
-        return
+        exit
     }
     [string[]]$distros = $Distro
 }
