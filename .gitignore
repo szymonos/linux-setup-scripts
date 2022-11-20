@@ -16,6 +16,14 @@ _*
 # vagrant
 **/.vagrant/
 
+# binaries
+*.deb
+*.gz
+*.rpm
+*.tgz
+*.tar
+*.zip
+
 # Used by dotenv library to load environment variables.
 # .env
 
