@@ -66,6 +66,7 @@ param (
     [Alias('g')]
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('light', 'dark')]
     [string]$GtkTheme = 'light',
 
