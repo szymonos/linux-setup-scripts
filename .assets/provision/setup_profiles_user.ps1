@@ -13,9 +13,15 @@ if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
     Set-PSResourceRepository -Name PSGallery -Trusted
 }
 
-$profileSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
-if ((Test-Path /usr/bin/kubectl) -and -not $profileSet) {
-    Write-Host 'setting kubectl auto-completion...'
+$kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
+if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
+    Write-Host 'adding kubectl auto-completion...'
     New-Item ([IO.Path]::GetDirectoryName($PROFILE)) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
     (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
+}
+
+$condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
+if ((Test-Path $HOME/miniconda/bin/conda) -and -not $condaSet) {
+    Write-Host 'adding miniconda initialization...'
+    & "$HOME/miniconda/bin/conda" init powershell | Out-Null
 }

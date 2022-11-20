@@ -155,9 +155,10 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
                     $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
                     $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
-                    $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                     $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
+                    $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                     $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
                 }
                 'k8s_basic|k8s_full' {
                     Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
