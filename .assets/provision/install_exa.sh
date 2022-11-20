@@ -27,24 +27,25 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(alpine|arch|fedora|debian|ubuntu|opensuse)
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache exa >&2
+  apk add --no-cache exa >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm exa >&2
+  pacman -Sy --needed --noconfirm exa >&2 2>/dev/null
   ;;
 fedora)
-  dnf install -y exa >&2
+  dnf install -y exa >&2 2>/dev/null
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update >&2 && apt-get install -y exa >&2
+  apt-get update >&2 && apt-get install -y exa >&2 2>/dev/null
   ;;
 opensuse)
-  zypper in -y exa >&2
+  zypper in -y exa >&2 2>/dev/null
   ;;
 esac
 
-if ! type exa &>/dev/null; then
+if ! type $APP &>/dev/null; then
+  echo 'Installing from binary.' >&2
   while [[ ! -f exa-linux-x86_64.zip ]]; do
     curl -Lsk -o exa-linux-x86_64.zip "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
   done
