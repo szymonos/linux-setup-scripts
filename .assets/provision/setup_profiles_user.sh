@@ -42,6 +42,11 @@ fi
 EOF
 fi
 
+# add conda initialization
+if ! grep -qw '__conda_setup' ~/.bashrc 2>/dev/null && [[ -f $HOME/miniconda/bin/conda ]]; then
+  $HOME/miniconda/bin/conda init bash >/dev/null
+fi
+
 # add oh-my-posh invocation
 if ! grep -qw 'oh-my-posh' ~/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then
   cat <<EOF >>~/.bashrc
