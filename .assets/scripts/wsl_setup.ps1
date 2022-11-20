@@ -11,8 +11,12 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 
 .PARAMETER Distro
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
-.PARAMETER ThemeFont
+.PARAMETER OmpTheme
 Choose if oh-my-posh prompt theme should use base or powerline fonts.
+Available values: 'base', 'powerline'
+.PARAMETER GtkTheme
+Specify gtk theme for wslg.
+Available values: 'light', 'dark'
 .PARAMETER Scope
 Installation scope - valid values, and packages installed:
 - base: curl, git, jq, tree, vim, oh-my-posh, pwsh, bat, exa, ripgrep
@@ -27,10 +31,11 @@ List of repositories to clone into the WSL.
 Switch for installing root CA certificate. It should be used separately from other options.
 
 .EXAMPLE
-$Distro    = 'fedora'
-$ThemeFont = 'powerline'
-$Scope     = 'k8s_basic'
-$Account   = 'szymonos'
+$Distro   = 'fedora'
+$OmpTheme = 'powerline'
+$GtkTheme = 'dark'
+$Scope    = 'k8s_basic'
+$Account  = 'szymonos'
 $Repos = @(
     'devops-scripts'
     'ps-szymonos'
@@ -39,11 +44,11 @@ $Repos = @(
 ~install root certificate in specified distro
 .assets/scripts/wsl_setup.ps1 $Distro -AddRootCert
 ~install packages and setup profile
-.assets/scripts/wsl_setup.ps1 $Distro -t $ThemeFont -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -o $OmpTheme -g $GtkTheme -s $Scope
 ~install packages, setup profiles and clone repositories
-.assets/scripts/wsl_setup.ps1 $Distro -a $Account -r $Repos -t $ThemeFont -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -a $Account -r $Repos -o $OmpTheme -g $GtkTheme -s $Scope
 ~update all existing WSL distros
-.assets/scripts/wsl_setup.ps1 -t $ThemeFont
+.assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -56,7 +61,14 @@ param (
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('base', 'powerline')]
-    [string]$ThemeFont = 'base',
+    [string]$OmpTheme = 'base',
+
+    [Alias('g')]
+    [Parameter(ParameterSetName = 'Update')]
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [ValidateSet('light', 'dark')]
+    [string]$GtkTheme = 'light',
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
@@ -165,10 +177,19 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
                     $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
                 }
             }
+            # *set gtk theme for wslg
+            Write-Host 'setting gtk theme...' -ForegroundColor Green
+            if (wsl.exe --distribution $Distro -- bash -c "[ -d /mnt/wslg ] && echo 1") {
+                $themeString = switch ($GtkTheme) {
+                    light { 'export GTK_THEME="Adwaita"' }
+                    dark { 'export GTK_THEME="Adwaita:dark"' }
+                }
+                wsl.exe --distribution $Distro --user root -- bash -c "echo '$themeString' >/etc/profile.d/gtk_theme.sh"
+            }
             # *copy files
             # calculate variables
             Write-Host 'copying files...' -ForegroundColor Green
-            $OMP_THEME = switch ($ThemeFont) {
+            $OMP_THEME = switch ($OmpTheme) {
                 'base' {
                     '.assets/config/omp_cfg/theme.omp.json'
                     continue

@@ -18,7 +18,7 @@ $NewName = 'tumbleweed'
 [CmdletBinding(SupportsShouldProcess)]
 param (
     [Parameter(Mandatory, Position = 0)]
-    [ValidateScript({ [regex]::IsMatch($_, '^\w+$') })]
+    [ValidateScript({ [regex]::IsMatch($_, '^[\w-]+$') })]
     [string]$Name,
 
     [Parameter(Mandatory)]

@@ -3,7 +3,7 @@
 .SYNOPSIS
 Setting up PowerShell for the all users.
 .EXAMPLE
-.assets/provision/setup_profiles_allusers.ps1
+sudo .assets/provision/setup_profiles_allusers.ps1
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningPreference = 'Ignore'
@@ -39,10 +39,6 @@ if (-not ((Get-Module PowerShellGet -ListAvailable -ErrorAction SilentlyContinue
 if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
     Write-Host 'setting PSGallery trusted...'
     Set-PSResourceRepository -Name PSGallery -Trusted
-}
-if (-not ((Get-Module PSReadLine -ListAvailable -ErrorAction SilentlyContinue).Version.Minor -ge 2)) {
-    Write-Host 'installing PSReadLine...'
-    Install-PSResource -Name PSReadLine -Scope AllUsers
 }
 if (-not (Get-Module posh-git -ListAvailable)) {
     Write-Host 'installing posh-git...'
