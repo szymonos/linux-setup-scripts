@@ -22,7 +22,6 @@ param (
     [string]$Name,
 
     [Parameter(Mandatory)]
-    [ValidateScript({ Test-Path $_ -PathType 'Container' })]
     [string]$Destination,
 
     [Alias('e')]
@@ -32,6 +31,11 @@ param (
 begin {
     $ErrorActionPreference = 'Stop'
     if (-not $NewName) { $NewName = $Name }
+
+    # create destination path if it doesn't exist
+    if (-not (Test-Path $Destination -PathType Container)) {
+        New-Item $Destination -ItemType Directory | Out-Null
+    }
 
     # get list of all registered WSL distros
     $distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss
