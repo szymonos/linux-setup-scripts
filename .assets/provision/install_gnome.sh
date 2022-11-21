@@ -4,7 +4,7 @@ sudo .assets/provision/install_gnome.sh
 '
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
 case $SYS_ID in
 alpine)

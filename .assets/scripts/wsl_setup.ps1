@@ -104,7 +104,7 @@ if ($PsCmdlet.ParameterSetName -ne 'Update') {
 switch -Regex ($PsCmdlet.ParameterSetName) {
     'AddCert' {
         # determine update ca parameters depending on distro
-        $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
+        $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
         switch -Regex ($sysId) {
             'arch' {
                 $crt = @{ path = '/etc/ca-certificates/trust-source/anchors'; cmd = 'trust extract-compat' }
@@ -178,8 +178,8 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
                 }
             }
             # *set gtk theme for wslg
-            Write-Host 'setting gtk theme...' -ForegroundColor Green
-            if (wsl.exe --distribution $Distro -- bash -c "[ -d /mnt/wslg ] && echo 1") {
+            if (wsl.exe --distribution $Distro -- bash -c '[ -d /mnt/wslg ] && echo 1') {
+                Write-Host 'setting gtk theme...' -ForegroundColor Green
                 $themeString = switch ($GtkTheme) {
                     light { 'export GTK_THEME="Adwaita"' }
                     dark { 'export GTK_THEME="Adwaita:dark"' }

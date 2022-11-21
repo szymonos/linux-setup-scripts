@@ -3,7 +3,7 @@
 sudo .assets/provision/upgrade_system.sh
 '
 
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 case $SYS_ID in
 alpine)
   apk upgrade --available

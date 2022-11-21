@@ -21,7 +21,7 @@ if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
 }
 
 $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
-if ((Test-Path $HOME/miniconda/bin/conda) -and -not $condaSet) {
+if ((Test-Path $HOME/miniconda3/bin/conda) -and -not $condaSet) {
     Write-Host 'adding miniconda initialization...'
-    & "$HOME/miniconda/bin/conda" init powershell | Out-Null
+    & "$HOME/miniconda3/bin/conda" init powershell | Out-Null
 }
