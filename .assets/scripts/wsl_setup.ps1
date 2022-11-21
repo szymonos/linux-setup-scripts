@@ -104,7 +104,7 @@ if ($PsCmdlet.ParameterSetName -ne 'Update') {
 switch -Regex ($PsCmdlet.ParameterSetName) {
     'AddCert' {
         # determine update ca parameters depending on distro
-        $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
+        $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
         switch -Regex ($sysId) {
             'arch' {
                 $crt = @{ path = '/etc/ca-certificates/trust-source/anchors'; cmd = 'trust extract-compat' }

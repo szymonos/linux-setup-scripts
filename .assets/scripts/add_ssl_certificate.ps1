@@ -17,7 +17,7 @@ function Get-SshInstallScript ([string]$crt) {
     return @"
 #!/bin/bash
 # determine system id
-SYS_ID=`$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID=`$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 case `$SYS_ID in
 arch)
   CERT_PATH='/etc/ca-certificates/trust-source/anchors';;
