@@ -178,8 +178,8 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
                 }
             }
             # *set gtk theme for wslg
-            Write-Host 'setting gtk theme...' -ForegroundColor Green
-            if (wsl.exe --distribution $Distro -- bash -c "[ -d /mnt/wslg ] && echo 1") {
+            if (wsl.exe --distribution $Distro -- bash -c '[ -d /mnt/wslg ] && echo 1') {
+                Write-Host 'setting gtk theme...' -ForegroundColor Green
                 $themeString = switch ($GtkTheme) {
                     light { 'export GTK_THEME="Adwaita"' }
                     dark { 'export GTK_THEME="Adwaita:dark"' }
