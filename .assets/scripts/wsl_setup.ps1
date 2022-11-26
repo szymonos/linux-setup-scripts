@@ -228,7 +228,17 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
     'GitHub' {
         # *setup GitHub repositories
         Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
+        # set git eol config
         wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
+        # copy git user settings from the host
+        $gitConfigCmd = git config --list --global | Select-String '^user\b' -Raw | ForEach-Object {
+            $split = $_.Split('=')
+            Write-Output "git config --global $($split[0]) '$($split[1])'"
+        }
+        if ($gitConfigCmd) {
+            wsl.exe --distribution $Distro --exec bash -c ($gitConfigCmd -join ' && ')
+        }
+        # clone repos
         wsl.exe --distribution $Distro --exec pwsh -nop -f .assets/provision/setup_gh_repos.ps1 -d $Distro -r "$Repos" -g $Account -w $env:USERNAME
     }
 }
