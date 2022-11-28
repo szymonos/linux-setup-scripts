@@ -72,7 +72,7 @@ param (
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateSet('base', 'k8s_basic', 'k8s_full')]
+    [ValidateSet('none', 'base', 'k8s_basic', 'k8s_full')]
     [string]$Scope = 'base',
 
     [Alias('a')]
@@ -145,20 +145,59 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
         foreach ($Distro in $distros) {
             # *install packages
             if ($PsCmdlet.ParameterSetName -eq 'Update') {
-                $scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic' ) || echo 'base'"
+                $scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
             }
             Write-Host "$distro - $scope" -ForegroundColor Magenta
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
             switch -Regex ($Scope) {
+                'none' {
+                    continue
+                }
                 'base|k8s_basic|k8s_full' {
                     Write-Host 'installing base packages...' -ForegroundColor Green
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
                     $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
                     $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
                     $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
                     $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                     $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                     wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
+                    # *copy files
+                    # calculate variables
+                    Write-Host 'copying files...' -ForegroundColor Green
+                    $OMP_THEME = switch ($OmpTheme) {
+                        'base' {
+                            '.assets/config/omp_cfg/theme.omp.json'
+                            continue
+                        }
+                        'powerline' {
+                            '.assets/config/omp_cfg/theme-pl.omp.json'
+                            continue
+                        }
+                    }
+                    $SH_PROFILE_PATH = '/etc/profile.d'
+                    $PS_SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
+                    $OH_MY_POSH_PATH = '/usr/local/share/oh-my-posh'
+                    # bash aliases
+                    wsl.exe --distribution $Distro --user root --exec bash -c "cp -f .assets/config/bash_cfg/bash_aliases* $SH_PROFILE_PATH && chmod 644 $SH_PROFILE_PATH/bash_aliases*"
+                    # oh-my-posh theme
+                    wsl.exe --distribution $Distro --user root --exec bash -c "mkdir -p $OH_MY_POSH_PATH && cp -f $OMP_THEME $OH_MY_POSH_PATH/theme.omp.json && chmod 644 $OH_MY_POSH_PATH/theme.omp.json"
+                    # PowerShell profile
+                    wsl.exe --distribution $Distro --user root --exec pwsh -nop -c 'cp -f .assets/config/pwsh_cfg/profile.ps1 $PROFILE.AllUsersAllHosts && chmod 644 $PROFILE.AllUsersAllHosts'
+                    # PowerShell functions
+                    wsl.exe --distribution $Distro --user root --exec bash -c "mkdir -p $PS_SCRIPTS_PATH && cp -f .assets/config/pwsh_cfg/ps_aliases* $PS_SCRIPTS_PATH && chmod 644 $PS_SCRIPTS_PATH/ps_aliases*"
+                    # remove kubectl aliases
+                    if ($Scope -notin @('k8s_basic', 'k8s_full')) {
+                        wsl.exe --distribution $Distro --user root --exec rm -f $SH_PROFILE_PATH/bash_aliases_kubectl $PS_SCRIPTS_PATH/ps_aliases_kubectl.ps1
+                    }
+                    # *setup profiles
+                    Write-Host 'setting up profile for all users...' -ForegroundColor Green
+                    wsl.exe --distribution $Distro --user root --exec pwsh -nop -f .assets/provision/setup_profiles_allusers.ps1
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.sh
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh
+                    Write-Host 'setting up profile for current user...' -ForegroundColor Green
+                    wsl.exe --distribution $Distro --exec pwsh -nop -f .assets/provision/setup_profiles_user.ps1
+                    wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
                 }
                 'k8s_basic|k8s_full' {
                     Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
@@ -186,42 +225,6 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
                 }
                 wsl.exe --distribution $Distro --user root -- bash -c "echo '$themeString' >/etc/profile.d/gtk_theme.sh"
             }
-            # *copy files
-            # calculate variables
-            Write-Host 'copying files...' -ForegroundColor Green
-            $OMP_THEME = switch ($OmpTheme) {
-                'base' {
-                    '.assets/config/omp_cfg/theme.omp.json'
-                    continue
-                }
-                'powerline' {
-                    '.assets/config/omp_cfg/theme-pl.omp.json'
-                    continue
-                }
-            }
-            $SH_PROFILE_PATH = '/etc/profile.d'
-            $PS_SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
-            $OH_MY_POSH_PATH = '/usr/local/share/oh-my-posh'
-            # bash aliases
-            wsl.exe --distribution $Distro --user root --exec bash -c "cp -f .assets/config/bash_cfg/bash_aliases* $SH_PROFILE_PATH && chmod 644 $SH_PROFILE_PATH/bash_aliases*"
-            # oh-my-posh theme
-            wsl.exe --distribution $Distro --user root --exec bash -c "mkdir -p $OH_MY_POSH_PATH && cp -f $OMP_THEME $OH_MY_POSH_PATH/theme.omp.json && chmod 644 $OH_MY_POSH_PATH/theme.omp.json"
-            # PowerShell profile
-            wsl.exe --distribution $Distro --user root --exec pwsh -nop -c 'cp -f .assets/config/pwsh_cfg/profile.ps1 $PROFILE.AllUsersAllHosts && chmod 644 $PROFILE.AllUsersAllHosts'
-            # PowerShell functions
-            wsl.exe --distribution $Distro --user root --exec bash -c "mkdir -p $PS_SCRIPTS_PATH && cp -f .assets/config/pwsh_cfg/ps_aliases* $PS_SCRIPTS_PATH && chmod 644 $PS_SCRIPTS_PATH/ps_aliases*"
-            # remove kubectl aliases
-            if ($Scope -notin @('k8s_basic', 'k8s_full')) {
-                wsl.exe --distribution $Distro --user root --exec rm -f $SH_PROFILE_PATH/bash_aliases_kubectl $PS_SCRIPTS_PATH/ps_aliases_kubectl.ps1
-            }
-            # *setup profiles
-            Write-Host 'setting up profile for all users...' -ForegroundColor Green
-            wsl.exe --distribution $Distro --user root --exec pwsh -nop -f .assets/provision/setup_profiles_allusers.ps1
-            wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.sh
-            wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh
-            Write-Host 'setting up profile for current user...' -ForegroundColor Green
-            wsl.exe --distribution $Distro --exec pwsh -nop -f .assets/provision/setup_profiles_user.ps1
-            wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
         }
     }
 

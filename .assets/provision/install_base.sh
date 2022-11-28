@@ -15,16 +15,16 @@ alpine)
   apk add --no-cache ca-certificates bash bash-completion iputils curl git jq less mandoc openssl tree unzip vim
   ;;
 arch)
-  pacman -Sy --noconfirm base-devel bash-completion dnsutils git jq man-db openssl tree unzip vim
+  pacman -Sy --noconfirm base-devel bash-completion dnsutils git jq man-db openssl tree unzip vim wget
   ;;
 fedora)
-  dnf install -y bash-completion bind-utils curl git jq man-db openssl tree unzip vim
+  dnf install -y bash-completion bind-utils curl git jq man-db openssl tree unzip vim wget
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y bash-completion dnsutils curl git jq man-db openssl tree unzip vim
+  apt-get update && apt-get install -y bash-completion dnsutils curl git jq man-db openssl tree unzip vim wget
   ;;
 opensuse)
-  zypper in -y bash-completion bind-utils git jq openssl tree unzip vim
+  zypper in -y bash-completion bind-utils git jq openssl tree unzip vim wget
   ;;
 esac
