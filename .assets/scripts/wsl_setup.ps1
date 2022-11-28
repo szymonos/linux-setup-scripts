@@ -19,6 +19,7 @@ Specify gtk theme for wslg.
 Available values: 'light', 'dark'
 .PARAMETER Scope
 Installation scope - valid values, and packages installed:
+- none: no additional packages installed
 - base: curl, git, jq, tree, vim, oh-my-posh, pwsh, bat, exa, ripgrep
 - k8s_basic: kubectl, helm, minikube, k3d, k9s, yq
 - k8s_full: flux, kubeseal, kustomize, argorolloutts-cli
@@ -145,9 +146,9 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
         foreach ($Distro in $distros) {
             # *install packages
             if ($PsCmdlet.ParameterSetName -eq 'Update') {
-                $scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
+                $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
             }
-            Write-Host "$distro - $scope" -ForegroundColor Magenta
+            Write-Host "$distro - $Scope" -ForegroundColor Magenta
             wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
             wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
             switch -Regex ($Scope) {
