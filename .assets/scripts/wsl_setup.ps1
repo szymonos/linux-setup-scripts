@@ -181,7 +181,7 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
                     wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
                     # *setup profiles
                     Write-Host 'setting up profile for all users...' -ForegroundColor Green
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --assets '.assets' --theme_font $OmpTheme
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme_font $OmpTheme
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.sh
                     Write-Host 'setting up profile for current user...' -ForegroundColor Green
@@ -215,6 +215,6 @@ switch -Regex ($PsCmdlet.ParameterSetName) {
             wsl.exe --distribution $Distro --exec bash -c ($gitConfigCmd -join ' && ')
         }
         # clone repos
-        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.ps1 -d $Distro -r "$Repos" -g $Account -w $env:USERNAME
+        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --distro $Distro --repos "$Repos" --gh_user $Account --win_user $env:USERNAME
     }
 }
