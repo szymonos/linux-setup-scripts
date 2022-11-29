@@ -9,26 +9,30 @@ $ErrorActionPreference = 'SilentlyContinue'
 $WarningPreference = 'Ignore'
 
 # path varaibles
-$PROFILE_PATH = [IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)
 $SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
 
+# determine folder with config files
+$assets = $env:WSL_DISTRO_NAME ? '.assets' : '/tmp'
+
 # *Copy global profiles
-if (Test-Path /tmp/config/pwsh_cfg -PathType Container) {
+if (Test-Path $assets/config/pwsh_cfg -PathType Container) {
     # PowerShell profile
-    Move-Item /tmp/config/pwsh_cfg/profile.ps1 -Destination $PROFILE_PATH
+    Copy-Item $assets/config/pwsh_cfg/profile.ps1 -Destination $PROFILE.AllUsersAllHosts
     # PowerShell functions
     New-Item $SCRIPTS_PATH -ItemType Directory | Out-Null
-    Move-Item /tmp/config/pwsh_cfg/ps_aliases_common.ps1 -Destination $SCRIPTS_PATH
+    Copy-Item $assets/config/pwsh_cfg/ps_aliases_common.ps1 -Destination $SCRIPTS_PATH
     # git functions
     if (Test-Path /usr/bin/git -PathType Leaf) {
-        Move-Item /tmp/config/pwsh_cfg/ps_aliases_git.ps1 -Destination $SCRIPTS_PATH
+        Copy-Item $assets/config/pwsh_cfg/ps_aliases_git.ps1 -Destination $SCRIPTS_PATH
     }
     # kubectl functions
     if (Test-Path /usr/bin/kubectl -PathType Leaf) {
-        Move-Item /tmp/config/pwsh_cfg/ps_aliases_kubectl.ps1 -Destination $SCRIPTS_PATH
+        Copy-Item $assets/config/pwsh_cfg/ps_aliases_kubectl.ps1 -Destination $SCRIPTS_PATH
     }
-    # clean config folder
-    Remove-Item -Force -Recurse /tmp/config/pwsh_cfg
+    if (Test-Path /tmp/config/pwsh_cfg -PathType Container) {
+        # clean config folder
+        Remove-Item -Force -Recurse /tmp/config/pwsh_cfg
+    }
 }
 
 # *PowerShell profile

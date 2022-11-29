@@ -2,6 +2,10 @@
 : '
 sudo .assets/provision/install_cascadiacode.sh
 '
+if [[ $EUID -ne 0 ]]; then
+  echo -e '\e[91mRun the script with sudo!\e[0m'
+  exit 1
+fi
 
 REL=$1
 # get latest release if not provided as a parameter

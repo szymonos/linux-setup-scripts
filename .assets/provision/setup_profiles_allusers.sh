@@ -2,24 +2,34 @@
 : '
 sudo .assets/provision/setup_profiles_allusers.sh
 '
+if [[ $EUID -ne 0 ]]; then
+  echo -e '\e[91mRun the script with sudo!\e[0m'
+  exit 1
+fi
+
 # path varaibles
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 
+# determine folder with config files
+[ -n $WSL_DISTRO_NAME ] && assets='.assets' || assets='/tmp'
+
 # *Copy global profiles
-if [ -d /tmp/config/bash_cfg ]; then
+if [ -d $assets/config/bash_cfg ]; then
   # bash aliases
-  \mv -f /tmp/config/bash_cfg/bash_aliases $PROFILE_PATH
+  \cp -f $assets/config/bash_cfg/bash_aliases $PROFILE_PATH
   # git aliases
   if type git &>/dev/null; then
-    \mv -f /tmp/config/bash_cfg/bash_aliases_git $PROFILE_PATH
+    \cp -f $assets/config/bash_cfg/bash_aliases_git $PROFILE_PATH
   fi
   # kubectl aliases
   if type -f kubectl &>/dev/null; then
-    \mv -f /tmp/config/bash_cfg/bash_aliases_kubectl $PROFILE_PATH
+    \cp -f $assets/config/bash_cfg/bash_aliases_kubectl $PROFILE_PATH
   fi
-  # clean config folder
-  \rm -fr /tmp/config/bash_cfg
+  if [ -d /tmp/config/bash_cfg ]; then
+    # clean config folder
+    \rm -fr /tmp/config/bash_cfg
+  fi
 fi
 
 # *bash profile

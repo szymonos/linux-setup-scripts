@@ -1,7 +1,11 @@
 #!/bin/bash
 : '
-.assets\provision\setup_docker_mount.sh
+sudo .assets\provision\setup_docker_mount.sh
 '
+if [[ $EUID -ne 0 ]]; then
+  echo -e '\e[91mRun the script with sudo!\e[0m'
+  exit 1
+fi
 
 disk=${disk:-sdb}
 mount=${mount:-/var/lib/docker}

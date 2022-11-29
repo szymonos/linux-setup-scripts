@@ -2,6 +2,10 @@
 : '
 sudo .assets/provision/install_gnome.sh
 '
+if [[ $EUID -ne 0 ]]; then
+  echo -e '\e[91mRun the script with sudo!\e[0m'
+  exit 1
+fi
 
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
