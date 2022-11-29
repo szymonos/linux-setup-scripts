@@ -4,6 +4,39 @@
 .SYNOPSIS
 Get kubectl client version.
 #>
+function Get-KubectlVersion {
+    # get-full version
+    $v = kubectl version -o=json 2>$null | ConvertFrom-Json
+    # convert back to json selected properties
+    $verJson = [ordered]@{
+        clientVersion   = [ordered]@{
+            gitVersion = $v.clientVersion.gitVersion
+            buildDate = $v.clientVersion.buildDate
+            goVersion = $v.clientVersion.goVersion
+            platform = $v.clientVersion.platform
+        }
+        serverVersion   = [ordered]@{
+            gitVersion = $v.serverVersion.gitVersion
+            buildDate = $v.serverVersion.buildDate
+            goVersion = $v.serverVersion.goVersion
+            platform = $v.serverVersion.platform
+        }
+    } | ConvertTo-Json
+
+    # format output command
+    if (Get-Command yq -CommandType Application) {
+        $verJson | yq -p json -o yaml
+    } elseif (Get-Command jq -CommandType Application) {
+        $verJson | jq
+    } else {
+        $verJson
+    }
+}
+
+<#
+.SYNOPSIS
+Get kubectl client version.
+#>
 function Get-KubectlClientVersion {
     return (kubectl version -o=json 2>$null | ConvertFrom-Json).clientVersion.gitVersion
 }
@@ -78,6 +111,7 @@ function Set-KubectlUseContext {
 
 #region aliases
 Set-Alias -Name k -Value kubectl
+Set-Alias -Name kv -Value Get-KubectlVersion
 Set-Alias -Name kvc -Value Get-KubectlClientVersion
 Set-Alias -Name kvs -Value Get-KubectlServerVersion
 Set-Alias -Name kcuctx -Value Set-KubectlUseContext

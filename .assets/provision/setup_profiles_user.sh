@@ -2,7 +2,7 @@
 : '
 .assets/provision/setup_profiles_user.sh
 '
-# path varaibles
+# path variables
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 
