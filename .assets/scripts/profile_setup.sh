@@ -23,8 +23,7 @@ echo -e "\e[32mupgrading system...\e[0m"
 sudo .assets/provision/upgrade_system.sh
 sudo .assets/provision/install_base.sh
 
-case $scope in
-k8s_basic | k8s_full)
+if [[ "$scope" = @(k8s_basic|k8s_full) ]]; then
   echo -e "\e[32minstalling kubernetes base packages...\e[0m"
   sudo .assets/provision/install_kubectl.sh
   sudo .assets/provision/install_helm.sh
@@ -32,15 +31,15 @@ k8s_basic | k8s_full)
   sudo .assets/provision/install_k3d.sh
   sudo .assets/provision/install_k9s.sh
   sudo .assets/provision/install_yq.sh
-  ;;
-k8s_full)
+fi
+if [[ "$scope" = 'k8s_full' ]]; then
   echo -e "\e[32minstalling kubernetes additional packages...\e[0m"
   sudo .assets/provision/install_flux.sh
   sudo .assets/provision/install_kubeseal.sh
   sudo .assets/provision/install_kustomize.sh
   sudo .assets/provision/install_argorolloutscli.sh
-  ;;
-base | k8s_basic | k8s_full)
+fi
+if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   echo -e "\e[32minstalling base packages...\e[0m"
   sudo .assets/provision/install_omp.sh
   sudo .assets/provision/install_pwsh.sh
@@ -54,5 +53,4 @@ base | k8s_basic | k8s_full)
   echo -e "\e[32msetting up profile for current user...\e[0m"
   .assets/provision/setup_profiles_user.sh
   .assets/provision/setup_profiles_user.ps1
-  ;;
-esac
+fi
