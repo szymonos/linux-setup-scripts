@@ -1,6 +1,7 @@
 #!/bin/bash
 : '
 .assets/scripts/profile_setup.sh --theme_font powerline --scope k8s_basic
+.assets/scripts/profile_setup.sh --sys_upgrade true --theme_font powerline --scope k8s_basic
 '
 if [[ $EUID -eq 0 ]]; then
   echo -e '\e[91mDo not run the script with sudo!\e[0m'
@@ -10,6 +11,7 @@ fi
 # parse named parameters
 theme_font=${theme_font:-base}
 scope=${scope:-base}
+sys_upgrade=${sys_upgrade:-false}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
@@ -19,8 +21,10 @@ while [ $# -gt 0 ]; do
 done
 
 # *Install packages and setup profiles
-echo -e "\e[32mupgrading system...\e[0m"
-sudo .assets/provision/upgrade_system.sh
+if $sys_upgrade; then
+  echo -e "\e[32mupgrading system...\e[0m"
+  sudo .assets/provision/upgrade_system.sh
+fi
 sudo .assets/provision/install_base.sh
 
 if [[ "$scope" = @(k8s_basic|k8s_full) ]]; then
