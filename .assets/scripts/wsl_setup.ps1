@@ -102,6 +102,12 @@ if ($PsCmdlet.ParameterSetName -ne 'Update') {
     [string[]]$distros = $Distro
 }
 
+$workspaceFolder = Split-Path (Split-Path $PSScriptRoot)
+if ($PWD.Path -ne $workspaceFolder) {
+    Write-Verbose "Correcting script working directory to '$workspaceFolder'."
+    Set-Location $workspaceFolder
+}
+
 switch -Regex ($PsCmdlet.ParameterSetName) {
     'AddCert' {
         # determine update ca parameters depending on distro
