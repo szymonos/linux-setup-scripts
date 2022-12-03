@@ -20,6 +20,10 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+# correct script working directory if needed
+WORKSPACE_FOLDER=$(dirname "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")")
+[[ "$PWD" = "$WORKSPACE_FOLDER" ]] || cd "$WORKSPACE_FOLDER"
+
 # *Install packages and setup profiles
 if $sys_upgrade; then
   echo -e "\e[32mupgrading system...\e[0m"
