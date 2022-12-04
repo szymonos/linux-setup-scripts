@@ -30,6 +30,8 @@ GH account with the repositories to clone.
 List of repositories to clone into the WSL.
 .PARAMETER AddRootCert
 Switch for installing root CA certificate. It should be used separately from other options.
+.PARAMETER PSModules
+List of PowerShell modules from ps-szymonos repository to be installed.
 
 .EXAMPLE
 $Distro   = 'fedora'
@@ -42,14 +44,18 @@ $Repos = @(
     'ps-szymonos'
     'vagrant-scripts'
 )
+$PSModules = @(
+    'do-common'
+    'do-linux'
+)
 ~install root certificate in specified distro
 .assets/scripts/wsl_setup.ps1 $Distro -AddRootCert
 ~install packages and setup profile
-.assets/scripts/wsl_setup.ps1 $Distro -o $OmpTheme -g $GtkTheme -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -o $OmpTheme -g $GtkTheme -s $Scope -m $PSModules
 ~install packages, setup profiles and clone repositories
-.assets/scripts/wsl_setup.ps1 $Distro -a $Account -r $Repos -o $OmpTheme -g $GtkTheme -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -a $Account -r $Repos -o $OmpTheme -g $GtkTheme -s $Scope -m $PSModules
 ~update all existing WSL distros
-.assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme
+.assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme -m $PSModules
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -85,142 +91,172 @@ param (
 
     [Alias('c')]
     [Parameter(Mandatory, ParameterSetName = 'AddCert')]
-    [switch]$AddRootCert
+    [switch]$AddRootCert,
+
+    [Alias('m')]
+    [Parameter(ParameterSetName = 'Update')]
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [string[]]$PSModules
 )
 
-# *get list of distros
-# change temporarily encoding to utf-16 to match wsl output
-[Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-[string[]]$distros = (wsl.exe --list --quiet) -notmatch '^docker-'
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+begin {
+    # *get list of distros
+    # change temporarily encoding to utf-16 to match wsl output
+    [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
+    [string[]]$distros = (wsl.exe --list --quiet) -notmatch '^docker-'
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-if ($PsCmdlet.ParameterSetName -ne 'Update') {
-    if ($Distro -notin $distros) {
-        Write-Warning "The specified distro does not exist ($Distro)."
-        exit
-    }
-    [string[]]$distros = $Distro
-}
-
-$workspaceFolder = Split-Path (Split-Path $PSScriptRoot)
-if ($PWD.Path -ne $workspaceFolder) {
-    Write-Verbose "Correcting script working directory to '$workspaceFolder'."
-    Set-Location $workspaceFolder
-}
-
-switch -Regex ($PsCmdlet.ParameterSetName) {
-    'AddCert' {
-        # determine update ca parameters depending on distro
-        $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
-        switch -Regex ($sysId) {
-            'arch' {
-                $crt = @{ path = '/etc/ca-certificates/trust-source/anchors'; cmd = 'trust extract-compat' }
-                continue
-            }
-            'fedora' {
-                $crt = @{ path = '/etc/pki/ca-trust/source/anchors'; cmd = 'update-ca-trust' }
-                continue
-            }
-            'debian|ubuntu' {
-                $crt = @{ path = '/usr/local/share/ca-certificates'; cmd = 'update-ca-certificates' }
-                wsl -d $Distro -u root --exec bash -c 'type update-ca-certificates &>/dev/null || (export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y ca-certificates)'
-                continue
-            }
-            'opensuse' {
-                $crt = @{ path = '/usr/share/pki/trust/anchors'; cmd = 'update-ca-certificates' }
-                continue
-            }
+    if ($PsCmdlet.ParameterSetName -ne 'Update') {
+        if ($Distro -notin $distros) {
+            Write-Warning "The specified distro does not exist ($Distro)."
+            exit
         }
-        # get certificate chain
-        do {
-            $chain = ((Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n" 2>$null | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value
-        } until ($chain)
-        # save root certificate run command to update certificates
-        New-Item '.tmp' -ItemType Directory -ErrorAction SilentlyContinue
-        for ($i = 1; $i -lt $chain.Count; $i++) {
-            $certRawData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
-            $subject = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData).Subject
-            $cn = ($subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"')
-            [IO.File]::WriteAllText(".tmp/$cn.crt", $chain[$i])
-            Set-Content -Value $chain[$i] -Path ".tmp/$cn.crt"
-        }
-        wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"
-        continue
+        [string[]]$distros = $Distro
     }
 
-    'Setup|Update|GitHub' {
-        foreach ($Distro in $distros) {
-            # *install packages
-            if ($PsCmdlet.ParameterSetName -eq 'Update') {
-                $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
-            }
-            Write-Host "$distro - $Scope" -ForegroundColor Magenta
-            wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
-            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
-            switch -Regex ($Scope) {
-                'none' {
+    $workspaceFolder = Split-Path (Split-Path $PSScriptRoot)
+    if ($workspaceFolder -ne $PWD.Path) {
+        $startWorkingDirectory = $PWD
+        Write-Verbose "Setting working directory to '$($workspaceFolder.Replace($HOME, '~'))'."
+        Set-Location $workspaceFolder
+    }
+}
+
+process {
+    switch -Regex ($PsCmdlet.ParameterSetName) {
+        'AddCert' {
+            # determine update ca parameters depending on distro
+            $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
+            switch -Regex ($sysId) {
+                'arch' {
+                    $crt = @{ path = '/etc/ca-certificates/trust-source/anchors'; cmd = 'trust extract-compat' }
                     continue
                 }
-                'k8s_basic|k8s_full' {
-                    Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
-                    $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
-                    $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
-                    $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
-                    $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
-                    $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
+                'fedora' {
+                    $crt = @{ path = '/etc/pki/ca-trust/source/anchors'; cmd = 'update-ca-trust' }
+                    continue
                 }
-                'k8s_full' {
-                    Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
-                    $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
-                    $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
+                'debian|ubuntu' {
+                    $crt = @{ path = '/usr/local/share/ca-certificates'; cmd = 'update-ca-certificates' }
+                    wsl -d $Distro -u root --exec bash -c 'type update-ca-certificates &>/dev/null || (export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y ca-certificates)'
+                    continue
                 }
-                'base|k8s_basic|k8s_full' {
-                    Write-Host 'installing base packages...' -ForegroundColor Green
-                    $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
-                    $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
-                    $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
-                    $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
-                    $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
-                    wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
-                    # *setup profiles
-                    Write-Host 'setting up profile for all users...' -ForegroundColor Green
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme_font $OmpTheme
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.sh
-                    Write-Host 'setting up profile for current user...' -ForegroundColor Green
-                    wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.ps1
-                    wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
+                'opensuse' {
+                    $crt = @{ path = '/usr/share/pki/trust/anchors'; cmd = 'update-ca-certificates' }
+                    continue
                 }
             }
-            # *set gtk theme for wslg
-            if (wsl.exe --distribution $Distro -- bash -c '[ -d /mnt/wslg ] && echo 1') {
-                Write-Host 'setting gtk theme...' -ForegroundColor Green
-                $themeString = switch ($GtkTheme) {
-                    light { 'export GTK_THEME="Adwaita"' }
-                    dark { 'export GTK_THEME="Adwaita:dark"' }
-                }
-                wsl.exe --distribution $Distro --user root -- bash -c "echo '$themeString' >/etc/profile.d/gtk_theme.sh"
+            # get certificate chain
+            do {
+                $chain = ((Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n" 2>$null | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value
+            } until ($chain)
+            # save root certificate run command to update certificates
+            New-Item '.tmp' -ItemType Directory -ErrorAction SilentlyContinue
+            for ($i = 1; $i -lt $chain.Count; $i++) {
+                $certRawData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
+                $subject = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData).Subject
+                $cn = ($subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"')
+                [IO.File]::WriteAllText(".tmp/$cn.crt", $chain[$i])
+                Set-Content -Value $chain[$i] -Path ".tmp/$cn.crt"
             }
+            wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"
+            continue
+        }
+
+        'Setup|Update|GitHub' {
+            foreach ($Distro in $distros) {
+                # *install packages
+                if ($PsCmdlet.ParameterSetName -eq 'Update') {
+                    $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
+                }
+                Write-Host "$distro - $Scope" -ForegroundColor Magenta
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
+                switch -Regex ($Scope) {
+                    'none' {
+                        continue
+                    }
+                    'k8s_basic|k8s_full' {
+                        Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
+                        $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl
+                        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
+                        $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
+                        $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
+                        $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
+                        $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
+                    }
+                    'k8s_full' {
+                        Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
+                        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
+                        $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
+                        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
+                        $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
+                    }
+                    'base|k8s_basic|k8s_full' {
+                        Write-Host 'installing base packages...' -ForegroundColor Green
+                        $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
+                        $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
+                        $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
+                        $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
+                        $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
+                        wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
+                        # *setup profiles
+                        Write-Host 'setting up profile for all users...' -ForegroundColor Green
+                        wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme_font $OmpTheme
+                        wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
+                        wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.sh
+                        Write-Host 'setting up profile for current user...' -ForegroundColor Green
+                        wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.ps1
+                        wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
+                        if ($PSModules) {
+                            # *install PowerShell modules from ps-szymonos repository
+                            if (Test-Path '../ps-szymonos/module_manage.ps1') {
+                                Write-Host 'installing modules...' -ForegroundColor Green
+                                foreach ($module in $PSModules) {
+                                    if ($module -eq 'do-common') {
+                                        wsl.exe --distribution $Distro --user root --exec ../ps-szymonos/module_manage.ps1 -Module $module -CleanUp
+                                    } else {
+                                        wsl.exe --distribution $Distro --exec ../ps-szymonos/module_manage.ps1 -Module $module -CleanUp
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                # *set gtk theme for wslg
+                if (wsl.exe --distribution $Distro -- bash -c '[ -d /mnt/wslg ] && echo 1') {
+                    Write-Host 'setting gtk theme...' -ForegroundColor Green
+                    $themeString = switch ($GtkTheme) {
+                        light { 'export GTK_THEME="Adwaita"' }
+                        dark { 'export GTK_THEME="Adwaita:dark"' }
+                    }
+                    wsl.exe --distribution $Distro --user root -- bash -c "echo '$themeString' >/etc/profile.d/gtk_theme.sh"
+                }
+            }
+        }
+
+        'GitHub' {
+            # *setup GitHub repositories
+            Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
+            # set git eol config
+            wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
+            # copy git user settings from the host
+            $gitConfigCmd = git config --list --global | Select-String '^user\b' -Raw | ForEach-Object {
+                $split = $_.Split('=')
+                Write-Output "git config --global $($split[0]) '$($split[1])'"
+            }
+            if ($gitConfigCmd) {
+                wsl.exe --distribution $Distro --exec bash -c ($gitConfigCmd -join ' && ')
+            }
+            # clone repos
+            wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --distro $Distro --repos "$Repos" --gh_user $Account --win_user $env:USERNAME
         }
     }
+}
 
-    'GitHub' {
-        # *setup GitHub repositories
-        Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
-        # set git eol config
-        wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
-        # copy git user settings from the host
-        $gitConfigCmd = git config --list --global | Select-String '^user\b' -Raw | ForEach-Object {
-            $split = $_.Split('=')
-            Write-Output "git config --global $($split[0]) '$($split[1])'"
-        }
-        if ($gitConfigCmd) {
-            wsl.exe --distribution $Distro --exec bash -c ($gitConfigCmd -join ' && ')
-        }
-        # clone repos
-        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --distro $Distro --repos "$Repos" --gh_user $Account --win_user $env:USERNAME
+end {
+    if ($startWorkingDirectory) {
+        Set-Location $startWorkingDirectory
     }
 }
