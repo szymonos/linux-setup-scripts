@@ -24,9 +24,9 @@ function Get-KubectlVersion {
     } | ConvertTo-Json
 
     # format output command
-    if (Get-Command yq -CommandType Application) {
+    if (Get-Command yq -CommandType Application -ErrorAction SilentlyContinue) {
         $verJson | yq -p json -o yaml
-    } elseif (Get-Command jq -CommandType Application) {
+    } elseif (Get-Command jq -CommandType Application -ErrorAction SilentlyContinue) {
         $verJson | jq
     } else {
         $verJson
