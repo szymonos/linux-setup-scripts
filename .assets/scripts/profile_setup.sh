@@ -67,9 +67,9 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
     modules=($ps_modules)
     for mod in ${modules[@]}; do
       if [ "$mod" = 'do-common' ]; then
-        sudo pwsh -nop ../ps-szymonos/module_manage.ps1 "$mod" -CleanUp
+        sudo ../ps-szymonos/module_manage.ps1 "$mod" -CleanUp
       else
-        pwsh -nop ../ps-szymonos/module_manage.ps1 "$mod" -CleanUp
+        ../ps-szymonos/module_manage.ps1 "$mod" -CleanUp
       fi
     done
   fi

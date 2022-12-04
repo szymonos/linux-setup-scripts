@@ -209,16 +209,14 @@ process {
                         Write-Host 'setting up profile for current user...' -ForegroundColor Green
                         wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.ps1
                         wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
-                        if ($PSModules) {
+                        if ($PSModules -and (Test-Path '../ps-szymonos/module_manage.ps1')) {
                             # *install PowerShell modules from ps-szymonos repository
-                            if (Test-Path '../ps-szymonos/module_manage.ps1') {
-                                Write-Host 'installing PowerShell modules...' -ForegroundColor Green
-                                foreach ($module in $PSModules) {
-                                    if ($module -eq 'do-common') {
-                                        wsl.exe --distribution $Distro --user root --exec ../ps-szymonos/module_manage.ps1 -Module $module -CleanUp
-                                    } else {
-                                        wsl.exe --distribution $Distro --exec ../ps-szymonos/module_manage.ps1 -Module $module -CleanUp
-                                    }
+                            Write-Host 'installing PowerShell modules...' -ForegroundColor Green
+                            foreach ($module in $PSModules) {
+                                if ($module -eq 'do-common') {
+                                    wsl.exe --distribution $Distro --user root --exec ../ps-szymonos/module_manage.ps1 $module -CleanUp
+                                } else {
+                                    wsl.exe --distribution $Distro --exec ../ps-szymonos/module_manage.ps1 $module -CleanUp
                                 }
                             }
                         }
