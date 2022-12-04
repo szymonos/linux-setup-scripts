@@ -1,7 +1,7 @@
 #!/bin/bash
 : '
-.assets/scripts/profile_setup.sh --theme_font powerline --scope k8s_basic
-.assets/scripts/profile_setup.sh --sys_upgrade true --theme_font powerline --scope k8s_basic
+.assets/scripts/profile_setup.sh --theme_font powerline --ps_modules "do-common do-linux" --scope k8s_basic
+.assets/scripts/profile_setup.sh --sys_upgrade true --theme_font powerline --ps_modules "do-common do-linux" --scope k8s_basic
 '
 if [[ $EUID -eq 0 ]]; then
   echo -e '\e[91mDo not run the script with sudo!\e[0m'
@@ -12,6 +12,7 @@ fi
 theme_font=${theme_font:-base}
 scope=${scope:-base}
 sys_upgrade=${sys_upgrade:-false}
+ps_modules=${ps_modules}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
@@ -61,4 +62,15 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   echo -e "\e[32msetting up profile for current user...\e[0m"
   .assets/provision/setup_profiles_user.sh
   .assets/provision/setup_profiles_user.ps1
+  if [[ -n "$ps_modules" ]] && [ -f ../ps-szymonos/module_manage.ps1 ]; then
+    echo -e "\e[32minstalling PowerShell modules...\e[0m"
+    modules=($ps_modules)
+    for mod in ${modules[@]}; do
+      if [ "$mod" = 'do-common' ]; then
+        sudo pwsh -nop ../ps-szymonos/module_manage.ps1 "$mod" -CleanUp
+      else
+        pwsh -nop ../ps-szymonos/module_manage.ps1 "$mod" -CleanUp
+      fi
+    done
+  fi
 fi
