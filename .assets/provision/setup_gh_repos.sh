@@ -19,7 +19,7 @@ ws_path="$HOME/source/workspaces/${distro,,}-devops.code-workspace"
 gh_repos=($repos)
 
 # *copy ssh keys on WSL
-if [[ -n $WSL_DISTRO_NAME ]]; then
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
   echo -e "\e[36mcopying ssh keys from the host...\e[0m"
   \mkdir -p ~/.ssh
   \cp /mnt/c/Users/$win_user/.ssh/id_* ~/.ssh/ 2>/dev/null

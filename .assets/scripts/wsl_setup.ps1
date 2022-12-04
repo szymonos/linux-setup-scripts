@@ -212,7 +212,7 @@ process {
                         if ($PSModules) {
                             # *install PowerShell modules from ps-szymonos repository
                             if (Test-Path '../ps-szymonos/module_manage.ps1') {
-                                Write-Host 'installing modules...' -ForegroundColor Green
+                                Write-Host 'installing PowerShell modules...' -ForegroundColor Green
                                 foreach ($module in $PSModules) {
                                     if ($module -eq 'do-common') {
                                         wsl.exe --distribution $Distro --user root --exec ../ps-szymonos/module_manage.ps1 -Module $module -CleanUp
