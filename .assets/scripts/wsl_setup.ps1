@@ -126,6 +126,11 @@ begin {
 process {
     switch -Regex ($PsCmdlet.ParameterSetName) {
         'AddCert' {
+            # check if openssl is installed
+            if (-not (Get-Command openssl -CommandType Application)) {
+                Write-Warning 'Openssl not found. Script execution halted.'
+                exit
+            }
             # determine update ca parameters depending on distro
             $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
             switch -Regex ($sysId) {
