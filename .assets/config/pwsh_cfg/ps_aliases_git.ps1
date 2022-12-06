@@ -5,18 +5,18 @@ Prints the command passed as the parameter and then executes it.
 #>
 function Invoke-PrintRunCommand {
     Write-Host "$args" -ForegroundColor Magenta
-    Invoke-Expression @args
+    Invoke-Expression "$args"
 }
 #endregion
 
 #region git functions
-function ga { Invoke-PrintRunCommand 'git add' }
+function ga { Invoke-PrintRunCommand 'git add' @args }
 function gaa { Invoke-PrintRunCommand 'git add --all' }
-function gapa { Invoke-PrintRunCommand 'git add --patch' }
-function gau { Invoke-PrintRunCommand 'git add --update' }
-function gb { Invoke-PrintRunCommand 'git branch' }
+function gapa { Invoke-PrintRunCommand 'git add --patch' @args }
+function gau { Invoke-PrintRunCommand 'git add --update' @args }
+function gb { Invoke-PrintRunCommand 'git branch' @args }
 function gba { Invoke-PrintRunCommand 'git branch -a' }
-function gbd { Invoke-PrintRunCommand 'git branch -d' }
+function gbd { Invoke-PrintRunCommand 'git branch -d' @args }
 function gbda {
     Write-Host 'git branch --no-color --merged --delete' -ForegroundColor Magenta
     git branch --no-color --merged `
@@ -25,7 +25,7 @@ function gbda {
         git branch --delete $_
     }
 }
-function gbl { Invoke-PrintRunCommand 'git blame -b -w' }
+function gbl { Invoke-PrintRunCommand 'git blame -b -w' @args }
 function gbnm { Invoke-PrintRunCommand 'git branch --no-merged' }
 function gbr { Invoke-PrintRunCommand 'git branch --remote' }
 function gbs { Invoke-PrintRunCommand 'git bisect' }
@@ -33,20 +33,20 @@ function gbsb { Invoke-PrintRunCommand 'git bisect bad' }
 function gbsg { Invoke-PrintRunCommand 'git bisect good' }
 function gbsr { Invoke-PrintRunCommand 'git bisect reset' }
 function gbss { Invoke-PrintRunCommand 'git bisect start' }
-function gc { Invoke-PrintRunCommand 'git commit -v' }
-function gc! { Invoke-PrintRunCommand 'git commit -v --amend' }
-function gca { Invoke-PrintRunCommand 'git commit -v -a' }
+function gc { Invoke-PrintRunCommand 'git commit -v' @args }
+function gc! { Invoke-PrintRunCommand 'git commit -v --amend' @args }
+function gca { Invoke-PrintRunCommand 'git commit -v -a' @args }
 function gca! { Invoke-PrintRunCommand 'git commit -v -a --amend' }
 function gcam { Invoke-PrintRunCommand 'git commit -a -m' }
 function gcan! { Invoke-PrintRunCommand 'git commit -v -a --no-edit --amend' }
 function gcans! { Invoke-PrintRunCommand 'git commit -v -a -s --no-edit --amend' }
-function gcb { Invoke-PrintRunCommand 'git checkout -b' }
-function gcf { Invoke-PrintRunCommand 'git config --list' }
+function gcb { Invoke-PrintRunCommand 'git checkout -b' @args }
+function gcf { Invoke-PrintRunCommand 'git config --list' @args }
 function gcl { Invoke-PrintRunCommand 'git clone --recursive' }
 function gclean { Invoke-PrintRunCommand 'git clean -fd' }
 function gcmsg { Invoke-PrintRunCommand 'git commit -m' }
 function gcn! { Invoke-PrintRunCommand 'git commit -v --no-edit --amend' }
-function gco { Invoke-PrintRunCommand 'git checkout' }
+function gco { Invoke-PrintRunCommand 'git checkout' @args }
 function gcount { Invoke-PrintRunCommand 'git shortlog -sn' }
 function gcp { Invoke-PrintRunCommand 'git cherry-pick' }
 function gcpa { Invoke-PrintRunCommand 'git cherry-pick --abort' }
@@ -101,10 +101,10 @@ function gpu { Invoke-PrintRunCommand 'git push upstream' }
 function gpv { Invoke-PrintRunCommand 'git push -v' }
 function gr { Invoke-PrintRunCommand 'git remote' }
 function gra { Invoke-PrintRunCommand 'git remote add' }
-function grb { Invoke-PrintRunCommand 'git rebase' }
+function grb { Invoke-PrintRunCommand 'git rebase' @args }
 function grba { Invoke-PrintRunCommand 'git rebase --abort' }
 function grbc { Invoke-PrintRunCommand 'git rebase --continue' }
-function grbi { Invoke-PrintRunCommand 'git rebase -i' }
+function grbi { Invoke-PrintRunCommand 'git rebase -i' @args }
 function grbm { Invoke-PrintRunCommand 'git rebase master' }
 function grbs { Invoke-PrintRunCommand 'git rebase --skip' }
 function grh { Invoke-PrintRunCommand 'git reset HEAD' }
