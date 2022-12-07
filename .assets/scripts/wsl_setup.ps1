@@ -125,7 +125,7 @@ begin {
 
 process {
     switch -Regex ($PsCmdlet.ParameterSetName) {
-        'AddCert' {
+        AddCert {
             # check if openssl is installed
             if (-not (Get-Command openssl -CommandType Application)) {
                 Write-Warning 'Openssl not found. Script execution halted.'
@@ -134,11 +134,11 @@ process {
             # determine update ca parameters depending on distro
             $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
             switch -Regex ($sysId) {
-                'arch' {
+                arch {
                     $crt = @{ path = '/etc/ca-certificates/trust-source/anchors'; cmd = 'trust extract-compat' }
                     continue
                 }
-                'fedora' {
+                fedora {
                     $crt = @{ path = '/etc/pki/ca-trust/source/anchors'; cmd = 'update-ca-trust' }
                     continue
                 }
@@ -147,23 +147,27 @@ process {
                     wsl -d $Distro -u root --exec bash -c 'type update-ca-certificates &>/dev/null || (export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y ca-certificates)'
                     continue
                 }
-                'opensuse' {
+                opensuse {
                     $crt = @{ path = '/usr/share/pki/trust/anchors'; cmd = 'update-ca-certificates' }
                     continue
                 }
             }
             # get certificate chain
+            $chainEndpoint = 'www.powershellgallery.com'
             do {
-                $chain = ((Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n" 2>$null | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value
+                $chain = ((Out-Null | openssl s_client -showcerts -connect ${chainEndpoint}:443) -join "`n" 2>$null `
+                    | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value
             } until ($chain)
             # save root certificate run command to update certificates
             New-Item '.tmp' -ItemType Directory -ErrorAction SilentlyContinue
-            for ($i = 1; $i -lt $chain.Count; $i++) {
+            for ($i = 0; $i -lt $chain.Count; $i++) {
                 $certRawData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
                 $subject = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData).Subject
-                $cn = ($subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"')
-                [IO.File]::WriteAllText(".tmp/$cn.crt", $chain[$i])
-                Set-Content -Value $chain[$i] -Path ".tmp/$cn.crt"
+                if ($subject -notmatch $chainEndpoint) {
+                    $cn = ($subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"')
+                    [IO.File]::WriteAllText(".tmp/$cn.crt", $chain[$i])
+                    Set-Content -Value $chain[$i] -Path ".tmp/$cn.crt"
+                }
             }
             wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"
             continue
@@ -179,7 +183,7 @@ process {
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
                 switch -Regex ($Scope) {
-                    'none' {
+                    none {
                         continue
                     }
                     'k8s_basic|k8s_full' {
@@ -191,7 +195,7 @@ process {
                         $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
                         $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
                     }
-                    'k8s_full' {
+                    k8s_full {
                         Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
                         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
                         $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
@@ -239,7 +243,7 @@ process {
             }
         }
 
-        'GitHub' {
+        GitHub {
             # *setup GitHub repositories
             Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
             # set git eol config
