@@ -158,13 +158,13 @@ process {
                     | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value
             } until ($chain)
             # save root certificate run command to update certificates
-            New-Item '.tmp' -ItemType Directory -ErrorAction SilentlyContinue
+            New-Item '.tmp' -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
             for ($i = 0; $i -lt $chain.Count; $i++) {
                 $certRawData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
                 $subject = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData).Subject
                 if ($subject -notmatch $chainEndpoint) {
                     $cn = ($subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"')
-                    Set-Content ".tmp/$cn.crt" -Value $chain[$i] -Encoding utf8
+                    [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', "$cn.crt"), $chain[$i])
                 }
             }
             wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"

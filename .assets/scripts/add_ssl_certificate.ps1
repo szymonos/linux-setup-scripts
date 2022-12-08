@@ -1,6 +1,8 @@
 <#
 .SYNOPSIS
 Script synopsis.
+.PATH
+Path to the Vagrantfile.
 .EXAMPLE
 $Path = 'hyperv/FedoraHV/Vagrantfile'
 .assets/scripts/add_ssl_certificate.ps1 -p $Path
@@ -10,6 +12,7 @@ $Path = 'hyperv/FedoraHV/Vagrantfile'
 [OutputType([System.Void])]
 param (
     [Parameter()]
+    [ValidateScript({ Test-Path $_ -PathType 'Leaf' })]
     [string]$Path
 )
 
@@ -44,8 +47,9 @@ esac
 "@
 }
 
-$scriptInstallRootCA = '.tmp/script_install_root_ca.sh'
+$scriptInstallRootCA = [IO.Path]::Combine($PWD, '.tmp', 'script_install_root_ca.sh')
 # *Content of specified Vagrantfile
+$Path = Resolve-Path $Path
 $content = [IO.File]::ReadAllLines($Path)
 
 # create installation script
