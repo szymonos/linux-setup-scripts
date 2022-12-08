@@ -34,15 +34,14 @@ Switch for installing root CA certificate. It should be used separately from oth
 List of PowerShell modules from ps-szymonos repository to be installed.
 
 .EXAMPLE
-$Distro   = 'fedora'
+$Distro   = 'Ubuntu'
 $OmpTheme = 'powerline'
 $GtkTheme = 'dark'
 $Scope    = 'k8s_basic'
 $Account  = 'szymonos'
 $Repos = @(
-    'devops-scripts'
-    'ps-szymonos'
     'vagrant-scripts'
+    'ps-szymonos'
 )
 $PSModules = @(
     'do-common'
@@ -165,8 +164,7 @@ process {
                 $subject = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData).Subject
                 if ($subject -notmatch $chainEndpoint) {
                     $cn = ($subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"')
-                    [IO.File]::WriteAllText(".tmp/$cn.crt", $chain[$i])
-                    Set-Content -Value $chain[$i] -Path ".tmp/$cn.crt"
+                    Set-Content ".tmp/$cn.crt" -Value $chain[$i] -Encoding utf8
                 }
             }
             wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"
@@ -249,12 +247,13 @@ process {
             # set git eol config
             wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
             # copy git user settings from the host
-            $gitConfigCmd = git config --list --global | Select-String '^user\b' -Raw | ForEach-Object {
-                $split = $_.Split('=')
-                Write-Output "git config --global $($split[0]) '$($split[1])'"
-            }
+            $gitConfigCmd = (git config --list --global | Select-String '^user\b').ForEach({
+                    $split = $_.Line.Split('=')
+                    "git config --global $($split[0]) '$($split[1])'"
+                }
+            ) -join ' && '
             if ($gitConfigCmd) {
-                wsl.exe --distribution $Distro --exec bash -c ($gitConfigCmd -join ' && ')
+                wsl.exe --distribution $Distro --exec bash -c $gitConfigCmd
             }
             # clone repos
             wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --distro $Distro --repos "$Repos" --gh_user $Account --win_user $env:USERNAME
