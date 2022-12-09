@@ -29,6 +29,6 @@ echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
 while [[ ! -f kubelogin-linux-amd64.zip ]]; do
   curl -LOsk "https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"
 done
-mkdir -p /tmp/kubelogin && unzip -q ./kubelogin-linux-amd64.zip -d /tmp/kubelogin &>/dev/null
+mkdir -p /tmp/kubelogin && unzip -q ./kubelogin-linux-amd64.zip -d /tmp/kubelogin
 install -o root -g root -m 0755 /tmp/kubelogin/bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
 rm -fr /tmp/kubelogin kubelogin-linux-amd64.zip
