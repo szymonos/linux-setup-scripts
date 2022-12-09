@@ -53,9 +53,9 @@ if ! type $APP &>/dev/null; then
   while [[ ! -f exa-linux-x86_64.zip ]]; do
     curl -Lsk -o exa-linux-x86_64.zip "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
   done
-  unzip exa-linux-x86_64.zip &>/dev/null
-  mv -f bin/exa /usr/bin/exa &>/dev/null
-  mv -f man/* $(manpath | cut -d : -f 1)/man1 &>/dev/null
-  mv -f completions/exa.bash /etc/bash_completion.d &>/dev/null
-  rm -fr bin completions man exa-linux-x86_64.zip
+  mkdir -p /tmp/exa && unzip -q exa-linux-x86_64.zip -d /tmp/exa
+  install -o root -g root -m 0755 /tmp/exa/bin/exa /usr/bin/exa
+  mv -f /tmp/exa/man/* $(manpath | cut -d : -f 1)/man1 &>/dev/null
+  mv -f /tmp/exa/completions/exa.bash /etc/bash_completion.d &>/dev/null
+  rm -fr /tmp/exa exa-linux-x86_64.zip
 fi

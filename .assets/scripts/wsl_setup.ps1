@@ -134,6 +134,7 @@ process {
             'k8s_basic|k8s_full' {
                 Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl
+                $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
                 $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
                 $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
