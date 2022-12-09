@@ -132,12 +132,20 @@ function gstp { Invoke-PrintRunCommand 'git stash pop' }
 function gsts { Invoke-PrintRunCommand 'git stash show --text' }
 function gsu { Invoke-PrintRunCommand 'git submodule update' }
 function gswd {
-    $branch = "$((git branch -a --format='%(refname:short)') -match '\bdev\b|\bdevelop\b' | Select-Object -First 1)".Replace('origin/', '')
-    Invoke-PrintRunCommand "git switch $branch"
+    $branch = "$((git branch -a --format='%(refname:short)') -match '\bdev(|el|elop)$' | Select-Object -First 1)".Replace('origin/', '')
+    if ($branch) {
+        Invoke-PrintRunCommand "git switch $branch"
+    } else {
+        Write-Host 'invalid reference: dev' -ForegroundColor Magenta
+    }
 }
 function gswm {
-    $branch = "$((git branch -a --format='%(refname:short)') -match '\bmain\b|\bmaster\b' | Select-Object -First 1)".Replace('origin/', '')
-    Invoke-PrintRunCommand "git switch $branch"
+    $branch = "$((git branch -a --format='%(refname:short)') -match '\bma(in|ster)$' | Select-Object -First 1)".Replace('origin/', '')
+    if ($branch) {
+        Invoke-PrintRunCommand "git switch $branch"
+    } else {
+        Write-Host 'invalid reference: main' -ForegroundColor Magenta
+    }
 }
 function gts { Invoke-PrintRunCommand 'git tag -s' }
 function gtv { Invoke-PrintRunCommand 'git tag | Sort-Object -V' }
