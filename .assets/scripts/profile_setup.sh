@@ -35,6 +35,7 @@ sudo .assets/provision/install_base.sh
 if [[ "$scope" = @(k8s_basic|k8s_full) ]]; then
   echo -e "\e[32minstalling kubernetes base packages...\e[0m"
   sudo .assets/provision/install_kubectl.sh
+  sudo .assets/provision/install_kubelogin.sh
   sudo .assets/provision/install_helm.sh
   sudo .assets/provision/install_minikube.sh
   sudo .assets/provision/install_k3d.sh
