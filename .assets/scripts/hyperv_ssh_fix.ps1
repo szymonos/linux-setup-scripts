@@ -3,7 +3,7 @@
 .SYNOPSIS
 Correct the ssh/config with new VM IP address and fingerprint in known_hosts
 .EXAMPLE
-$VMName = 'FedoraHV'
+$VMName = 'Vg-Fedora'
 .assets/scripts/hyperv_ssh_fix.ps1 -v $VMName
 #>
 [CmdletBinding()]

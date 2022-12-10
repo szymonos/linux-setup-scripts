@@ -7,8 +7,8 @@ IP of the host in ssh config file.
 .PARAMETER HostName
 Name of the host in ssh config file.
 .EXAMPLE
-$IpAddress = '192.168.121.88'
-$HostName = 'fedorahv'
+$IpAddress = '192.168.121.57'
+$HostName = 'vg-fedora-hv'
 .assets/trigger/delete_ssh_config.ps1 $IpAddress $HostName
 #>
 [CmdletBinding()]
@@ -20,7 +20,7 @@ param (
     [string]$HostName
 )
 
-$sshConfig = "$HOME/.ssh/config"
+$sshConfig = [IO.Path]::Combine($HOME, '.ssh', 'config')
 if (Test-Path $sshConfig -PathType Leaf) {
     $content = [IO.File]::ReadAllText($sshConfig)
     if ($content | Select-String -Pattern "Host $HostName") {
@@ -30,7 +30,7 @@ if (Test-Path $sshConfig -PathType Leaf) {
     }
 }
 
-$knownHosts = "$HOME/.ssh/known_hosts"
+$knownHosts = [IO.Path]::Combine($HOME, '.ssh', 'known_hosts')
 if (Test-Path $knownHosts -PathType Leaf) {
     $content = [IO.File]::ReadAllLines($knownHosts)
     if ($content | Select-String -Pattern "^$IpAddress") {
