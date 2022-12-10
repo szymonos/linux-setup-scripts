@@ -31,7 +31,7 @@ Host $HostName
   IdentityFile $Path
 "@
 
-$sshConfig = "$HOME/.ssh/config"
+$sshConfig = [IO.Path]::Combine($HOME, '.ssh', 'config')
 if (Test-Path $sshConfig -PathType Leaf) {
     $content = [IO.File]::ReadAllText($sshConfig).TrimEnd()
     if ($content | Select-String -Pattern "Host $HostName") {
@@ -51,7 +51,7 @@ if (Test-Path $sshConfig -PathType Leaf) {
 }
 [IO.File]::WriteAllText($sshConfig, $content)
 
-$knownHosts = "$HOME/.ssh/known_hosts"
+$knownHosts = [IO.Path]::Combine($HOME, '.ssh', 'known_hosts')
 if (Test-Path $knownHosts -PathType Leaf) {
     $content = [IO.File]::ReadAllLines($knownHosts)
     if ($content | Select-String -Pattern "^$IpAddress") {
