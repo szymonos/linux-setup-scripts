@@ -7,8 +7,8 @@ IP of the host in ssh config file.
 .PARAMETER HostName
 Name of the host in ssh config file.
 .EXAMPLE
-$IpAddress = '192.168.121.88'
-$HostName = 'fedorahv'
+$IpAddress = '192.168.121.57'
+$HostName = 'vg-fedora-hv'
 .assets/trigger/delete_ssh_config.ps1 $IpAddress $HostName
 #>
 [CmdletBinding()]

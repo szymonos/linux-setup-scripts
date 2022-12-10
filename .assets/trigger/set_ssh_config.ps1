@@ -7,8 +7,8 @@ IP of the host in ssh config file.
 .PARAMETER HostName
 Name of the host in ssh config file.
 .EXAMPLE
-$IpAddress = '192.168.121.88'
-$HostName = 'fedorahv'
+$IpAddress = '192.168.121.57'
+$HostName = 'vg-fedora-hv'
 $Path = '~/.ssh/id_rsa'
 .assets/trigger/set_ssh_config.ps1 $IpAddress $HostName $Path
 #>
