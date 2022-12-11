@@ -64,14 +64,18 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   echo -e "\e[32msetting up profile for current user...\e[0m"
   .assets/provision/setup_profiles_user.sh
   .assets/provision/setup_profiles_user.ps1
-  if [[ -n "$ps_modules" ]] && [ -f ../ps-szymonos/module_manage.ps1 ]; then
+  if [[ -n "$ps_modules" ]]; then
+    if [ ! -d ../ps-modules ]; then
+      remote=$(git config --get remote.origin.url)
+      git clone ${remote/vagrant-scripts/ps-modules} ../ps-modules
+    fi
     echo -e "\e[32minstalling PowerShell modules...\e[0m"
     modules=($ps_modules)
     for mod in ${modules[@]}; do
       if [ "$mod" = 'do-common' ]; then
-        sudo ../ps-szymonos/module_manage.ps1 "$mod" -CleanUp
+        sudo ../ps-modules/module_manage.ps1 "$mod" -CleanUp
       else
-        ../ps-szymonos/module_manage.ps1 "$mod" -CleanUp
+        ../ps-modules/module_manage.ps1 "$mod" -CleanUp
       fi
     done
   fi

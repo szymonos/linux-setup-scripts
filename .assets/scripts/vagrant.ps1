@@ -20,7 +20,7 @@ vagrant init hashicorp/bionic64
 vagrant up --provider=hyperv
 
 vagrant plugin install vagrant-reload
-vagrant init generic/fedora36
+vagrant init generic/fedora37
 # vagrant up --provider=hyperv
 vagrant up
 
