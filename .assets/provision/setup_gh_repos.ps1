@@ -4,7 +4,7 @@
 Script synopsis.
 .EXAMPLE
 $distro = 'Fedora'
-$repos = "ps-szymonos vagrant"
+$repos = "vagrant-scripts ps-modules"
 $gh_user = 'szymonos'
 $win_user = 'szymo'
 .assets/provision/setup_gh_repos.ps1

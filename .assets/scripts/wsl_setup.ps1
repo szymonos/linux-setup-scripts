@@ -30,7 +30,7 @@ GH account with the repositories to clone.
 .PARAMETER Repos
 List of repositories to clone into the WSL.
 .PARAMETER PSModules
-List of PowerShell modules from ps-szymonos repository to be installed.
+List of PowerShell modules from ps-modules repository to be installed.
 
 .EXAMPLE
 $Distro   = 'Ubuntu'
@@ -40,7 +40,7 @@ $Scope    = 'k8s_basic'
 $Account  = 'szymonos'
 $Repos = @(
     'vagrant-scripts'
-    'ps-szymonos'
+    'ps-modules'
 )
 $PSModules = @(
     'do-common'
@@ -164,14 +164,19 @@ process {
                 Write-Host 'setting up profile for current user...' -ForegroundColor Green
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.ps1
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
-                if ($PSModules -and (Test-Path '../ps-szymonos/module_manage.ps1')) {
-                    # *install PowerShell modules from ps-szymonos repository
+                if ($PSModules) {
+                    if (-not (Test-Path '../ps-modules' -PathType Container)) {
+                        # clone ps-modules repository if not exists
+                        $remote = (git config --get remote.origin.url).Replace('vagrant-scripts', 'ps-modules')
+                        git clone $remote ../ps-modules
+                    }
+                    # *install PowerShell modules from ps-modules repository
                     Write-Host 'installing PowerShell modules...' -ForegroundColor Green
                     foreach ($module in $PSModules) {
                         if ($module -eq 'do-common') {
-                            wsl.exe --distribution $Distro --user root --exec ../ps-szymonos/module_manage.ps1 $module -CleanUp
+                            wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
                         } else {
-                            wsl.exe --distribution $Distro --exec ../ps-szymonos/module_manage.ps1 $module -CleanUp
+                            wsl.exe --distribution $Distro --exec ../ps-modules/module_manage.ps1 $module -CleanUp
                         }
                     }
                 }
