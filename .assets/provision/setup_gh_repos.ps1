@@ -3,7 +3,7 @@
 .SYNOPSIS
 Script synopsis.
 .EXAMPLE
-$distro = 'Fedora'
+$distro = 'Ubuntu'
 $repos = "vagrant-scripts ps-modules"
 $gh_user = 'szymonos'
 $win_user = 'szymo'
