@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.private/setup_gh_repos.sh --distro "Ubuntu" --repos "devops-scripts vagrant-scripts" --gh_user "szymonos" --win_user "szymo"
+.private/setup_gh_repos.sh --distro "Ubuntu" --repos "vagrant-scripts ps-modules" --gh_user "szymonos" --win_user "szymo"
 '
 # parse named parameters
 distro=${distro}
