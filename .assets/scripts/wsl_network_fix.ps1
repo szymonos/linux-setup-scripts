@@ -7,12 +7,15 @@ Name of the WSL distro to set up. If not specified, script will update all exist
 Description of the VPN interface.
 .PARAMETER DisableSwap
 Flag whether to disable swap in WSL.
+.PARAMETER Shutdown
+Flag whether to shutdown specified distro.
 
 .EXAMPLE
 $Distro = 'Debian'
 $InterfaceDescription = 'NordLynx'
 .assets/scripts/wsl_network_fix.ps1 $Distro -d $InterfaceDescription
 .assets/scripts/wsl_network_fix.ps1 $Distro -d $InterfaceDescription -DisableSwap
+.assets/scripts/wsl_network_fix.ps1 $Distro -d $InterfaceDescription -Shutdown -DisableSwap
 #>
 
 [CmdletBinding()]
@@ -24,7 +27,9 @@ param (
     [Parameter(Mandatory)]
     [string[]]$InterfaceDescription,
 
-    [switch]$DisableSwap
+    [switch]$DisableSwap,
+
+    [switch]$Shutdown
 )
 
 # *replace wsl.conf
@@ -70,4 +75,9 @@ if ($DisableSwap) {
     } else {
         [IO.File]::WriteAllText([IO.Path]::Combine($HOME, '.wslconfig'), "[wsl2]`nswap=0")
     }
+}
+
+# *shutdown specified distro
+if ($Shutdown) {
+    wsl.exe --shutdown $Distro
 }
