@@ -13,9 +13,10 @@ Flag whether to shutdown specified distro.
 .EXAMPLE
 $Distro = 'Debian'
 $InterfaceDescription = 'NordLynx'
+.assets/scripts/wsl_network_fix.ps1 $Distro
 .assets/scripts/wsl_network_fix.ps1 $Distro -d $InterfaceDescription
-.assets/scripts/wsl_network_fix.ps1 $Distro -d $InterfaceDescription -DisableSwap
-.assets/scripts/wsl_network_fix.ps1 $Distro -d $InterfaceDescription -Shutdown -DisableSwap
+.assets/scripts/wsl_network_fix.ps1 $Distro -DisableSwap -d $InterfaceDescription
+.assets/scripts/wsl_network_fix.ps1 $Distro -Shutdown -DisableSwap -d $InterfaceDescription
 #>
 
 [CmdletBinding()]
@@ -24,8 +25,7 @@ param (
     [string]$Distro,
 
     [Alias('d')]
-    [Parameter(Mandatory)]
-    [string[]]$InterfaceDescription,
+    [string]$InterfaceDescription,
 
     [switch]$DisableSwap,
 
@@ -33,6 +33,7 @@ param (
 )
 
 # *replace wsl.conf
+Write-Host 'replacing wsl.conf...' -ForegroundColor Magenta
 $wslConv = @'
 [network]
 generateResolvConf = false
@@ -42,11 +43,27 @@ options = "metadata"
 mountFsTab = false
 '@
 # save wsl.conf file
-wsl.exe -d $Distro --user root --exec bash -c "echo '$wslConv' >/etc/wsl.conf"
+wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && echo '$wslConv' >/etc/wsl.conf"
 
 # *recreate resolv.conf
+Write-Host 'replacing resolv.conf...' -ForegroundColor Magenta
 # get DNS servers for specified interface
-$dnsServers = (Get-NetAdapter | Where-Object InterfaceDescription -Like "$InterfaceDescription*" | Get-DnsClientServerAddress).ServerAddresses
+if (-not $InterfaceDescription) {
+    $netAdapters = Get-NetAdapter
+    $list = for ($i = 0; $i -lt $netAdapters.Count; $i++) {
+        [PSCustomObject]@{
+            No                   = "[$i]"
+            Name                 = $netAdapters[$i].Name
+            InterfaceDescription = $netAdapters[$i].InterfaceDescription
+        }
+    }
+    do {
+        [int]$idx = Read-Host -Prompt "Please select the interface for propagating DNS Servers:`n$($list | Out-String)"
+    } until (($idx -in 0..($netAdapters.Count - 1)) -and $idx)
+    $dnsServers = ($netAdapters[$idx] | Get-DnsClientServerAddress).ServerAddresses
+} else {
+    $dnsServers = (Get-NetAdapter | Where-Object InterfaceDescription -Like "$InterfaceDescription*" | Get-DnsClientServerAddress).ServerAddresses
+}
 # get DNS suffix search list
 $searchSuffix = (Get-DnsClientGlobalSetting).SuffixSearchList -join ','
 # get distro default gateway
@@ -61,23 +78,26 @@ if ($searchSuffix) {
 $resolvList.Add('options timeout:1 retries:1')
 $resolvConf = [string]::Join("`n", $resolvList)
 # save resolv.conf file
-wsl.exe -d $Distro --user root --exec bash -c "echo '$resolvConf' >/etc/resolv.conf"
+wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/resolv.conf || true && echo '$resolvConf' >/etc/resolv.conf"
 
 # *disable wsl swap
 if ($DisableSwap) {
-    if ($wslconfig = [IO.File]::ReadAllLines([IO.Path]::Combine($HOME, '.wslconfig'))) {
-        if ($wslconfig | Select-String 'swap' -Quiet) {
-            $wslconfig = $wslconfig -replace 'swap.+', 'swap=0'
+    Write-Host 'disabling swap...' -ForegroundColor Magenta
+    $wslCfgPath = [IO.Path]::Combine($HOME, '.wslconfig')
+    if ($wslCfgContent = [IO.File]::ReadAllLines($wslCfgPath)) {
+        if ($wslCfgContent | Select-String 'swap' -Quiet) {
+            $wslCfgContent = $wslCfgContent -replace 'swap.+', 'swap=0'
         } else {
-            $wslconfig += 'swap=0'
+            $wslCfgContent += 'swap=0'
         }
-        [IO.File]::WriteAllLines([IO.Path]::Combine($HOME, '.wslconfig'), $wslconfig)
+        [IO.File]::WriteAllLines($wslCfgPath, $wslCfgContent)
     } else {
-        [IO.File]::WriteAllText([IO.Path]::Combine($HOME, '.wslconfig'), "[wsl2]`nswap=0")
+        [IO.File]::WriteAllText($wslCfgPath, "[wsl2]`nswap=0")
     }
 }
 
 # *shutdown specified distro
 if ($Shutdown) {
+    Write-Host "shutting down '$Distro' distro..." -ForegroundColor Magenta
     wsl.exe --shutdown $Distro
 }
