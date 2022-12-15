@@ -32,6 +32,13 @@ param (
     [switch]$Shutdown
 )
 
+# *get list of distros
+[string[]]$distros = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss).ForEach({ $_.GetValue('DistributionName') }).Where({ $_ -notmatch '^docker-desktop' })
+if ($Distro -notin $distros) {
+    Write-Warning "The specified distro does not exist ($Distro)."
+    exit
+}
+
 # *replace wsl.conf
 Write-Host 'replacing wsl.conf...' -ForegroundColor Magenta
 $wslConv = @'
@@ -58,8 +65,10 @@ if (-not $InterfaceDescription) {
         }
     }
     do {
-        [int]$idx = Read-Host -Prompt "Please select the interface for propagating DNS Servers:`n$($list | Out-String)"
-    } until (($idx -in 0..($netAdapters.Count - 1)) -and $idx)
+        $idx = -1
+        $selection = Read-Host -Prompt "Please select the interface for propagating DNS Servers:`n$($list | Out-String)"
+        [bool]$returnedInt = [int]::TryParse($selection, [ref]$idx)
+    } until ($returnedInt -and $idx -ge 0 -and $idx -lt $netAdapters.Count)
     $dnsServers = ($netAdapters[$idx] | Get-DnsClientServerAddress).ServerAddresses
 } else {
     $dnsServers = (Get-NetAdapter | Where-Object InterfaceDescription -Like "$InterfaceDescription*" | Get-DnsClientServerAddress).ServerAddresses
