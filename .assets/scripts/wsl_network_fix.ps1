@@ -41,7 +41,7 @@ if ($Distro -notin $distros) {
 
 # *replace wsl.conf
 Write-Host 'replacing wsl.conf...' -ForegroundColor Magenta
-$wslConv = @'
+$wslConf = @'
 [network]
 generateResolvConf = false
 [automount]
@@ -50,7 +50,7 @@ options = "metadata"
 mountFsTab = false
 '@
 # save wsl.conf file
-wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && echo '$wslConv' >/etc/wsl.conf"
+wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && echo '$wslConf' >/etc/wsl.conf"
 
 # *recreate resolv.conf
 Write-Host 'replacing resolv.conf...' -ForegroundColor Magenta
