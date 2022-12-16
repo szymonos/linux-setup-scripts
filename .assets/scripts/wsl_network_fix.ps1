@@ -56,7 +56,7 @@ wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && ec
 Write-Host 'replacing resolv.conf...' -ForegroundColor Magenta
 # get DNS servers for specified interface
 if (-not $InterfaceDescription) {
-    $netAdapters = Get-NetAdapter
+    $netAdapters = Get-NetAdapter | Where-Object Status -eq 'Up'
     $list = for ($i = 0; $i -lt $netAdapters.Count; $i++) {
         [PSCustomObject]@{
             No                   = "[$i]"
