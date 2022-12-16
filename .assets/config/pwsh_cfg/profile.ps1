@@ -2,8 +2,11 @@
 
 #region startup settings
 # import posh-git module for git autocompletion.
-if (Get-Module posh-git) {
-    Import-Module posh-git; $GitPromptSettings.EnablePromptStatus = $false
+try {
+    Import-Module posh-git -ErrorAction Stop
+    $GitPromptSettings.EnablePromptStatus = $false
+} catch {
+    Out-Null
 }
 # make PowerShell console Unicode (UTF-8) aware
 $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
