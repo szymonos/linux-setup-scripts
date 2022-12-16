@@ -3,13 +3,13 @@
 Enables systemd in specified WSL distro.
 .PARAMETER Distro
 Name of the WSL distro to install the certificate to.
+.PARAMETER Systemd
+Specify the value to true or false to enable/disable systemd accordingly in the distro.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
-$Systemd = 'false'
-~install certificates in specified distro
-.assets/scripts/wsl_systemd.ps1 $Distro
-.assets/scripts/wsl_systemd.ps1 $Distro -s $Systemd
+.assets/scripts/wsl_systemd.ps1 $Distro -Systemd 'true'
+.assets/scripts/wsl_systemd.ps1 $Distro -Systemd 'false'
 #>
 [CmdletBinding()]
 param (
@@ -17,7 +17,7 @@ param (
     [string]$Distro,
 
     [ValidateSet('true', 'false')]
-    [string]$Systemd = 'true'
+    [string]$Systemd
 )
 
 begin {
