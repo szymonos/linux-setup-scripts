@@ -33,7 +33,7 @@ alias ll='exa -lagh --color=auto --time-style=long-iso --group-directories-first
 alias l='ls -1'
 alias la='ls -lA'
 alias lsa='ls -la'
-alias less='less -FSRXc'
+alias less='less -FRXc'
 alias md='mkdir -p'
 alias mkdir='mkdir -pv'
 alias mv='mv -iv'
