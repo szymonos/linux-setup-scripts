@@ -39,9 +39,7 @@ begin {
     }
 
     # check if distro exist
-    [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-    [string[]]$distros = (wsl.exe --list --quiet) -notmatch '^docker-'
-    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [string[]]$distros = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss).ForEach({ $_.GetValue('DistributionName') }).Where({ $_ -notmatch '^docker-desktop' })
     if ($Distro -notin $distros) {
         Write-Warning "The specified distro does not exist ($Distro)."
         exit
