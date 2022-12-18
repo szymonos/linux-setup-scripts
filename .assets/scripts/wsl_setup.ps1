@@ -155,11 +155,11 @@ process {
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Green
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme_font $OmpTheme
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh
                 Write-Host 'setting up profile for current user...' -ForegroundColor Green
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.ps1
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
                 if ($PSModules) {
                     if (-not (Test-Path '../ps-modules' -PathType Container)) {
                         # clone ps-modules repository if not exists

@@ -3,7 +3,7 @@
 .SYNOPSIS
 Setting up PowerShell for the current user.
 .EXAMPLE
-.assets/provision/setup_profiles_user.ps1
+.assets/provision/setup_profile_user.ps1
 #>
 $WarningPreference = 'Ignore'
 
