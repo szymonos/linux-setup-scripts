@@ -1,15 +1,15 @@
 <#
 .SYNOPSIS
-Move (and optionally rename) existing WSL distro.
+Move (and optionally rename) existing WSL2 distro.
 .PARAMETER Distro
 Name of the existing WSL distro.
 .PARAMETER Destination
-Existing destination path, where distro folder will be created.
+Destination path, where distro folder will be created.
 .PARAMETER NewName
 Optional new name of the WSL distro.
 
 .EXAMPLE
-$Name = 'Ubuntu'
+$Distro = 'Ubuntu'
 $Destination = 'C:\VM\WSL'
 $NewName = 'jammy'
 .assets/scripts/wsl_move.ps1 $Distro -d $Destination -n $NewName
@@ -44,20 +44,32 @@ begin {
     if (-not $srcDistro) {
         Write-Warning "The specified distro does not exist ($Distro)."
         exit
+    } elseif ($srcDistro.Version -ne 2) {
+        Write-Warning "The specified distro is not version 2 ($Distro)."
+        exit
     }
     # check if distro in destination location already exist
-    $destPath = [IO.Path]::Combine($Destination, $NewName.ToLower())
+    $destPath = [IO.Path]::GetFullPath([IO.Path]::Combine($Destination, $NewName.ToLower()))
     if ($distros.Where({ $_.GetValue('BasePath') -like "*$destPath" })) {
         Write-Warning "WSL distro in specified location already exists ($destPath)."
         exit
     }
+    # calculate source path
+    $srcPath = $srcDistro.BasePath.Replace('\\?\', '')
 }
 
 process {
     if ($PSCmdlet.ShouldProcess("Move '$Distro' to '$destPath'")) {
+        # create destination directory if not exists
+        if (-not (Test-Path $destPath)) {
+            New-Item $destPath -ItemType Directory | Out-Null
+        }
         # copy distro disk image to new location
-        New-Item $Destination -Name $NewName.ToLower() -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-        Copy-Item ([IO.Path]::Combine($srcDistro.BasePath.Replace('\\?\', ''), '*')) -Destination $destPath -ErrorAction Stop
+        if ([IO.Path]::GetPathRoot($srcPath) -eq [IO.Path]::GetPathRoot($destPath)) {
+            New-Item -ItemType HardLink ([IO.Path]::Combine($destPath, 'ext4.vhdx')) -Target ([IO.Path]::Combine($srcPath, 'ext4.vhdx')) | Out-Null
+        } else {
+            Copy-Item ([IO.Path]::Combine($srcPath, 'ext4.vhdx')) -Destination $destPath -ErrorAction Stop
+        }
         # unregister existing distro
         wsl.exe --unregister $Distro
         # recreate WSL entry in registry
@@ -72,5 +84,5 @@ process {
 }
 
 end {
-    Write-Host "Done." -ForegroundColor Green
+    Write-Host 'Done.' -ForegroundColor Green
 }
