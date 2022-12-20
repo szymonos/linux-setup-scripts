@@ -1,7 +1,6 @@
-#!/usr/bin/env -S pwsh -nop
 <#
 .SYNOPSIS
-Script synopsis.
+Manage appending windows paths in PowerShell profile.
 .EXAMPLE
 $DisableWinPath = $false
 .assets/scripts/wsl_win_path.ps1
