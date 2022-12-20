@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
 Specifies the behavior of a distribution in the Windows Subsystem for Linux.
+
 .PARAMETER Distro
 Name of the existing WSL distro.
 .PARAMETER Interop
@@ -9,6 +10,9 @@ Allow the distribution to interoperate with Windows processes.
 Add the Windows %PATH% environment variable values to WSL sessions.
 .PARAMETER Automount
 Automatically mount Windows drives inside of WSL sessions.
+
+.LINK
+https://learn.microsoft.com/en-gb/windows/win32/api/wslapi/ne-wslapi-wsl_distribution_flags
 
 .EXAMPLE
 $Distro = 'Ubuntu'
