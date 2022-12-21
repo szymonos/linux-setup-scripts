@@ -31,6 +31,7 @@ param (
 
     [switch]$Shutdown
 )
+$ErrorActionPreference = 'Stop'
 
 # *get list of distros
 [string[]]$distros = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss).ForEach({ $_.GetValue('DistributionName') }).Where({ $_ -notmatch '^docker-desktop' })
@@ -56,7 +57,7 @@ wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && ec
 Write-Host 'replacing resolv.conf...' -ForegroundColor Magenta
 # get DNS servers for specified interface
 if (-not $InterfaceDescription) {
-    $netAdapters = Get-NetAdapter | Where-Object Status -eq 'Up'
+    $netAdapters = Get-NetAdapter | Where-Object Status -EQ 'Up'
     $list = for ($i = 0; $i -lt $netAdapters.Count; $i++) {
         [PSCustomObject]@{
             No                   = "[$i]"
@@ -93,14 +94,15 @@ wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/resolv.conf || true &&
 if ($DisableSwap) {
     Write-Host 'disabling swap...' -ForegroundColor Magenta
     $wslCfgPath = [IO.Path]::Combine($HOME, '.wslconfig')
-    if ($wslCfgContent = [IO.File]::ReadAllLines($wslCfgPath)) {
+    try {
+        $wslCfgContent = [IO.File]::ReadAllLines($wslCfgPath)
         if ($wslCfgContent | Select-String 'swap' -Quiet) {
             $wslCfgContent = $wslCfgContent -replace 'swap.+', 'swap=0'
         } else {
             $wslCfgContent += 'swap=0'
         }
         [IO.File]::WriteAllLines($wslCfgPath, $wslCfgContent)
-    } else {
+    } catch {
         [IO.File]::WriteAllText($wslCfgPath, "[wsl2]`nswap=0")
     }
 }
