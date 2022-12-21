@@ -73,7 +73,7 @@ begin {
     }
 
     # instantiate generic list to store intercepted certificate names
-    $certs = [Collections.Generic.List[string]]::new()
+    $certs = [Collections.Generic.List[pscustomobject]]::new()
 }
 
 process {
@@ -86,10 +86,23 @@ process {
         # save root certificate run command to update certificates
         for ($i = 1; $i -lt $chain.Count; $i++) {
             $certRawData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
-            $subject = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData).Subject
-            $certName = ($subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt'
-            $certs.Add($certName)
-            [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certName), $chain[$i])
+            $certDecode = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData)
+            $certs.Add([PSCustomObject]@{
+                    Issuer = $certDecode.Issuer
+                    Name   = ($certDecode.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt'
+                }
+            )
+            [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $chain[$i])
+        }
+        # get root certificate from the local machine trusted root certificate store if not in chain.
+        if ($certDecode.Subject -notin $certs.Issuer) {
+            $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object Subject -EQ $certDecode.Issuer | Sort-Object NotAfter | Select-Object -Last 1
+            $certs.Add([PSCustomObject]@{ Name = ($rootCert.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt' })
+            $oPem = [Text.StringBuilder]::new()
+            $oPem.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
+            $oPem.AppendLine([System.Convert]::ToBase64String($rootCert.RawData, 'InsertLineBreaks')) | Out-Null
+            $oPem.AppendLine('-----END CERTIFICATE-----') | Out-Null
+            [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $oPem.ToString())
         }
     }
     # copy and install certificates
@@ -99,5 +112,5 @@ process {
 end {
     # print list of intercepted certificates
     Write-Host 'Intercepted certificates' -ForegroundColor Magenta
-    $certs | Select-Object -Unique | Write-Host
+    $certs.Name | Select-Object -Unique | Write-Host
 }

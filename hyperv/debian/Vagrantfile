@@ -139,13 +139,13 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "set up oh-my-posh...", path: "../../.assets/provision/setup_omp.sh"
     end
     if setup_bash
-      node.vm.provision "shell", name: "set up bash for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
-      node.vm.provision "shell", name: "set up bash for current user...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
+      node.vm.provision "shell", name: "set up bash for all users...", path: "../../.assets/provision/setup_profile_allusers.sh"
+      node.vm.provision "shell", name: "set up bash for current user...", path: "../../.assets/provision/setup_profile_user.sh", privileged: false
     end
     if setup_pwsh
       node.vm.provision "shell", name: "install pwsh...", path: "../../.assets/provision/install_pwsh.sh"
-      node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../.assets/provision/setup_profiles_allusers.ps1"
-      node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../.assets/provision/setup_profiles_user.ps1", privileged: false
+      node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../.assets/provision/setup_profile_allusers.ps1"
+      node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../.assets/provision/setup_profile_user.ps1", privileged: false
     end
     if upgrade_system
       node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"

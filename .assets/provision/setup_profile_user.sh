@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/setup_profiles_user.sh
+.assets/provision/setup_profile_user.sh
 '
 # path variables
 PROFILE_PATH='/etc/profile.d'

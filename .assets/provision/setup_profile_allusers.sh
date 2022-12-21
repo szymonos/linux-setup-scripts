@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-sudo .assets/provision/setup_profiles_allusers.sh
+sudo .assets/provision/setup_profile_allusers.sh
 '
 if [[ $EUID -ne 0 ]]; then
   echo -e '\e[91mRun the script with sudo!\e[0m'
