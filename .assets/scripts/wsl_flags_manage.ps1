@@ -48,7 +48,6 @@ begin {
         Write-Warning "The specified distro does not exist ($Distro)."
         exit
     }
-
     # WSL_DISTRIBUTION_FLAGS enumeration
     [Flags()] enum WSL_FLAGS {
         ENABLE_INTEROP = 1
@@ -86,10 +85,16 @@ process {
             continue
         }
     }
+    # set WSL distro flags in registry
     Set-ItemProperty -Path $srcDistro.PSPath -Name 'Flags' -Value $srcDistro.Flags
 }
 
 end {
-    # print current flags value
-    @{ Flags = Get-ItemPropertyValue -Path $srcDistro.PSPath -Name Flags }
+    # print current flags values
+    [ordered]@{
+        Flags             = '0x{0:x} ({0})' -f $srcDistro.Flags
+        Interop           = [bool]$($srcDistro.Flags -band 1)
+        AppendWindowsPath = [bool]$($srcDistro.Flags -band 2)
+        Automount         = [bool]$($srcDistro.Flags -band 4)
+    }
 }
