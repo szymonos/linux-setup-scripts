@@ -12,19 +12,19 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache ca-certificates bash bash-completion iputils curl git jq less mandoc openssl tree unzip vim
+  apk add --no-cache ca-certificates bash bash-completion iputils curl git jq less mandoc openssl tar tree unzip vim
   ;;
 arch)
-  pacman -Sy --noconfirm base-devel bash-completion dnsutils git jq man-db openssl tree unzip vim
+  pacman -Sy --noconfirm base-devel bash-completion dnsutils git jq man-db openssl tar tree unzip vim
   ;;
 fedora)
-  dnf install -y bash-completion bind-utils curl git jq man-db openssl tree unzip vim
+  dnf install -y bash-completion bind-utils curl git jq man-db openssl tar tree unzip vim
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y bash-completion dnsutils curl git jq man-db openssl tree unzip vim
+  apt-get update && apt-get install -y bash-completion dnsutils curl git jq man-db openssl tar tree unzip vim
   ;;
 opensuse)
-  zypper in -y bash-completion bind-utils git jq openssl tree unzip vim
+  zypper in -y bash-completion bind-utils git jq openssl tar tree unzip vim
   ;;
 esac
