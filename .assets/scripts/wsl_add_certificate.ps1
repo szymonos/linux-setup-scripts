@@ -85,18 +85,21 @@ process {
         } until ($chain)
         # save root certificate run command to update certificates
         for ($i = 1; $i -lt $chain.Count; $i++) {
-            $certRawData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
-            $certDecode = [Security.Cryptography.X509Certificates.X509Certificate]::new($certRawData)
+            $certByteData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
+            $x509Cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certByteData)
             $certs.Add([PSCustomObject]@{
-                    Issuer = $certDecode.Issuer
-                    Name   = ($certDecode.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt'
+                    Name   = ($x509Cert.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt'
+                    Issuer = $x509Cert.Issuer
                 }
             )
             [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $chain[$i])
         }
         # get root certificate from the local machine trusted root certificate store if not in chain.
-        if ($certDecode.Subject -notin $certs.Issuer) {
-            $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object Subject -EQ $certDecode.Issuer | Sort-Object NotAfter | Select-Object -Last 1
+        if ($x509Cert.Subject -notin $certs.Issuer) {
+            $AKI = $x509Cert.Extensions.Where({ $_.Oid.FriendlyName -eq 'Authority Key Identifier' }).Format(1).Split('=')[1].Trim()
+            $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object {
+                ($_.Extensions | Where-Object { $_.Oid.FriendlyName -eq 'Subject Key Identifier' }).SubjectKeyIdentifier -EQ $AKI
+            }
             $certs.Add([PSCustomObject]@{ Name = ($rootCert.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt' })
             $oPem = [Text.StringBuilder]::new()
             $oPem.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
