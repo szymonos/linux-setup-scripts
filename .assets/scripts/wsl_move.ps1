@@ -39,12 +39,12 @@ begin {
 
     # get list of all registered WSL distros
     $distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss
-    # check if source distro exists
-    $srcDistro = $distros.Where({ $_.GetValue('DistributionName') -eq $Distro }) | Get-ItemProperty
-    if (-not $srcDistro) {
+    # check if the specified distro exists
+    $distroKey = $distros.Where({ $_.GetValue('DistributionName') -eq $Distro }) | Get-ItemProperty
+    if (-not $distroKey) {
         Write-Warning "The specified distro does not exist ($Distro)."
         exit
-    } elseif ($srcDistro.Version -ne 2) {
+    } elseif ($distroKey.Version -ne 2) {
         Write-Warning "The specified distro is not version 2 ($Distro)."
         exit
     }
@@ -55,7 +55,7 @@ begin {
         exit
     }
     # calculate source path
-    $srcPath = $srcDistro.BasePath.Replace('\\?\', '')
+    $srcPath = $distroKey.BasePath.Replace('\\?\', '')
 }
 
 process {
@@ -73,16 +73,16 @@ process {
         # unregister existing distro
         wsl.exe --unregister $Distro
         # recreate WSL entry in registry
-        $destKey = New-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -Name $srcDistro.PSChildName
+        $destKey = New-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -Name $distroKey.PSChildName
         New-ItemProperty -Path $destKey.PSPath -Name 'BasePath' -PropertyType String -Value "\\?\$destPath" | Out-Null
         New-ItemProperty -Path $destKey.PSPath -Name 'DistributionName' -PropertyType String -Value $NewName | Out-Null
-        New-ItemProperty -Path $destKey.PSPath -Name 'DefaultUid' -PropertyType DWORD -Value $srcDistro.DefaultUid | Out-Null
-        New-ItemProperty -Path $destKey.PSPath -Name 'Flags' -PropertyType DWORD -Value $srcDistro.Flags | Out-Null
-        New-ItemProperty -Path $destKey.PSPath -Name 'State' -PropertyType DWORD -Value $srcDistro.State | Out-Null
-        New-ItemProperty -Path $destKey.PSPath -Name 'Version' -PropertyType DWORD -Value $srcDistro.Version | Out-Null
+        New-ItemProperty -Path $destKey.PSPath -Name 'DefaultUid' -PropertyType DWORD -Value $distroKey.DefaultUid | Out-Null
+        New-ItemProperty -Path $destKey.PSPath -Name 'Flags' -PropertyType DWORD -Value $distroKey.Flags | Out-Null
+        New-ItemProperty -Path $destKey.PSPath -Name 'State' -PropertyType DWORD -Value $distroKey.State | Out-Null
+        New-ItemProperty -Path $destKey.PSPath -Name 'Version' -PropertyType DWORD -Value $distroKey.Version | Out-Null
     }
 }
 
 end {
-    Write-Host 'Done.' -ForegroundColor Green
+    Write-Host "Distro ($Distro) has been moved to '$destPath'."
 }

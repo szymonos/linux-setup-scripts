@@ -43,7 +43,7 @@ param (
 begin {
     # get list of all registered WSL distros
     $distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss
-    # check if source distro exists
+    # check if the specified distro exists
     $distroKey = $distros.Where({ $_.GetValue('DistributionName') -eq $Distro }) | Get-ItemProperty
     if (-not $distroKey) {
         Write-Warning "The specified distro does not exist ($Distro)."
