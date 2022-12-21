@@ -16,6 +16,7 @@ https://learn.microsoft.com/en-gb/windows/win32/api/wslapi/ne-wslapi-wsl_distrib
 
 .EXAMPLE
 $Distro = 'Ubuntu'
+.assets/scripts/wsl_flags_manage.ps1 $Distro
 .assets/scripts/wsl_flags_manage.ps1 $Distro -Interop $true
 .assets/scripts/wsl_flags_manage.ps1 $Distro -Interop $false
 .assets/scripts/wsl_flags_manage.ps1 $Distro -AppendWindowsPath $true
@@ -23,7 +24,7 @@ $Distro = 'Ubuntu'
 .assets/scripts/wsl_flags_manage.ps1 $Distro -Automount $true
 .assets/scripts/wsl_flags_manage.ps1 $Distro -Automount $false
 #>
-[CmdletBinding(SupportsShouldProcess)]
+[CmdletBinding(DefaultParameterSetName = 'Show')]
 param (
     [Parameter(Mandatory, Position = 0)]
     [string]$Distro,
@@ -43,8 +44,8 @@ begin {
     # get list of all registered WSL distros
     $distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss
     # check if source distro exists
-    $srcDistro = $distros.Where({ $_.GetValue('DistributionName') -eq $Distro }) | Get-ItemProperty
-    if (-not $srcDistro) {
+    $distroKey = $distros.Where({ $_.GetValue('DistributionName') -eq $Distro }) | Get-ItemProperty
+    if (-not $distroKey) {
         Write-Warning "The specified distro does not exist ($Distro)."
         exit
     }
@@ -60,41 +61,42 @@ process {
     switch ($PsCmdlet.ParameterSetName) {
         interop {
             if ($Interop) {
-                $srcDistro.Flags = $srcDistro.Flags -bor [WSL_FLAGS]::ENABLE_INTEROP
-            } elseif ($srcDistro.Flags -band [WSL_FLAGS]::ENABLE_INTEROP) {
-                $srcDistro.Flags = $srcDistro.Flags -bxor [WSL_FLAGS]::ENABLE_INTEROP
+                $distroKey.Flags = $distroKey.Flags -bor [WSL_FLAGS]::ENABLE_INTEROP
+            } elseif ($distroKey.Flags -band [WSL_FLAGS]::ENABLE_INTEROP) {
+                $distroKey.Flags = $distroKey.Flags -bxor [WSL_FLAGS]::ENABLE_INTEROP
             }
             continue
         }
 
         ntpath {
             if ($AppendWindowsPath) {
-                $srcDistro.Flags = $srcDistro.Flags -bor [WSL_FLAGS]::APPEND_NT_PATH
-            } elseif ($srcDistro.Flags -band [WSL_FLAGS]::APPEND_NT_PATH) {
-                $srcDistro.Flags = $srcDistro.Flags -bxor [WSL_FLAGS]::APPEND_NT_PATH
+                $distroKey.Flags = $distroKey.Flags -bor [WSL_FLAGS]::APPEND_NT_PATH
+            } elseif ($distroKey.Flags -band [WSL_FLAGS]::APPEND_NT_PATH) {
+                $distroKey.Flags = $distroKey.Flags -bxor [WSL_FLAGS]::APPEND_NT_PATH
             }
             continue
         }
 
         mounting {
             if ($Automount) {
-                $srcDistro.Flags = $srcDistro.Flags -bor [WSL_FLAGS]::DRIVE_MOUNTING
-            } elseif ($srcDistro.Flags -band [WSL_FLAGS]::DRIVE_MOUNTING) {
-                $srcDistro.Flags = $srcDistro.Flags -bxor [WSL_FLAGS]::DRIVE_MOUNTING
+                $distroKey.Flags = $distroKey.Flags -bor [WSL_FLAGS]::DRIVE_MOUNTING
+            } elseif ($distroKey.Flags -band [WSL_FLAGS]::DRIVE_MOUNTING) {
+                $distroKey.Flags = $distroKey.Flags -bxor [WSL_FLAGS]::DRIVE_MOUNTING
             }
             continue
         }
     }
     # set WSL distro flags in registry
-    Set-ItemProperty -Path $srcDistro.PSPath -Name 'Flags' -Value $srcDistro.Flags
+    Set-ItemProperty -Path $distroKey.PSPath -Name 'Flags' -Value $distroKey.Flags
 }
 
 end {
     # print current flags values
     [ordered]@{
-        Flags             = '0x{0:x} ({0})' -f $srcDistro.Flags
-        Interop           = [bool]$($srcDistro.Flags -band 1)
-        AppendWindowsPath = [bool]$($srcDistro.Flags -band 2)
-        Automount         = [bool]$($srcDistro.Flags -band 4)
+        DistributionName  = $distroKey.DistributionName
+        Flags             = '0x{0:x} ({0})' -f $distroKey.Flags
+        Interop           = [bool]$($distroKey.Flags -band [WSL_FLAGS]::ENABLE_INTEROP)
+        AppendWindowsPath = [bool]$($distroKey.Flags -band [WSL_FLAGS]::APPEND_NT_PATH)
+        Automount         = [bool]$($distroKey.Flags -band [WSL_FLAGS]::DRIVE_MOUNTING)
     }
 }
