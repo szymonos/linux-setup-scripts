@@ -88,31 +88,38 @@ process {
             $certByteData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
             $x509Cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certByteData)
             $certs.Add([PSCustomObject]@{
-                    Name   = ($x509Cert.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt'
-                    Issuer = $x509Cert.Issuer
+                    Name    = [regex]::Match($x509Cert.Subject, '(?<=CN=)(.)+?(?=,)').Value.Replace(' ', '_').Trim('"') + '.crt'
+                    Subject = $x509Cert.Subject
+                    Issuer  = $x509Cert.Issuer
                 }
             )
             [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $chain[$i])
         }
         # get root certificate from the local machine trusted root certificate store if not in chain.
-        if ($x509Cert.Subject -notin $certs.Issuer) {
-            $AKI = $x509Cert.Extensions.Where({ $_.Oid.FriendlyName -eq 'Authority Key Identifier' }).Format(0).Split('=')[1]
-            if ($AKI) {
-                $rootCert = (Get-ChildItem -Path Cert:\LocalMachine\Root).Where({
-                    ($_.Extensions.Where({ $_.Oid.FriendlyName -eq 'Subject Key Identifier' })).SubjectKeyIdentifier -EQ $AKI
+        if ($x509Cert.Issuer -notin $certs.Subject) {
+            if ($akiExt = $x509Cert.Extensions.Where({ $_.Oid.FriendlyName -eq 'Authority Key Identifier' })) {
+                # find root certificate that by AKI
+                $aki = $akiExt.Format(0).Split('=')[1]
+                $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object {
+                    ($_.Extensions.Where({ $_.Oid.FriendlyName -eq 'Subject Key Identifier' })).SubjectKeyIdentifier -EQ $aki
+                }
+            } else {
+                # find root certificate that by Issuer
+                $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root `
+                | Where-Object { $_.Subject -eq $x509Cert.Issuer } `
+                | Sort-Object NotAfter `
+                | Select-Object -Last 1
+            }
+            if ($rootCert) {
+                $certs.Add([PSCustomObject]@{
+                        Name = [regex]::Match($rootCert.Subject, '(?<=CN=)(.)+?(?=,)').Value.Replace(' ', '_').Trim('"') + '.crt'
                     }
                 )
-                if ($rootCert) {
-                    $certs.Add([PSCustomObject]@{
-                            Name = ($rootCert.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt'
-                        }
-                    )
-                    $oPem = [Text.StringBuilder]::new()
-                    $oPem.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
-                    $oPem.AppendLine([System.Convert]::ToBase64String($rootCert.RawData, 'InsertLineBreaks')) | Out-Null
-                    $oPem.AppendLine('-----END CERTIFICATE-----') | Out-Null
-                    [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $oPem.ToString())
-                }
+                $oPem = [Text.StringBuilder]::new()
+                $oPem.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
+                $oPem.AppendLine([System.Convert]::ToBase64String($rootCert.RawData, 'InsertLineBreaks')) | Out-Null
+                $oPem.AppendLine('-----END CERTIFICATE-----') | Out-Null
+                [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $oPem.ToString())
             }
         }
     }
