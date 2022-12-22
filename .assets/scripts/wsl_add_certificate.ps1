@@ -73,7 +73,7 @@ begin {
     }
 
     # instantiate generic list to store intercepted certificate names
-    $certs = [Collections.Generic.List[pscustomobject]]::new()
+    $certs = [Collections.Generic.List[PSCustomObject]]::new()
 }
 
 process {
@@ -96,16 +96,24 @@ process {
         }
         # get root certificate from the local machine trusted root certificate store if not in chain.
         if ($x509Cert.Subject -notin $certs.Issuer) {
-            $AKI = $x509Cert.Extensions.Where({ $_.Oid.FriendlyName -eq 'Authority Key Identifier' }).Format(1).Split('=')[1].Trim()
-            $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object {
-                ($_.Extensions | Where-Object { $_.Oid.FriendlyName -eq 'Subject Key Identifier' }).SubjectKeyIdentifier -EQ $AKI
+            $AKI = $x509Cert.Extensions.Where({ $_.Oid.FriendlyName -eq 'Authority Key Identifier' }).Format(0).Split('=')[1]
+            if ($AKI) {
+                $rootCert = (Get-ChildItem -Path Cert:\LocalMachine\Root).Where({
+                    ($_.Extensions.Where({ $_.Oid.FriendlyName -eq 'Subject Key Identifier' })).SubjectKeyIdentifier -EQ $AKI
+                    }
+                )
+                if ($rootCert) {
+                    $certs.Add([PSCustomObject]@{
+                            Name = ($rootCert.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt'
+                        }
+                    )
+                    $oPem = [Text.StringBuilder]::new()
+                    $oPem.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
+                    $oPem.AppendLine([System.Convert]::ToBase64String($rootCert.RawData, 'InsertLineBreaks')) | Out-Null
+                    $oPem.AppendLine('-----END CERTIFICATE-----') | Out-Null
+                    [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $oPem.ToString())
+                }
             }
-            $certs.Add([PSCustomObject]@{ Name = ($rootCert.Subject | Select-String '(?<=CN=)(.)+?(?=,)').Matches.Value.Replace(' ', '_').Trim('"') + '.crt' })
-            $oPem = [Text.StringBuilder]::new()
-            $oPem.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
-            $oPem.AppendLine([System.Convert]::ToBase64String($rootCert.RawData, 'InsertLineBreaks')) | Out-Null
-            $oPem.AppendLine('-----END CERTIFICATE-----') | Out-Null
-            [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $oPem.ToString())
         }
     }
     # copy and install certificates
