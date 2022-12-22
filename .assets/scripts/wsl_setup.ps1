@@ -13,8 +13,8 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 .PARAMETER Distro
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER OmpTheme
-Choose if oh-my-posh prompt theme should use base or powerline fonts.
-Available values: 'base', 'powerline'
+Specify oh-my-posh theme to be installed, from themes available on the page.
+There are also two baseline profiles included: base and powerline.
 .PARAMETER GtkTheme
 Specify gtk theme for wslg.
 Available values: 'light', 'dark'
@@ -62,7 +62,6 @@ param (
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateSet('base', 'powerline')]
     [string]$OmpTheme = 'base',
 
     [Alias('g')]
@@ -154,7 +153,7 @@ process {
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Green
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme_font $OmpTheme
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh
                 Write-Host 'setting up profile for current user...' -ForegroundColor Green

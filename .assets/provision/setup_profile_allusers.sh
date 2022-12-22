@@ -8,27 +8,29 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # path variables
+CFG_PATH='/tmp/config/bash_cfg'
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
-# determine folder with config files
-[ -d /tmp/config ] && CFG_PATH='/tmp/config' || CFG_PATH='.assets/config'
+# copy config files for WSL setup
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+  mkdir -p $CFG_PATH
+  cp -f .assets/config/bash_cfg/* $CFG_PATH
+fi
 
 # *Copy global profiles
-if [ -d $CFG_PATH/bash_cfg ]; then
+if [ -d $CFG_PATH ]; then
   # bash aliases
-  \cp -f $CFG_PATH/bash_cfg/bash_aliases $PROFILE_PATH
+  mv -f $CFG_PATH/bash_aliases $PROFILE_PATH
   # git aliases
   if type git &>/dev/null; then
-    \cp -f $CFG_PATH/bash_cfg/bash_aliases_git $PROFILE_PATH
+    mv -f $CFG_PATH/bash_aliases_git $PROFILE_PATH
   fi
   # kubectl aliases
   if type -f kubectl &>/dev/null; then
-    \cp -f $CFG_PATH/bash_cfg/bash_aliases_kubectl $PROFILE_PATH
+    mv -f $CFG_PATH/bash_aliases_kubectl $PROFILE_PATH
   fi
-  if [ -d /tmp/config/bash_cfg ]; then
-    # clean config folder
-    \rm -fr /tmp/config/bash_cfg
-  fi
+  # clean config folder
+  rm -fr $CFG_PATH
 fi
 
 # *bash profile

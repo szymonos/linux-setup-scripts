@@ -1,7 +1,7 @@
 #!/bin/bash
 : '
-.assets/scripts/profile_setup.sh --theme_font powerline --ps_modules "do-common do-linux" --scope k8s_basic
-.assets/scripts/profile_setup.sh --sys_upgrade true --theme_font powerline --ps_modules "do-common do-linux" --scope k8s_basic
+.assets/scripts/profile_setup.sh --theme powerline --ps_modules "do-common do-linux" --scope k8s_basic
+.assets/scripts/profile_setup.sh --sys_upgrade true --theme powerline --ps_modules "do-common do-linux" --scope k8s_basic
 '
 if [[ $EUID -eq 0 ]]; then
   echo -e '\e[91mDo not run the script with sudo!\e[0m'
@@ -9,7 +9,7 @@ if [[ $EUID -eq 0 ]]; then
 fi
 
 # parse named parameters
-theme_font=${theme_font:-base}
+theme=${theme:-base}
 scope=${scope:-base}
 sys_upgrade=${sys_upgrade:-false}
 ps_modules=${ps_modules}
@@ -58,7 +58,7 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   sudo .assets/provision/install_ripgrep.sh
   .assets/provision/install_miniconda.sh
   echo -e "\e[32msetting up profile for all users...\e[0m"
-  sudo .assets/provision/setup_omp.sh --theme_font $theme_font
+  sudo .assets/provision/setup_omp.sh --theme $theme
   sudo .assets/provision/setup_profile_allusers.sh
   sudo .assets/provision/setup_profile_allusers.ps1
   echo -e "\e[32msetting up profile for current user...\e[0m"
