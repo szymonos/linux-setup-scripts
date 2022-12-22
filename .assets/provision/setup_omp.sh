@@ -1,6 +1,7 @@
 #!/bin/bash
 : '
-sudo .assets/provision/setup_omp.sh --theme_font "powerline"
+sudo .assets/provision/setup_omp.sh
+sudo .assets/provision/setup_omp.sh --theme "powerline"
 '
 if [[ $EUID -ne 0 ]]; then
   echo -e '\e[91mRun the script with sudo!\e[0m'
@@ -8,7 +9,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # parse named parameters
-theme_font=${theme_font:-base}
+theme=${theme:-base}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
@@ -18,25 +19,25 @@ while [ $# -gt 0 ]; do
 done
 
 # path variables
+CFG_PATH='/tmp/config/omp_cfg'
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
-# determine folder with config files
-[ -d /tmp/config ] && CFG_PATH='/tmp/config' || CFG_PATH='.assets/config'
-case $theme_font in
-base)
-  OMP_THEME="$CFG_PATH/omp_cfg/theme.omp.json"
-  ;;
-powerline)
-  OMP_THEME="$CFG_PATH/omp_cfg/theme-pl.omp.json"
-  ;;
-esac
-
-# *Copy oh-my-posh theme
-if [ -d $CFG_PATH/omp_cfg ]; then
-  # oh-my-posh profile
-  \mkdir -p $OH_MY_POSH_PATH
-  \cp -f $OMP_THEME "$OH_MY_POSH_PATH/theme.omp.json"
-  if [ -d /tmp/config/omp_cfg ]; then
-    # clean config folder
-    \rm -fr /tmp/config/omp_cfg
+# copy profile for WSL setup
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+  mkdir -p $CFG_PATH
+  if [[ -f .assets/config/omp_cfg/${theme}.omp.json ]]; then
+    cp .assets/config/omp_cfg/${theme}.omp.json $CFG_PATH/theme.omp.json
   fi
 fi
+
+if [[ ! -f $CFG_PATH/theme.omp.json ]]; then
+  curl -fsSk -o $CFG_PATH/theme.omp.json "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
+fi
+
+# *Copy oh-my-posh theme
+if [[ -f $CFG_PATH/theme.omp.json ]]; then
+  mkdir -p $OH_MY_POSH_PATH
+  mv -f $CFG_PATH/theme.omp.json $OH_MY_POSH_PATH
+fi
+
+# clean config folder
+rm -fr $CFG_PATH
