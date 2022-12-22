@@ -12,23 +12,20 @@ Name of the WSL distro to install the certificate to.
 List of sites to check certificates in chain.
 
 .EXAMPLE
-$Distro   = 'Ubuntu'
-$SiteList = @(
-    'galaxy.ansible.com'
-    'www.powershellgallery.com'
-)
+$Distro = 'Ubuntu'
+$Site = 'www.powershellgallery.com'
 ~install certificates in specified distro
 .assets/scripts/wsl_add_certificate.ps1 $Distro
-.assets/scripts/wsl_add_certificate.ps1 $Distro -l $SiteList
+.assets/scripts/wsl_add_certificate.ps1 $Distro -s $Site
 #>
 [CmdletBinding()]
 param (
     [Parameter(Mandatory, Position = 0)]
     [string]$Distro,
 
-    [Alias('l')]
+    [Alias('s')]
     [ValidateNotNullOrEmpty()]
-    [string[]]$SiteList = @('www.google.com')
+    [string]$Site = 'www.google.com'
 )
 
 begin {
@@ -72,58 +69,57 @@ begin {
         New-Item '.tmp' -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
     }
 
-    # instantiate generic list to store intercepted certificate names
+    # instantiate generic list to store intercepted certificate details
     $certs = [Collections.Generic.List[PSCustomObject]]::new()
 }
 
 process {
-    foreach ($site in $SiteList) {
-        # get certificate chain
-        do {
-            $chain = ((Out-Null | openssl s_client -showcerts -connect ${site}:443) -join "`n" 2>$null `
-                | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value
-        } until ($chain)
-        # save root certificate run command to update certificates
-        for ($i = 1; $i -lt $chain.Count; $i++) {
-            $certByteData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
-            $x509Cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certByteData)
+    # get certificate chain
+    do {
+        $chain = ((Out-Null | openssl s_client -showcerts -connect ${Site}:443) -join "`n" 2>$null `
+            | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value
+    } until ($chain)
+    # decode and save certificates from chain
+    for ($i = 1; $i -lt $chain.Count; $i++) {
+        $certByteData = [Convert]::FromBase64String(($chain[$i] -replace ('-.*-')).Trim())
+        $x509Cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certByteData)
+        $certs.Add([PSCustomObject]@{
+                Name    = [regex]::Match($x509Cert.Subject, '(?<=CN=)(.)+?(?=,)').Value.Replace(' ', '_').Trim('"') + '.crt'
+                Subject = $x509Cert.Subject
+                Issuer  = $x509Cert.Issuer
+            }
+        )
+        [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $chain[$i])
+    }
+    # get root certificate from the local machine trusted root certificate store if not in chain
+    if ($x509Cert.Issuer -notin $certs.Subject) {
+        if ($akiExt = $x509Cert.Extensions.Where({ $_.Oid.FriendlyName -eq 'Authority Key Identifier' })) {
+            # find root certificate by AKI
+            $aki = $akiExt.Format(0).Split('=')[1]
+            $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object {
+                    ($_.Extensions.Where({ $_.Oid.FriendlyName -eq 'Subject Key Identifier' })).SubjectKeyIdentifier -EQ $aki
+            }
+        } else {
+            # find root certificate by Issuer
+            $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root `
+            | Where-Object { $_.Subject -eq $x509Cert.Issuer } `
+            | Sort-Object NotAfter `
+            | Select-Object -Last 1
+        }
+        if ($rootCert) {
+            # save root certificate found in the local store
             $certs.Add([PSCustomObject]@{
-                    Name    = [regex]::Match($x509Cert.Subject, '(?<=CN=)(.)+?(?=,)').Value.Replace(' ', '_').Trim('"') + '.crt'
-                    Subject = $x509Cert.Subject
-                    Issuer  = $x509Cert.Issuer
+                    Name = [regex]::Match($rootCert.Subject, '(?<=CN=)(.)+?(?=,)').Value.Replace(' ', '_').Trim('"') + '.crt'
                 }
             )
-            [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $chain[$i])
-        }
-        # get root certificate from the local machine trusted root certificate store if not in chain.
-        if ($x509Cert.Issuer -notin $certs.Subject) {
-            if ($akiExt = $x509Cert.Extensions.Where({ $_.Oid.FriendlyName -eq 'Authority Key Identifier' })) {
-                # find root certificate that by AKI
-                $aki = $akiExt.Format(0).Split('=')[1]
-                $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object {
-                    ($_.Extensions.Where({ $_.Oid.FriendlyName -eq 'Subject Key Identifier' })).SubjectKeyIdentifier -EQ $aki
-                }
-            } else {
-                # find root certificate that by Issuer
-                $rootCert = Get-ChildItem -Path Cert:\LocalMachine\Root `
-                | Where-Object { $_.Subject -eq $x509Cert.Issuer } `
-                | Sort-Object NotAfter `
-                | Select-Object -Last 1
-            }
-            if ($rootCert) {
-                $certs.Add([PSCustomObject]@{
-                        Name = [regex]::Match($rootCert.Subject, '(?<=CN=)(.)+?(?=,)').Value.Replace(' ', '_').Trim('"') + '.crt'
-                    }
-                )
-                $oPem = [Text.StringBuilder]::new()
-                $oPem.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
-                $oPem.AppendLine([System.Convert]::ToBase64String($rootCert.RawData, 'InsertLineBreaks')) | Out-Null
-                $oPem.AppendLine('-----END CERTIFICATE-----') | Out-Null
-                [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $oPem.ToString())
-            }
+            $oPem = [Text.StringBuilder]::new()
+            $oPem.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
+            $oPem.AppendLine([System.Convert]::ToBase64String($rootCert.RawData, 'InsertLineBreaks')) | Out-Null
+            $oPem.AppendLine('-----END CERTIFICATE-----') | Out-Null
+            [IO.File]::WriteAllText([IO.Path]::Combine($PWD, '.tmp', $certs[-1].Name), $oPem.ToString())
         }
     }
-    # copy and install certificates
+    # move certificates to specified distro and install them
     wsl -d $Distro -u root --exec bash -c "mkdir -p $($crt.path) && mv -f .tmp/*.crt $($crt.path) 2>/dev/null && chmod 644 $($crt.path)/*.crt && $($crt.cmd)"
 }
 
