@@ -27,6 +27,6 @@ fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
 while [[ ! -f posh-linux-amd64 ]]; do
-  curl -LsOk 'https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64'
+  curl -LsOk "https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v${REL}/posh-linux-amd64"
 done
 install -o root -g root -m 0755 posh-linux-amd64 /usr/bin/oh-my-posh && rm -f posh-linux-amd64
