@@ -28,7 +28,7 @@ if [[ -f .assets/config/omp_cfg/${theme}.omp.json ]]; then
 fi
 
 if [[ ! -f $CFG_PATH/theme.omp.json ]]; then
-  curl -fsSk -o $CFG_PATH/theme.omp.json "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
+  curl -fsSk -o $CFG_PATH/theme.omp.json --create-dirs "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
 fi
 
 # *Copy oh-my-posh theme
