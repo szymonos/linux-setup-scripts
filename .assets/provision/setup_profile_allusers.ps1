@@ -24,6 +24,7 @@ if (Test-Path $CFG_PATH -PathType Container) {
     # PowerShell functions
     New-Item $SCRIPTS_PATH -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
     Move-Item $CFG_PATH/ps_aliases_common.ps1 -Destination $SCRIPTS_PATH -Force
+    Move-Item $CFG_PATH/ps_aliases_linux.ps1 -Destination $SCRIPTS_PATH -Force
     # git functions
     if (Test-Path /usr/bin/git -PathType Leaf) {
         Move-Item $CFG_PATH/ps_aliases_git.ps1 -Destination $SCRIPTS_PATH -Force
