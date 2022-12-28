@@ -34,7 +34,7 @@ if (Test-Path $CFG_PATH -PathType Container) {
         Move-Item $CFG_PATH/ps_aliases_kubectl.ps1 -Destination $SCRIPTS_PATH -Force
     }
     # clean config folder
-    Remove-Item $CFG_PATH -Recurse
+    Remove-Item $CFG_PATH -Recurse -Force
 }
 
 # *PowerShell profile
