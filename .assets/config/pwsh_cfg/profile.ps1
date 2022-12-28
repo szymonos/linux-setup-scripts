@@ -37,6 +37,7 @@ function cds { Set-Location $SWD }
 # $PATH variable
 @(
     [IO.Path]::Combine($HOME, '.local', 'bin')
+    [IO.Path]::Combine($HOME, '.cargo', 'bin')
 ).ForEach{
     if ((Test-Path $_) -and $env:PATH -NotMatch "$_/?($([IO.Path]::PathSeparator)|$)") {
         [Environment]::SetEnvironmentVariable('PATH', [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH))
