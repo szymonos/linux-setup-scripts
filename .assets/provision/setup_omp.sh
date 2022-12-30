@@ -9,7 +9,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # parse named parameters
-theme=${theme:-base}
+theme=${1:-base}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
@@ -22,21 +22,19 @@ done
 CFG_PATH='/tmp/config/omp_cfg'
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 # copy profile for WSL setup
-if [[ -n "$WSL_DISTRO_NAME" ]]; then
+if [[ -f .assets/config/omp_cfg/${theme}.omp.json ]]; then
   mkdir -p $CFG_PATH
-  if [[ -f .assets/config/omp_cfg/${theme}.omp.json ]]; then
-    cp .assets/config/omp_cfg/${theme}.omp.json $CFG_PATH/theme.omp.json
-  fi
+  cp -f .assets/config/omp_cfg/${theme}.omp.json $CFG_PATH
 fi
 
-if [[ ! -f $CFG_PATH/theme.omp.json ]]; then
-  curl -fsSk -o $CFG_PATH/theme.omp.json "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
+if ! [[ -f $CFG_PATH/${theme}.omp.json ]]; then
+  curl -fsSk -o $CFG_PATH/${theme}.omp.json --create-dirs "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
 fi
 
 # *Copy oh-my-posh theme
-if [[ -f $CFG_PATH/theme.omp.json ]]; then
+if [[ -f $CFG_PATH/${theme}.omp.json ]]; then
   mkdir -p $OH_MY_POSH_PATH
-  mv -f $CFG_PATH/theme.omp.json $OH_MY_POSH_PATH
+  mv -f $CFG_PATH/${theme}.omp.json $OH_MY_POSH_PATH/theme.omp.json
 fi
 
 # clean config folder

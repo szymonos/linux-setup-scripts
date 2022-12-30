@@ -12,7 +12,7 @@ CFG_PATH='/tmp/config/bash_cfg'
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
-if [[ -n "$WSL_DISTRO_NAME" ]]; then
+if [[ -d .assets/config/bash_cfg ]]; then
   mkdir -p $CFG_PATH
   cp -f .assets/config/bash_cfg/* $CFG_PATH
 fi

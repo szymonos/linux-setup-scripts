@@ -62,15 +62,19 @@ function Set-KubectlLocal {
     $KUBECTL_LOCAL = [IO.Path]::Combine($LOCAL_BIN, $KUBECTL)
     $KUBECTL_DIR = [IO.Path]::Combine($HOME, '.local', 'share', 'kubectl')
 
-    $ver = Get-KubectlServerVersion
-    $kctlVer = [IO.Path]::Combine($KUBECTL_DIR, $ver, $KUBECTL)
+    $serverVersion = Get-KubectlServerVersion
+    if (-not $serverVersion) {
+        Write-Warning "Server not available."
+        break
+    }
+    $kctlVer = [IO.Path]::Combine($KUBECTL_DIR, $serverVersion, $KUBECTL)
 
     if ((Get-ItemPropertyValue $KUBECTL_LOCAL -Name LinkTarget -ErrorAction SilentlyContinue) -ne $kctlVer) {
         if (-not (Test-Path $LOCAL_BIN)) {
             New-Item $LOCAL_BIN -ItemType Directory | Out-Null
         }
         if (-not (Test-Path $kctlVer -PathType Leaf)) {
-            New-Item $([IO.Path]::Combine($KUBECTL_DIR, $ver)) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+            New-Item $([IO.Path]::Combine($KUBECTL_DIR, $serverVersion)) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
             $dlSysArch = if ($IsWindows) {
                 'windows/amd64'
             } elseif ($IsLinux) {
@@ -79,7 +83,7 @@ function Set-KubectlLocal {
                 'darwin/arm64'
             }
             do {
-                [Net.WebClient]::new().DownloadFile("https://dl.k8s.io/release/${ver}/bin/$dlSysArch/$KUBECTL", $kctlVer)
+                [Net.WebClient]::new().DownloadFile("https://dl.k8s.io/release/${serverVersion}/bin/$dlSysArch/$KUBECTL", $kctlVer)
             } until (Test-Path $kctlVer -PathType Leaf)
             if (-not $IsWindows) {
                 chmod +x $kctlVer

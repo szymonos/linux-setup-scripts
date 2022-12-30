@@ -11,21 +11,16 @@ Flag whether to disable swap in WSL.
 Flag whether to shutdown specified distro.
 
 .EXAMPLE
-$Distro = 'Debian'
-$InterfaceDescription = 'NordLynx'
+$Distro = 'Ubuntu'
 .assets/scripts/wsl_network_fix.ps1 $Distro
-.assets/scripts/wsl_network_fix.ps1 $Distro -d $InterfaceDescription
-.assets/scripts/wsl_network_fix.ps1 $Distro -DisableSwap -d $InterfaceDescription
-.assets/scripts/wsl_network_fix.ps1 $Distro -Shutdown -DisableSwap -d $InterfaceDescription
+.assets/scripts/wsl_network_fix.ps1 $Distro -DisableSwap
+.assets/scripts/wsl_network_fix.ps1 $Distro -Shutdown -DisableSwap
 #>
 
 [CmdletBinding()]
 param (
     [Parameter(Mandatory, Position = 0)]
     [string]$Distro,
-
-    [Alias('d')]
-    [string]$InterfaceDescription,
 
     [switch]$DisableSwap,
 
@@ -56,24 +51,20 @@ wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && ec
 # *recreate resolv.conf
 Write-Host 'replacing resolv.conf...' -ForegroundColor Magenta
 # get DNS servers for specified interface
-if (-not $InterfaceDescription) {
-    $netAdapters = Get-NetAdapter | Where-Object Status -EQ 'Up'
-    $list = for ($i = 0; $i -lt $netAdapters.Count; $i++) {
-        [PSCustomObject]@{
-            No                   = "[$i]"
-            Name                 = $netAdapters[$i].Name
-            InterfaceDescription = $netAdapters[$i].InterfaceDescription
-        }
+$netAdapters = Get-NetAdapter | Where-Object Status -EQ 'Up'
+$list = for ($i = 0; $i -lt $netAdapters.Count; $i++) {
+    [PSCustomObject]@{
+        No                   = "[$i]"
+        Name                 = $netAdapters[$i].Name
+        InterfaceDescription = $netAdapters[$i].InterfaceDescription
     }
-    do {
-        $idx = -1
-        $selection = Read-Host -Prompt "Please select the interface for propagating DNS Servers:`n$($list | Out-String)"
-        [bool]$returnedInt = [int]::TryParse($selection, [ref]$idx)
-    } until ($returnedInt -and $idx -ge 0 -and $idx -lt $netAdapters.Count)
-    $dnsServers = ($netAdapters[$idx] | Get-DnsClientServerAddress).ServerAddresses
-} else {
-    $dnsServers = (Get-NetAdapter | Where-Object InterfaceDescription -Like "$InterfaceDescription*" | Get-DnsClientServerAddress).ServerAddresses
 }
+do {
+    $idx = -1
+    $selection = Read-Host -Prompt "Please select the interface for propagating DNS Servers:`n$($list | Out-String)"
+    [bool]$returnedInt = [int]::TryParse($selection, [ref]$idx)
+} until ($returnedInt -and $idx -ge 0 -and $idx -lt $netAdapters.Count)
+$dnsServers = ($netAdapters[$idx] | Get-DnsClientServerAddress).ServerAddresses
 # get DNS suffix search list
 $searchSuffix = (Get-DnsClientGlobalSetting).SuffixSearchList -join ','
 # get distro default gateway
