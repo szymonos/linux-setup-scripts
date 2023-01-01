@@ -101,12 +101,8 @@ begin {
         [string[]]$distros = $Distro
     }
 
-    $workspaceFolder = Split-Path (Split-Path $PSScriptRoot)
-    if ($workspaceFolder -ne $PWD.Path) {
-        $startWorkingDirectory = $PWD
-        Write-Verbose "Setting working directory to '$($workspaceFolder.Replace($HOME, '~'))'."
-        Set-Location $workspaceFolder
-    }
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/../.."
 }
 
 process {
@@ -208,7 +204,5 @@ process {
 }
 
 end {
-    if ($startWorkingDirectory) {
-        Set-Location $startWorkingDirectory
-    }
+    Pop-Location
 }
