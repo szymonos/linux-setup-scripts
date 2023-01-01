@@ -50,12 +50,13 @@ esac
 
 if ! type $APP &>/dev/null; then
   echo 'Installing from binary.' >&2
-  while [[ ! -f exa-linux-x86_64.zip ]]; do
-    curl -Lsk -o exa-linux-x86_64.zip "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
+  TMP_DIR=$(mktemp -dp "$PWD")
+  while [[ ! -f $TMP_DIR/exa-linux-x86_64.zip ]]; do
+    curl -Lsk -o $TMP_DIR/exa-linux-x86_64.zip "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
   done
-  mkdir -p /tmp/exa && unzip -q exa-linux-x86_64.zip -d /tmp/exa
-  install -o root -g root -m 0755 /tmp/exa/bin/exa /usr/bin/exa
-  mv -f /tmp/exa/man/* $(manpath | cut -d : -f 1)/man1 &>/dev/null
-  mv -f /tmp/exa/completions/exa.bash /etc/bash_completion.d &>/dev/null
-  rm -fr /tmp/exa exa-linux-x86_64.zip
+  unzip -q $TMP_DIR/exa-linux-x86_64.zip -d $TMP_DIR
+  install -o root -g root -m 0755 $TMP_DIR/bin/exa /usr/bin/exa
+  mv -f $TMP_DIR/man/* $(manpath | cut -d : -f 1)/man1 &>/dev/null
+  mv -f $TMP_DIR/completions/exa.bash /etc/bash_completion.d &>/dev/null
+  rm -fr $TMP_DIR
 fi

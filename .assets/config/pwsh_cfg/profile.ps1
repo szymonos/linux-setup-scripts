@@ -26,9 +26,6 @@ Set-PSReadLineKeyHandler -Key Ctrl+LeftArrow -Function BackwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function ForwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+v -Function Paste
 Set-PSReadLineKeyHandler -Key Alt+Delete -Function DeleteLine
-# set Startup Working Directory variable
-$SWD = $PWD.Path
-function cds { Set-Location $SWD }
 #endregion
 
 #region environment variables and aliases

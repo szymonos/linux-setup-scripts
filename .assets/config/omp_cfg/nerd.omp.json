@@ -5,6 +5,15 @@
       "alignment": "left",
       "segments": [
         {
+          "type": "os",
+          "style": "plain",
+          "foreground": "#26C6DA",
+          "foreground_templates": [
+            "{{ if .WSL }}#F5BDE6{{ end }}"
+          ],
+          "template": "{{.Icon}} "
+        },
+        {
           "type": "root",
           "style": "plain",
           "foreground": "#FF6666",
@@ -29,31 +38,21 @@
           "type": "executiontime"
         },
         {
-          "foreground": "#23D18B",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}#F14C4C{{ end }}"
-          ],
-          "properties": {
-            "always_enabled": true
-          },
-          "style": "plain",
-          "template": "<b>\u2192</b> ",
-          "type": "exit"
-        },
-        {
           "foreground": "#2CC7EE",
           "style": "plain",
           "template": "{{ if .SSHSession }}{{ .UserName }}<#4CD7FF>@</>{{ .HostName }} {{ end }}",
           "type": "session"
         },
         {
-          "foreground": "#3B8EEA",
+          "background": "#3B8EEA",
+          "leading_diamond": "\ue0b3\ue0b2",
           "properties": {
             "folder_separator_icon": "/",
             "style": "agnoster_short"
           },
-          "style": "plain",
-          "template": "<b>{{ .Path }}</b> ",
+          "style": "diamond",
+          "template": "<b>{{ .Path }}</b>",
+          "trailing_diamond": "\ue0b0\ue0b1 ",
           "type": "path"
         },
         {
@@ -66,23 +65,21 @@
           ],
           "properties": {
             "branch_max_length": 25,
+            "branch_icon": "\ue725 ",
             "commit_icon": "",
-            "branch_icon": "",
             "fetch_status": true,
             "tag_icon": ""
           },
-          "style": "diamond",
-          "leading_diamond": "(",
-          "template": "{{ .HEAD }}",
-          "trailing_diamond": ") ",
+          "style": "plain",
+          "template": "{{ .HEAD }} ",
           "type": "git"
         },
         {
-          "foreground": "#29B8DB",
+          "foreground": "#23D18B",
           "properties": {
             "mapped_shell_names": {
               "bash": "$",
-              "pwsh": ">",
+              "pwsh": "\u276d",
               "zsh": "%"
             }
           },
@@ -101,7 +98,7 @@
             "parse_kubeconfig": true
           },
           "style": "plain",
-          "template": "{{ .Context }}{{ if and (.Namespace) (ne .Namespace \"default\") }}::<i>{{ .Namespace }}</i>{{ end }}",
+          "template": "\ufd31 {{ .Context }}{{ if and (.Namespace) (ne .Namespace \"default\") }}::<i>{{ .Namespace }}</i>{{ end }}",
           "type": "kubectl"
         }
       ],
