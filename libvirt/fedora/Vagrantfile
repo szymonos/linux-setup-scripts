@@ -9,13 +9,13 @@ boxname  = "fedora"
 net_name = "vagrant-33"
 ip_addr  = "192.168.33.57"
 # vm configuration
-memory   = 8192
+memory   = 4096
 cpu      = 4
 # conditions
 install_packages   = true
-install_kubernetes = true
-install_gnome      = true
-install_edge       = true
+install_kubernetes = false
+install_gnome      = false
+install_edge       = false
 setup_bash         = true
 setup_pwsh         = true
 upgrade_system     = true
@@ -76,6 +76,7 @@ Vagrant.configure("2") do |config|
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
     node.vm.provision "shell", name: "install base...", path: "../../.assets/provision/install_base.sh"
+    node.vm.provision "ansible", playbook: "../../.assets/playbooks/setup_user_ssh.yaml"
     if install_packages
       node.vm.provision "shell", name: "install packages...", inline: script_install_packages
       node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"

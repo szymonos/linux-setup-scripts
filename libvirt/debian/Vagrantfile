@@ -9,17 +9,17 @@ boxname  = "debian"
 net_name = "vagrant-33"
 ip_addr  = "192.168.33.51"
 # vm configuration
-memory   = 8192
+memory   = 4096
 cpu      = 4
 # conditions
-install_packages   = false
+install_packages   = true
 install_kubernetes = false
-install_gnome      = true
+install_gnome      = false
 install_edge       = false
-setup_bash         = false
-setup_pwsh         = false
+setup_bash         = true
+setup_pwsh         = true
 upgrade_system     = false
-reload             = false
+reload             = true
 
 # calculate global variables
 hostname = "vg-#{boxname.downcase}"
