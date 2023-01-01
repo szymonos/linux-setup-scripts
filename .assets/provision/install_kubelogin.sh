@@ -26,9 +26,10 @@ if type $APP &>/dev/null; then
 fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
-while [[ ! -f kubelogin-linux-amd64.zip ]]; do
-  curl -LOsk "https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"
+TMP_DIR=$(mktemp -dp "$PWD")
+while [[ ! -f $TMP_DIR/kubelogin.zip ]]; do
+  curl -Lsk -o $TMP_DIR/kubelogin.zip "https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"
 done
-mkdir -p /tmp/kubelogin && unzip -q ./kubelogin-linux-amd64.zip -d /tmp/kubelogin
-install -o root -g root -m 0755 /tmp/kubelogin/bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
-rm -fr /tmp/kubelogin kubelogin-linux-amd64.zip
+unzip -q $TMP_DIR/kubelogin.zip -d $TMP_DIR
+install -o root -g root -m 0755 $TMP_DIR/bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
+rm -fr $TMP_DIR
