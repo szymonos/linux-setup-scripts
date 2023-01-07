@@ -4,7 +4,7 @@
 .assets/scripts/profile_setup.sh --sys_upgrade true --theme powerline --ps_modules "do-common do-linux" --scope k8s_basic
 '
 if [[ $EUID -eq 0 ]]; then
-  echo -e '\e[91mDo not run the script with sudo!\e[0m'
+  echo -e '\e[91mDo not run the script as root!\e[0m'
   exit 1
 fi
 

@@ -4,7 +4,7 @@ sudo .assets/provision/setup_omp.sh
 sudo .assets/provision/setup_omp.sh --theme "powerline"
 '
 if [[ $EUID -ne 0 ]]; then
-  echo -e '\e[91mRun the script with sudo!\e[0m'
+  echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
 
