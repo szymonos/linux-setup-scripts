@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 # https://github.com/ryanoasis/nerd-fonts/
 sudo .assets/provision/install_fonts_nerd.sh --help

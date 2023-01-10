@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 .assets/provision/setup_profile_user.sh
 '

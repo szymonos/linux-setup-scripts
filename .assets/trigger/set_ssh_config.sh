@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo 'Cleaning ssh known_hosts file...'
 sed -i "/^$1/d" ~/.ssh/known_hosts

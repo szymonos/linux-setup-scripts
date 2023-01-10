@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 .private/setup_gh_repos.sh --distro "Ubuntu" --repos "vagrant-scripts ps-modules" --gh_user "szymonos" --win_user "szymo"
 '
