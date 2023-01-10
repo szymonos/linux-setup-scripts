@@ -50,3 +50,13 @@ while (-not (Get-Module posh-git -ListAvailable)) {
     Write-Host 'installing posh-git...'
     Install-PSResource -Name posh-git -Scope AllUsers
 }
+
+# *set nerd fonts if oh-my-posh uses them
+try {
+    Select-String '\ue725' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet | Out-Null
+    # modify exa alias to show icons
+    if (Select-String 'exa -lagh --git' -Path $SCRIPTS_PATH/ps_aliases_linux.ps1 -Quiet) {
+        [IO.File]::ReadAllLines("$SCRIPTS_PATH/ps_aliases_linux.ps1").Replace('exa -lagh --git', 'exa -lagh --icons --git') `
+        | Set-Content $SCRIPTS_PATH/ps_aliases_linux.ps1 -Encoding utf8
+    }
+} catch { }

@@ -74,3 +74,11 @@ polkit.addRule(function(action, subject) {
 });
 EOF
 fi
+
+# *set nerd fonts if oh-my-posh uses them
+if grep -qw '\\ue725' /usr/local/share/oh-my-posh/theme.omp.json 2>/dev/null; then
+  # modify exa alias to show icons
+  if grep -qw 'exa -lagh --git' $PROFILE_PATH/bash_aliases 2>/dev/null; then
+    sed -i 's/exa -lagh --git/exa -lagh --icons --git/' $PROFILE_PATH/bash_aliases
+  fi
+fi
