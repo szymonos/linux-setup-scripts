@@ -54,9 +54,11 @@ debian | ubuntu)
   # update apt package index with the new repository and install kubectl
   apt-get update >&2 && apt-get install -y kubectl >&2 2>/dev/null
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -f kubectl ]]; do
     curl -LOsk "https://dl.k8s.io/release/$(curl -Lsk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"

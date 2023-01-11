@@ -49,9 +49,11 @@ debian | ubuntu)
 opensuse)
   zypper in -y bat >&2 2>/dev/null
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -d "bat-v${REL}-x86_64-unknown-linux-gnu" ]]; do
     curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx

@@ -46,9 +46,11 @@ debian | ubuntu)
 opensuse)
   zypper in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -f minikube-linux-amd64 ]]; do
     curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"

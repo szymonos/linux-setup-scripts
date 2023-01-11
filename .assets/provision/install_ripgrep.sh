@@ -46,9 +46,11 @@ debian | ubuntu)
 opensuse)
   zypper in -y ripgrep >&2 2>/dev/null
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -d "ripgrep-${REL}-x86_64-unknown-linux-musl" ]]; do
     curl -Lsk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx

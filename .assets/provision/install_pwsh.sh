@@ -50,9 +50,11 @@ debian | ubuntu)
   done
   dpkg -i powershell.deb && rm -f powershell.deb >&2 2>/dev/null
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   [ "$SYS_ID" = 'opensuse' ] && zypper in -y libicu >&2 2>/dev/null || true
   while [[ ! -f powershell.tar.gz ]]; do
