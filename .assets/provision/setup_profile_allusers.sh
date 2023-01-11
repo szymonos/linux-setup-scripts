@@ -16,6 +16,14 @@ if [[ -d .assets/config/bash_cfg ]]; then
   mkdir -p $CFG_PATH
   cp -f .assets/config/bash_cfg/* $CFG_PATH
 fi
+# *modify exa alias
+if [[ -f $CFG_PATH/bash_aliases ]]; then
+  # *set nerd fonts if oh-my-posh uses them
+  exa_param=''
+  exa --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
+  grep -Fqw '\ue725' $OMP_PATH/theme.omp.json 2>/dev/null && exa_param+='--icons ' || true
+  sed -i "s/exa -g /exa -g $exa_param/" $CFG_PATH/bash_aliases
+fi
 
 # *Copy global profiles
 if [ -d $CFG_PATH ]; then
@@ -73,12 +81,4 @@ polkit.addRule(function(action, subject) {
     }
 });
 EOF
-fi
-
-# *set nerd fonts if oh-my-posh uses them
-if grep -qw '\\ue725' /usr/local/share/oh-my-posh/theme.omp.json 2>/dev/null; then
-  # modify exa alias to show icons
-  if grep -qw 'exa -lagh --git' $PROFILE_PATH/bash_aliases 2>/dev/null; then
-    sed -i 's/exa -lagh --git/exa -lagh --icons --git/' $PROFILE_PATH/bash_aliases
-  fi
 fi
