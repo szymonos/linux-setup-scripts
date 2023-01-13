@@ -34,17 +34,17 @@ alpine)
   apk add --no-cache ripgrep >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm ripgrep >&2 2>/dev/null
+  pacman -Sy --needed --noconfirm ripgrep >&2 2>/dev/null || binary=true
   ;;
 fedora)
-  dnf install -y ripgrep >&2 2>/dev/null
+  dnf install -y ripgrep >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update >&2 && apt-get install -y ripgrep >&2 2>/dev/null
+  apt-get update >&2 && apt-get install -y ripgrep >&2 2>/dev/null || binary=true
   ;;
 opensuse)
-  zypper in -y ripgrep >&2 2>/dev/null
+  zypper in -y ripgrep >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true

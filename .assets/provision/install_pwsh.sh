@@ -40,7 +40,7 @@ alpine)
   chmod +x /opt/microsoft/powershell/7/pwsh && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
   ;;
 fedora)
-  dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-1.rh.x86_64.rpm" >&2 2>/dev/null
+  dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-1.rh.x86_64.rpm" >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
@@ -48,7 +48,7 @@ debian | ubuntu)
   while [[ ! -f powershell.deb ]]; do
     curl -Lsk -o powershell.deb "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
   done
-  dpkg -i powershell.deb && rm -f powershell.deb >&2 2>/dev/null
+  dpkg -i powershell.deb && rm -f powershell.deb >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true
