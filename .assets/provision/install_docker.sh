@@ -27,11 +27,7 @@ debian | ubuntu)
   apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
   ;;
 opensuse)
-  sles_version="$(. /etc/os-release && echo "${VERSION_ID##*.}")"
-  opensuse_repo="https://download.opensuse.org/repositories/security:SELinux/SLE_15_SP$sles_version/security:SELinux.repo"
-  zypper addrepo $opensuse_repo
-  zypper addrepo 'https://download.docker.com/linux/sles/docker-ce.repo'
-  zypper in -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  zypper in -y docker containerd docker-compose
   ;;
 esac
 
