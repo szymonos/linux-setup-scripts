@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 sudo .assets/provision/setup_omp.sh
 sudo .assets/provision/setup_omp.sh --theme "powerline"

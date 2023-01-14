@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 .assets/provision/install_miniconda.sh
 '

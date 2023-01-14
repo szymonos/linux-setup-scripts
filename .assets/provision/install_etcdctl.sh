@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 sudo .assets/provision/install_etcdctl.sh
 '

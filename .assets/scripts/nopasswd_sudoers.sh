@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 .assets/scripts/nopasswd_sudoers.sh
 .assets/scripts/nopasswd_sudoers.sh revert

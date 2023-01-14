@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 sudo .assets/provision/install_exa.sh
 '
@@ -34,21 +34,23 @@ alpine)
   apk add --no-cache exa >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm exa >&2 2>/dev/null
+  pacman -Sy --needed --noconfirm exa >&2 2>/dev/null || binary=true
   ;;
 fedora)
-  dnf install -y exa >&2 2>/dev/null
+  dnf install -y exa >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update >&2 && apt-get install -y exa >&2 2>/dev/null
+  apt-get update >&2 && apt-get install -y exa >&2 2>/dev/null || binary=true
   ;;
 opensuse)
-  zypper in -y exa >&2 2>/dev/null
+  zypper in -y exa >&2 2>/dev/null || binary=true
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   TMP_DIR=$(mktemp -dp "$PWD")
   while [[ ! -f $TMP_DIR/exa-linux-x86_64.zip ]]; do

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 .assets/scripts/profile_setup.sh --theme powerline --ps_modules "do-common do-linux" --scope k8s_basic
 .assets/scripts/profile_setup.sh --sys_upgrade true --theme powerline --ps_modules "do-common do-linux" --scope k8s_basic

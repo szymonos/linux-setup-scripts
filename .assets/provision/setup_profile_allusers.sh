@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 sudo .assets/provision/setup_profile_allusers.sh
 '
@@ -15,6 +15,14 @@ OMP_PATH='/usr/local/share/oh-my-posh'
 if [[ -d .assets/config/bash_cfg ]]; then
   mkdir -p $CFG_PATH
   cp -f .assets/config/bash_cfg/* $CFG_PATH
+fi
+# *modify exa alias
+if [[ -f $CFG_PATH/bash_aliases ]]; then
+  # *set nerd fonts if oh-my-posh uses them
+  exa_param=''
+  exa --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
+  grep -Fqw '\ue725' $OMP_PATH/theme.omp.json 2>/dev/null && exa_param+='--icons ' || true
+  sed -i "s/exa -g /exa -g $exa_param/" $CFG_PATH/bash_aliases
 fi
 
 # *Copy global profiles

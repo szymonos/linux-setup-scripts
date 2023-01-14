@@ -15,8 +15,8 @@ List of sites to check certificates in chain.
 $Distro = 'Ubuntu'
 $Site = 'www.powershellgallery.com'
 ~install certificates in specified distro
-.assets/scripts/wsl_add_certificate.ps1 $Distro
-.assets/scripts/wsl_add_certificate.ps1 $Distro -s $Site
+.assets/scripts/wsl_certs_add.ps1 $Distro
+.assets/scripts/wsl_certs_add.ps1 $Distro -s $Site
 #>
 [CmdletBinding()]
 param (

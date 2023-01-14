@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 sudo .assets/provision/install_kubectl.sh
 '
@@ -31,7 +31,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  pacman -Sy --needed --noconfirm kubectl >&2 2>/dev/null
+  pacman -Sy --needed --noconfirm kubectl >&2 2>/dev/null || binary=true
   ;;
 fedora)
   [ -f /etc/yum.repos.d/kubernetes.repo ] || cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
@@ -42,7 +42,7 @@ enabled=1
 gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-  dnf install -y kubectl >&2 2>/dev/null
+  dnf install -y kubectl >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
@@ -52,11 +52,13 @@ debian | ubuntu)
   # add the Kubernetes apt repository
   [ -f /etc/apt/sources.list.d/kubernetes.list ] || echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list >/dev/null
   # update apt package index with the new repository and install kubectl
-  apt-get update >&2 && apt-get install -y kubectl >&2 2>/dev/null
+  apt-get update >&2 && apt-get install -y kubectl >&2 2>/dev/null || binary=true
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -f kubectl ]]; do
     curl -LOsk "https://dl.k8s.io/release/$(curl -Lsk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"

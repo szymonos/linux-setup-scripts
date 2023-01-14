@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 sudo .assets/provision/install_minikube.sh
 '
@@ -31,24 +31,26 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  pacman -Sy --needed --noconfirm minikube >&2 2>/dev/null
+  pacman -Sy --needed --noconfirm minikube >&2 2>/dev/null || binary=true
   ;;
 fedora)
-  dnf install -y "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null
+  dnf install -y "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f minikube_latest_amd64.deb ]]; do
     curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
   done
-  dpkg -i minikube_latest_amd64.deb >&2 2>/dev/null && rm -f minikube_latest_amd64.deb
+  dpkg -i minikube_latest_amd64.deb >&2 2>/dev/null && rm -f minikube_latest_amd64.deb || binary=true
   ;;
 opensuse)
-  zypper in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null
+  zypper in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null || binary=true
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -f minikube-linux-amd64 ]]; do
     curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"

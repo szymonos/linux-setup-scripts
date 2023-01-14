@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 sudo .assets/provision/install_ripgrep.sh
 '
@@ -34,21 +34,23 @@ alpine)
   apk add --no-cache ripgrep >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm ripgrep >&2 2>/dev/null
+  pacman -Sy --needed --noconfirm ripgrep >&2 2>/dev/null || binary=true
   ;;
 fedora)
-  dnf install -y ripgrep >&2 2>/dev/null
+  dnf install -y ripgrep >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update >&2 && apt-get install -y ripgrep >&2 2>/dev/null
+  apt-get update >&2 && apt-get install -y ripgrep >&2 2>/dev/null || binary=true
   ;;
 opensuse)
-  zypper in -y ripgrep >&2 2>/dev/null
+  zypper in -y ripgrep >&2 2>/dev/null || binary=true
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -d "ripgrep-${REL}-x86_64-unknown-linux-musl" ]]; do
     curl -Lsk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx

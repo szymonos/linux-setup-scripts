@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 : '
 sudo .assets/provision/install_bat.sh
 '
@@ -34,24 +34,26 @@ alpine)
   apk add --no-cache bat >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm bat >&2 2>/dev/null
+  pacman -Sy --needed --noconfirm bat >&2 2>/dev/null || binary=true
   ;;
 fedora)
-  dnf install -y bat >&2 2>/dev/null
+  dnf install -y bat >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f bat.deb ]]; do
     curl -Lsk -o bat.deb "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
   done
-  dpkg -i bat.deb >&2 2>/dev/null && rm -f bat.deb
+  dpkg -i bat.deb >&2 2>/dev/null && rm -f bat.deb || binary=true
   ;;
 opensuse)
-  zypper in -y bat >&2 2>/dev/null
+  zypper in -y bat >&2 2>/dev/null || binary=true
   ;;
+*)
+  binary=true
 esac
 
-if ! type $APP &>/dev/null; then
+if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -d "bat-v${REL}-x86_64-unknown-linux-gnu" ]]; do
     curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx
