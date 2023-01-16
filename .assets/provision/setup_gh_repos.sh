@@ -21,8 +21,8 @@ gh_repos=($repos)
 # *copy ssh keys on WSL
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
   echo -e "\e[36mcopying ssh keys from the host...\e[0m"
-  \mkdir -p ~/.ssh
-  \cp /mnt/c/Users/$win_user/.ssh/id_* ~/.ssh/ 2>/dev/null
+  mkdir -p ~/.ssh
+  cp /mnt/c/Users/$win_user/.ssh/id_* ~/.ssh/ 2>/dev/null
   chmod 400 ~/.ssh/id_*
 fi
 
@@ -34,8 +34,8 @@ fi
 
 # *setup source folder
 # create folders
-\mkdir -p ~/source/repos/$gh_user
-\mkdir -p ~/source/workspaces
+mkdir -p ~/source/repos/$gh_user
+mkdir -p ~/source/workspaces
 # create workspace file
 if [ ! -f $ws_path ]; then
   echo -e "{\n\t\"folders\": [\n\t]\n}" >$ws_path

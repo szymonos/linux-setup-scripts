@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_kubelogin.sh
+sudo .assets/provision/install_kubelogin.sh >/dev/null
 '
 if [[ $EUID -ne 0 ]]; then
   echo -e '\e[91mRun the script as root!\e[0m'
@@ -11,7 +11,7 @@ APP='kubelogin'
 REL=$1
 # get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
-  REL=$(curl -sk https://api.github.com/repos/Azure/kubelogin/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/Azure/kubelogin/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   [[ -n "$REL" ]] || echo 'retrying...' >&2
 done
 # return latest release
