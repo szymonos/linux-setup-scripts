@@ -18,14 +18,15 @@ arch)
   pacman -Sy --noconfirm base-devel bash-completion dnsutils git jq man-db openssl tar tree unzip vim
   ;;
 fedora)
-  dnf install -y @development-tools bash-completion bind-utils curl git jq man-db openssl tar tree unzip vim
+  dnf groupinstall -y 'Development Tools'
+  dnf install -y bash-completion bind-utils curl git jq man-db openssl tar tree unzip vim
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   apt-get update && apt-get install -y build-essential bash-completion dnsutils curl git jq man-db openssl tar tree unzip vim
   ;;
 opensuse)
-  zypper in -y bash-completion bind-utils git jq openssl tar tree unzip vim
   zypper in -yt pattern devel_basis
+  zypper in -y bash-completion bind-utils git jq openssl tar tree unzip vim
   ;;
 esac
