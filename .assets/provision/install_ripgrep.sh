@@ -48,15 +48,17 @@ opensuse)
   ;;
 *)
   binary=true
+  ;;
 esac
 
 if [[ $binary ]]; then
   echo 'Installing from binary.' >&2
-  while [[ ! -d "ripgrep-${REL}-x86_64-unknown-linux-musl" ]]; do
-    curl -Lsk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx
+  TMP_DIR=$(mktemp -dp "$PWD")
+  while [[ ! -f $TMP_DIR/rg ]]; do
+    curl -Lsk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx -C $TMP_DIR
   done
-  install -o root -g root -m 0755 "ripgrep-${REL}-x86_64-unknown-linux-musl/rg" /usr/bin/rg
-  mv -f "ripgrep-${REL}-x86_64-unknown-linux-musl/doc/rg.1" $(manpath | cut -d : -f 1)/man1 &>/dev/null
-  mv -f "ripgrep-${REL}-x86_64-unknown-linux-musl/complete/rg.bash" /etc/bash_completion.d &>/dev/null
-  rm -fr "ripgrep-${REL}-x86_64-unknown-linux-musl"
+  install -o root -g root -m 0755 $TMP_DIR/rg /usr/bin/rg
+  mv -f $TMP_DIR/doc/rg.1 $(manpath | cut -d : -f 1)/man1 &>/dev/null
+  mv -f $TMP_DIR/complete/rg.bash /etc/bash_completion.d &>/dev/null
+  rm -fr $TMP_DIR
 fi

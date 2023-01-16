@@ -26,7 +26,10 @@ if type $APP &>/dev/null; then
 fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
-while [[ ! -f yq_linux_amd64 ]]; do
-  curl -Lsk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx ./yq_linux_amd64
+TMP_DIR=$(mktemp -dp "$PWD")
+while [[ ! -f $TMP_DIR/yq_linux_amd64 ]]; do
+  curl -Lsk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx -C $TMP_DIR
 done
-install -o root -g root -m 0755 yq_linux_amd64 /usr/local/bin/yq && rm -f yq_linux_amd64
+install -o root -g root -m 0755 $TMP_DIR/yq_linux_amd64 /usr/local/bin/yq
+$TMP_DIR/install-man-page.sh
+rm -fr $TMP_DIR

@@ -36,7 +36,7 @@ alpine)
   while [[ ! -f powershell.tar.gz ]]; do
     curl -Lsk -o powershell.tar.gz "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
   done
-  mkdir -p /opt/microsoft/powershell/7 && tar zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm powershell.tar.gz
+  mkdir -p /opt/microsoft/powershell/7 && tar -zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm powershell.tar.gz
   chmod +x /opt/microsoft/powershell/7/pwsh && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
   ;;
 fedora)
@@ -52,6 +52,7 @@ debian | ubuntu)
   ;;
 *)
   binary=true
+  ;;
 esac
 
 if [[ $binary ]]; then

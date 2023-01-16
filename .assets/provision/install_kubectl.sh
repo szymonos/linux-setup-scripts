@@ -56,6 +56,7 @@ debian | ubuntu)
   ;;
 *)
   binary=true
+  ;;
 esac
 
 if [[ $binary ]]; then

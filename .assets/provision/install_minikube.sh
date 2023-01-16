@@ -48,6 +48,7 @@ opensuse)
   ;;
 *)
   binary=true
+  ;;
 esac
 
 if [[ $binary ]]; then

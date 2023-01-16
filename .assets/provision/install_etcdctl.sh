@@ -26,8 +26,9 @@ if type $APP &>/dev/null; then
 fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
-while [[ ! -f kubectl-argo-rollouts-linux-amd64 ]]; do
-  'https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz'
-  curl -Lsk "https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz" | tar -zx
+TMP_DIR=$(mktemp -dp "$PWD")
+while [[ ! -f $TMP_DIR/etcdctl ]]; do
+  curl -Lsk "https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz" | tar -zx -C $TMP_DIR
 done
-install -o root -g root -m 0755 "etcd-v${REL}-linux-amd64/etcdctl" /usr/local/bin/etcdctl && rm -fr "etcd-v${REL}-linux-amd64"
+install -o root -g root -m 0755 $TMP_DIR/etcdctl /usr/local/bin/etcdctl
+rm -fr $TMP_DIR

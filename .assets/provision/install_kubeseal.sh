@@ -26,7 +26,9 @@ if type $APP &>/dev/null; then
 fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
-while [[ ! -f kubeseal ]]; do
-  curl -Lsk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -zx kubeseal
+TMP_DIR=$(mktemp -dp "$PWD")
+while [[ ! -f $TMP_DIR/kubeseal ]]; do
+  curl -Lsk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -zx -C $TMP_DIR
 done
-install -o root -g root -m 0755 kubeseal /usr/local/bin/kubeseal && rm -f kubeseal
+install -o root -g root -m 0755 $TMP_DIR/kubeseal /usr/local/bin/kubeseal
+rm -fr $TMP_DIR
