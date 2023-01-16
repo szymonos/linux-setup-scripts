@@ -36,7 +36,7 @@ if ($Distro -notin $distros) {
 }
 
 # *replace wsl.conf
-Write-Host 'replacing wsl.conf...' -ForegroundColor Magenta
+Write-Host 'replacing wsl.conf...' -ForegroundColor Green
 $wslConf = @'
 [network]
 generateResolvConf = false
@@ -49,7 +49,7 @@ mountFsTab = false
 wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && echo '$wslConf' >/etc/wsl.conf"
 
 # *recreate resolv.conf
-Write-Host 'replacing resolv.conf...' -ForegroundColor Magenta
+Write-Host 'replacing resolv.conf...' -ForegroundColor Green
 # get DNS servers for specified interface
 $netAdapters = Get-NetAdapter | Where-Object Status -EQ 'Up'
 $list = for ($i = 0; $i -lt $netAdapters.Count; $i++) {
@@ -83,7 +83,7 @@ wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/resolv.conf || true &&
 
 # *disable wsl swap
 if ($DisableSwap) {
-    Write-Host 'disabling swap...' -ForegroundColor Magenta
+    Write-Host 'disabling swap...' -ForegroundColor Green
     $wslCfgPath = [IO.Path]::Combine($HOME, '.wslconfig')
     try {
         $wslCfgContent = [IO.File]::ReadAllLines($wslCfgPath)
@@ -100,6 +100,6 @@ if ($DisableSwap) {
 
 # *shutdown specified distro
 if ($Shutdown) {
-    Write-Host "shutting down '$Distro' distro..." -ForegroundColor Magenta
+    Write-Host "shutting down '$Distro' distro..." -ForegroundColor Green
     wsl.exe --shutdown $Distro
 }

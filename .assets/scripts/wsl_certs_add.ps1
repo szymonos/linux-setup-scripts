@@ -125,6 +125,6 @@ process {
 
 end {
     # print list of intercepted certificates
-    Write-Host 'Intercepted certificates' -ForegroundColor Magenta
+    Write-Host 'Intercepted certificates' -ForegroundColor Green
     $certs.Name | Select-Object -Unique | Write-Host
 }
