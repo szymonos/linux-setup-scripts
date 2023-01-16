@@ -55,7 +55,7 @@ debian | ubuntu)
   ;;
 esac
 
-if [[ $binary ]]; then
+if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
   [ "$SYS_ID" = 'opensuse' ] && zypper in -y libicu >&2 2>/dev/null || true
   while [[ ! -f powershell.tar.gz ]]; do

@@ -54,7 +54,7 @@ opensuse)
   ;;
 esac
 
-if [[ $binary ]]; then
+if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
   TMP_DIR=$(mktemp -dp "$PWD")
   while [[ ! -f $TMP_DIR/bat ]]; do

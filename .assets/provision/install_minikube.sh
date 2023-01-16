@@ -51,7 +51,7 @@ opensuse)
   ;;
 esac
 
-if [[ $binary ]]; then
+if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -f minikube-linux-amd64 ]]; do
     curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
