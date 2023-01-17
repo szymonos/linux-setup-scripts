@@ -1,3 +1,52 @@
+#region helper functions
+<#
+.SYNOPSIS
+Resolve main, dev, stage branch names.
+#>
+function Get-GitResolvedBranch {
+    param (
+        [Parameter(Position = 0)]
+        [string]$BranchName = 'd'
+    )
+    begin {
+        $branchMatch = switch ($BranchName) {
+            d { 'dev(|el|elop)' }
+            q { '(qa|stage)' }
+            m { 'ma(in|ster)' }
+            Default { $BranchName }
+        }
+    }
+    process {
+        $branch = "$((git branch -a --format='%(refname:short)') -match "\b${branchMatch}$" | Select-Object -First 1)" -replace '.*origin/'
+        if (-not $branch) {
+            Write-Host "invalid reference: $BranchName"
+            break
+        }
+    }
+    end {
+        return $branch
+    }
+}
+
+<#
+.SYNOPSIS
+Get git log object.
+#>
+function Get-GitLogObject {
+    Write-Host 'git log --pretty' -ForegroundColor Magenta
+    "Commit`u{00A6}Subject`u{00A6}Author`u{00A6}Date", (git log --pretty=format:"%h`u{00A6}%s`u{00A6}%an <%ae>`u{00A6}%ai") `
+    | ConvertFrom-Csv -Delimiter "`u{00A6}" `
+    | Select-Object Commit, Subject, Author, @{ Name = 'Date'; Expression = { [System.DateTimeOffset]$_.Date } } `
+    | Sort-Object Date
+}
+#endregion
+
+#region aliases
+Set-Alias -Name glo -Value Get-GitLogObject
+Set-Alias -Name grvb -Value Get-GitResolvedBranch
+#endregion
+
+#region alias functions
 function ga { Write-Host "git add $args" -ForegroundColor Magenta; git add @args }
 function gaa { Write-Host "git add --all $args" -ForegroundColor Magenta; git add --all @args }
 function gapa { Write-Host "git add --patch $args" -ForegroundColor Magenta; git add --patch @args }
@@ -70,13 +119,6 @@ function glgg { Write-Host "git log --graph $args" -ForegroundColor Magenta; git
 function glgga { Write-Host "git log --graph --decorate --all $args" -ForegroundColor Magenta; git log --graph --decorate --all @args }
 function glgm { Write-Host "git log --graph --max-count=10 $args" -ForegroundColor Magenta; git log --graph --max-count=10 @args }
 function glgp { Write-Host "git log --stat -p $args" -ForegroundColor Magenta; git log --stat -p @args }
-function glo {
-    Write-Host 'git log --pretty' -ForegroundColor Magenta
-    "Commit`u{00A6}Subject`u{00A6}Author`u{00A6}Date", (git log --pretty=format:"%h`u{00A6}%s`u{00A6}%an <%ae>`u{00A6}%ai") `
-    | ConvertFrom-Csv -Delimiter "`u{00A6}" `
-    | Select-Object Commit, Subject, Author, @{ Name = 'Date'; Expression = { [System.DateTimeOffset]$_.Date } } `
-    | Sort-Object Date
-}
 function glog { Write-Host "git log --oneline --decorate --graph $args" -ForegroundColor Magenta; git log --oneline --decorate --graph @args }
 function gloga { Write-Host "git log --oneline --decorate --graph --all $args" -ForegroundColor Magenta; git log --oneline --decorate --graph --all @args }
 function glol { Write-Host "git log --graph --pretty='\''%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'\'' --abbrev-commit $args" -ForegroundColor Magenta; git log --graph --pretty='\''%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'\'' --abbrev-commit @args }
@@ -102,34 +144,17 @@ function grbc { Write-Host "git rebase --continue $args" -ForegroundColor Magent
 function grbi { Write-Host "git rebase -i $args" -ForegroundColor Magenta; git rebase -i @args }
 function grbm { Write-Host "git rebase master $args" -ForegroundColor Magenta; git rebase master @args }
 function grbs { Write-Host "git rebase --skip $args" -ForegroundColor Magenta; git rebase --skip @args }
-function grh { Write-Host "git reset HEAD $args" -ForegroundColor Magenta; git reset HEAD @args }
-function grhh { Write-Host "git reset HEAD --hard $args" -ForegroundColor Magenta; git reset HEAD --hard @args }
+function grh { Write-Host "git reset --hard $args" -ForegroundColor Magenta; git reset --hard @args }
+function grmb { (Get-GitResolvedBranch "$args").ForEach({ Write-Host "git reset `$(git merge-base origin/$_ HEAD)" -ForegroundColor Magenta; git reset $(git merge-base origin/$_ HEAD) }) }
 function grmv { Write-Host "git remote rename $args" -ForegroundColor Magenta; git remote rename @args }
 function grrm { Write-Host "git remote remove $args" -ForegroundColor Magenta; git remote remove @args }
+function grs { Write-Host "git reset --soft $args" -ForegroundColor Magenta; git reset --soft @args }
 function grset { Write-Host "git remote set-url $args" -ForegroundColor Magenta; git remote set-url @args }
 function grt { Write-Host "cd $(git rev-parse --show-toplevel || Write-Output '.') $args" -ForegroundColor Magenta; Set-Location $(git rev-parse --show-toplevel || Write-Output '.') @args }
 function gru { Write-Host "git reset -- $args" -ForegroundColor Magenta; git reset -- @args }
 function grup { Write-Host "git remote update $args" -ForegroundColor Magenta; git remote update @args }
 function grv { Write-Host "git remote -v $args" -ForegroundColor Magenta; git remote -v @args }
-function gs {
-    param (
-        [Parameter(Position = 0)]
-        [string]$br = 'd'
-    )
-    $branchMatch = switch ($br) {
-        d { 'dev(|el|elop)' }
-        q { '(qa|stage)' }
-        m { 'ma(in|ster)' }
-        Default { $br }
-    }
-    $branch = "$((git branch -a --format='%(refname:short)') -match "\b${branchMatch}$" | Select-Object -First 1)".Replace('origin/', '')
-    if ($branch) {
-        Write-Host "git switch $branch" -ForegroundColor Magenta
-        git switch $branch
-    } else {
-        Write-Host "invalid reference: $br" -ForegroundColor Magenta
-    }
-}
+function gs { (Get-GitResolvedBranch "$args").ForEach({ Write-Host "git switch $_" -ForegroundColor Magenta; git switch $_ }) }
 function gsb { Write-Host "git status -sb $args" -ForegroundColor Magenta; git status -sb @args }
 function gsd { Write-Host "git svn dcommit $args" -ForegroundColor Magenta; git svn dcommit @args }
 function gsi { Write-Host "git submodule init $args" -ForegroundColor Magenta; git submodule init @args }
@@ -153,3 +178,4 @@ function gupa { Write-Host "git pull --rebase --autostash $args" -ForegroundColo
 function gupav { Write-Host "git pull --rebase --autostash -v $args" -ForegroundColor Magenta; git pull --rebase --autostash -v @args }
 function gupv { Write-Host "git pull --rebase -v $args" -ForegroundColor Magenta; git pull --rebase -v @args }
 function gwch { Write-Host "git whatchanged -p --abbrev-commit --pretty=medium $args" -ForegroundColor Magenta; git whatchanged -p --abbrev-commit --pretty=medium @args }
+#endregion

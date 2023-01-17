@@ -1,4 +1,5 @@
 # *Functions
+function bsh { & /usr/bin/env -i bash --noprofile --norc }
 function exa { & /usr/bin/env exa -g --color=auto --time-style=long-iso --group-directories-first @args }
 function ll { exa -lah @args }
 function grep { $input | & /usr/bin/env grep --color=auto @args }
