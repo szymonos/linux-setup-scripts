@@ -26,6 +26,11 @@ if type $APP &>/dev/null; then
 fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
-while ! type helm &>/dev/null; do
-  curl -sk 'https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3' | bash
-done
+__install="curl -sk 'https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3' | bash"
+if type $APP &>/dev/null; then
+  eval $__install
+else
+  while ! type $APP &>/dev/null; do
+    eval $__install
+  done
+fi
