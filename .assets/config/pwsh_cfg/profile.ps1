@@ -24,7 +24,6 @@ Set-PSReadLineKeyHandler -Key Alt+j -Function NextHistory
 Set-PSReadLineKeyHandler -Key Alt+k -Function PreviousHistory
 Set-PSReadLineKeyHandler -Key Ctrl+LeftArrow -Function BackwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function ForwardWord
-Set-PSReadLineKeyHandler -Key Ctrl+v -Function Paste
 Set-PSReadLineKeyHandler -Key Alt+Delete -Function DeleteLine
 #endregion
 
