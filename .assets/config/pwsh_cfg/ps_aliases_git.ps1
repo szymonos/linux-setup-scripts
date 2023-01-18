@@ -1,14 +1,23 @@
 #region helper functions
 <#
 .SYNOPSIS
+Get current branch name.
+#>
+function Get-GitCurrentBranch {
+    git branch --show-current
+}
+
+<#
+.SYNOPSIS
 Resolve main, dev, stage branch names.
 #>
 function Get-GitResolvedBranch {
     param (
         [Parameter(Position = 0)]
-        [string]$BranchName = 'd'
+        [string]$BranchName
     )
     begin {
+        if (-not $BranchName) { $BranchName = 'd' }
         $branchMatch = switch ($BranchName) {
             d { 'dev(|el|elop)' }
             q { '(qa|stage)' }
@@ -42,6 +51,7 @@ function Get-GitLogObject {
 #endregion
 
 #region aliases
+Set-Alias -Name gbc -Value Get-GitCurrentBranch
 Set-Alias -Name glo -Value Get-GitLogObject
 Set-Alias -Name grvb -Value Get-GitResolvedBranch
 #endregion
@@ -53,7 +63,6 @@ function gapa { Write-Host "git add --patch $args" -ForegroundColor Magenta; git
 function gau { Write-Host "git add --update $args" -ForegroundColor Magenta; git add --update @args }
 function gb { Write-Host "git branch $args" -ForegroundColor Magenta; git branch @args }
 function gba { Write-Host "git branch -a $args" -ForegroundColor Magenta; git branch -a @args }
-function gbc { git branch --show-current }
 function gbd { Write-Host "git branch -d $args" -ForegroundColor Magenta; git branch -d @args }
 function gbda {
     Write-Host 'git branch --no-color --merged --delete' -ForegroundColor Magenta
@@ -107,9 +116,9 @@ function gfa { Write-Host "git fetch --all --prune $args" -ForegroundColor Magen
 function gfo { Write-Host "git fetch origin $args" -ForegroundColor Magenta; git fetch origin @args }
 function gg { Write-Host "git gui citool $args" -ForegroundColor Magenta; git gui citool @args }
 function gga { Write-Host "git gui citool --amend $args" -ForegroundColor Magenta; git gui citool --amend @args }
-function ggpull { Write-Host "git pull origin $(gbc) $args" -ForegroundColor Magenta; git pull origin $(gbc) @args }
-function ggpush { Write-Host "git push origin $(gbc) $args" -ForegroundColor Magenta; git push origin $(gbc) @args }
-function ggsup { Write-Host "git branch --set-upstream-to=origin/$(gbc) $args" -ForegroundColor Magenta; git branch --set-upstream-to=origin/$(gbc) @args }
+function ggpull { Write-Host "git pull origin $(Get-GitCurrentBranch) $args" -ForegroundColor Magenta; git pull origin $(Get-GitCurrentBranch) @args }
+function ggpush { Write-Host "git push origin $(Get-GitCurrentBranch) $args" -ForegroundColor Magenta; git push origin $(Get-GitCurrentBranch) @args }
+function ggsup { Write-Host "git branch --set-upstream-to=origin/$(Get-GitCurrentBranch) $args" -ForegroundColor Magenta; git branch --set-upstream-to=origin/$(Get-GitCurrentBranch) @args }
 function ghh { Write-Host "git help $args" -ForegroundColor Magenta; git help @args }
 function gignore { Write-Host "git update-index --assume-unchanged $args" -ForegroundColor Magenta; git update-index --assume-unchanged @args }
 function gignored { Write-Host 'git ls-files -v | grep '^[[:lower:]]" $args" -ForegroundColor Magenta; git ls-files -v | grep '^[[:lower:]]' @args }
@@ -133,7 +142,7 @@ function gp { Write-Host "git push $args" -ForegroundColor Magenta; git push @ar
 function gpd { Write-Host "git push --dry-run $args" -ForegroundColor Magenta; git push --dry-run @args }
 function gpoat { Write-Host "git push origin --all && git push origin --tags $args" -ForegroundColor Magenta; git push origin --all && git push origin --tags @args }
 function gpristine { Write-Host "git reset --hard && git clean -dfx $args" -ForegroundColor Magenta; git reset --hard && git clean -dfx @args }
-function gpsup { Write-Host "git push --set-upstream origin $(gbc) $args" -ForegroundColor Magenta; git push --set-upstream origin $(gbc) @args }
+function gpsup { Write-Host "git push --set-upstream origin $(Get-GitCurrentBranch) $args" -ForegroundColor Magenta; git push --set-upstream origin $(Get-GitCurrentBranch) @args }
 function gpu { Write-Host "git push upstream $args" -ForegroundColor Magenta; git push upstream @args }
 function gpv { Write-Host "git push -v $args" -ForegroundColor Magenta; git push -v @args }
 function gr { Write-Host "git remote $args" -ForegroundColor Magenta; git remote @args }

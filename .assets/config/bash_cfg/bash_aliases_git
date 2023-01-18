@@ -4,7 +4,9 @@ function git_current_branch {
 }
 
 function git_resolve_branch {
-  case "$1" in
+  [[ -n "$1" ]] && branch_name="$1" || branch_name='d'
+
+  case "$branch_name" in
   d)
     pattern='dev(|el|elop)'
     ;;
@@ -15,7 +17,7 @@ function git_resolve_branch {
     pattern='ma(in|ster)'
     ;;
   *)
-    pattern="$1"
+    pattern="$branch_name"
     ;;
   esac
 
