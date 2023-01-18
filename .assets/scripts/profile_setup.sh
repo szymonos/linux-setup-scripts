@@ -34,28 +34,28 @@ sudo .assets/provision/install_base.sh
 
 if [[ "$scope" = @(k8s_basic|k8s_full) ]]; then
   echo -e "\e[32minstalling kubernetes base packages...\e[0m"
-  sudo .assets/provision/install_kubectl.sh
-  sudo .assets/provision/install_kubelogin.sh
-  sudo .assets/provision/install_helm.sh
-  sudo .assets/provision/install_minikube.sh
-  sudo .assets/provision/install_k3d.sh
-  sudo .assets/provision/install_k9s.sh
-  sudo .assets/provision/install_yq.sh
+  sudo .assets/provision/install_kubectl.sh >/dev/null
+  sudo .assets/provision/install_kubelogin.sh >/dev/null
+  sudo .assets/provision/install_helm.sh >/dev/null
+  sudo .assets/provision/install_minikube.sh >/dev/null
+  sudo .assets/provision/install_k3d.sh >/dev/null
+  sudo .assets/provision/install_k9s.sh >/dev/null
+  sudo .assets/provision/install_yq.sh >/dev/null
 fi
 if [[ "$scope" = 'k8s_full' ]]; then
   echo -e "\e[32minstalling kubernetes additional packages...\e[0m"
   sudo .assets/provision/install_flux.sh
-  sudo .assets/provision/install_kubeseal.sh
+  sudo .assets/provision/install_kubeseal.sh >/dev/null
   sudo .assets/provision/install_kustomize.sh
-  sudo .assets/provision/install_argorolloutscli.sh
+  sudo .assets/provision/install_argorolloutscli.sh >/dev/null
 fi
 if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   echo -e "\e[32minstalling base packages...\e[0m"
-  sudo .assets/provision/install_omp.sh
-  sudo .assets/provision/install_pwsh.sh
-  sudo .assets/provision/install_bat.sh
-  sudo .assets/provision/install_exa.sh
-  sudo .assets/provision/install_ripgrep.sh
+  sudo .assets/provision/install_omp.sh >/dev/null
+  sudo .assets/provision/install_pwsh.sh >/dev/null
+  sudo .assets/provision/install_bat.sh >/dev/null
+  sudo .assets/provision/install_exa.sh >/dev/null
+  sudo .assets/provision/install_ripgrep.sh >/dev/null
   .assets/provision/install_miniconda.sh
   echo -e "\e[32msetting up profile for all users...\e[0m"
   sudo .assets/provision/setup_omp.sh --theme $theme
