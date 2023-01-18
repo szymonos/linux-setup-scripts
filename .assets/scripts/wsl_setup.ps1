@@ -119,6 +119,10 @@ begin {
 
 process {
     foreach ($Distro in $distros) {
+        # *determine scope for WSL update
+        if ($PsCmdlet.ParameterSetName -eq 'Update') {
+            $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
+        }
         Write-Host "$distro - $Scope" -ForegroundColor Magenta
         # *fix WSL networking
         if ($FixNetwork) {
@@ -129,9 +133,6 @@ process {
             .assets/scripts/wsl_certs_add.ps1 $Distro
         }
         # *install packages
-        if ($PsCmdlet.ParameterSetName -eq 'Update') {
-            $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
-        }
         wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
