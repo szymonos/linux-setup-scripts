@@ -76,6 +76,7 @@ Vagrant.configure("2") do |config|
       :autostart => true
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    node.vm.provision "shell", name: "fix secure_path in sudoers", path: "../../.assets/provision/fix_secure_path.sh"
     node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     node.vm.provision "shell", name: "install base...", path: "../../.assets/provision/install_base.sh"
     if install_packages

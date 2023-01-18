@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_kubectl.sh
+sudo .assets/provision/install_kubectl.sh >/dev/null
 '
 if [[ $EUID -ne 0 ]]; then
   echo -e '\e[91mRun the script as root!\e[0m'
@@ -56,9 +56,10 @@ debian | ubuntu)
   ;;
 *)
   binary=true
+  ;;
 esac
 
-if [[ $binary ]]; then
+if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
   while [[ ! -f kubectl ]]; do
     curl -LOsk "https://dl.k8s.io/release/$(curl -Lsk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"

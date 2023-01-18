@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_exa.sh
+sudo .assets/provision/install_exa.sh >/dev/null
 '
 if [[ $EUID -ne 0 ]]; then
   echo -e '\e[91mRun the script as root!\e[0m'
@@ -11,7 +11,7 @@ APP='exa'
 REL=$1
 # get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
-  REL=$(curl -sk https://api.github.com/repos/ogham/exa/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/ogham/exa/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   [[ -n "$REL" ]] || echo 'retrying...' >&2
 done
 # return latest release
@@ -48,9 +48,10 @@ opensuse)
   ;;
 *)
   binary=true
+  ;;
 esac
 
-if [[ $binary ]]; then
+if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
   TMP_DIR=$(mktemp -dp "$PWD")
   while [[ ! -f $TMP_DIR/exa-linux-x86_64.zip ]]; do

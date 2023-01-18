@@ -7,6 +7,12 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-while ! type smee &>/dev/null; do
-  npm install -g smee-client
-done
+APP='smee'
+
+if type $APP &>/dev/null; then
+  npm update -g smee-client
+else
+  while ! type $APP &>/dev/null; do
+    npm install -g smee-client
+  done
+fi

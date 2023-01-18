@@ -24,7 +24,6 @@ Set-PSReadLineKeyHandler -Key Alt+j -Function NextHistory
 Set-PSReadLineKeyHandler -Key Alt+k -Function PreviousHistory
 Set-PSReadLineKeyHandler -Key Ctrl+LeftArrow -Function BackwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function ForwardWord
-Set-PSReadLineKeyHandler -Key Ctrl+v -Function Paste
 Set-PSReadLineKeyHandler -Key Alt+Delete -Function DeleteLine
 #endregion
 
@@ -45,9 +44,9 @@ Set-PSReadLineKeyHandler -Key Alt+Delete -Function DeleteLine
 #endregion
 
 # region brew
-foreach ($path in @('/home/linuxbrew/.linuxbrew/bin/brew', "$HOME/.linuxbrew/bin/brew")) {
-    if (Test-Path $path -PathType Leaf) {
-        (& $path 'shellenv') | Out-String | Invoke-Expression
+foreach ($path in @('/home/linuxbrew/.linuxbrew', "$HOME/.linuxbrew")) {
+    if (Test-Path $path/bin/brew -PathType Leaf) {
+        (& $path/bin/brew 'shellenv') | Out-String | Invoke-Expression
         $env:HOMEBREW_NO_ENV_HINTS = 1
         continue
     }

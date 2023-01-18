@@ -99,7 +99,7 @@ Vagrant.configure("2") do |config|
     end
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
-    node.vm.provision "shell", name: "fix secure path setting for sudo", path: "../../.assets/provision/fix_sudo.sh"
+    node.vm.provision "shell", name: "fix secure_path in sudoers", path: "../../.assets/provision/fix_secure_path.sh"
     node.vm.provision "shell", name: "install base...", path: "../../.assets/provision/install_base.sh"
     if install_packages
       node.vm.provision "shell", name: "install packages...", inline: script_install_packages

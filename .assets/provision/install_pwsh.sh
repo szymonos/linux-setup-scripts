@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_pwsh.sh
+sudo .assets/provision/install_pwsh.sh >/dev/null
 '
 if [[ $EUID -ne 0 ]]; then
   echo -e '\e[91mRun the script as root!\e[0m'
@@ -11,7 +11,7 @@ APP='pwsh'
 REL=$1
 # get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
-  REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   [[ -n "$REL" ]] || echo 'retrying...' >&2
 done
 # return latest release
@@ -36,7 +36,7 @@ alpine)
   while [[ ! -f powershell.tar.gz ]]; do
     curl -Lsk -o powershell.tar.gz "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
   done
-  mkdir -p /opt/microsoft/powershell/7 && tar zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm powershell.tar.gz
+  mkdir -p /opt/microsoft/powershell/7 && tar -zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm powershell.tar.gz
   chmod +x /opt/microsoft/powershell/7/pwsh && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
   ;;
 fedora)
@@ -52,9 +52,10 @@ debian | ubuntu)
   ;;
 *)
   binary=true
+  ;;
 esac
 
-if [[ $binary ]]; then
+if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
   [ "$SYS_ID" = 'opensuse' ] && zypper in -y libicu >&2 2>/dev/null || true
   while [[ ! -f powershell.tar.gz ]]; do

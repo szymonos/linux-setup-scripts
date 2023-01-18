@@ -9,7 +9,7 @@
           "style": "plain",
           "foreground": "#26C6DA",
           "foreground_templates": [
-            "{{ if .WSL }}#F5BDE6{{ end }}"
+            "{{ if .WSL }}#ff0000{{ end }}"
           ],
           "template": "{{.Icon}} "
         },
@@ -56,7 +56,7 @@
           "type": "path"
         },
         {
-          "foreground": "#D4AAFC",
+          "foreground": "#0de732",
           "foreground_templates": [
             "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}",
             "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#FF4500{{ end }}",

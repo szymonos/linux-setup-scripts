@@ -1,3 +1,42 @@
+#region functions
+function git_current_branch {
+  git branch --show-current
+}
+
+function git_resolve_branch {
+  [[ -n "$1" ]] && branch_name="$1" || branch_name='d'
+
+  case "$branch_name" in
+  d)
+    pattern='dev(|el|elop)'
+    ;;
+  q)
+    pattern='(qa|stage)'
+    ;;
+  m)
+    pattern='ma(in|ster)'
+    ;;
+  *)
+    pattern="$branch_name"
+    ;;
+  esac
+
+  br=$(git branch -a --format='%(refname:short)' | grep -E "\b${pattern}$" | head -1 | sed -E 's/.*origin\///')
+  [[ -n "$br" ]] && echo "$br" || echo "$pattern"
+}
+
+function gs {
+  br=$(git_resolve_branch $1)
+  git switch $(git_resolve_branch $br)
+}
+
+function grmb {
+  br=$(git_resolve_branch $1)
+  git reset $(git merge-base origin/$br HEAD)
+}
+#endregion
+
+#region aliases
 alias ga='git add'
 alias gaa='git add --all'
 alias gapa='git add --patch'
@@ -53,7 +92,6 @@ alias ghh='git help'
 alias gignore='git update-index --assume-unchanged'
 alias gignored='git ls-files -v | grep "^[[:lower:]]"'
 alias git-svn-dcommit-push='git svn dcommit && git push github master:svntrunk'
-alias gpl='git pull'
 alias glg='git log --stat'
 alias glgg='git log --graph'
 alias glgga='git log --graph --decorate --all'
@@ -72,6 +110,7 @@ alias gmtvim='git mergetool --no-prompt --tool=vimdiff'
 alias gmum='git merge upstream/master'
 alias gp='git push'
 alias gpd='git push --dry-run'
+alias gpl='git pull'
 alias gpoat='git push origin --all && git push origin --tags'
 alias gpristine='git reset --hard && git clean -dfx'
 alias gpsup='git push --set-upstream origin $(git_current_branch)'
@@ -85,16 +124,15 @@ alias grbc='git rebase --continue'
 alias grbi='git rebase -i'
 alias grbm='git rebase master'
 alias grbs='git rebase --skip'
-alias grh='git reset HEAD'
-alias grhh='git reset HEAD --hard'
+alias grh='git reset --hard'
 alias grmv='git remote rename'
 alias grrm='git remote remove'
+alias grs='git reset --soft'
 alias grset='git remote set-url'
 alias grt='cd $(git rev-parse --show-toplevel || echo ".")'
 alias gru='git reset --'
 alias grup='git remote update'
 alias grv='git remote -v'
-alias gs='git switch'
 alias gsb='git status -sb'
 alias gsd='git svn dcommit'
 alias gsi='git submodule init'
@@ -110,8 +148,6 @@ alias gstl='git stash list'
 alias gstp='git stash pop'
 alias gsts='git stash show --text'
 alias gsu='git submodule update'
-alias gswd='git branch -a --format="%(refname:short)" | grep -Ewm1 "dev(|el|elop)" | xargs git switch'
-alias gswm='git branch -a --format="%(refname:short)" | grep -Ewm1 "ma(in|ster)" | xargs git switch'
 alias gts='git tag -s'
 alias gtv='git tag | sort -V'
 alias gunignore='git update-index --no-assume-unchanged'
@@ -122,3 +158,4 @@ alias gupav='git pull --rebase --autostash -v'
 alias gupv='git pull --rebase -v'
 alias gwch='git whatchanged -p --abbrev-commit --pretty=medium'
 alias gwip='git add -A; git rm $(git ls-files --deleted) 2>/dev/null; git commit --no-verify -m "--wip-- [skip ci]"'
+#endregion

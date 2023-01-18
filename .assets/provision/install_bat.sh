@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_bat.sh
+sudo .assets/provision/install_bat.sh >/dev/null
 '
 if [[ $EUID -ne 0 ]]; then
   echo -e '\e[91mRun the script as root!\e[0m'
@@ -11,7 +11,7 @@ APP='bat'
 REL=$1
 # get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
-  REL=$(curl -sk https://api.github.com/repos/sharkdp/bat/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/sharkdp/bat/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   [[ -n "$REL" ]] || echo 'retrying...' >&2
 done
 # return latest release
@@ -51,13 +51,15 @@ opensuse)
   ;;
 *)
   binary=true
+  ;;
 esac
 
-if [[ $binary ]]; then
+if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
-  while [[ ! -d "bat-v${REL}-x86_64-unknown-linux-gnu" ]]; do
-    curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx
+  TMP_DIR=$(mktemp -dp "$PWD")
+  while [[ ! -f $TMP_DIR/bat ]]; do
+    curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx -C $TMP_DIR
   done
-  install -o root -g root -m 0755 "bat-v${REL}-x86_64-unknown-linux-gnu/bat" /usr/bin/bat
-  rm -fr "bat-v${REL}-x86_64-unknown-linux-gnu"
+  install -o root -g root -m 0755 $TMP_DIR/bat /usr/bin/bat
+  rm -fr $TMP_DIR
 fi

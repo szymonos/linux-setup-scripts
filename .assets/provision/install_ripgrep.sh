@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_ripgrep.sh
+sudo .assets/provision/install_ripgrep.sh >/dev/null
 '
 if [[ $EUID -ne 0 ]]; then
   echo -e '\e[91mRun the script as root!\e[0m'
@@ -11,7 +11,7 @@ APP='rg'
 REL=$1
 # get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
-  REL=$(curl -sk https://api.github.com/repos/BurntSushi/ripgrep/releases/latest | grep -Po '"tag_name": *"\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/BurntSushi/ripgrep/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   [[ -n "$REL" ]] || echo 'retrying...' >&2
 done
 # return latest release
@@ -48,15 +48,17 @@ opensuse)
   ;;
 *)
   binary=true
+  ;;
 esac
 
-if [[ $binary ]]; then
+if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
-  while [[ ! -d "ripgrep-${REL}-x86_64-unknown-linux-musl" ]]; do
-    curl -Lsk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx
+  TMP_DIR=$(mktemp -dp "$PWD")
+  while [[ ! -f $TMP_DIR/rg ]]; do
+    curl -Lsk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx -C $TMP_DIR
   done
-  install -o root -g root -m 0755 "ripgrep-${REL}-x86_64-unknown-linux-musl/rg" /usr/bin/rg
-  mv -f "ripgrep-${REL}-x86_64-unknown-linux-musl/doc/rg.1" $(manpath | cut -d : -f 1)/man1 &>/dev/null
-  mv -f "ripgrep-${REL}-x86_64-unknown-linux-musl/complete/rg.bash" /etc/bash_completion.d &>/dev/null
-  rm -fr "ripgrep-${REL}-x86_64-unknown-linux-musl"
+  install -o root -g root -m 0755 $TMP_DIR/rg /usr/bin/rg
+  mv -f $TMP_DIR/doc/rg.1 $(manpath | cut -d : -f 1)/man1 &>/dev/null
+  mv -f $TMP_DIR/complete/rg.bash /etc/bash_completion.d &>/dev/null
+  rm -fr $TMP_DIR
 fi

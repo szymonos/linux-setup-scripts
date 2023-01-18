@@ -119,6 +119,11 @@ begin {
 
 process {
     foreach ($Distro in $distros) {
+        # *determine scope for WSL update
+        if ($PsCmdlet.ParameterSetName -eq 'Update') {
+            $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
+        }
+        Write-Host "$distro - $Scope" -ForegroundColor Magenta
         # *fix WSL networking
         if ($FixNetwork) {
             .assets/scripts/wsl_network_fix.ps1 $Distro
@@ -128,10 +133,7 @@ process {
             .assets/scripts/wsl_certs_add.ps1 $Distro
         }
         # *install packages
-        if ($PsCmdlet.ParameterSetName -eq 'Update') {
-            $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
-        }
-        Write-Host "$distro - $Scope" -ForegroundColor Magenta
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
         if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
@@ -146,7 +148,7 @@ process {
                 Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh
+                $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
                 $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
@@ -155,8 +157,8 @@ process {
             k8s_full {
                 Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
-                $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
+                $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
                 $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
             }
             'base|k8s_basic|k8s_full' {

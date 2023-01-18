@@ -7,6 +7,13 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-while ! type flux &>/dev/null; do
-  curl -sk https://fluxcd.io/install.sh | bash
-done
+APP='flux'
+
+__install="curl -sk https://fluxcd.io/install.sh | bash"
+if type $APP &>/dev/null; then
+  eval $__install
+else
+  while ! type $APP &>/dev/null; do
+    eval $__install
+  done
+fi

@@ -23,6 +23,6 @@ debian | ubuntu)
   apt-get update && apt-get dist-upgrade -qy --allow-downgrades --allow-remove-essential --allow-change-held-packages
   ;;
 opensuse)
-  zypper dup -y
+  zypper refresh && zypper dup -y
   ;;
 esac
