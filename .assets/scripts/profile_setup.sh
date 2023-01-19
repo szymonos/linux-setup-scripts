@@ -21,9 +21,9 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# correct script working directory if needed
-WORKSPACE_FOLDER=$(dirname "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")")
-[[ "$PWD" = "$WORKSPACE_FOLDER" ]] || cd "$WORKSPACE_FOLDER"
+# set script working directory to workspace folder
+SCRIPT_ROOT=$( cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd )
+pushd "$( cd "${SCRIPT_ROOT}/../../" && pwd )" >/dev/null
 
 # *Install packages and setup profiles
 if $sys_upgrade; then
@@ -45,8 +45,8 @@ fi
 if [[ "$scope" = 'k8s_full' ]]; then
   echo -e "\e[32minstalling kubernetes additional packages...\e[0m"
   sudo .assets/provision/install_flux.sh
-  sudo .assets/provision/install_kubeseal.sh >/dev/null
   sudo .assets/provision/install_kustomize.sh
+  sudo .assets/provision/install_kubeseal.sh >/dev/null
   sudo .assets/provision/install_argorolloutscli.sh >/dev/null
 fi
 if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
@@ -80,3 +80,6 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
     done
   fi
 fi
+
+# restore working directory
+popd >/dev/null
