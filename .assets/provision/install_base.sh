@@ -15,7 +15,7 @@ alpine)
   apk add --no-cache build-base ca-certificates iputils curl git jq less mandoc openssl tar tree unzip vim
   ;;
 arch)
-  pacman -Sy --noconfirm base-devel bash-completion dnsutils git jq man-db openssl tar tree unzip vim
+  pacman -Sy --needed --noconfirm --color auto base-devel bash-completion dnsutils git jq man-db openssh openssl tar tree unzip vim
   ;;
 fedora)
   dnf groupinstall -y 'Development Tools'

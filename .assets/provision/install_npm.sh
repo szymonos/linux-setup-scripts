@@ -15,7 +15,7 @@ alpine)
   apk add --no-cache npm
   ;;
 arch)
-  pacman -Sy --noconfirm icu npm
+  pacman -Sy --needed --noconfirm icu npm
   ;;
 fedora)
   dnf install -y npm

@@ -13,6 +13,12 @@ alpine)
   apk upgrade --available
   ;;
 arch)
+  # ArchWSL fix for WSL2
+  if [[ -n $WSL_DISTRO_NAME ]]; then
+    sed -i '/\bfakeroot\b/d' /etc/pacman.conf
+    pacman -R --noconfirm fakeroot-tcp 2>/dev/null || true
+  fi
+  pacman -Sy --needed --noconfirm archlinux-keyring
   pacman -Syu --noconfirm
   ;;
 fedora)

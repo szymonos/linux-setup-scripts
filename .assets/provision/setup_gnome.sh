@@ -9,7 +9,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 INSTALL_DASH=true
 case $SYS_ID in
 arch)
-  sudo pacman -Sy --noconfirm sassc
+  sudo pacman -Sy --needed --noconfirm sassc
   ;;
 fedora)
   sudo dnf install -y @development-tools sassc
