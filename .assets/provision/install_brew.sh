@@ -21,13 +21,13 @@ echo $REL
 if type brew &>/dev/null; then
   VER=$(brew --version | grep -Eo '[0-9\.]+\.[0-9]+\.[0-9]+')
   if [ "$REL" = "$VER" ]; then
-    printf "\e[36m$APP v$VER is already latest\e[0m\n" >&2
+    printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
   else
     brew update
   fi
 else
-  printf "\e[96minstalling $APP v$REL\e[0m\n" >&2
+  printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
   # unattended installation
   export NONINTERACTIVE=1
   # skip tap cloning

@@ -20,7 +20,7 @@ gh_repos=($repos)
 
 # *copy ssh keys on WSL
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
-  echo -e "\e[36mcopying ssh keys from the host...\e[0m"
+  echo -e "\e[32mcopying ssh keys from the host...\e[0m"
   mkdir -p ~/.ssh
   cp /mnt/c/Users/$win_user/.ssh/id_* ~/.ssh/ 2>/dev/null
   chmod 400 ~/.ssh/id_*
@@ -28,7 +28,7 @@ fi
 
 # *add github.com to known_hosts
 if ! grep -qw 'github.com' ~/.ssh/known_hosts 2>/dev/null; then
-  echo -e "\e[36madding github public keys...\e[0m"
+  echo -e "\e[32madding github public keys...\e[0m"
   ssh-keyscan github.com 1>>~/.ssh/known_hosts 2>/dev/null
 fi
 
@@ -43,7 +43,7 @@ fi
 
 # clone repositories and add them to workspace file
 cd ~/source/repos/$gh_user
-echo -e "\e[36mcloning repositories...\e[0m"
+echo -e "\e[32mcloning repositories...\e[0m"
 for repo in ${gh_repos[@]}; do
   git clone "git@github.com:$gh_user/$repo.git" 2>/dev/null
   if [ -d "$repo" ] && ! grep -qw "$repo" $ws_path; then

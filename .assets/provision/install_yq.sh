@@ -20,12 +20,12 @@ echo $REL
 if type $APP &>/dev/null; then
   VER=$(yq --version | grep -Po '[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[36m$APP v$VER is already latest\e[0m" >&2
+    echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
+echo -e "\e[92minstalling $APP v$REL\e[0m" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 while [[ ! -f $TMP_DIR/yq_linux_amd64 ]]; do
   curl -Lsk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx -C $TMP_DIR

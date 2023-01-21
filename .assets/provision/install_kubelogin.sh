@@ -20,12 +20,12 @@ echo $REL
 if type $APP &>/dev/null; then
   VER=$(kubelogin --version | grep -Po '(?<=v)[\d\.]+(?=/)')
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[36m$APP v$VER is already latest\e[0m" >&2
+    echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
+echo -e "\e[92minstalling $APP v$REL\e[0m" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 while [[ ! -f $TMP_DIR/kubelogin.zip ]]; do
   curl -Lsk -o $TMP_DIR/kubelogin.zip "https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"

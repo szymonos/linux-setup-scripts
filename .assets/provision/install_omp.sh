@@ -20,12 +20,12 @@ echo $REL
 if type $APP &>/dev/null; then
   VER=$(oh-my-posh version)
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[36m$APP v$VER is already latest\e[0m" >&2
+    echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[96minstalling $APP v$REL\e[0m" >&2
+echo -e "\e[92minstalling $APP v$REL\e[0m" >&2
 while [[ ! -f posh-linux-amd64 ]]; do
   curl -LsOk "https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v${REL}/posh-linux-amd64"
 done

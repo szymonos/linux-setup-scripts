@@ -27,13 +27,13 @@ pushd "$( cd "${SCRIPT_ROOT}/../../" && pwd )" >/dev/null
 
 # *Install packages and setup profiles
 if $sys_upgrade; then
-  echo -e "\e[32mupgrading system...\e[0m"
+  echo -e "\e[96mupgrading system...\e[0m"
   sudo .assets/provision/upgrade_system.sh
 fi
 sudo .assets/provision/install_base.sh
 
 if [[ "$scope" = @(k8s_basic|k8s_full) ]]; then
-  echo -e "\e[32minstalling kubernetes base packages...\e[0m"
+  echo -e "\e[96minstalling kubernetes base packages...\e[0m"
   sudo .assets/provision/install_kubectl.sh >/dev/null
   sudo .assets/provision/install_kubelogin.sh >/dev/null
   sudo .assets/provision/install_helm.sh >/dev/null
@@ -43,25 +43,25 @@ if [[ "$scope" = @(k8s_basic|k8s_full) ]]; then
   sudo .assets/provision/install_yq.sh >/dev/null
 fi
 if [[ "$scope" = 'k8s_full' ]]; then
-  echo -e "\e[32minstalling kubernetes additional packages...\e[0m"
+  echo -e "\e[96minstalling kubernetes additional packages...\e[0m"
   sudo .assets/provision/install_flux.sh
   sudo .assets/provision/install_kustomize.sh
   sudo .assets/provision/install_kubeseal.sh >/dev/null
   sudo .assets/provision/install_argorolloutscli.sh >/dev/null
 fi
 if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
-  echo -e "\e[32minstalling base packages...\e[0m"
+  echo -e "\e[96minstalling base packages...\e[0m"
   sudo .assets/provision/install_omp.sh >/dev/null
   sudo .assets/provision/install_pwsh.sh >/dev/null
   sudo .assets/provision/install_bat.sh >/dev/null
   sudo .assets/provision/install_exa.sh >/dev/null
   sudo .assets/provision/install_ripgrep.sh >/dev/null
   .assets/provision/install_miniconda.sh
-  echo -e "\e[32msetting up profile for all users...\e[0m"
+  echo -e "\e[96msetting up profile for all users...\e[0m"
   sudo .assets/provision/setup_omp.sh --theme $theme
   sudo .assets/provision/setup_profile_allusers.sh
   sudo .assets/provision/setup_profile_allusers.ps1
-  echo -e "\e[32msetting up profile for current user...\e[0m"
+  echo -e "\e[96msetting up profile for current user...\e[0m"
   .assets/provision/setup_profile_user.sh
   .assets/provision/setup_profile_user.ps1
   if [[ -n "$ps_modules" ]]; then
@@ -69,7 +69,7 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
       remote=$(git config --get remote.origin.url)
       git clone ${remote/vagrant-scripts/ps-modules} ../ps-modules
     fi
-    echo -e "\e[32minstalling PowerShell modules...\e[0m"
+    echo -e "\e[96minstalling PowerShell modules...\e[0m"
     modules=($ps_modules)
     for mod in ${modules[@]}; do
       if [ "$mod" = 'do-common' ]; then
