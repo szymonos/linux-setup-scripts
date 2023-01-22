@@ -29,6 +29,7 @@ if (Test-Path $sshConfig -PathType Leaf) {
         [IO.File]::WriteAllText($sshConfig, $content.TrimEnd())
     }
 }
+Remove-Item ([IO.Path]::Combine($HOME, '.ssh', $HostName))
 
 $knownHosts = [IO.Path]::Combine($HOME, '.ssh', 'known_hosts')
 if (Test-Path $knownHosts -PathType Leaf) {
