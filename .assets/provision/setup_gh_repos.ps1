@@ -1,68 +1,82 @@
 #!/usr/bin/env -S pwsh -nop
 <#
 .SYNOPSIS
-Script synopsis.
+Clone specified GitHub repositories into ~/source/repos folder.
+
+.PARAMETER Repos
+List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
+.PARAMETER WorkspaceSuffix
+Workspace suffix to build the name in format "DistroName-WorkspaceSuffix".
+.PARAMETER UserName
+Windows user name to copy ssh keys from.
+
 .EXAMPLE
-$distro = 'Ubuntu'
-$repos = "vagrant-scripts ps-modules"
-$gh_user = 'szymonos'
-$win_user = 'szymo'
-.assets/provision/setup_gh_repos.ps1
+$Repos = 'szymonos/vagrant-scripts szymonos/ps-modules'
+$User  = 'szymo'
+.assets/provision/setup_gh_repos.ps1 $Repos -u $User
+.assets/provision/setup_gh_repos.ps1 $Repos -u $User -WorkspaceSuffix 'scripts'
 #>
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory)]
-    [string]$distro,
+    [Parameter(Mandatory, Position = 0)]
+    [ValidateScript({ -not ($_.Split().ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -contains $false) }, ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
+    [string]$Repos,
 
-    [Parameter(Mandatory)]
-    [string]$repos,
+    [ValidateNotNullOrEmpty()]
+    [string]$WorkspaceSuffix = 'devops',
 
-    [Parameter(Mandatory)]
-    [string]$gh_user,
-
-    [Parameter(Mandatory)]
-    [string]$win_user
-
+    [string]$UserName
 )
 $ErrorActionPreference = 'SilentlyContinue'
 
-[string[]]$repos = "$repos".Split()
-$ws_path = "$HOME/source/workspaces/$($distro.ToLower())-devops.code-workspace"
+[string[]]$Repos = "$Repos".Split()
 
 # *copy ssh keys on WSL
 if ($env:WSL_DISTRO_NAME) {
-    Write-Host 'copying ssh keys from the host...'
-    New-Item ~/.ssh -ItemType Directory | Out-Null
-    Copy-Item /mnt/c/Users/$win_user/.ssh/id_* ~/.ssh/
-    chmod 400 ~/.ssh/id_*
+    $distro = $env:WSL_DISTRO_NAME
+    if ($UserName) {
+        Write-Host 'copying ssh keys from the host...' -ForegroundColor DarkGreen
+        New-Item ~/.ssh -ItemType Directory | Out-Null
+        Copy-Item /mnt/c/Users/$UserName/.ssh/id_* ~/.ssh/
+        chmod 400 ~/.ssh/id_*
+    }
+} else {
+    $distro = (Select-String '(?<=^ID=).+' -Path /etc/os-release).Matches.Value.Trim("'`" ")
 }
+$ws_path = "$HOME/source/workspaces/$($distro.ToLower())-$($WorkspaceSuffix.ToLower()).code-workspace"
 
 # *add github.com to known_hosts
 $knownHosts = "$HOME/.ssh/known_hosts"
 $keysExist = try { Select-String 'github.com' $knownHosts -Quiet } catch { $false }
 if (-not $keysExist) {
-    Write-Host 'adding github public keys...'
+    Write-Host 'adding github public keys...' -ForegroundColor DarkGreen
     [string[]]$ghKeys = ssh-keyscan 'github.com' 2>$null
     [IO.File]::AppendAllLines($knownHosts, $ghKeys)
 }
 
 # *setup source folder
 # create folders
-New-Item ~/source/repos/$gh_user -ItemType Directory | Out-Null
-New-Item ~/source/workspaces -ItemType Directory | Out-Null
-# create workspace file
-if (-not (Test-Path $ws_path -PathType Leaf)) {
-    Set-Content $ws_path -Value "{`n`t`"folders`": [`n`t]`n}"
+New-Item $HOME/source/repos -ItemType Directory | Out-Null
+New-Item $HOME/source/workspaces -ItemType Directory | Out-Null
+Push-Location $HOME/source/repos
+
+$ws = if (Test-Path $ws_path -PathType Leaf) {
+    Get-Content $ws_path | ConvertFrom-Json
+} else {
+    [PSCustomObject]@{ folders = @() }
 }
+
 # clone repositories and add them to workspace file
-Set-Location ~/source/repos/$gh_user
-$content = [IO.File]::ReadAllText($ws_path).TrimEnd()
-Write-Host 'cloning repositories...'
-foreach ($repo in $repos) {
-    git clone "git@github.com:$gh_user/$repo.git" 2>$null
-    if ((Test-Path $repo -PathType Container) -and -not (Select-String -Pattern $repo -Path $ws_path -Quiet)) {
-        $folder = "`t{`n`t`t`t`"name`": `"$repo`",`n`t`t`t`"path`": `"../repos/$gh_user/$repo`"`n`t`t},`n`t"
-        $content = $content -replace ']', "$folder]"
+Write-Host 'cloning repositories...' -ForegroundColor DarkGreen
+foreach ($repo in $Repos) {
+    $owner, $repo_name = $repo.Split('/')
+    New-Item $owner -ItemType Directory | Out-Null
+    Push-Location $owner
+    git clone "git@github.com:$repo.git" 2>$null && Write-Host $repo
+    if (-not ($ws.folders.path -match $repo) -and (Test-Path $repo_name -PathType Container)) {
+        $ws.folders += [PSCustomObject]@{ name = $repo_name; path = "../repos/$repo" }
     }
+    Pop-Location
 }
-[IO.File]::WriteAllText($ws_path, $content)
+[IO.File]::WriteAllText($ws_path, ($ws | ConvertTo-Json))
+Pop-Location

@@ -25,35 +25,26 @@ Installation scope - valid values, and packages installed:
 - k8s_basic: kubectl, helm, minikube, k3d, k9s, yq
 - k8s_full: flux, kubeseal, kustomize, argorolloutts-cli
 Every following option expands the scope.
-.PARAMETER Account
-GH account with the repositories to clone.
 .PARAMETER Repos
-List of repositories to clone into the WSL.
+List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER PSModules
 List of PowerShell modules from ps-modules repository to be installed.
 
 .EXAMPLE
-$Distro   = 'Ubuntu'
-$OmpTheme = 'powerline'
-$GtkTheme = 'dark'
-$Scope    = 'k8s_basic'
-$Account  = 'szymonos'
-$Repos = @(
-    'vagrant-scripts'
-    'ps-modules'
-)
-$PSModules = @(
-    'do-common'
-    'do-linux'
-)
+$Distro    = 'Ubuntu'
+$OmpTheme  = 'powerline'
+$GtkTheme  = 'dark'
+$Scope     = 'k8s_basic'
+$PSModules = @('do-common', 'do-linux')
+$Repos     = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
 ~install packages and setup profile
 .assets/scripts/wsl_setup.ps1 $Distro -o $OmpTheme -g $GtkTheme -s $Scope -m $PSModules
-~install packages, setup profiles and clone repositories
-.assets/scripts/wsl_setup.ps1 $Distro -a $Account -r $Repos -o $OmpTheme -g $GtkTheme -s $Scope -m $PSModules
+~install packages, setup profiles and clone GitHub repositories
+.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -o $OmpTheme -g $GtkTheme -s $Scope -m $PSModules
 ~update all existing WSL distros
 .assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme -m $PSModules
 # fix network, add certificates and update all distros
-.assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme -m $PSModules -FixNetwork -AddCertificate
+.assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme -m $PSModules -AddCertificate -FixNetwork
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -88,11 +79,8 @@ param (
     [Parameter(ParameterSetName = 'GitHub')]
     [switch]$AddCertificate,
 
-    [Alias('a')]
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [string]$Account,
-
-    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
+    [ValidateScript({ -not ($_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -contains $false) }, ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
     [string[]]$Repos,
 
     [Alias('m')]
@@ -145,7 +133,7 @@ process {
                 continue
             }
             'k8s_basic|k8s_full' {
-                Write-Host 'installing kubernetes base packages...' -ForegroundColor Green
+                Write-Host 'installing kubernetes base packages...' -ForegroundColor Cyan
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
                 $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
@@ -155,14 +143,14 @@ process {
                 $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
             }
             k8s_full {
-                Write-Host 'installing kubernetes additional packages...' -ForegroundColor Green
+                Write-Host 'installing kubernetes additional packages...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
                 $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
                 $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
             }
             'base|k8s_basic|k8s_full' {
-                Write-Host 'installing base packages...' -ForegroundColor Green
+                Write-Host 'installing base packages...' -ForegroundColor Cyan
                 $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
                 $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
@@ -170,11 +158,11 @@ process {
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
                 # *setup profiles
-                Write-Host 'setting up profile for all users...' -ForegroundColor Green
+                Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh
-                Write-Host 'setting up profile for current user...' -ForegroundColor Green
+                Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
                 if ($PSModules) {
@@ -184,7 +172,7 @@ process {
                         git clone $remote ../ps-modules
                     }
                     # *install PowerShell modules from ps-modules repository
-                    Write-Host 'installing PowerShell modules...' -ForegroundColor Green
+                    Write-Host 'installing PowerShell modules...' -ForegroundColor Cyan
                     foreach ($module in $PSModules) {
                         if ($module -eq 'do-common') {
                             wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
@@ -197,7 +185,7 @@ process {
         }
         # *set gtk theme for wslg
         if (wsl.exe --distribution $Distro -- bash -c '[ -d /mnt/wslg ] && echo 1') {
-            Write-Host 'setting gtk theme...' -ForegroundColor Green
+            Write-Host 'setting gtk theme...' -ForegroundColor Cyan
             $themeString = switch ($GtkTheme) {
                 light { 'export GTK_THEME="Adwaita"' }
                 dark { 'export GTK_THEME="Adwaita:dark"' }
@@ -208,7 +196,7 @@ process {
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
         # *setup GitHub repositories
-        Write-Host 'setting up GitHub repositories...' -ForegroundColor Green
+        Write-Host 'setting up GitHub repositories...' -ForegroundColor Cyan
         # set git eol config
         wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
         # copy git user settings from the host
@@ -221,7 +209,7 @@ process {
             wsl.exe --distribution $Distro --exec bash -c $gitConfigCmd
         }
         # clone repos
-        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --distro $Distro --repos "$Repos" --gh_user $Account --win_user $env:USERNAME
+        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos" --user $env:USERNAME
     }
 }
 

@@ -24,11 +24,13 @@ param (
     [string]$Path
 )
 
+# calculate variables
+$identityFile = [IO.Path]::Combine($HOME, '.ssh', $HostName)
 $vagrantConfig = @"
 Host $HostName
   HostName $IpAddress
   User vagrant
-  IdentityFile $Path
+  IdentityFile $identityFile
 "@
 
 $sshConfig = [IO.Path]::Combine($HOME, '.ssh', 'config')
@@ -50,6 +52,7 @@ if (Test-Path $sshConfig -PathType Leaf) {
     $content = $vagrantConfig
 }
 [IO.File]::WriteAllText($sshConfig, $content)
+Copy-Item $Path -Destination $identityFile
 
 $knownHosts = [IO.Path]::Combine($HOME, '.ssh', 'known_hosts')
 if (Test-Path $knownHosts -PathType Leaf) {

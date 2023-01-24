@@ -20,12 +20,12 @@ echo $REL
 if [ -f /usr/bin/kubectl ]; then
   VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[36m$APP $VER is already latest\e[0m" >&2
+    echo -e "\e[32m$APP $VER is already latest\e[0m" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[96minstalling $APP $REL\e[0m" >&2
+echo -e "\e[92minstalling $APP $REL\e[0m" >&2
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
