@@ -4,24 +4,26 @@ function git_current_branch {
 }
 
 function git_resolve_branch {
-  [[ -n "$1" ]] && branch_name="$1" || branch_name='d'
-
-  case "$branch_name" in
-  d)
-    pattern='dev(|el|elop)'
+  case "$1" in
+  '')
+    pattern='(^|/)dev(|el|elop)$|(^|/)ma(in|ster)$'
     ;;
-  q)
-    pattern='(qa|stage)'
+  d)
+    pattern='(^|/)dev(|el|elop)$'
     ;;
   m)
-    pattern='ma(in|ster)'
+    pattern='(^|/)ma(in|ster)$'
+    ;;
+  q)
+    pattern='(^|/)qa|stage$'
     ;;
   *)
-    pattern="$branch_name"
+    pattern="$1"
     ;;
   esac
 
-  br=$(git branch -a --format='%(refname:short)' | grep -E "\b${pattern}$" | head -1 | sed -E 's/.*origin\///')
+  br=$(git branch -a --format='%(refname:short)' | sed -E 's/.*\///' | grep -E "$pattern" | sort -u | head -1)
+
   [[ -n "$br" ]] && echo "$br" || echo "$pattern"
 }
 
@@ -84,10 +86,6 @@ alias gfa='git fetch --all --prune'
 alias gfo='git fetch origin'
 alias gg='git gui citool'
 alias gga='git gui citool --amend'
-alias ggpull='git pull origin $(git_current_branch)'
-alias ggpur='ggu'
-alias ggpush='git push origin $(git_current_branch)'
-alias ggsup='git branch --set-upstream-to=origin/$(git_current_branch)'
 alias ghh='git help'
 alias gignore='git update-index --assume-unchanged'
 alias gignored='git ls-files -v | grep "^[[:lower:]]"'
@@ -115,6 +113,9 @@ alias gpoat='git push origin --all && git push origin --tags'
 alias gpristine='git reset --hard && git clean -dfx'
 alias gpsup='git push --set-upstream origin $(git_current_branch)'
 alias gpu='git push upstream'
+alias gpull='git pull origin $(git_current_branch)'
+alias gpush='git push origin $(git_current_branch)'
+alias gpush!='git push origin $(git_current_branch) --force'
 alias gpv='git push -v'
 alias gr='git remote'
 alias gra='git remote add'
@@ -131,7 +132,8 @@ alias grs='git reset --soft'
 alias grset='git remote set-url'
 alias grt='cd $(git rev-parse --show-toplevel || echo ".")'
 alias gru='git reset --'
-alias grup='git remote update'
+alias grup='git remote update origin'
+alias grupp='git remote update origin --prune'
 alias grv='git remote -v'
 alias gsb='git status -sb'
 alias gsd='git svn dcommit'
@@ -148,6 +150,7 @@ alias gstl='git stash list'
 alias gstp='git stash pop'
 alias gsts='git stash show --text'
 alias gsu='git submodule update'
+alias gsup='git branch --set-upstream-to=origin/$(git_current_branch)'
 alias gts='git tag -s'
 alias gtv='git tag | sort -V'
 alias gunignore='git update-index --no-assume-unchanged'
