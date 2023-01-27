@@ -12,21 +12,21 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache build-base ca-certificates iputils curl git jq less mandoc openssl tar tree unzip vim
+  apk add --no-cache build-base ca-certificates iputils curl git jq less lsb-release-minimal mandoc openssl tar tree unzip vim
   ;;
 arch)
-  pacman -Sy --needed --noconfirm --color auto base-devel bash-completion dnsutils git jq man-db openssh openssl tar tree unzip vim
+  pacman -Sy --needed --noconfirm --color auto base-devel bash-completion dnsutils git jq lsb-release man-db openssh openssl tar tree unzip vim
   ;;
 fedora)
   dnf groupinstall -y 'Development Tools'
-  dnf install -y bash-completion bind-utils curl git jq man-db openssl tar tree unzip vim
+  dnf install -y bash-completion bind-utils curl git jq redhat-lsb-core man-db openssl tar tree unzip vim
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y build-essential bash-completion dnsutils curl git jq man-db openssl tar tree unzip vim
+  apt-get update && apt-get install -y build-essential bash-completion dnsutils curl git jq lsb-release man-db openssl tar tree unzip vim
   ;;
 opensuse)
   zypper in -yt pattern devel_basis
-  zypper in -y bash-completion bind-utils git jq openssl tar tree unzip vim
+  zypper in -y bash-completion bind-utils git jq lsb-release openssl tar tree unzip vim
   ;;
 esac

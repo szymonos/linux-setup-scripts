@@ -124,7 +124,7 @@ function gca { Write-Host "git commit -v -a $args" -ForegroundColor Magenta; git
 function gca! { Write-Host "git commit -v -a --amend $args" -ForegroundColor Magenta; git commit -v -a --amend @args }
 function gcam { Write-Host "git commit -a -m $args" -ForegroundColor Magenta; git commit -a -m @args }
 function gcamp {
-    $head = gbc
+    $head = Get-GitCurrentBranch
     Write-Host "git commit -a -m $args && git push origin $head" -ForegroundColor Magenta
     git commit -a -m @args && git push origin $head
 }
