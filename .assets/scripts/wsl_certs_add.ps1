@@ -8,8 +8,8 @@ It requires openssl application to be installed in Windows.
 
 .PARAMETER Distro
 Name of the WSL distro to install the certificate to.
-.PARAMETER SiteList
-List of sites to check certificates in chain.
+.PARAMETER Site [Optional]
+Site used for intercepting certificate chain.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
