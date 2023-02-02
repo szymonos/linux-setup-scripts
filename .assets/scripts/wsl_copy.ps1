@@ -28,52 +28,50 @@ param (
     [switch]$Root
 )
 
-begin {
-    # calculate destination distro and path
-    $dstDistro, $dstPath = $Destination.Split(':')
-    # calculate source distro and paths
-    $srcDistro, $path = $Source.Split(':')
+# *calculate source and destination distros and paths
+$srcDistro, $srcPath = $Source.Split(':')
+$dstDistro, $dstPath = $Destination.Split(':')
 
-    # get list of distros
-    [string[]]$distros = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss).ForEach({ $_.GetValue('DistributionName') }).Where({ $_ -notmatch '^docker-desktop' })
-    # check if specified distros exist
-    if ($srcDistro -notin $distros) {
-        Write-Warning "The specified distro does not exist ($srcDistro)."
-        exit
-    } elseif ($dstDistro -notin $distros) {
-        Write-Warning "The specified distro does not exist ($dstDistro)."
-        exit
-    }
-
-    # resolve ~ path for source distro
-    if ($path -match '~') {
-        $path = if ($Root) {
-            wsl.exe -d $srcDistro --user root --exec bash -c "readlink -f $path"
-        } else {
-            wsl.exe -d $srcDistro --exec bash -c "readlink -f $path"
-        }
-    }
-    if (-not [IO.Path]::IsPathRooted($path)) {
-        Write-Warning "Source path is incorrect ($path)."
-        exit
-    }
-    # calculate source path
-    $mntDir = "/mnt/wsl/$srcDistro"
-    $srcPath = [IO.Path]::Join($mntDir, $path)
+# *check if specified distros exist
+[string[]]$distros = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss).ForEach({ $_.GetValue('DistributionName') }).Where({ $_ -notmatch '^docker-desktop' })
+if ($srcDistro -notin $distros) {
+    Write-Warning "The specified distro does not exist ($srcDistro)."
+    exit
+} elseif ($dstDistro -notin $distros) {
+    Write-Warning "The specified distro does not exist ($dstDistro)."
+    exit
 }
 
-process {
-    # bind mount root filesystem of the source distro
-    wsl.exe -d $srcDistro --user root --exec bash -c "findmnt $mntDir >/dev/null || mkdir -p $mntDir && mount --bind / $mntDir"
-
-    # copy files
-    if ($Root) {
-        wsl.exe -d $dstDistro --user root --exec bash -c "cp -fr $srcPath $dstPath"
-    } else {
-        wsl.exe -d $dstDistro --exec bash -c "cp -fr $srcPath $dstPath"
-    }
+# *resolve source path
+$rlPath = if ($Root) {
+    wsl.exe -d $srcDistro --user root --exec bash -c "readlink -e $srcPath"
+} else {
+    wsl.exe -d $srcDistro --exec bash -c "readlink -e $srcPath"
 }
+if (-not $rlPath) {
+    Write-Warning "Source path is incorrect ($srcPath)."
+    exit
+}
+# calculate source path
+$mntDir = "/mnt/wsl/$srcDistro"
+$srcPath = $mntDir + $rlPath
 
-end {
-    Write-Host 'Done.' -ForegroundColor Green
+# *bind mount root filesystem of the source distro
+$cmd = "findmnt $mntDir >/dev/null || mkdir -p $mntDir && mount --bind / $mntDir"
+wsl.exe -d $srcDistro --user root --exec bash -c $cmd
+
+# *copy files
+$cmd = @"
+dst="`$(readlink -m $dstPath)"
+if [[ -f '$srcPath' ]] && [[ "`$(basename '$srcPath')" = "`$(basename `$dst)" ]]; then
+    mkdir -p "`$(dirname `$dst)"
+else
+    mkdir -p "`$dst"
+fi
+cp -rf "$srcPath" "`$dst"
+"@
+if ($Root) {
+    wsl.exe -d $dstDistro --user root --exec bash -c $cmd
+} else {
+    wsl.exe -d $dstDistro --exec bash -c $cmd
 }
