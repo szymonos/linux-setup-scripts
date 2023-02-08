@@ -175,14 +175,14 @@ function gmtvim { Write-Host "git mergetool --no-prompt --tool=vimdiff $args" -F
 function gmum { Write-Host "git merge upstream/master $args" -ForegroundColor Magenta; git merge upstream/master @args }
 function gp { Write-Host "git push $args" -ForegroundColor Magenta; git push @args }
 function gpd { Write-Host "git push --dry-run $args" -ForegroundColor Magenta; git push --dry-run @args }
-function gpl { Write-Host "git pull $args" -ForegroundColor Magenta; git pull @args }
+function gpl { Write-Host "git pull origin $(Get-GitCurrentBranch) $args" -ForegroundColor Magenta; git pull origin $(Get-GitCurrentBranch) @args }
 function gpoat { Write-Host "git push origin --all && git push origin --tags $args" -ForegroundColor Magenta; git push origin --all && git push origin --tags @args }
 function gpristine { Write-Host "git reset --hard && git clean -dfx $args" -ForegroundColor Magenta; git reset --hard && git clean -dfx @args }
 function gpsup { Write-Host "git push --set-upstream origin $(Get-GitCurrentBranch) $args" -ForegroundColor Magenta; git push --set-upstream origin $(Get-GitCurrentBranch) @args }
 function gpu { Write-Host "git push upstream $args" -ForegroundColor Magenta; git push upstream @args }
-function gpull { Write-Host "git pull origin $(Get-GitCurrentBranch) $args" -ForegroundColor Magenta; git pull origin $(Get-GitCurrentBranch) @args }
-function gpush { Write-Host "git push origin $(Get-GitCurrentBranch) $args" -ForegroundColor Magenta; git push origin $(Get-GitCurrentBranch) @args }
-function gpush! { Write-Host "git push origin $(Get-GitCurrentBranch) --force $args" -ForegroundColor Magenta; git push origin $(Get-GitCurrentBranch) --force @args }
+function gpull { Write-Host "git pull origin $args" -ForegroundColor Magenta; git pull origin @args }
+function gpush { Write-Host "git push origin $args" -ForegroundColor Magenta; git push origin @args }
+function gpush! { Write-Host "git push origin --force $args" -ForegroundColor Magenta; git push origin --force @args }
 function gpv { Write-Host "git push -v $args" -ForegroundColor Magenta; git push -v @args }
 function gr { Write-Host "git remote $args" -ForegroundColor Magenta; git remote @args }
 function gra { Write-Host "git remote add $args" -ForegroundColor Magenta; git remote add @args }
