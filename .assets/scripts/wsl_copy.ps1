@@ -33,7 +33,9 @@ $srcDistro, $srcPath = $Source.Split(':')
 $dstDistro, $dstPath = $Destination.Split(':')
 
 # *check if specified distros exist
-[string[]]$distros = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss).ForEach({ $_.GetValue('DistributionName') }).Where({ $_ -notmatch '^docker-desktop' })
+[string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
+| ForEach-Object { $_.GetValue('DistributionName') } `
+| Where-Object { $_ -notmatch '^docker-desktop' }
 if ($srcDistro -notin $distros) {
     Write-Warning "The specified distro does not exist ($srcDistro)."
     exit

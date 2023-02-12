@@ -93,7 +93,9 @@ param (
 
 begin {
     # *get list of distros
-    [string[]]$distros = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss).ForEach({ $_.GetValue('DistributionName') }).Where({ $_ -notmatch '^docker-desktop' })
+    [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
+    | ForEach-Object { $_.GetValue('DistributionName') } `
+    | Where-Object { $_ -notmatch '^docker-desktop' }
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
         if ($Distro -notin $distros) {
             Write-Warning "The specified distro does not exist ($Distro)."

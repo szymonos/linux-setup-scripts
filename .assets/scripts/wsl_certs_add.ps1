@@ -89,7 +89,7 @@ process {
             $pem.AppendLine([System.Convert]::ToBase64String($certs[$i].RawData, 'InsertLineBreaks')) | Out-Null
             $pem.AppendLine('-----END CERTIFICATE-----') | Out-Null
             # parse CN from Subject
-            $cn = [regex]::Match($certs[$i].Subject, '(?<=CN=)(.)+?(?=,|$)').Value.Replace(' ', '_')
+            $cn = [regex]::Match($certs[$i].Subject, '(?<=CN=)(.)+?(?=,|$)').Value.Replace(' ', '_').Trim('"')
             # save PEM certificate
             [IO.File]::WriteAllText([IO.Path]::Combine($tmp, "${cn}.crt"), $pem.ToString())
             Write-Host "- ${cn}.crt"
