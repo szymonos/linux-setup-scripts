@@ -1,3 +1,4 @@
+#Requires -PSEdition Core
 <#
 .SYNOPSIS
 Setting up WSL distro(s).
