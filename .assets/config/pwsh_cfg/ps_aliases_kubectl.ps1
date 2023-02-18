@@ -132,6 +132,10 @@ function kexbash { Write-Host "kubectl exec -i -t $args -- bash" -ForegroundColo
 function kexpwsh { Write-Host "kubectl exec -i -t $args -- pwsh" -ForegroundColor Magenta; k exec -i -t @args -- pwsh }
 function kexpy { Write-Host "kubectl exec -i -t $args -- python" -ForegroundColor Magenta; k exec -i -t @args -- python }
 function kexipy { Write-Host "kubectl exec -i -t $args -- ipython" -ForegroundColor Magenta; k exec -i -t @args -- ipython }
+function kre { Write-Host "kubectl replace $args" -ForegroundColor Magenta; k replace @args }
+function kre! { Write-Host "kubectl replace --force $args" -ForegroundColor Magenta; k replace --force @args }
+function kref { Write-Host "kubectl replace -f $args" -ForegroundColor Magenta; k replace -f @args }
+function kref! { Write-Host "kubectl replace --force -f $args" -ForegroundColor Magenta; k replace --force -f @args }
 function ksysex { Write-Host "kubectl --namespace=kube-system exec -i -t $args" -ForegroundColor Magenta; k --namespace=kube-system exec -i -t @args }
 function klo { Write-Host "kubectl logs -f $args" -ForegroundColor Magenta; k logs -f @args }
 function ksyslo { Write-Host "kubectl --namespace=kube-system logs -f $args" -ForegroundColor Magenta; k --namespace=kube-system logs -f @args }
