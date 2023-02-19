@@ -95,7 +95,7 @@ process {
             # parse common name from the subject
             $cn = [regex]::Match($certs[$i].Subject, '(?<=CN=)(.)+?(?=,|$)').Value.Replace(' ', '_').Trim('"')
             # save PEM certificate
-            [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, "${cn}.crt"), $pem.ToString())
+            [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, "${cn}.crt"), $pem.ToString().Replace("`r`n", "`n"))
             Write-Host "- ${cn}.crt"
         }
     } else {
