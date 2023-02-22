@@ -26,7 +26,7 @@ esac
 
 # determine certifi path to add certificate
 if [ -z "$CERTIFY_CRT" ]; then
-  CERTIFY_CRT="$(pip show azure-cli | grep -oP '^Location: \K.+')/certifi/cacert.pem"
+  CERTIFY_CRT="$(pip show azure-cli 2>/dev/null | grep -oP '^Location: \K.+')/certifi/cacert.pem"
   [[ -f "$CERTIFY_CRT" ]] || (echo -e '\e[91mcertifi/cacert.pem not found!\e[0m' >&2 && exit 0)
 fi
 
