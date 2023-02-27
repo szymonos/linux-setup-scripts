@@ -160,6 +160,7 @@ process {
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
