@@ -15,7 +15,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(fedora|debian|ubuntu|opensuse)' /etc/os-r
 # specify path for installed custom certificates
 case $SYS_ID in
 fedora | opensuse)
-  CERT_PATH='/etc/pki/ca-trust/source/anchors'
+  [[ "$SYS_ID" = 'fedora' ]] && CERT_PATH='/etc/pki/ca-trust/source/anchors' || CERT_PATH='/usr/share/pki/trust/anchors'
   CERTIFY_CRT=$(rpm -ql azure-cli 2>/dev/null | grep 'site-packages/certifi/cacert.pem') || true
   ;;
 debian | ubuntu)
