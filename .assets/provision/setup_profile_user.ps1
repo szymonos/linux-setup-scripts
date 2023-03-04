@@ -12,6 +12,7 @@ if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
     Write-Host 'setting PSGallery trusted...'
     Set-PSResourceRepository -Name PSGallery -Trusted
     # Update help, assuming this is the initial setup.
+    Write-Host 'updating help...'
     Update-Help
 }
 
