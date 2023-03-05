@@ -129,6 +129,7 @@ function gcamp {
     git commit -a -m @args && git push origin $head
 }
 function gcan! { Write-Host "git commit -v -a --no-edit --amend $args" -ForegroundColor Magenta; git commit -v -a --no-edit --amend @args }
+function gcanp! { Write-Host "git commit -v -a --no-edit --amend $args && git push origin --force" -ForegroundColor Magenta; git commit -v -a --no-edit --amend @args && git push origin --force }
 function gcans! { Write-Host "git commit -v -a -s --no-edit --amend $args" -ForegroundColor Magenta; git commit -v -a -s --no-edit --amend @args }
 function gcb { Write-Host "git checkout -b $args" -ForegroundColor Magenta; git checkout -b @args }
 function gcf { Write-Host "git config --list $args" -ForegroundColor Magenta; git config --list @args }
@@ -136,6 +137,7 @@ function gcl { Write-Host "git clone --recursive $args" -ForegroundColor Magenta
 function gclean { Write-Host "git clean -fd $args" -ForegroundColor Magenta; git clean -fd @args }
 function gcmsg { Write-Host "git commit -m $args" -ForegroundColor Magenta; git commit -m @args }
 function gcn! { Write-Host "git commit -v --no-edit --amend $args" -ForegroundColor Magenta; git commit -v --no-edit --amend @args }
+function gcnp! { Write-Host "git commit -v --no-edit --amend $args && git push origin --force" -ForegroundColor Magenta; git commit -v --no-edit --amend @args && git push origin --force }
 function gco { Write-Host "git checkout $args" -ForegroundColor Magenta; git checkout @args }
 function gcount { Write-Host "git shortlog -sn $args" -ForegroundColor Magenta; git shortlog -sn @args }
 function gcp { Write-Host "git cherry-pick $args" -ForegroundColor Magenta; git cherry-pick @args }
@@ -204,6 +206,7 @@ function grup { Write-Host "git remote update origin $args" -ForegroundColor Mag
 function grupp { Write-Host "git remote update origin --prune $args" -ForegroundColor Magenta; git remote update origin --prune @args }
 function grv { Write-Host "git remote -v $args" -ForegroundColor Magenta; git remote -v @args }
 function gs { (Get-GitResolvedBranch "$args").ForEach({ Write-Host "git switch $_" -ForegroundColor Magenta; git switch $_ }) }
+function gs! { (Get-GitResolvedBranch "$args").ForEach({ Write-Host "git switch $_ --force" -ForegroundColor Magenta; git switch $_ --force }) }
 function gsb { Write-Host "git status -sb $args" -ForegroundColor Magenta; git status -sb @args }
 function gsd { Write-Host "git svn dcommit $args" -ForegroundColor Magenta; git svn dcommit @args }
 function gsi { Write-Host "git submodule init $args" -ForegroundColor Magenta; git submodule init @args }
