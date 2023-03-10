@@ -1,6 +1,9 @@
 <#
 .SYNOPSIS
 Enables systemd in specified WSL distro.
+.LINK
+https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/
+
 .PARAMETER Distro
 Name of the WSL distro to install the certificate to.
 .PARAMETER Systemd
@@ -10,6 +13,8 @@ Specify the value to true or false to enable/disable systemd accordingly in the 
 $Distro = 'Ubuntu'
 .assets/scripts/wsl_systemd.ps1 $Distro -Systemd 'true'
 .assets/scripts/wsl_systemd.ps1 $Distro -Systemd 'false'
+
+systemctl list-units --type=service
 #>
 [CmdletBinding()]
 param (
