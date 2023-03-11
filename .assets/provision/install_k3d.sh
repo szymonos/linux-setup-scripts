@@ -9,9 +9,15 @@ fi
 
 APP='k3d'
 REL=$1
-# get latest release if not provided as a parameter
+retry_count=0
+# try 10 times to get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/k3d-io/k3d/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
+  ((retry_count++))
+  if [[ $retry_count -eq 10 ]]; then
+    echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
+    exit 0
+  fi
   [[ -n "$REL" ]] || echo 'retrying...' >&2
 done
 # return latest release
@@ -26,7 +32,9 @@ if type $APP &>/dev/null; then
 fi
 
 echo -e "\e[92minstalling $APP v$REL\e[0m" >&2
+retry_count=0
 while
   curl -sk 'https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh' | bash >&2
-  [[ $(k3d --version 2>/dev/null | grep -Po '(?<=v)[\d\.]+$') != $REL ]]
+  ((retry_count++))
+  [[ $(k3d --version 2>/dev/null | grep -Po '(?<=v)[\d\.]+$') != $REL && $retry_count -le 10 ]]
 do :; done

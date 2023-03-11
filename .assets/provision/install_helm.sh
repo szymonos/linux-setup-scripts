@@ -9,9 +9,15 @@ fi
 
 APP='helm'
 REL=$1
-# get latest release if not provided as a parameter
+retry_count=0
+# try 10 times to get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/helm/helm/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
+  ((retry_count++))
+  if [[ $retry_count -eq 10 ]]; then
+    echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
+    exit 0
+  fi
   [[ -n "$REL" ]] || echo 'retrying...' >&2
 done
 # return latest release
@@ -30,7 +36,9 @@ __install="curl -sk 'https://raw.githubusercontent.com/helm/helm/main/scripts/ge
 if type $APP &>/dev/null; then
   eval $__install
 else
-  while ! type $APP &>/dev/null; do
+  retry_count=0
+  while ! type $APP &>/dev/null && [[ $retry_count -lt 10 ]]; do
     eval $__install
+    ((retry_count++))
   done
 fi

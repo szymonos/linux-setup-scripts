@@ -88,8 +88,10 @@ if [[ -n "$1" ]]; then
     TMP_DIR=$(mktemp -dp "$PWD")
     http_code=$(curl -Lo /dev/null --silent -Iw '%{http_code}' "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip")
     if [[ $http_code -eq 200 ]]; then
-      while [[ ! -f $TMP_DIR/$font.zip ]]; do
+      retry_count=0
+      while [[ ! -f $TMP_DIR/$font.zip && $retry_count -lt 10 ]]; do
         curl -Lsk -o $TMP_DIR/$font.zip "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
+        ((retry_count++))
       done
       unzip -q $TMP_DIR/$font.zip -d $TMP_DIR
       rm -f $TMP_DIR/*Compatible.ttf

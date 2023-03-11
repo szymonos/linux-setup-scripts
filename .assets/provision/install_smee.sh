@@ -12,7 +12,9 @@ APP='smee'
 if type $APP &>/dev/null; then
   npm update -g smee-client
 else
-  while ! type $APP &>/dev/null; do
+  retry_count=0
+  while ! type $APP &>/dev/null && [[ $retry_count -lt 10 ]]; do
     npm install -g smee-client
+    ((retry_count++))
   done
 fi

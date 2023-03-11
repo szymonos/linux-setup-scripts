@@ -49,7 +49,7 @@ if (Test-Path $CFG_PATH -PathType Container) {
 }
 
 # *PowerShell profile
-while (-not ((Get-Module PowerShellGet -ListAvailable).Version.Major -ge 3)) {
+for ($i = 0; -not ((Get-Module PowerShellGet -ListAvailable).Version.Major -ge 3) -and $i -lt 10; $i++) {
     Write-Host 'installing PowerShellGet...'
     Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force
 }
@@ -57,7 +57,7 @@ if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
     Write-Host 'setting PSGallery trusted...'
     Set-PSResourceRepository -Name PSGallery -Trusted
 }
-while (-not (Get-Module posh-git -ListAvailable)) {
+for ($i = 0; -not (Get-Module posh-git -ListAvailable) -and $i -lt 10; $i++) {
     Write-Host 'installing posh-git...'
     Install-PSResource -Name posh-git -Scope AllUsers
 }

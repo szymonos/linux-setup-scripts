@@ -9,9 +9,15 @@ fi
 
 APP='rg'
 REL=$1
-# get latest release if not provided as a parameter
+retry_count=0
+# try 10 times to get latest release if not provided as a parameter
 while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/BurntSushi/ripgrep/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
+  ((retry_count++))
+  if [[ $retry_count -eq 10 ]]; then
+    echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
+    exit 0
+  fi
   [[ -n "$REL" ]] || echo 'retrying...' >&2
 done
 # return latest release
@@ -54,8 +60,10 @@ esac
 if [[ "$binary" = true ]]; then
   echo 'Installing from binary.' >&2
   TMP_DIR=$(mktemp -dp "$PWD")
-  while [[ ! -f $TMP_DIR/rg ]]; do
+  retry_count=0
+  while [[ ! -f $TMP_DIR/rg && $retry_count -lt 10 ]]; do
     curl -Lsk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx -C $TMP_DIR
+    ((retry_count++))
   done
   install -o root -g root -m 0755 $TMP_DIR/rg /usr/bin/rg
   mv -f $TMP_DIR/doc/rg.1 $(manpath | cut -d : -f 1)/man1 &>/dev/null
