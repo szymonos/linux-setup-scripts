@@ -57,6 +57,7 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   sudo .assets/provision/install_exa.sh >/dev/null
   sudo .assets/provision/install_ripgrep.sh >/dev/null
   .assets/provision/install_miniconda.sh
+  sudo .assets/provision/setup_python.sh
   echo -e "\e[96msetting up profile for all users...\e[0m"
   sudo .assets/provision/setup_omp.sh --theme $theme
   sudo .assets/provision/setup_profile_allusers.sh
