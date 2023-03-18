@@ -113,809 +113,809 @@ Set-Alias -Name kvs -Value Get-KubectlServerVersion
 Set-Alias -Name kcuctx -Value Set-KubectlUseContext
 #endregion
 
-function ktop { Write-Host "kubectl top pod --use-protocol-buffers $args" -ForegroundColor Magenta; k top pod --use-protocol-buffers @args }
-function ktopcntr { Write-Host "kubectl top pod --use-protocol-buffers --containers $args" -ForegroundColor Magenta; k top pod --use-protocol-buffers --containers @args }
-function kinf { Write-Host "kubectl cluster-info $args" -ForegroundColor Magenta; k cluster-info @args }
-function kav { Write-Host "kubectl api-versions $args" -ForegroundColor Magenta; k api-versions @args }
-function kcv { Write-Host "kubectl config view $args" -ForegroundColor Magenta; k config view @args }
-function kcgctx { Write-Host "kubectl config get-contexts $args" -ForegroundColor Magenta; (k config get-contexts @args) -replace ' +', ',' | ConvertFrom-Csv -Delimiter ',' | Select-Object -ExcludeProperty AUTHINFO }
-function kcsctxcns { Write-Host "kubectl config set-context --current --namespace $args" -ForegroundColor Magenta; k config set-context --current --namespace @args }
-function ksys { Write-Host "kubectl --namespace=kube-system $args" -ForegroundColor Magenta; k --namespace=kube-system @args }
-function ka { Write-Host "kubectl apply --recursive -f $args" -ForegroundColor Magenta; k apply --recursive -f @args }
-function ksysa { Write-Host "kubectl --namespace=kube-system apply --recursive -f $args" -ForegroundColor Magenta; k --namespace=kube-system apply --recursive -f @args }
-function kak { Write-Host "kubectl apply -k $args" -ForegroundColor Magenta; k apply -k @args }
-function kk { Write-Host "kubectl kustomize $args" -ForegroundColor Magenta; k kustomize @args }
-function krmk { Write-Host "kubectl delete -k $args" -ForegroundColor Magenta; k delete -k @args }
-function kex { Write-Host "kubectl exec -i -t $args" -ForegroundColor Magenta; k exec -i -t @args }
-function kexsh { Write-Host "kubectl exec -i -t $args -- sh" -ForegroundColor Magenta; k exec -i -t @args -- sh }
-function kexbash { Write-Host "kubectl exec -i -t $args -- bash" -ForegroundColor Magenta; k exec -i -t @args -- bash }
-function kexpwsh { Write-Host "kubectl exec -i -t $args -- pwsh" -ForegroundColor Magenta; k exec -i -t @args -- pwsh }
-function kexpy { Write-Host "kubectl exec -i -t $args -- python" -ForegroundColor Magenta; k exec -i -t @args -- python }
-function kexipy { Write-Host "kubectl exec -i -t $args -- ipython" -ForegroundColor Magenta; k exec -i -t @args -- ipython }
-function kre { Write-Host "kubectl replace $args" -ForegroundColor Magenta; k replace @args }
-function kre! { Write-Host "kubectl replace --force $args" -ForegroundColor Magenta; k replace --force @args }
-function kref { Write-Host "kubectl replace -f $args" -ForegroundColor Magenta; k replace -f @args }
-function kref! { Write-Host "kubectl replace --force -f $args" -ForegroundColor Magenta; k replace --force -f @args }
-function ksysex { Write-Host "kubectl --namespace=kube-system exec -i -t $args" -ForegroundColor Magenta; k --namespace=kube-system exec -i -t @args }
-function klo { Write-Host "kubectl logs -f $args" -ForegroundColor Magenta; k logs -f @args }
-function ksyslo { Write-Host "kubectl --namespace=kube-system logs -f $args" -ForegroundColor Magenta; k --namespace=kube-system logs -f @args }
-function klop { Write-Host "kubectl logs -f -p $args" -ForegroundColor Magenta; k logs -f -p @args }
-function ksyslop { Write-Host "kubectl --namespace=kube-system logs -f -p $args" -ForegroundColor Magenta; k --namespace=kube-system logs -f -p @args }
-function kp { Write-Host "kubectl proxy $args" -ForegroundColor Magenta; k proxy @args }
-function kpf { Write-Host "kubectl port-forward $args" -ForegroundColor Magenta; k port-forward @args }
-function kg { Write-Host "kubectl get $args" -ForegroundColor Magenta; k get @args }
-function ksysg { Write-Host "kubectl --namespace=kube-system get $args" -ForegroundColor Magenta; k --namespace=kube-system get @args }
-function kd { Write-Host "kubectl describe $args" -ForegroundColor Magenta; k describe @args }
-function ksysd { Write-Host "kubectl --namespace=kube-system describe $args" -ForegroundColor Magenta; k --namespace=kube-system describe @args }
-function krm { Write-Host "kubectl delete $args" -ForegroundColor Magenta; k delete @args }
-function ksysrm { Write-Host "kubectl --namespace=kube-system delete $args" -ForegroundColor Magenta; k --namespace=kube-system delete @args }
-function krun { Write-Host "kubectl run --rm --restart=Never --image-pull-policy=IfNotPresent -i -t $args" -ForegroundColor Magenta; k run --rm --restart=Never --image-pull-policy=IfNotPresent -i -t @args }
-function ksysrun { Write-Host "kubectl --namespace=kube-system run --rm --restart=Never --image-pull-policy=IfNotPresent -i -t $args" -ForegroundColor Magenta; k --namespace=kube-system run --rm --restart=Never --image-pull-policy=IfNotPresent -i -t @args }
-function kgpo { Write-Host "kubectl get pods $args" -ForegroundColor Magenta; k get pods @args }
-function ksysgpo { Write-Host "kubectl --namespace=kube-system get pods $args" -ForegroundColor Magenta; k --namespace=kube-system get pods @args }
-function kdpo { Write-Host "kubectl describe pods $args" -ForegroundColor Magenta; k describe pods @args }
-function ksysdpo { Write-Host "kubectl --namespace=kube-system describe pods $args" -ForegroundColor Magenta; k --namespace=kube-system describe pods @args }
-function krmpo { Write-Host "kubectl delete pods $args" -ForegroundColor Magenta; k delete pods @args }
-function ksysrmpo { Write-Host "kubectl --namespace=kube-system delete pods $args" -ForegroundColor Magenta; k --namespace=kube-system delete pods @args }
-function kgdep { Write-Host "kubectl get deployment $args" -ForegroundColor Magenta; k get deployment @args }
-function ksysgdep { Write-Host "kubectl --namespace=kube-system get deployment $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment @args }
-function kddep { Write-Host "kubectl describe deployment $args" -ForegroundColor Magenta; k describe deployment @args }
-function ksysddep { Write-Host "kubectl --namespace=kube-system describe deployment $args" -ForegroundColor Magenta; k --namespace=kube-system describe deployment @args }
-function krmdep { Write-Host "kubectl delete deployment $args" -ForegroundColor Magenta; k delete deployment @args }
-function ksysrmdep { Write-Host "kubectl --namespace=kube-system delete deployment $args" -ForegroundColor Magenta; k --namespace=kube-system delete deployment @args }
-function kgsvc { Write-Host "kubectl get service $args" -ForegroundColor Magenta; k get service @args }
-function ksysgsvc { Write-Host "kubectl --namespace=kube-system get service $args" -ForegroundColor Magenta; k --namespace=kube-system get service @args }
-function kdsvc { Write-Host "kubectl describe service $args" -ForegroundColor Magenta; k describe service @args }
-function ksysdsvc { Write-Host "kubectl --namespace=kube-system describe service $args" -ForegroundColor Magenta; k --namespace=kube-system describe service @args }
-function krmsvc { Write-Host "kubectl delete service $args" -ForegroundColor Magenta; k delete service @args }
-function ksysrmsvc { Write-Host "kubectl --namespace=kube-system delete service $args" -ForegroundColor Magenta; k --namespace=kube-system delete service @args }
-function kging { Write-Host "kubectl get ingress $args" -ForegroundColor Magenta; k get ingress @args }
-function ksysging { Write-Host "kubectl --namespace=kube-system get ingress $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress @args }
-function kding { Write-Host "kubectl describe ingress $args" -ForegroundColor Magenta; k describe ingress @args }
-function ksysding { Write-Host "kubectl --namespace=kube-system describe ingress $args" -ForegroundColor Magenta; k --namespace=kube-system describe ingress @args }
-function krming { Write-Host "kubectl delete ingress $args" -ForegroundColor Magenta; k delete ingress @args }
-function ksysrming { Write-Host "kubectl --namespace=kube-system delete ingress $args" -ForegroundColor Magenta; k --namespace=kube-system delete ingress @args }
-function kgcm { Write-Host "kubectl get configmap $args" -ForegroundColor Magenta; k get configmap @args }
-function ksysgcm { Write-Host "kubectl --namespace=kube-system get configmap $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap @args }
-function kdcm { Write-Host "kubectl describe configmap $args" -ForegroundColor Magenta; k describe configmap @args }
-function ksysdcm { Write-Host "kubectl --namespace=kube-system describe configmap $args" -ForegroundColor Magenta; k --namespace=kube-system describe configmap @args }
-function krmcm { Write-Host "kubectl delete configmap $args" -ForegroundColor Magenta; k delete configmap @args }
-function ksysrmcm { Write-Host "kubectl --namespace=kube-system delete configmap $args" -ForegroundColor Magenta; k --namespace=kube-system delete configmap @args }
-function kgsec { Write-Host "kubectl get secret $args" -ForegroundColor Magenta; k get secret @args }
-function ksysgsec { Write-Host "kubectl --namespace=kube-system get secret $args" -ForegroundColor Magenta; k --namespace=kube-system get secret @args }
-function kdsec { Write-Host "kubectl describe secret $args" -ForegroundColor Magenta; k describe secret @args }
-function ksysdsec { Write-Host "kubectl --namespace=kube-system describe secret $args" -ForegroundColor Magenta; k --namespace=kube-system describe secret @args }
-function krmsec { Write-Host "kubectl delete secret $args" -ForegroundColor Magenta; k delete secret @args }
-function ksysrmsec { Write-Host "kubectl --namespace=kube-system delete secret $args" -ForegroundColor Magenta; k --namespace=kube-system delete secret @args }
-function kgno { Write-Host "kubectl get nodes $args" -ForegroundColor Magenta; k get nodes @args }
-function kdno { Write-Host "kubectl describe nodes $args" -ForegroundColor Magenta; k describe nodes @args }
-function kgns { Write-Host "kubectl get namespaces $args" -ForegroundColor Magenta; k get namespaces @args }
-function kdns { Write-Host "kubectl describe namespaces $args" -ForegroundColor Magenta; k describe namespaces @args }
-function krmns { Write-Host "kubectl delete namespaces $args" -ForegroundColor Magenta; k delete namespaces @args }
-function kgoyaml { Write-Host "kubectl get -o=yaml $args" -ForegroundColor Magenta; k get -o=yaml @args }
-function ksysgoyaml { Write-Host "kubectl --namespace=kube-system get -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get -o=yaml @args }
-function kgpooyaml { Write-Host "kubectl get pods -o=yaml $args" -ForegroundColor Magenta; k get pods -o=yaml @args }
-function ksysgpooyaml { Write-Host "kubectl --namespace=kube-system get pods -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -o=yaml @args }
-function kgdepoyaml { Write-Host "kubectl get deployment -o=yaml $args" -ForegroundColor Magenta; k get deployment -o=yaml @args }
-function ksysgdepoyaml { Write-Host "kubectl --namespace=kube-system get deployment -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -o=yaml @args }
-function kgsvcoyaml { Write-Host "kubectl get service -o=yaml $args" -ForegroundColor Magenta; k get service -o=yaml @args }
-function ksysgsvcoyaml { Write-Host "kubectl --namespace=kube-system get service -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get service -o=yaml @args }
-function kgingoyaml { Write-Host "kubectl get ingress -o=yaml $args" -ForegroundColor Magenta; k get ingress -o=yaml @args }
-function ksysgingoyaml { Write-Host "kubectl --namespace=kube-system get ingress -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress -o=yaml @args }
-function kgcmoyaml { Write-Host "kubectl get configmap -o=yaml $args" -ForegroundColor Magenta; k get configmap -o=yaml @args }
-function ksysgcmoyaml { Write-Host "kubectl --namespace=kube-system get configmap -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap -o=yaml @args }
-function kgsecoyaml { Write-Host "kubectl get secret -o=yaml $args" -ForegroundColor Magenta; k get secret -o=yaml @args }
-function ksysgsecoyaml { Write-Host "kubectl --namespace=kube-system get secret -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get secret -o=yaml @args }
-function kgnooyaml { Write-Host "kubectl get nodes -o=yaml $args" -ForegroundColor Magenta; k get nodes -o=yaml @args }
-function kgnsoyaml { Write-Host "kubectl get namespaces -o=yaml $args" -ForegroundColor Magenta; k get namespaces -o=yaml @args }
-function kgowide { Write-Host "kubectl get -o=wide $args" -ForegroundColor Magenta; k get -o=wide @args }
-function ksysgowide { Write-Host "kubectl --namespace=kube-system get -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get -o=wide @args }
-function kgpoowide { Write-Host "kubectl get pods -o=wide $args" -ForegroundColor Magenta; k get pods -o=wide @args }
-function ksysgpoowide { Write-Host "kubectl --namespace=kube-system get pods -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -o=wide @args }
-function kgdepowide { Write-Host "kubectl get deployment -o=wide $args" -ForegroundColor Magenta; k get deployment -o=wide @args }
-function ksysgdepowide { Write-Host "kubectl --namespace=kube-system get deployment -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -o=wide @args }
-function kgsvcowide { Write-Host "kubectl get service -o=wide $args" -ForegroundColor Magenta; k get service -o=wide @args }
-function ksysgsvcowide { Write-Host "kubectl --namespace=kube-system get service -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get service -o=wide @args }
-function kgingowide { Write-Host "kubectl get ingress -o=wide $args" -ForegroundColor Magenta; k get ingress -o=wide @args }
-function ksysgingowide { Write-Host "kubectl --namespace=kube-system get ingress -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress -o=wide @args }
-function kgcmowide { Write-Host "kubectl get configmap -o=wide $args" -ForegroundColor Magenta; k get configmap -o=wide @args }
-function ksysgcmowide { Write-Host "kubectl --namespace=kube-system get configmap -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap -o=wide @args }
-function kgsecowide { Write-Host "kubectl get secret -o=wide $args" -ForegroundColor Magenta; k get secret -o=wide @args }
-function ksysgsecowide { Write-Host "kubectl --namespace=kube-system get secret -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get secret -o=wide @args }
-function kgnoowide { Write-Host "kubectl get nodes -o=wide $args" -ForegroundColor Magenta; k get nodes -o=wide @args }
-function kgnsowide { Write-Host "kubectl get namespaces -o=wide $args" -ForegroundColor Magenta; k get namespaces -o=wide @args }
-function kgojson { Write-Host "kubectl get -o=json $args" -ForegroundColor Magenta; k get -o=json @args }
-function ksysgojson { Write-Host "kubectl --namespace=kube-system get -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get -o=json @args }
-function kgpoojson { Write-Host "kubectl get pods -o=json $args" -ForegroundColor Magenta; k get pods -o=json @args }
-function ksysgpoojson { Write-Host "kubectl --namespace=kube-system get pods -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -o=json @args }
-function kgdepojson { Write-Host "kubectl get deployment -o=json $args" -ForegroundColor Magenta; k get deployment -o=json @args }
-function ksysgdepojson { Write-Host "kubectl --namespace=kube-system get deployment -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -o=json @args }
-function kgsvcojson { Write-Host "kubectl get service -o=json $args" -ForegroundColor Magenta; k get service -o=json @args }
-function ksysgsvcojson { Write-Host "kubectl --namespace=kube-system get service -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get service -o=json @args }
-function kgingojson { Write-Host "kubectl get ingress -o=json $args" -ForegroundColor Magenta; k get ingress -o=json @args }
-function ksysgingojson { Write-Host "kubectl --namespace=kube-system get ingress -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress -o=json @args }
-function kgcmojson { Write-Host "kubectl get configmap -o=json $args" -ForegroundColor Magenta; k get configmap -o=json @args }
-function ksysgcmojson { Write-Host "kubectl --namespace=kube-system get configmap -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap -o=json @args }
-function kgsecojson { Write-Host "kubectl get secret -o=json $args" -ForegroundColor Magenta; k get secret -o=json @args }
-function ksysgsecojson { Write-Host "kubectl --namespace=kube-system get secret -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get secret -o=json @args }
-function kgnoojson { Write-Host "kubectl get nodes -o=json $args" -ForegroundColor Magenta; k get nodes -o=json @args }
-function kgnsojson { Write-Host "kubectl get namespaces -o=json $args" -ForegroundColor Magenta; k get namespaces -o=json @args }
-function kgall { Write-Host "kubectl get --all-namespaces $args" -ForegroundColor Magenta; k get --all-namespaces @args }
-function kdall { Write-Host "kubectl describe --all-namespaces $args" -ForegroundColor Magenta; k describe --all-namespaces @args }
-function kgpoall { Write-Host "kubectl get pods --all-namespaces $args" -ForegroundColor Magenta; k get pods --all-namespaces @args }
-function kdpoall { Write-Host "kubectl describe pods --all-namespaces $args" -ForegroundColor Magenta; k describe pods --all-namespaces @args }
-function kgdepall { Write-Host "kubectl get deployment --all-namespaces $args" -ForegroundColor Magenta; k get deployment --all-namespaces @args }
-function kddepall { Write-Host "kubectl describe deployment --all-namespaces $args" -ForegroundColor Magenta; k describe deployment --all-namespaces @args }
-function kgsvcall { Write-Host "kubectl get service --all-namespaces $args" -ForegroundColor Magenta; k get service --all-namespaces @args }
-function kdsvcall { Write-Host "kubectl describe service --all-namespaces $args" -ForegroundColor Magenta; k describe service --all-namespaces @args }
-function kgingall { Write-Host "kubectl get ingress --all-namespaces $args" -ForegroundColor Magenta; k get ingress --all-namespaces @args }
-function kdingall { Write-Host "kubectl describe ingress --all-namespaces $args" -ForegroundColor Magenta; k describe ingress --all-namespaces @args }
-function kgcmall { Write-Host "kubectl get configmap --all-namespaces $args" -ForegroundColor Magenta; k get configmap --all-namespaces @args }
-function kdcmall { Write-Host "kubectl describe configmap --all-namespaces $args" -ForegroundColor Magenta; k describe configmap --all-namespaces @args }
-function kgsecall { Write-Host "kubectl get secret --all-namespaces $args" -ForegroundColor Magenta; k get secret --all-namespaces @args }
-function kdsecall { Write-Host "kubectl describe secret --all-namespaces $args" -ForegroundColor Magenta; k describe secret --all-namespaces @args }
-function kgnsall { Write-Host "kubectl get namespaces --all-namespaces $args" -ForegroundColor Magenta; k get namespaces --all-namespaces @args }
-function kdnsall { Write-Host "kubectl describe namespaces --all-namespaces $args" -ForegroundColor Magenta; k describe namespaces --all-namespaces @args }
-function kgsl { Write-Host "kubectl get --show-labels $args" -ForegroundColor Magenta; k get --show-labels @args }
-function ksysgsl { Write-Host "kubectl --namespace=kube-system get --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get --show-labels @args }
-function kgposl { Write-Host "kubectl get pods --show-labels $args" -ForegroundColor Magenta; k get pods --show-labels @args }
-function ksysgposl { Write-Host "kubectl --namespace=kube-system get pods --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --show-labels @args }
-function kgdepsl { Write-Host "kubectl get deployment --show-labels $args" -ForegroundColor Magenta; k get deployment --show-labels @args }
-function ksysgdepsl { Write-Host "kubectl --namespace=kube-system get deployment --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --show-labels @args }
-function krmall { Write-Host "kubectl delete --all $args" -ForegroundColor Magenta; k delete --all @args }
-function ksysrmall { Write-Host "kubectl --namespace=kube-system delete --all $args" -ForegroundColor Magenta; k --namespace=kube-system delete --all @args }
-function krmpoall { Write-Host "kubectl delete pods --all $args" -ForegroundColor Magenta; k delete pods --all @args }
-function ksysrmpoall { Write-Host "kubectl --namespace=kube-system delete pods --all $args" -ForegroundColor Magenta; k --namespace=kube-system delete pods --all @args }
-function krmdepall { Write-Host "kubectl delete deployment --all $args" -ForegroundColor Magenta; k delete deployment --all @args }
-function ksysrmdepall { Write-Host "kubectl --namespace=kube-system delete deployment --all $args" -ForegroundColor Magenta; k --namespace=kube-system delete deployment --all @args }
-function krmsvcall { Write-Host "kubectl delete service --all $args" -ForegroundColor Magenta; k delete service --all @args }
-function ksysrmsvcall { Write-Host "kubectl --namespace=kube-system delete service --all $args" -ForegroundColor Magenta; k --namespace=kube-system delete service --all @args }
-function krmingall { Write-Host "kubectl delete ingress --all $args" -ForegroundColor Magenta; k delete ingress --all @args }
-function ksysrmingall { Write-Host "kubectl --namespace=kube-system delete ingress --all $args" -ForegroundColor Magenta; k --namespace=kube-system delete ingress --all @args }
-function krmcmall { Write-Host "kubectl delete configmap --all $args" -ForegroundColor Magenta; k delete configmap --all @args }
-function ksysrmcmall { Write-Host "kubectl --namespace=kube-system delete configmap --all $args" -ForegroundColor Magenta; k --namespace=kube-system delete configmap --all @args }
-function krmsecall { Write-Host "kubectl delete secret --all $args" -ForegroundColor Magenta; k delete secret --all @args }
-function ksysrmsecall { Write-Host "kubectl --namespace=kube-system delete secret --all $args" -ForegroundColor Magenta; k --namespace=kube-system delete secret --all @args }
-function krmnsall { Write-Host "kubectl delete namespaces --all $args" -ForegroundColor Magenta; k delete namespaces --all @args }
-function kgw { Write-Host "kubectl get --watch $args" -ForegroundColor Magenta; k get --watch @args }
-function ksysgw { Write-Host "kubectl --namespace=kube-system get --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch @args }
-function kgpow { Write-Host "kubectl get pods --watch $args" -ForegroundColor Magenta; k get pods --watch @args }
-function ksysgpow { Write-Host "kubectl --namespace=kube-system get pods --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch @args }
-function kgdepw { Write-Host "kubectl get deployment --watch $args" -ForegroundColor Magenta; k get deployment --watch @args }
-function ksysgdepw { Write-Host "kubectl --namespace=kube-system get deployment --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch @args }
-function kgsvcw { Write-Host "kubectl get service --watch $args" -ForegroundColor Magenta; k get service --watch @args }
-function ksysgsvcw { Write-Host "kubectl --namespace=kube-system get service --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get service --watch @args }
-function kgingw { Write-Host "kubectl get ingress --watch $args" -ForegroundColor Magenta; k get ingress --watch @args }
-function ksysgingw { Write-Host "kubectl --namespace=kube-system get ingress --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress --watch @args }
-function kgcmw { Write-Host "kubectl get configmap --watch $args" -ForegroundColor Magenta; k get configmap --watch @args }
-function ksysgcmw { Write-Host "kubectl --namespace=kube-system get configmap --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap --watch @args }
-function kgsecw { Write-Host "kubectl get secret --watch $args" -ForegroundColor Magenta; k get secret --watch @args }
-function ksysgsecw { Write-Host "kubectl --namespace=kube-system get secret --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get secret --watch @args }
-function kgnow { Write-Host "kubectl get nodes --watch $args" -ForegroundColor Magenta; k get nodes --watch @args }
-function kgnsw { Write-Host "kubectl get namespaces --watch $args" -ForegroundColor Magenta; k get namespaces --watch @args }
-function kgoyamlall { Write-Host "kubectl get -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get -o=yaml --all-namespaces @args }
-function kgpooyamlall { Write-Host "kubectl get pods -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get pods -o=yaml --all-namespaces @args }
-function kgdepoyamlall { Write-Host "kubectl get deployment -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get deployment -o=yaml --all-namespaces @args }
-function kgsvcoyamlall { Write-Host "kubectl get service -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get service -o=yaml --all-namespaces @args }
-function kgingoyamlall { Write-Host "kubectl get ingress -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get ingress -o=yaml --all-namespaces @args }
-function kgcmoyamlall { Write-Host "kubectl get configmap -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get configmap -o=yaml --all-namespaces @args }
-function kgsecoyamlall { Write-Host "kubectl get secret -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get secret -o=yaml --all-namespaces @args }
-function kgnsoyamlall { Write-Host "kubectl get namespaces -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get namespaces -o=yaml --all-namespaces @args }
-function kgalloyaml { Write-Host "kubectl get --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get --all-namespaces -o=yaml @args }
-function kgpoalloyaml { Write-Host "kubectl get pods --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get pods --all-namespaces -o=yaml @args }
-function kgdepalloyaml { Write-Host "kubectl get deployment --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get deployment --all-namespaces -o=yaml @args }
-function kgsvcalloyaml { Write-Host "kubectl get service --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get service --all-namespaces -o=yaml @args }
-function kgingalloyaml { Write-Host "kubectl get ingress --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get ingress --all-namespaces -o=yaml @args }
-function kgcmalloyaml { Write-Host "kubectl get configmap --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get configmap --all-namespaces -o=yaml @args }
-function kgsecalloyaml { Write-Host "kubectl get secret --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get secret --all-namespaces -o=yaml @args }
-function kgnsalloyaml { Write-Host "kubectl get namespaces --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get namespaces --all-namespaces -o=yaml @args }
-function kgwoyaml { Write-Host "kubectl get --watch -o=yaml $args" -ForegroundColor Magenta; k get --watch -o=yaml @args }
-function ksysgwoyaml { Write-Host "kubectl --namespace=kube-system get --watch -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -o=yaml @args }
-function kgpowoyaml { Write-Host "kubectl get pods --watch -o=yaml $args" -ForegroundColor Magenta; k get pods --watch -o=yaml @args }
-function ksysgpowoyaml { Write-Host "kubectl --namespace=kube-system get pods --watch -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -o=yaml @args }
-function kgdepwoyaml { Write-Host "kubectl get deployment --watch -o=yaml $args" -ForegroundColor Magenta; k get deployment --watch -o=yaml @args }
-function ksysgdepwoyaml { Write-Host "kubectl --namespace=kube-system get deployment --watch -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -o=yaml @args }
-function kgsvcwoyaml { Write-Host "kubectl get service --watch -o=yaml $args" -ForegroundColor Magenta; k get service --watch -o=yaml @args }
-function ksysgsvcwoyaml { Write-Host "kubectl --namespace=kube-system get service --watch -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get service --watch -o=yaml @args }
-function kgingwoyaml { Write-Host "kubectl get ingress --watch -o=yaml $args" -ForegroundColor Magenta; k get ingress --watch -o=yaml @args }
-function ksysgingwoyaml { Write-Host "kubectl --namespace=kube-system get ingress --watch -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress --watch -o=yaml @args }
-function kgcmwoyaml { Write-Host "kubectl get configmap --watch -o=yaml $args" -ForegroundColor Magenta; k get configmap --watch -o=yaml @args }
-function ksysgcmwoyaml { Write-Host "kubectl --namespace=kube-system get configmap --watch -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap --watch -o=yaml @args }
-function kgsecwoyaml { Write-Host "kubectl get secret --watch -o=yaml $args" -ForegroundColor Magenta; k get secret --watch -o=yaml @args }
-function ksysgsecwoyaml { Write-Host "kubectl --namespace=kube-system get secret --watch -o=yaml $args" -ForegroundColor Magenta; k --namespace=kube-system get secret --watch -o=yaml @args }
-function kgnowoyaml { Write-Host "kubectl get nodes --watch -o=yaml $args" -ForegroundColor Magenta; k get nodes --watch -o=yaml @args }
-function kgnswoyaml { Write-Host "kubectl get namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get namespaces --watch -o=yaml @args }
-function kgowideall { Write-Host "kubectl get -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get -o=wide --all-namespaces @args }
-function kgpoowideall { Write-Host "kubectl get pods -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get pods -o=wide --all-namespaces @args }
-function kgdepowideall { Write-Host "kubectl get deployment -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get deployment -o=wide --all-namespaces @args }
-function kgsvcowideall { Write-Host "kubectl get service -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get service -o=wide --all-namespaces @args }
-function kgingowideall { Write-Host "kubectl get ingress -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get ingress -o=wide --all-namespaces @args }
-function kgcmowideall { Write-Host "kubectl get configmap -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get configmap -o=wide --all-namespaces @args }
-function kgsecowideall { Write-Host "kubectl get secret -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get secret -o=wide --all-namespaces @args }
-function kgnsowideall { Write-Host "kubectl get namespaces -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get namespaces -o=wide --all-namespaces @args }
-function kgallowide { Write-Host "kubectl get --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get --all-namespaces -o=wide @args }
-function kgpoallowide { Write-Host "kubectl get pods --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get pods --all-namespaces -o=wide @args }
-function kgdepallowide { Write-Host "kubectl get deployment --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get deployment --all-namespaces -o=wide @args }
-function kgsvcallowide { Write-Host "kubectl get service --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get service --all-namespaces -o=wide @args }
-function kgingallowide { Write-Host "kubectl get ingress --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get ingress --all-namespaces -o=wide @args }
-function kgcmallowide { Write-Host "kubectl get configmap --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get configmap --all-namespaces -o=wide @args }
-function kgsecallowide { Write-Host "kubectl get secret --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get secret --all-namespaces -o=wide @args }
-function kgnsallowide { Write-Host "kubectl get namespaces --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get namespaces --all-namespaces -o=wide @args }
-function kgowidesl { Write-Host "kubectl get -o=wide --show-labels $args" -ForegroundColor Magenta; k get -o=wide --show-labels @args }
-function ksysgowidesl { Write-Host "kubectl --namespace=kube-system get -o=wide --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get -o=wide --show-labels @args }
-function kgpoowidesl { Write-Host "kubectl get pods -o=wide --show-labels $args" -ForegroundColor Magenta; k get pods -o=wide --show-labels @args }
-function ksysgpoowidesl { Write-Host "kubectl --namespace=kube-system get pods -o=wide --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -o=wide --show-labels @args }
-function kgdepowidesl { Write-Host "kubectl get deployment -o=wide --show-labels $args" -ForegroundColor Magenta; k get deployment -o=wide --show-labels @args }
-function ksysgdepowidesl { Write-Host "kubectl --namespace=kube-system get deployment -o=wide --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -o=wide --show-labels @args }
-function kgslowide { Write-Host "kubectl get --show-labels -o=wide $args" -ForegroundColor Magenta; k get --show-labels -o=wide @args }
-function ksysgslowide { Write-Host "kubectl --namespace=kube-system get --show-labels -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get --show-labels -o=wide @args }
-function kgposlowide { Write-Host "kubectl get pods --show-labels -o=wide $args" -ForegroundColor Magenta; k get pods --show-labels -o=wide @args }
-function ksysgposlowide { Write-Host "kubectl --namespace=kube-system get pods --show-labels -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --show-labels -o=wide @args }
-function kgdepslowide { Write-Host "kubectl get deployment --show-labels -o=wide $args" -ForegroundColor Magenta; k get deployment --show-labels -o=wide @args }
-function ksysgdepslowide { Write-Host "kubectl --namespace=kube-system get deployment --show-labels -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --show-labels -o=wide @args }
-function kgwowide { Write-Host "kubectl get --watch -o=wide $args" -ForegroundColor Magenta; k get --watch -o=wide @args }
-function ksysgwowide { Write-Host "kubectl --namespace=kube-system get --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -o=wide @args }
-function kgpowowide { Write-Host "kubectl get pods --watch -o=wide $args" -ForegroundColor Magenta; k get pods --watch -o=wide @args }
-function ksysgpowowide { Write-Host "kubectl --namespace=kube-system get pods --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -o=wide @args }
-function kgdepwowide { Write-Host "kubectl get deployment --watch -o=wide $args" -ForegroundColor Magenta; k get deployment --watch -o=wide @args }
-function ksysgdepwowide { Write-Host "kubectl --namespace=kube-system get deployment --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -o=wide @args }
-function kgsvcwowide { Write-Host "kubectl get service --watch -o=wide $args" -ForegroundColor Magenta; k get service --watch -o=wide @args }
-function ksysgsvcwowide { Write-Host "kubectl --namespace=kube-system get service --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get service --watch -o=wide @args }
-function kgingwowide { Write-Host "kubectl get ingress --watch -o=wide $args" -ForegroundColor Magenta; k get ingress --watch -o=wide @args }
-function ksysgingwowide { Write-Host "kubectl --namespace=kube-system get ingress --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress --watch -o=wide @args }
-function kgcmwowide { Write-Host "kubectl get configmap --watch -o=wide $args" -ForegroundColor Magenta; k get configmap --watch -o=wide @args }
-function ksysgcmwowide { Write-Host "kubectl --namespace=kube-system get configmap --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap --watch -o=wide @args }
-function kgsecwowide { Write-Host "kubectl get secret --watch -o=wide $args" -ForegroundColor Magenta; k get secret --watch -o=wide @args }
-function ksysgsecwowide { Write-Host "kubectl --namespace=kube-system get secret --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get secret --watch -o=wide @args }
-function kgnowowide { Write-Host "kubectl get nodes --watch -o=wide $args" -ForegroundColor Magenta; k get nodes --watch -o=wide @args }
-function kgnswowide { Write-Host "kubectl get namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get namespaces --watch -o=wide @args }
-function kgojsonall { Write-Host "kubectl get -o=json --all-namespaces $args" -ForegroundColor Magenta; k get -o=json --all-namespaces @args }
-function kgpoojsonall { Write-Host "kubectl get pods -o=json --all-namespaces $args" -ForegroundColor Magenta; k get pods -o=json --all-namespaces @args }
-function kgdepojsonall { Write-Host "kubectl get deployment -o=json --all-namespaces $args" -ForegroundColor Magenta; k get deployment -o=json --all-namespaces @args }
-function kgsvcojsonall { Write-Host "kubectl get service -o=json --all-namespaces $args" -ForegroundColor Magenta; k get service -o=json --all-namespaces @args }
-function kgingojsonall { Write-Host "kubectl get ingress -o=json --all-namespaces $args" -ForegroundColor Magenta; k get ingress -o=json --all-namespaces @args }
-function kgcmojsonall { Write-Host "kubectl get configmap -o=json --all-namespaces $args" -ForegroundColor Magenta; k get configmap -o=json --all-namespaces @args }
-function kgsecojsonall { Write-Host "kubectl get secret -o=json --all-namespaces $args" -ForegroundColor Magenta; k get secret -o=json --all-namespaces @args }
-function kgnsojsonall { Write-Host "kubectl get namespaces -o=json --all-namespaces $args" -ForegroundColor Magenta; k get namespaces -o=json --all-namespaces @args }
-function kgallojson { Write-Host "kubectl get --all-namespaces -o=json $args" -ForegroundColor Magenta; k get --all-namespaces -o=json @args }
-function kgpoallojson { Write-Host "kubectl get pods --all-namespaces -o=json $args" -ForegroundColor Magenta; k get pods --all-namespaces -o=json @args }
-function kgdepallojson { Write-Host "kubectl get deployment --all-namespaces -o=json $args" -ForegroundColor Magenta; k get deployment --all-namespaces -o=json @args }
-function kgsvcallojson { Write-Host "kubectl get service --all-namespaces -o=json $args" -ForegroundColor Magenta; k get service --all-namespaces -o=json @args }
-function kgingallojson { Write-Host "kubectl get ingress --all-namespaces -o=json $args" -ForegroundColor Magenta; k get ingress --all-namespaces -o=json @args }
-function kgcmallojson { Write-Host "kubectl get configmap --all-namespaces -o=json $args" -ForegroundColor Magenta; k get configmap --all-namespaces -o=json @args }
-function kgsecallojson { Write-Host "kubectl get secret --all-namespaces -o=json $args" -ForegroundColor Magenta; k get secret --all-namespaces -o=json @args }
-function kgnsallojson { Write-Host "kubectl get namespaces --all-namespaces -o=json $args" -ForegroundColor Magenta; k get namespaces --all-namespaces -o=json @args }
-function kgwojson { Write-Host "kubectl get --watch -o=json $args" -ForegroundColor Magenta; k get --watch -o=json @args }
-function ksysgwojson { Write-Host "kubectl --namespace=kube-system get --watch -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -o=json @args }
-function kgpowojson { Write-Host "kubectl get pods --watch -o=json $args" -ForegroundColor Magenta; k get pods --watch -o=json @args }
-function ksysgpowojson { Write-Host "kubectl --namespace=kube-system get pods --watch -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -o=json @args }
-function kgdepwojson { Write-Host "kubectl get deployment --watch -o=json $args" -ForegroundColor Magenta; k get deployment --watch -o=json @args }
-function ksysgdepwojson { Write-Host "kubectl --namespace=kube-system get deployment --watch -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -o=json @args }
-function kgsvcwojson { Write-Host "kubectl get service --watch -o=json $args" -ForegroundColor Magenta; k get service --watch -o=json @args }
-function ksysgsvcwojson { Write-Host "kubectl --namespace=kube-system get service --watch -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get service --watch -o=json @args }
-function kgingwojson { Write-Host "kubectl get ingress --watch -o=json $args" -ForegroundColor Magenta; k get ingress --watch -o=json @args }
-function ksysgingwojson { Write-Host "kubectl --namespace=kube-system get ingress --watch -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress --watch -o=json @args }
-function kgcmwojson { Write-Host "kubectl get configmap --watch -o=json $args" -ForegroundColor Magenta; k get configmap --watch -o=json @args }
-function ksysgcmwojson { Write-Host "kubectl --namespace=kube-system get configmap --watch -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap --watch -o=json @args }
-function kgsecwojson { Write-Host "kubectl get secret --watch -o=json $args" -ForegroundColor Magenta; k get secret --watch -o=json @args }
-function ksysgsecwojson { Write-Host "kubectl --namespace=kube-system get secret --watch -o=json $args" -ForegroundColor Magenta; k --namespace=kube-system get secret --watch -o=json @args }
-function kgnowojson { Write-Host "kubectl get nodes --watch -o=json $args" -ForegroundColor Magenta; k get nodes --watch -o=json @args }
-function kgnswojson { Write-Host "kubectl get namespaces --watch -o=json $args" -ForegroundColor Magenta; k get namespaces --watch -o=json @args }
-function kgallsl { Write-Host "kubectl get --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get --all-namespaces --show-labels @args }
-function kgpoallsl { Write-Host "kubectl get pods --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get pods --all-namespaces --show-labels @args }
-function kgdepallsl { Write-Host "kubectl get deployment --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get deployment --all-namespaces --show-labels @args }
-function kgslall { Write-Host "kubectl get --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get --show-labels --all-namespaces @args }
-function kgposlall { Write-Host "kubectl get pods --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get pods --show-labels --all-namespaces @args }
-function kgdepslall { Write-Host "kubectl get deployment --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get deployment --show-labels --all-namespaces @args }
-function kgallw { Write-Host "kubectl get --all-namespaces --watch $args" -ForegroundColor Magenta; k get --all-namespaces --watch @args }
-function kgpoallw { Write-Host "kubectl get pods --all-namespaces --watch $args" -ForegroundColor Magenta; k get pods --all-namespaces --watch @args }
-function kgdepallw { Write-Host "kubectl get deployment --all-namespaces --watch $args" -ForegroundColor Magenta; k get deployment --all-namespaces --watch @args }
-function kgsvcallw { Write-Host "kubectl get service --all-namespaces --watch $args" -ForegroundColor Magenta; k get service --all-namespaces --watch @args }
-function kgingallw { Write-Host "kubectl get ingress --all-namespaces --watch $args" -ForegroundColor Magenta; k get ingress --all-namespaces --watch @args }
-function kgcmallw { Write-Host "kubectl get configmap --all-namespaces --watch $args" -ForegroundColor Magenta; k get configmap --all-namespaces --watch @args }
-function kgsecallw { Write-Host "kubectl get secret --all-namespaces --watch $args" -ForegroundColor Magenta; k get secret --all-namespaces --watch @args }
-function kgnsallw { Write-Host "kubectl get namespaces --all-namespaces --watch $args" -ForegroundColor Magenta; k get namespaces --all-namespaces --watch @args }
-function kgwall { Write-Host "kubectl get --watch --all-namespaces $args" -ForegroundColor Magenta; k get --watch --all-namespaces @args }
-function kgpowall { Write-Host "kubectl get pods --watch --all-namespaces $args" -ForegroundColor Magenta; k get pods --watch --all-namespaces @args }
-function kgdepwall { Write-Host "kubectl get deployment --watch --all-namespaces $args" -ForegroundColor Magenta; k get deployment --watch --all-namespaces @args }
-function kgsvcwall { Write-Host "kubectl get service --watch --all-namespaces $args" -ForegroundColor Magenta; k get service --watch --all-namespaces @args }
-function kgingwall { Write-Host "kubectl get ingress --watch --all-namespaces $args" -ForegroundColor Magenta; k get ingress --watch --all-namespaces @args }
-function kgcmwall { Write-Host "kubectl get configmap --watch --all-namespaces $args" -ForegroundColor Magenta; k get configmap --watch --all-namespaces @args }
-function kgsecwall { Write-Host "kubectl get secret --watch --all-namespaces $args" -ForegroundColor Magenta; k get secret --watch --all-namespaces @args }
-function kgnswall { Write-Host "kubectl get namespaces --watch --all-namespaces $args" -ForegroundColor Magenta; k get namespaces --watch --all-namespaces @args }
-function kgslw { Write-Host "kubectl get --show-labels --watch $args" -ForegroundColor Magenta; k get --show-labels --watch @args }
-function ksysgslw { Write-Host "kubectl --namespace=kube-system get --show-labels --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get --show-labels --watch @args }
-function kgposlw { Write-Host "kubectl get pods --show-labels --watch $args" -ForegroundColor Magenta; k get pods --show-labels --watch @args }
-function ksysgposlw { Write-Host "kubectl --namespace=kube-system get pods --show-labels --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --show-labels --watch @args }
-function kgdepslw { Write-Host "kubectl get deployment --show-labels --watch $args" -ForegroundColor Magenta; k get deployment --show-labels --watch @args }
-function ksysgdepslw { Write-Host "kubectl --namespace=kube-system get deployment --show-labels --watch $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --show-labels --watch @args }
-function kgwsl { Write-Host "kubectl get --watch --show-labels $args" -ForegroundColor Magenta; k get --watch --show-labels @args }
-function ksysgwsl { Write-Host "kubectl --namespace=kube-system get --watch --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch --show-labels @args }
-function kgpowsl { Write-Host "kubectl get pods --watch --show-labels $args" -ForegroundColor Magenta; k get pods --watch --show-labels @args }
-function ksysgpowsl { Write-Host "kubectl --namespace=kube-system get pods --watch --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch --show-labels @args }
-function kgdepwsl { Write-Host "kubectl get deployment --watch --show-labels $args" -ForegroundColor Magenta; k get deployment --watch --show-labels @args }
-function ksysgdepwsl { Write-Host "kubectl --namespace=kube-system get deployment --watch --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch --show-labels @args }
-function kgallwoyaml { Write-Host "kubectl get --all-namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get --all-namespaces --watch -o=yaml @args }
-function kgpoallwoyaml { Write-Host "kubectl get pods --all-namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get pods --all-namespaces --watch -o=yaml @args }
-function kgdepallwoyaml { Write-Host "kubectl get deployment --all-namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get deployment --all-namespaces --watch -o=yaml @args }
-function kgsvcallwoyaml { Write-Host "kubectl get service --all-namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get service --all-namespaces --watch -o=yaml @args }
-function kgingallwoyaml { Write-Host "kubectl get ingress --all-namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get ingress --all-namespaces --watch -o=yaml @args }
-function kgcmallwoyaml { Write-Host "kubectl get configmap --all-namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get configmap --all-namespaces --watch -o=yaml @args }
-function kgsecallwoyaml { Write-Host "kubectl get secret --all-namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get secret --all-namespaces --watch -o=yaml @args }
-function kgnsallwoyaml { Write-Host "kubectl get namespaces --all-namespaces --watch -o=yaml $args" -ForegroundColor Magenta; k get namespaces --all-namespaces --watch -o=yaml @args }
-function kgwoyamlall { Write-Host "kubectl get --watch -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get --watch -o=yaml --all-namespaces @args }
-function kgpowoyamlall { Write-Host "kubectl get pods --watch -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get pods --watch -o=yaml --all-namespaces @args }
-function kgdepwoyamlall { Write-Host "kubectl get deployment --watch -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get deployment --watch -o=yaml --all-namespaces @args }
-function kgsvcwoyamlall { Write-Host "kubectl get service --watch -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get service --watch -o=yaml --all-namespaces @args }
-function kgingwoyamlall { Write-Host "kubectl get ingress --watch -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get ingress --watch -o=yaml --all-namespaces @args }
-function kgcmwoyamlall { Write-Host "kubectl get configmap --watch -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get configmap --watch -o=yaml --all-namespaces @args }
-function kgsecwoyamlall { Write-Host "kubectl get secret --watch -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get secret --watch -o=yaml --all-namespaces @args }
-function kgnswoyamlall { Write-Host "kubectl get namespaces --watch -o=yaml --all-namespaces $args" -ForegroundColor Magenta; k get namespaces --watch -o=yaml --all-namespaces @args }
-function kgwalloyaml { Write-Host "kubectl get --watch --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get --watch --all-namespaces -o=yaml @args }
-function kgpowalloyaml { Write-Host "kubectl get pods --watch --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get pods --watch --all-namespaces -o=yaml @args }
-function kgdepwalloyaml { Write-Host "kubectl get deployment --watch --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get deployment --watch --all-namespaces -o=yaml @args }
-function kgsvcwalloyaml { Write-Host "kubectl get service --watch --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get service --watch --all-namespaces -o=yaml @args }
-function kgingwalloyaml { Write-Host "kubectl get ingress --watch --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get ingress --watch --all-namespaces -o=yaml @args }
-function kgcmwalloyaml { Write-Host "kubectl get configmap --watch --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get configmap --watch --all-namespaces -o=yaml @args }
-function kgsecwalloyaml { Write-Host "kubectl get secret --watch --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get secret --watch --all-namespaces -o=yaml @args }
-function kgnswalloyaml { Write-Host "kubectl get namespaces --watch --all-namespaces -o=yaml $args" -ForegroundColor Magenta; k get namespaces --watch --all-namespaces -o=yaml @args }
-function kgowideallsl { Write-Host "kubectl get -o=wide --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get -o=wide --all-namespaces --show-labels @args }
-function kgpoowideallsl { Write-Host "kubectl get pods -o=wide --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get pods -o=wide --all-namespaces --show-labels @args }
-function kgdepowideallsl { Write-Host "kubectl get deployment -o=wide --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get deployment -o=wide --all-namespaces --show-labels @args }
-function kgowideslall { Write-Host "kubectl get -o=wide --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get -o=wide --show-labels --all-namespaces @args }
-function kgpoowideslall { Write-Host "kubectl get pods -o=wide --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get pods -o=wide --show-labels --all-namespaces @args }
-function kgdepowideslall { Write-Host "kubectl get deployment -o=wide --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get deployment -o=wide --show-labels --all-namespaces @args }
-function kgallowidesl { Write-Host "kubectl get --all-namespaces -o=wide --show-labels $args" -ForegroundColor Magenta; k get --all-namespaces -o=wide --show-labels @args }
-function kgpoallowidesl { Write-Host "kubectl get pods --all-namespaces -o=wide --show-labels $args" -ForegroundColor Magenta; k get pods --all-namespaces -o=wide --show-labels @args }
-function kgdepallowidesl { Write-Host "kubectl get deployment --all-namespaces -o=wide --show-labels $args" -ForegroundColor Magenta; k get deployment --all-namespaces -o=wide --show-labels @args }
-function kgallslowide { Write-Host "kubectl get --all-namespaces --show-labels -o=wide $args" -ForegroundColor Magenta; k get --all-namespaces --show-labels -o=wide @args }
-function kgpoallslowide { Write-Host "kubectl get pods --all-namespaces --show-labels -o=wide $args" -ForegroundColor Magenta; k get pods --all-namespaces --show-labels -o=wide @args }
-function kgdepallslowide { Write-Host "kubectl get deployment --all-namespaces --show-labels -o=wide $args" -ForegroundColor Magenta; k get deployment --all-namespaces --show-labels -o=wide @args }
-function kgslowideall { Write-Host "kubectl get --show-labels -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get --show-labels -o=wide --all-namespaces @args }
-function kgposlowideall { Write-Host "kubectl get pods --show-labels -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get pods --show-labels -o=wide --all-namespaces @args }
-function kgdepslowideall { Write-Host "kubectl get deployment --show-labels -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get deployment --show-labels -o=wide --all-namespaces @args }
-function kgslallowide { Write-Host "kubectl get --show-labels --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get --show-labels --all-namespaces -o=wide @args }
-function kgposlallowide { Write-Host "kubectl get pods --show-labels --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get pods --show-labels --all-namespaces -o=wide @args }
-function kgdepslallowide { Write-Host "kubectl get deployment --show-labels --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get deployment --show-labels --all-namespaces -o=wide @args }
-function kgallwowide { Write-Host "kubectl get --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get --all-namespaces --watch -o=wide @args }
-function kgpoallwowide { Write-Host "kubectl get pods --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get pods --all-namespaces --watch -o=wide @args }
-function kgdepallwowide { Write-Host "kubectl get deployment --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get deployment --all-namespaces --watch -o=wide @args }
-function kgsvcallwowide { Write-Host "kubectl get service --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get service --all-namespaces --watch -o=wide @args }
-function kgingallwowide { Write-Host "kubectl get ingress --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get ingress --all-namespaces --watch -o=wide @args }
-function kgcmallwowide { Write-Host "kubectl get configmap --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get configmap --all-namespaces --watch -o=wide @args }
-function kgsecallwowide { Write-Host "kubectl get secret --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get secret --all-namespaces --watch -o=wide @args }
-function kgnsallwowide { Write-Host "kubectl get namespaces --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get namespaces --all-namespaces --watch -o=wide @args }
-function kgwowideall { Write-Host "kubectl get --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get --watch -o=wide --all-namespaces @args }
-function kgpowowideall { Write-Host "kubectl get pods --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get pods --watch -o=wide --all-namespaces @args }
-function kgdepwowideall { Write-Host "kubectl get deployment --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get deployment --watch -o=wide --all-namespaces @args }
-function kgsvcwowideall { Write-Host "kubectl get service --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get service --watch -o=wide --all-namespaces @args }
-function kgingwowideall { Write-Host "kubectl get ingress --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get ingress --watch -o=wide --all-namespaces @args }
-function kgcmwowideall { Write-Host "kubectl get configmap --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get configmap --watch -o=wide --all-namespaces @args }
-function kgsecwowideall { Write-Host "kubectl get secret --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get secret --watch -o=wide --all-namespaces @args }
-function kgnswowideall { Write-Host "kubectl get namespaces --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get namespaces --watch -o=wide --all-namespaces @args }
-function kgwallowide { Write-Host "kubectl get --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get --watch --all-namespaces -o=wide @args }
-function kgpowallowide { Write-Host "kubectl get pods --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get pods --watch --all-namespaces -o=wide @args }
-function kgdepwallowide { Write-Host "kubectl get deployment --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get deployment --watch --all-namespaces -o=wide @args }
-function kgsvcwallowide { Write-Host "kubectl get service --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get service --watch --all-namespaces -o=wide @args }
-function kgingwallowide { Write-Host "kubectl get ingress --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get ingress --watch --all-namespaces -o=wide @args }
-function kgcmwallowide { Write-Host "kubectl get configmap --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get configmap --watch --all-namespaces -o=wide @args }
-function kgsecwallowide { Write-Host "kubectl get secret --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get secret --watch --all-namespaces -o=wide @args }
-function kgnswallowide { Write-Host "kubectl get namespaces --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get namespaces --watch --all-namespaces -o=wide @args }
-function kgslwowide { Write-Host "kubectl get --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k get --show-labels --watch -o=wide @args }
-function ksysgslwowide { Write-Host "kubectl --namespace=kube-system get --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get --show-labels --watch -o=wide @args }
-function kgposlwowide { Write-Host "kubectl get pods --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k get pods --show-labels --watch -o=wide @args }
-function ksysgposlwowide { Write-Host "kubectl --namespace=kube-system get pods --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --show-labels --watch -o=wide @args }
-function kgdepslwowide { Write-Host "kubectl get deployment --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k get deployment --show-labels --watch -o=wide @args }
-function ksysgdepslwowide { Write-Host "kubectl --namespace=kube-system get deployment --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --show-labels --watch -o=wide @args }
-function kgwowidesl { Write-Host "kubectl get --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k get --watch -o=wide --show-labels @args }
-function ksysgwowidesl { Write-Host "kubectl --namespace=kube-system get --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -o=wide --show-labels @args }
-function kgpowowidesl { Write-Host "kubectl get pods --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k get pods --watch -o=wide --show-labels @args }
-function ksysgpowowidesl { Write-Host "kubectl --namespace=kube-system get pods --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -o=wide --show-labels @args }
-function kgdepwowidesl { Write-Host "kubectl get deployment --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k get deployment --watch -o=wide --show-labels @args }
-function ksysgdepwowidesl { Write-Host "kubectl --namespace=kube-system get deployment --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -o=wide --show-labels @args }
-function kgwslowide { Write-Host "kubectl get --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k get --watch --show-labels -o=wide @args }
-function ksysgwslowide { Write-Host "kubectl --namespace=kube-system get --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch --show-labels -o=wide @args }
-function kgpowslowide { Write-Host "kubectl get pods --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k get pods --watch --show-labels -o=wide @args }
-function ksysgpowslowide { Write-Host "kubectl --namespace=kube-system get pods --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch --show-labels -o=wide @args }
-function kgdepwslowide { Write-Host "kubectl get deployment --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k get deployment --watch --show-labels -o=wide @args }
-function ksysgdepwslowide { Write-Host "kubectl --namespace=kube-system get deployment --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch --show-labels -o=wide @args }
-function kgallwojson { Write-Host "kubectl get --all-namespaces --watch -o=json $args" -ForegroundColor Magenta; k get --all-namespaces --watch -o=json @args }
-function kgpoallwojson { Write-Host "kubectl get pods --all-namespaces --watch -o=json $args" -ForegroundColor Magenta; k get pods --all-namespaces --watch -o=json @args }
-function kgdepallwojson { Write-Host "kubectl get deployment --all-namespaces --watch -o=json $args" -ForegroundColor Magenta; k get deployment --all-namespaces --watch -o=json @args }
-function kgsvcallwojson { Write-Host "kubectl get service --all-namespaces --watch -o=json $args" -ForegroundColor Magenta; k get service --all-namespaces --watch -o=json @args }
-function kgingallwojson { Write-Host "kubectl get ingress --all-namespaces --watch -o=json $args" -ForegroundColor Magenta; k get ingress --all-namespaces --watch -o=json @args }
-function kgcmallwojson { Write-Host "kubectl get configmap --all-namespaces --watch -o=json $args" -ForegroundColor Magenta; k get configmap --all-namespaces --watch -o=json @args }
-function kgsecallwojson { Write-Host "kubectl get secret --all-namespaces --watch -o=json $args" -ForegroundColor Magenta; k get secret --all-namespaces --watch -o=json @args }
-function kgnsallwojson { Write-Host "kubectl get namespaces --all-namespaces --watch -o=json $args" -ForegroundColor Magenta; k get namespaces --all-namespaces --watch -o=json @args }
-function kgwojsonall { Write-Host "kubectl get --watch -o=json --all-namespaces $args" -ForegroundColor Magenta; k get --watch -o=json --all-namespaces @args }
-function kgpowojsonall { Write-Host "kubectl get pods --watch -o=json --all-namespaces $args" -ForegroundColor Magenta; k get pods --watch -o=json --all-namespaces @args }
-function kgdepwojsonall { Write-Host "kubectl get deployment --watch -o=json --all-namespaces $args" -ForegroundColor Magenta; k get deployment --watch -o=json --all-namespaces @args }
-function kgsvcwojsonall { Write-Host "kubectl get service --watch -o=json --all-namespaces $args" -ForegroundColor Magenta; k get service --watch -o=json --all-namespaces @args }
-function kgingwojsonall { Write-Host "kubectl get ingress --watch -o=json --all-namespaces $args" -ForegroundColor Magenta; k get ingress --watch -o=json --all-namespaces @args }
-function kgcmwojsonall { Write-Host "kubectl get configmap --watch -o=json --all-namespaces $args" -ForegroundColor Magenta; k get configmap --watch -o=json --all-namespaces @args }
-function kgsecwojsonall { Write-Host "kubectl get secret --watch -o=json --all-namespaces $args" -ForegroundColor Magenta; k get secret --watch -o=json --all-namespaces @args }
-function kgnswojsonall { Write-Host "kubectl get namespaces --watch -o=json --all-namespaces $args" -ForegroundColor Magenta; k get namespaces --watch -o=json --all-namespaces @args }
-function kgwallojson { Write-Host "kubectl get --watch --all-namespaces -o=json $args" -ForegroundColor Magenta; k get --watch --all-namespaces -o=json @args }
-function kgpowallojson { Write-Host "kubectl get pods --watch --all-namespaces -o=json $args" -ForegroundColor Magenta; k get pods --watch --all-namespaces -o=json @args }
-function kgdepwallojson { Write-Host "kubectl get deployment --watch --all-namespaces -o=json $args" -ForegroundColor Magenta; k get deployment --watch --all-namespaces -o=json @args }
-function kgsvcwallojson { Write-Host "kubectl get service --watch --all-namespaces -o=json $args" -ForegroundColor Magenta; k get service --watch --all-namespaces -o=json @args }
-function kgingwallojson { Write-Host "kubectl get ingress --watch --all-namespaces -o=json $args" -ForegroundColor Magenta; k get ingress --watch --all-namespaces -o=json @args }
-function kgcmwallojson { Write-Host "kubectl get configmap --watch --all-namespaces -o=json $args" -ForegroundColor Magenta; k get configmap --watch --all-namespaces -o=json @args }
-function kgsecwallojson { Write-Host "kubectl get secret --watch --all-namespaces -o=json $args" -ForegroundColor Magenta; k get secret --watch --all-namespaces -o=json @args }
-function kgnswallojson { Write-Host "kubectl get namespaces --watch --all-namespaces -o=json $args" -ForegroundColor Magenta; k get namespaces --watch --all-namespaces -o=json @args }
-function kgallslw { Write-Host "kubectl get --all-namespaces --show-labels --watch $args" -ForegroundColor Magenta; k get --all-namespaces --show-labels --watch @args }
-function kgpoallslw { Write-Host "kubectl get pods --all-namespaces --show-labels --watch $args" -ForegroundColor Magenta; k get pods --all-namespaces --show-labels --watch @args }
-function kgdepallslw { Write-Host "kubectl get deployment --all-namespaces --show-labels --watch $args" -ForegroundColor Magenta; k get deployment --all-namespaces --show-labels --watch @args }
-function kgallwsl { Write-Host "kubectl get --all-namespaces --watch --show-labels $args" -ForegroundColor Magenta; k get --all-namespaces --watch --show-labels @args }
-function kgpoallwsl { Write-Host "kubectl get pods --all-namespaces --watch --show-labels $args" -ForegroundColor Magenta; k get pods --all-namespaces --watch --show-labels @args }
-function kgdepallwsl { Write-Host "kubectl get deployment --all-namespaces --watch --show-labels $args" -ForegroundColor Magenta; k get deployment --all-namespaces --watch --show-labels @args }
-function kgslallw { Write-Host "kubectl get --show-labels --all-namespaces --watch $args" -ForegroundColor Magenta; k get --show-labels --all-namespaces --watch @args }
-function kgposlallw { Write-Host "kubectl get pods --show-labels --all-namespaces --watch $args" -ForegroundColor Magenta; k get pods --show-labels --all-namespaces --watch @args }
-function kgdepslallw { Write-Host "kubectl get deployment --show-labels --all-namespaces --watch $args" -ForegroundColor Magenta; k get deployment --show-labels --all-namespaces --watch @args }
-function kgslwall { Write-Host "kubectl get --show-labels --watch --all-namespaces $args" -ForegroundColor Magenta; k get --show-labels --watch --all-namespaces @args }
-function kgposlwall { Write-Host "kubectl get pods --show-labels --watch --all-namespaces $args" -ForegroundColor Magenta; k get pods --show-labels --watch --all-namespaces @args }
-function kgdepslwall { Write-Host "kubectl get deployment --show-labels --watch --all-namespaces $args" -ForegroundColor Magenta; k get deployment --show-labels --watch --all-namespaces @args }
-function kgwallsl { Write-Host "kubectl get --watch --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get --watch --all-namespaces --show-labels @args }
-function kgpowallsl { Write-Host "kubectl get pods --watch --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get pods --watch --all-namespaces --show-labels @args }
-function kgdepwallsl { Write-Host "kubectl get deployment --watch --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get deployment --watch --all-namespaces --show-labels @args }
-function kgwslall { Write-Host "kubectl get --watch --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get --watch --show-labels --all-namespaces @args }
-function kgpowslall { Write-Host "kubectl get pods --watch --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get pods --watch --show-labels --all-namespaces @args }
-function kgdepwslall { Write-Host "kubectl get deployment --watch --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get deployment --watch --show-labels --all-namespaces @args }
-function kgallslwowide { Write-Host "kubectl get --all-namespaces --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k get --all-namespaces --show-labels --watch -o=wide @args }
-function kgpoallslwowide { Write-Host "kubectl get pods --all-namespaces --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k get pods --all-namespaces --show-labels --watch -o=wide @args }
-function kgdepallslwowide { Write-Host "kubectl get deployment --all-namespaces --show-labels --watch -o=wide $args" -ForegroundColor Magenta; k get deployment --all-namespaces --show-labels --watch -o=wide @args }
-function kgallwowidesl { Write-Host "kubectl get --all-namespaces --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k get --all-namespaces --watch -o=wide --show-labels @args }
-function kgpoallwowidesl { Write-Host "kubectl get pods --all-namespaces --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k get pods --all-namespaces --watch -o=wide --show-labels @args }
-function kgdepallwowidesl { Write-Host "kubectl get deployment --all-namespaces --watch -o=wide --show-labels $args" -ForegroundColor Magenta; k get deployment --all-namespaces --watch -o=wide --show-labels @args }
-function kgallwslowide { Write-Host "kubectl get --all-namespaces --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k get --all-namespaces --watch --show-labels -o=wide @args }
-function kgpoallwslowide { Write-Host "kubectl get pods --all-namespaces --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k get pods --all-namespaces --watch --show-labels -o=wide @args }
-function kgdepallwslowide { Write-Host "kubectl get deployment --all-namespaces --watch --show-labels -o=wide $args" -ForegroundColor Magenta; k get deployment --all-namespaces --watch --show-labels -o=wide @args }
-function kgslallwowide { Write-Host "kubectl get --show-labels --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get --show-labels --all-namespaces --watch -o=wide @args }
-function kgposlallwowide { Write-Host "kubectl get pods --show-labels --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get pods --show-labels --all-namespaces --watch -o=wide @args }
-function kgdepslallwowide { Write-Host "kubectl get deployment --show-labels --all-namespaces --watch -o=wide $args" -ForegroundColor Magenta; k get deployment --show-labels --all-namespaces --watch -o=wide @args }
-function kgslwowideall { Write-Host "kubectl get --show-labels --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get --show-labels --watch -o=wide --all-namespaces @args }
-function kgposlwowideall { Write-Host "kubectl get pods --show-labels --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get pods --show-labels --watch -o=wide --all-namespaces @args }
-function kgdepslwowideall { Write-Host "kubectl get deployment --show-labels --watch -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get deployment --show-labels --watch -o=wide --all-namespaces @args }
-function kgslwallowide { Write-Host "kubectl get --show-labels --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get --show-labels --watch --all-namespaces -o=wide @args }
-function kgposlwallowide { Write-Host "kubectl get pods --show-labels --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get pods --show-labels --watch --all-namespaces -o=wide @args }
-function kgdepslwallowide { Write-Host "kubectl get deployment --show-labels --watch --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get deployment --show-labels --watch --all-namespaces -o=wide @args }
-function kgwowideallsl { Write-Host "kubectl get --watch -o=wide --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get --watch -o=wide --all-namespaces --show-labels @args }
-function kgpowowideallsl { Write-Host "kubectl get pods --watch -o=wide --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get pods --watch -o=wide --all-namespaces --show-labels @args }
-function kgdepwowideallsl { Write-Host "kubectl get deployment --watch -o=wide --all-namespaces --show-labels $args" -ForegroundColor Magenta; k get deployment --watch -o=wide --all-namespaces --show-labels @args }
-function kgwowideslall { Write-Host "kubectl get --watch -o=wide --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get --watch -o=wide --show-labels --all-namespaces @args }
-function kgpowowideslall { Write-Host "kubectl get pods --watch -o=wide --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get pods --watch -o=wide --show-labels --all-namespaces @args }
-function kgdepwowideslall { Write-Host "kubectl get deployment --watch -o=wide --show-labels --all-namespaces $args" -ForegroundColor Magenta; k get deployment --watch -o=wide --show-labels --all-namespaces @args }
-function kgwallowidesl { Write-Host "kubectl get --watch --all-namespaces -o=wide --show-labels $args" -ForegroundColor Magenta; k get --watch --all-namespaces -o=wide --show-labels @args }
-function kgpowallowidesl { Write-Host "kubectl get pods --watch --all-namespaces -o=wide --show-labels $args" -ForegroundColor Magenta; k get pods --watch --all-namespaces -o=wide --show-labels @args }
-function kgdepwallowidesl { Write-Host "kubectl get deployment --watch --all-namespaces -o=wide --show-labels $args" -ForegroundColor Magenta; k get deployment --watch --all-namespaces -o=wide --show-labels @args }
-function kgwallslowide { Write-Host "kubectl get --watch --all-namespaces --show-labels -o=wide $args" -ForegroundColor Magenta; k get --watch --all-namespaces --show-labels -o=wide @args }
-function kgpowallslowide { Write-Host "kubectl get pods --watch --all-namespaces --show-labels -o=wide $args" -ForegroundColor Magenta; k get pods --watch --all-namespaces --show-labels -o=wide @args }
-function kgdepwallslowide { Write-Host "kubectl get deployment --watch --all-namespaces --show-labels -o=wide $args" -ForegroundColor Magenta; k get deployment --watch --all-namespaces --show-labels -o=wide @args }
-function kgwslowideall { Write-Host "kubectl get --watch --show-labels -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get --watch --show-labels -o=wide --all-namespaces @args }
-function kgpowslowideall { Write-Host "kubectl get pods --watch --show-labels -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get pods --watch --show-labels -o=wide --all-namespaces @args }
-function kgdepwslowideall { Write-Host "kubectl get deployment --watch --show-labels -o=wide --all-namespaces $args" -ForegroundColor Magenta; k get deployment --watch --show-labels -o=wide --all-namespaces @args }
-function kgwslallowide { Write-Host "kubectl get --watch --show-labels --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get --watch --show-labels --all-namespaces -o=wide @args }
-function kgpowslallowide { Write-Host "kubectl get pods --watch --show-labels --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get pods --watch --show-labels --all-namespaces -o=wide @args }
-function kgdepwslallowide { Write-Host "kubectl get deployment --watch --show-labels --all-namespaces -o=wide $args" -ForegroundColor Magenta; k get deployment --watch --show-labels --all-namespaces -o=wide @args }
-function kgf { Write-Host "kubectl get --recursive -f $args" -ForegroundColor Magenta; k get --recursive -f @args }
-function kdf { Write-Host "kubectl describe --recursive -f $args" -ForegroundColor Magenta; k describe --recursive -f @args }
-function krmf { Write-Host "kubectl delete --recursive -f $args" -ForegroundColor Magenta; k delete --recursive -f @args }
-function kgoyamlf { Write-Host "kubectl get -o=yaml --recursive -f $args" -ForegroundColor Magenta; k get -o=yaml --recursive -f @args }
-function kgowidef { Write-Host "kubectl get -o=wide --recursive -f $args" -ForegroundColor Magenta; k get -o=wide --recursive -f @args }
-function kgojsonf { Write-Host "kubectl get -o=json --recursive -f $args" -ForegroundColor Magenta; k get -o=json --recursive -f @args }
-function kgslf { Write-Host "kubectl get --show-labels --recursive -f $args" -ForegroundColor Magenta; k get --show-labels --recursive -f @args }
-function kgwf { Write-Host "kubectl get --watch --recursive -f $args" -ForegroundColor Magenta; k get --watch --recursive -f @args }
-function kgwoyamlf { Write-Host "kubectl get --watch -o=yaml --recursive -f $args" -ForegroundColor Magenta; k get --watch -o=yaml --recursive -f @args }
-function kgowideslf { Write-Host "kubectl get -o=wide --show-labels --recursive -f $args" -ForegroundColor Magenta; k get -o=wide --show-labels --recursive -f @args }
-function kgslowidef { Write-Host "kubectl get --show-labels -o=wide --recursive -f $args" -ForegroundColor Magenta; k get --show-labels -o=wide --recursive -f @args }
-function kgwowidef { Write-Host "kubectl get --watch -o=wide --recursive -f $args" -ForegroundColor Magenta; k get --watch -o=wide --recursive -f @args }
-function kgwojsonf { Write-Host "kubectl get --watch -o=json --recursive -f $args" -ForegroundColor Magenta; k get --watch -o=json --recursive -f @args }
-function kgslwf { Write-Host "kubectl get --show-labels --watch --recursive -f $args" -ForegroundColor Magenta; k get --show-labels --watch --recursive -f @args }
-function kgwslf { Write-Host "kubectl get --watch --show-labels --recursive -f $args" -ForegroundColor Magenta; k get --watch --show-labels --recursive -f @args }
-function kgslwowidef { Write-Host "kubectl get --show-labels --watch -o=wide --recursive -f $args" -ForegroundColor Magenta; k get --show-labels --watch -o=wide --recursive -f @args }
-function kgwowideslf { Write-Host "kubectl get --watch -o=wide --show-labels --recursive -f $args" -ForegroundColor Magenta; k get --watch -o=wide --show-labels --recursive -f @args }
-function kgwslowidef { Write-Host "kubectl get --watch --show-labels -o=wide --recursive -f $args" -ForegroundColor Magenta; k get --watch --show-labels -o=wide --recursive -f @args }
-function kgl { Write-Host "kubectl get -l $args" -ForegroundColor Magenta; k get -l @args }
-function ksysgl { Write-Host "kubectl --namespace=kube-system get -l $args" -ForegroundColor Magenta; k --namespace=kube-system get -l @args }
-function kdl { Write-Host "kubectl describe -l $args" -ForegroundColor Magenta; k describe -l @args }
-function ksysdl { Write-Host "kubectl --namespace=kube-system describe -l $args" -ForegroundColor Magenta; k --namespace=kube-system describe -l @args }
-function krml { Write-Host "kubectl delete -l $args" -ForegroundColor Magenta; k delete -l @args }
-function ksysrml { Write-Host "kubectl --namespace=kube-system delete -l $args" -ForegroundColor Magenta; k --namespace=kube-system delete -l @args }
-function kgpol { Write-Host "kubectl get pods -l $args" -ForegroundColor Magenta; k get pods -l @args }
-function ksysgpol { Write-Host "kubectl --namespace=kube-system get pods -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -l @args }
-function kdpol { Write-Host "kubectl describe pods -l $args" -ForegroundColor Magenta; k describe pods -l @args }
-function ksysdpol { Write-Host "kubectl --namespace=kube-system describe pods -l $args" -ForegroundColor Magenta; k --namespace=kube-system describe pods -l @args }
-function krmpol { Write-Host "kubectl delete pods -l $args" -ForegroundColor Magenta; k delete pods -l @args }
-function ksysrmpol { Write-Host "kubectl --namespace=kube-system delete pods -l $args" -ForegroundColor Magenta; k --namespace=kube-system delete pods -l @args }
-function kgdepl { Write-Host "kubectl get deployment -l $args" -ForegroundColor Magenta; k get deployment -l @args }
-function ksysgdepl { Write-Host "kubectl --namespace=kube-system get deployment -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -l @args }
-function kddepl { Write-Host "kubectl describe deployment -l $args" -ForegroundColor Magenta; k describe deployment -l @args }
-function ksysddepl { Write-Host "kubectl --namespace=kube-system describe deployment -l $args" -ForegroundColor Magenta; k --namespace=kube-system describe deployment -l @args }
-function krmdepl { Write-Host "kubectl delete deployment -l $args" -ForegroundColor Magenta; k delete deployment -l @args }
-function ksysrmdepl { Write-Host "kubectl --namespace=kube-system delete deployment -l $args" -ForegroundColor Magenta; k --namespace=kube-system delete deployment -l @args }
-function kgsvcl { Write-Host "kubectl get service -l $args" -ForegroundColor Magenta; k get service -l @args }
-function ksysgsvcl { Write-Host "kubectl --namespace=kube-system get service -l $args" -ForegroundColor Magenta; k --namespace=kube-system get service -l @args }
-function kdsvcl { Write-Host "kubectl describe service -l $args" -ForegroundColor Magenta; k describe service -l @args }
-function ksysdsvcl { Write-Host "kubectl --namespace=kube-system describe service -l $args" -ForegroundColor Magenta; k --namespace=kube-system describe service -l @args }
-function krmsvcl { Write-Host "kubectl delete service -l $args" -ForegroundColor Magenta; k delete service -l @args }
-function ksysrmsvcl { Write-Host "kubectl --namespace=kube-system delete service -l $args" -ForegroundColor Magenta; k --namespace=kube-system delete service -l @args }
-function kgingl { Write-Host "kubectl get ingress -l $args" -ForegroundColor Magenta; k get ingress -l @args }
-function ksysgingl { Write-Host "kubectl --namespace=kube-system get ingress -l $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress -l @args }
-function kdingl { Write-Host "kubectl describe ingress -l $args" -ForegroundColor Magenta; k describe ingress -l @args }
-function ksysdingl { Write-Host "kubectl --namespace=kube-system describe ingress -l $args" -ForegroundColor Magenta; k --namespace=kube-system describe ingress -l @args }
-function krmingl { Write-Host "kubectl delete ingress -l $args" -ForegroundColor Magenta; k delete ingress -l @args }
-function ksysrmingl { Write-Host "kubectl --namespace=kube-system delete ingress -l $args" -ForegroundColor Magenta; k --namespace=kube-system delete ingress -l @args }
-function kgcml { Write-Host "kubectl get configmap -l $args" -ForegroundColor Magenta; k get configmap -l @args }
-function ksysgcml { Write-Host "kubectl --namespace=kube-system get configmap -l $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap -l @args }
-function kdcml { Write-Host "kubectl describe configmap -l $args" -ForegroundColor Magenta; k describe configmap -l @args }
-function ksysdcml { Write-Host "kubectl --namespace=kube-system describe configmap -l $args" -ForegroundColor Magenta; k --namespace=kube-system describe configmap -l @args }
-function krmcml { Write-Host "kubectl delete configmap -l $args" -ForegroundColor Magenta; k delete configmap -l @args }
-function ksysrmcml { Write-Host "kubectl --namespace=kube-system delete configmap -l $args" -ForegroundColor Magenta; k --namespace=kube-system delete configmap -l @args }
-function kgsecl { Write-Host "kubectl get secret -l $args" -ForegroundColor Magenta; k get secret -l @args }
-function ksysgsecl { Write-Host "kubectl --namespace=kube-system get secret -l $args" -ForegroundColor Magenta; k --namespace=kube-system get secret -l @args }
-function kdsecl { Write-Host "kubectl describe secret -l $args" -ForegroundColor Magenta; k describe secret -l @args }
-function ksysdsecl { Write-Host "kubectl --namespace=kube-system describe secret -l $args" -ForegroundColor Magenta; k --namespace=kube-system describe secret -l @args }
-function krmsecl { Write-Host "kubectl delete secret -l $args" -ForegroundColor Magenta; k delete secret -l @args }
-function ksysrmsecl { Write-Host "kubectl --namespace=kube-system delete secret -l $args" -ForegroundColor Magenta; k --namespace=kube-system delete secret -l @args }
-function kgnol { Write-Host "kubectl get nodes -l $args" -ForegroundColor Magenta; k get nodes -l @args }
-function kdnol { Write-Host "kubectl describe nodes -l $args" -ForegroundColor Magenta; k describe nodes -l @args }
-function kgnsl { Write-Host "kubectl get namespaces -l $args" -ForegroundColor Magenta; k get namespaces -l @args }
-function kdnsl { Write-Host "kubectl describe namespaces -l $args" -ForegroundColor Magenta; k describe namespaces -l @args }
-function krmnsl { Write-Host "kubectl delete namespaces -l $args" -ForegroundColor Magenta; k delete namespaces -l @args }
-function kgoyamll { Write-Host "kubectl get -o=yaml -l $args" -ForegroundColor Magenta; k get -o=yaml -l @args }
-function ksysgoyamll { Write-Host "kubectl --namespace=kube-system get -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get -o=yaml -l @args }
-function kgpooyamll { Write-Host "kubectl get pods -o=yaml -l $args" -ForegroundColor Magenta; k get pods -o=yaml -l @args }
-function ksysgpooyamll { Write-Host "kubectl --namespace=kube-system get pods -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -o=yaml -l @args }
-function kgdepoyamll { Write-Host "kubectl get deployment -o=yaml -l $args" -ForegroundColor Magenta; k get deployment -o=yaml -l @args }
-function ksysgdepoyamll { Write-Host "kubectl --namespace=kube-system get deployment -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -o=yaml -l @args }
-function kgsvcoyamll { Write-Host "kubectl get service -o=yaml -l $args" -ForegroundColor Magenta; k get service -o=yaml -l @args }
-function ksysgsvcoyamll { Write-Host "kubectl --namespace=kube-system get service -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get service -o=yaml -l @args }
-function kgingoyamll { Write-Host "kubectl get ingress -o=yaml -l $args" -ForegroundColor Magenta; k get ingress -o=yaml -l @args }
-function ksysgingoyamll { Write-Host "kubectl --namespace=kube-system get ingress -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress -o=yaml -l @args }
-function kgcmoyamll { Write-Host "kubectl get configmap -o=yaml -l $args" -ForegroundColor Magenta; k get configmap -o=yaml -l @args }
-function ksysgcmoyamll { Write-Host "kubectl --namespace=kube-system get configmap -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap -o=yaml -l @args }
-function kgsecoyamll { Write-Host "kubectl get secret -o=yaml -l $args" -ForegroundColor Magenta; k get secret -o=yaml -l @args }
-function ksysgsecoyamll { Write-Host "kubectl --namespace=kube-system get secret -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get secret -o=yaml -l @args }
-function kgnooyamll { Write-Host "kubectl get nodes -o=yaml -l $args" -ForegroundColor Magenta; k get nodes -o=yaml -l @args }
-function kgnsoyamll { Write-Host "kubectl get namespaces -o=yaml -l $args" -ForegroundColor Magenta; k get namespaces -o=yaml -l @args }
-function kgowidel { Write-Host "kubectl get -o=wide -l $args" -ForegroundColor Magenta; k get -o=wide -l @args }
-function ksysgowidel { Write-Host "kubectl --namespace=kube-system get -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get -o=wide -l @args }
-function kgpoowidel { Write-Host "kubectl get pods -o=wide -l $args" -ForegroundColor Magenta; k get pods -o=wide -l @args }
-function ksysgpoowidel { Write-Host "kubectl --namespace=kube-system get pods -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -o=wide -l @args }
-function kgdepowidel { Write-Host "kubectl get deployment -o=wide -l $args" -ForegroundColor Magenta; k get deployment -o=wide -l @args }
-function ksysgdepowidel { Write-Host "kubectl --namespace=kube-system get deployment -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -o=wide -l @args }
-function kgsvcowidel { Write-Host "kubectl get service -o=wide -l $args" -ForegroundColor Magenta; k get service -o=wide -l @args }
-function ksysgsvcowidel { Write-Host "kubectl --namespace=kube-system get service -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get service -o=wide -l @args }
-function kgingowidel { Write-Host "kubectl get ingress -o=wide -l $args" -ForegroundColor Magenta; k get ingress -o=wide -l @args }
-function ksysgingowidel { Write-Host "kubectl --namespace=kube-system get ingress -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress -o=wide -l @args }
-function kgcmowidel { Write-Host "kubectl get configmap -o=wide -l $args" -ForegroundColor Magenta; k get configmap -o=wide -l @args }
-function ksysgcmowidel { Write-Host "kubectl --namespace=kube-system get configmap -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap -o=wide -l @args }
-function kgsecowidel { Write-Host "kubectl get secret -o=wide -l $args" -ForegroundColor Magenta; k get secret -o=wide -l @args }
-function ksysgsecowidel { Write-Host "kubectl --namespace=kube-system get secret -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get secret -o=wide -l @args }
-function kgnoowidel { Write-Host "kubectl get nodes -o=wide -l $args" -ForegroundColor Magenta; k get nodes -o=wide -l @args }
-function kgnsowidel { Write-Host "kubectl get namespaces -o=wide -l $args" -ForegroundColor Magenta; k get namespaces -o=wide -l @args }
-function kgojsonl { Write-Host "kubectl get -o=json -l $args" -ForegroundColor Magenta; k get -o=json -l @args }
-function ksysgojsonl { Write-Host "kubectl --namespace=kube-system get -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get -o=json -l @args }
-function kgpoojsonl { Write-Host "kubectl get pods -o=json -l $args" -ForegroundColor Magenta; k get pods -o=json -l @args }
-function ksysgpoojsonl { Write-Host "kubectl --namespace=kube-system get pods -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -o=json -l @args }
-function kgdepojsonl { Write-Host "kubectl get deployment -o=json -l $args" -ForegroundColor Magenta; k get deployment -o=json -l @args }
-function ksysgdepojsonl { Write-Host "kubectl --namespace=kube-system get deployment -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -o=json -l @args }
-function kgsvcojsonl { Write-Host "kubectl get service -o=json -l $args" -ForegroundColor Magenta; k get service -o=json -l @args }
-function ksysgsvcojsonl { Write-Host "kubectl --namespace=kube-system get service -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get service -o=json -l @args }
-function kgingojsonl { Write-Host "kubectl get ingress -o=json -l $args" -ForegroundColor Magenta; k get ingress -o=json -l @args }
-function ksysgingojsonl { Write-Host "kubectl --namespace=kube-system get ingress -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress -o=json -l @args }
-function kgcmojsonl { Write-Host "kubectl get configmap -o=json -l $args" -ForegroundColor Magenta; k get configmap -o=json -l @args }
-function ksysgcmojsonl { Write-Host "kubectl --namespace=kube-system get configmap -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap -o=json -l @args }
-function kgsecojsonl { Write-Host "kubectl get secret -o=json -l $args" -ForegroundColor Magenta; k get secret -o=json -l @args }
-function ksysgsecojsonl { Write-Host "kubectl --namespace=kube-system get secret -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get secret -o=json -l @args }
-function kgnoojsonl { Write-Host "kubectl get nodes -o=json -l $args" -ForegroundColor Magenta; k get nodes -o=json -l @args }
-function kgnsojsonl { Write-Host "kubectl get namespaces -o=json -l $args" -ForegroundColor Magenta; k get namespaces -o=json -l @args }
-function kgsll { Write-Host "kubectl get --show-labels -l $args" -ForegroundColor Magenta; k get --show-labels -l @args }
-function ksysgsll { Write-Host "kubectl --namespace=kube-system get --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --show-labels -l @args }
-function kgposll { Write-Host "kubectl get pods --show-labels -l $args" -ForegroundColor Magenta; k get pods --show-labels -l @args }
-function ksysgposll { Write-Host "kubectl --namespace=kube-system get pods --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --show-labels -l @args }
-function kgdepsll { Write-Host "kubectl get deployment --show-labels -l $args" -ForegroundColor Magenta; k get deployment --show-labels -l @args }
-function ksysgdepsll { Write-Host "kubectl --namespace=kube-system get deployment --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --show-labels -l @args }
-function kgwl { Write-Host "kubectl get --watch -l $args" -ForegroundColor Magenta; k get --watch -l @args }
-function ksysgwl { Write-Host "kubectl --namespace=kube-system get --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -l @args }
-function kgpowl { Write-Host "kubectl get pods --watch -l $args" -ForegroundColor Magenta; k get pods --watch -l @args }
-function ksysgpowl { Write-Host "kubectl --namespace=kube-system get pods --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -l @args }
-function kgdepwl { Write-Host "kubectl get deployment --watch -l $args" -ForegroundColor Magenta; k get deployment --watch -l @args }
-function ksysgdepwl { Write-Host "kubectl --namespace=kube-system get deployment --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -l @args }
-function kgsvcwl { Write-Host "kubectl get service --watch -l $args" -ForegroundColor Magenta; k get service --watch -l @args }
-function ksysgsvcwl { Write-Host "kubectl --namespace=kube-system get service --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get service --watch -l @args }
-function kgingwl { Write-Host "kubectl get ingress --watch -l $args" -ForegroundColor Magenta; k get ingress --watch -l @args }
-function ksysgingwl { Write-Host "kubectl --namespace=kube-system get ingress --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress --watch -l @args }
-function kgcmwl { Write-Host "kubectl get configmap --watch -l $args" -ForegroundColor Magenta; k get configmap --watch -l @args }
-function ksysgcmwl { Write-Host "kubectl --namespace=kube-system get configmap --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap --watch -l @args }
-function kgsecwl { Write-Host "kubectl get secret --watch -l $args" -ForegroundColor Magenta; k get secret --watch -l @args }
-function ksysgsecwl { Write-Host "kubectl --namespace=kube-system get secret --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get secret --watch -l @args }
-function kgnowl { Write-Host "kubectl get nodes --watch -l $args" -ForegroundColor Magenta; k get nodes --watch -l @args }
-function kgnswl { Write-Host "kubectl get namespaces --watch -l $args" -ForegroundColor Magenta; k get namespaces --watch -l @args }
-function kgwoyamll { Write-Host "kubectl get --watch -o=yaml -l $args" -ForegroundColor Magenta; k get --watch -o=yaml -l @args }
-function ksysgwoyamll { Write-Host "kubectl --namespace=kube-system get --watch -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -o=yaml -l @args }
-function kgpowoyamll { Write-Host "kubectl get pods --watch -o=yaml -l $args" -ForegroundColor Magenta; k get pods --watch -o=yaml -l @args }
-function ksysgpowoyamll { Write-Host "kubectl --namespace=kube-system get pods --watch -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -o=yaml -l @args }
-function kgdepwoyamll { Write-Host "kubectl get deployment --watch -o=yaml -l $args" -ForegroundColor Magenta; k get deployment --watch -o=yaml -l @args }
-function ksysgdepwoyamll { Write-Host "kubectl --namespace=kube-system get deployment --watch -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -o=yaml -l @args }
-function kgsvcwoyamll { Write-Host "kubectl get service --watch -o=yaml -l $args" -ForegroundColor Magenta; k get service --watch -o=yaml -l @args }
-function ksysgsvcwoyamll { Write-Host "kubectl --namespace=kube-system get service --watch -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get service --watch -o=yaml -l @args }
-function kgingwoyamll { Write-Host "kubectl get ingress --watch -o=yaml -l $args" -ForegroundColor Magenta; k get ingress --watch -o=yaml -l @args }
-function ksysgingwoyamll { Write-Host "kubectl --namespace=kube-system get ingress --watch -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress --watch -o=yaml -l @args }
-function kgcmwoyamll { Write-Host "kubectl get configmap --watch -o=yaml -l $args" -ForegroundColor Magenta; k get configmap --watch -o=yaml -l @args }
-function ksysgcmwoyamll { Write-Host "kubectl --namespace=kube-system get configmap --watch -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap --watch -o=yaml -l @args }
-function kgsecwoyamll { Write-Host "kubectl get secret --watch -o=yaml -l $args" -ForegroundColor Magenta; k get secret --watch -o=yaml -l @args }
-function ksysgsecwoyamll { Write-Host "kubectl --namespace=kube-system get secret --watch -o=yaml -l $args" -ForegroundColor Magenta; k --namespace=kube-system get secret --watch -o=yaml -l @args }
-function kgnowoyamll { Write-Host "kubectl get nodes --watch -o=yaml -l $args" -ForegroundColor Magenta; k get nodes --watch -o=yaml -l @args }
-function kgnswoyamll { Write-Host "kubectl get namespaces --watch -o=yaml -l $args" -ForegroundColor Magenta; k get namespaces --watch -o=yaml -l @args }
-function kgowidesll { Write-Host "kubectl get -o=wide --show-labels -l $args" -ForegroundColor Magenta; k get -o=wide --show-labels -l @args }
-function ksysgowidesll { Write-Host "kubectl --namespace=kube-system get -o=wide --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get -o=wide --show-labels -l @args }
-function kgpoowidesll { Write-Host "kubectl get pods -o=wide --show-labels -l $args" -ForegroundColor Magenta; k get pods -o=wide --show-labels -l @args }
-function ksysgpoowidesll { Write-Host "kubectl --namespace=kube-system get pods -o=wide --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods -o=wide --show-labels -l @args }
-function kgdepowidesll { Write-Host "kubectl get deployment -o=wide --show-labels -l $args" -ForegroundColor Magenta; k get deployment -o=wide --show-labels -l @args }
-function ksysgdepowidesll { Write-Host "kubectl --namespace=kube-system get deployment -o=wide --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment -o=wide --show-labels -l @args }
-function kgslowidel { Write-Host "kubectl get --show-labels -o=wide -l $args" -ForegroundColor Magenta; k get --show-labels -o=wide -l @args }
-function ksysgslowidel { Write-Host "kubectl --namespace=kube-system get --show-labels -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --show-labels -o=wide -l @args }
-function kgposlowidel { Write-Host "kubectl get pods --show-labels -o=wide -l $args" -ForegroundColor Magenta; k get pods --show-labels -o=wide -l @args }
-function ksysgposlowidel { Write-Host "kubectl --namespace=kube-system get pods --show-labels -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --show-labels -o=wide -l @args }
-function kgdepslowidel { Write-Host "kubectl get deployment --show-labels -o=wide -l $args" -ForegroundColor Magenta; k get deployment --show-labels -o=wide -l @args }
-function ksysgdepslowidel { Write-Host "kubectl --namespace=kube-system get deployment --show-labels -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --show-labels -o=wide -l @args }
-function kgwowidel { Write-Host "kubectl get --watch -o=wide -l $args" -ForegroundColor Magenta; k get --watch -o=wide -l @args }
-function ksysgwowidel { Write-Host "kubectl --namespace=kube-system get --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -o=wide -l @args }
-function kgpowowidel { Write-Host "kubectl get pods --watch -o=wide -l $args" -ForegroundColor Magenta; k get pods --watch -o=wide -l @args }
-function ksysgpowowidel { Write-Host "kubectl --namespace=kube-system get pods --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -o=wide -l @args }
-function kgdepwowidel { Write-Host "kubectl get deployment --watch -o=wide -l $args" -ForegroundColor Magenta; k get deployment --watch -o=wide -l @args }
-function ksysgdepwowidel { Write-Host "kubectl --namespace=kube-system get deployment --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -o=wide -l @args }
-function kgsvcwowidel { Write-Host "kubectl get service --watch -o=wide -l $args" -ForegroundColor Magenta; k get service --watch -o=wide -l @args }
-function ksysgsvcwowidel { Write-Host "kubectl --namespace=kube-system get service --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get service --watch -o=wide -l @args }
-function kgingwowidel { Write-Host "kubectl get ingress --watch -o=wide -l $args" -ForegroundColor Magenta; k get ingress --watch -o=wide -l @args }
-function ksysgingwowidel { Write-Host "kubectl --namespace=kube-system get ingress --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress --watch -o=wide -l @args }
-function kgcmwowidel { Write-Host "kubectl get configmap --watch -o=wide -l $args" -ForegroundColor Magenta; k get configmap --watch -o=wide -l @args }
-function ksysgcmwowidel { Write-Host "kubectl --namespace=kube-system get configmap --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap --watch -o=wide -l @args }
-function kgsecwowidel { Write-Host "kubectl get secret --watch -o=wide -l $args" -ForegroundColor Magenta; k get secret --watch -o=wide -l @args }
-function ksysgsecwowidel { Write-Host "kubectl --namespace=kube-system get secret --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get secret --watch -o=wide -l @args }
-function kgnowowidel { Write-Host "kubectl get nodes --watch -o=wide -l $args" -ForegroundColor Magenta; k get nodes --watch -o=wide -l @args }
-function kgnswowidel { Write-Host "kubectl get namespaces --watch -o=wide -l $args" -ForegroundColor Magenta; k get namespaces --watch -o=wide -l @args }
-function kgwojsonl { Write-Host "kubectl get --watch -o=json -l $args" -ForegroundColor Magenta; k get --watch -o=json -l @args }
-function ksysgwojsonl { Write-Host "kubectl --namespace=kube-system get --watch -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -o=json -l @args }
-function kgpowojsonl { Write-Host "kubectl get pods --watch -o=json -l $args" -ForegroundColor Magenta; k get pods --watch -o=json -l @args }
-function ksysgpowojsonl { Write-Host "kubectl --namespace=kube-system get pods --watch -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -o=json -l @args }
-function kgdepwojsonl { Write-Host "kubectl get deployment --watch -o=json -l $args" -ForegroundColor Magenta; k get deployment --watch -o=json -l @args }
-function ksysgdepwojsonl { Write-Host "kubectl --namespace=kube-system get deployment --watch -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -o=json -l @args }
-function kgsvcwojsonl { Write-Host "kubectl get service --watch -o=json -l $args" -ForegroundColor Magenta; k get service --watch -o=json -l @args }
-function ksysgsvcwojsonl { Write-Host "kubectl --namespace=kube-system get service --watch -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get service --watch -o=json -l @args }
-function kgingwojsonl { Write-Host "kubectl get ingress --watch -o=json -l $args" -ForegroundColor Magenta; k get ingress --watch -o=json -l @args }
-function ksysgingwojsonl { Write-Host "kubectl --namespace=kube-system get ingress --watch -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get ingress --watch -o=json -l @args }
-function kgcmwojsonl { Write-Host "kubectl get configmap --watch -o=json -l $args" -ForegroundColor Magenta; k get configmap --watch -o=json -l @args }
-function ksysgcmwojsonl { Write-Host "kubectl --namespace=kube-system get configmap --watch -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get configmap --watch -o=json -l @args }
-function kgsecwojsonl { Write-Host "kubectl get secret --watch -o=json -l $args" -ForegroundColor Magenta; k get secret --watch -o=json -l @args }
-function ksysgsecwojsonl { Write-Host "kubectl --namespace=kube-system get secret --watch -o=json -l $args" -ForegroundColor Magenta; k --namespace=kube-system get secret --watch -o=json -l @args }
-function kgnowojsonl { Write-Host "kubectl get nodes --watch -o=json -l $args" -ForegroundColor Magenta; k get nodes --watch -o=json -l @args }
-function kgnswojsonl { Write-Host "kubectl get namespaces --watch -o=json -l $args" -ForegroundColor Magenta; k get namespaces --watch -o=json -l @args }
-function kgslwl { Write-Host "kubectl get --show-labels --watch -l $args" -ForegroundColor Magenta; k get --show-labels --watch -l @args }
-function ksysgslwl { Write-Host "kubectl --namespace=kube-system get --show-labels --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --show-labels --watch -l @args }
-function kgposlwl { Write-Host "kubectl get pods --show-labels --watch -l $args" -ForegroundColor Magenta; k get pods --show-labels --watch -l @args }
-function ksysgposlwl { Write-Host "kubectl --namespace=kube-system get pods --show-labels --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --show-labels --watch -l @args }
-function kgdepslwl { Write-Host "kubectl get deployment --show-labels --watch -l $args" -ForegroundColor Magenta; k get deployment --show-labels --watch -l @args }
-function ksysgdepslwl { Write-Host "kubectl --namespace=kube-system get deployment --show-labels --watch -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --show-labels --watch -l @args }
-function kgwsll { Write-Host "kubectl get --watch --show-labels -l $args" -ForegroundColor Magenta; k get --watch --show-labels -l @args }
-function ksysgwsll { Write-Host "kubectl --namespace=kube-system get --watch --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch --show-labels -l @args }
-function kgpowsll { Write-Host "kubectl get pods --watch --show-labels -l $args" -ForegroundColor Magenta; k get pods --watch --show-labels -l @args }
-function ksysgpowsll { Write-Host "kubectl --namespace=kube-system get pods --watch --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch --show-labels -l @args }
-function kgdepwsll { Write-Host "kubectl get deployment --watch --show-labels -l $args" -ForegroundColor Magenta; k get deployment --watch --show-labels -l @args }
-function ksysgdepwsll { Write-Host "kubectl --namespace=kube-system get deployment --watch --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch --show-labels -l @args }
-function kgslwowidel { Write-Host "kubectl get --show-labels --watch -o=wide -l $args" -ForegroundColor Magenta; k get --show-labels --watch -o=wide -l @args }
-function ksysgslwowidel { Write-Host "kubectl --namespace=kube-system get --show-labels --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --show-labels --watch -o=wide -l @args }
-function kgposlwowidel { Write-Host "kubectl get pods --show-labels --watch -o=wide -l $args" -ForegroundColor Magenta; k get pods --show-labels --watch -o=wide -l @args }
-function ksysgposlwowidel { Write-Host "kubectl --namespace=kube-system get pods --show-labels --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --show-labels --watch -o=wide -l @args }
-function kgdepslwowidel { Write-Host "kubectl get deployment --show-labels --watch -o=wide -l $args" -ForegroundColor Magenta; k get deployment --show-labels --watch -o=wide -l @args }
-function ksysgdepslwowidel { Write-Host "kubectl --namespace=kube-system get deployment --show-labels --watch -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --show-labels --watch -o=wide -l @args }
-function kgwowidesll { Write-Host "kubectl get --watch -o=wide --show-labels -l $args" -ForegroundColor Magenta; k get --watch -o=wide --show-labels -l @args }
-function ksysgwowidesll { Write-Host "kubectl --namespace=kube-system get --watch -o=wide --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch -o=wide --show-labels -l @args }
-function kgpowowidesll { Write-Host "kubectl get pods --watch -o=wide --show-labels -l $args" -ForegroundColor Magenta; k get pods --watch -o=wide --show-labels -l @args }
-function ksysgpowowidesll { Write-Host "kubectl --namespace=kube-system get pods --watch -o=wide --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch -o=wide --show-labels -l @args }
-function kgdepwowidesll { Write-Host "kubectl get deployment --watch -o=wide --show-labels -l $args" -ForegroundColor Magenta; k get deployment --watch -o=wide --show-labels -l @args }
-function ksysgdepwowidesll { Write-Host "kubectl --namespace=kube-system get deployment --watch -o=wide --show-labels -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch -o=wide --show-labels -l @args }
-function kgwslowidel { Write-Host "kubectl get --watch --show-labels -o=wide -l $args" -ForegroundColor Magenta; k get --watch --show-labels -o=wide -l @args }
-function ksysgwslowidel { Write-Host "kubectl --namespace=kube-system get --watch --show-labels -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get --watch --show-labels -o=wide -l @args }
-function kgpowslowidel { Write-Host "kubectl get pods --watch --show-labels -o=wide -l $args" -ForegroundColor Magenta; k get pods --watch --show-labels -o=wide -l @args }
-function ksysgpowslowidel { Write-Host "kubectl --namespace=kube-system get pods --watch --show-labels -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get pods --watch --show-labels -o=wide -l @args }
-function kgdepwslowidel { Write-Host "kubectl get deployment --watch --show-labels -o=wide -l $args" -ForegroundColor Magenta; k get deployment --watch --show-labels -o=wide -l @args }
-function ksysgdepwslowidel { Write-Host "kubectl --namespace=kube-system get deployment --watch --show-labels -o=wide -l $args" -ForegroundColor Magenta; k --namespace=kube-system get deployment --watch --show-labels -o=wide -l @args }
-function kexn { Write-Host "kubectl exec -i -t --namespace $args" -ForegroundColor Magenta; k exec -i -t --namespace @args }
-function klon { Write-Host "kubectl logs -f --namespace $args" -ForegroundColor Magenta; k logs -f --namespace @args }
-function kpfn { Write-Host "kubectl port-forward --namespace $args" -ForegroundColor Magenta; k port-forward --namespace @args }
-function kgn { Write-Host "kubectl get --namespace $args" -ForegroundColor Magenta; k get --namespace @args }
-function kdn { Write-Host "kubectl describe --namespace $args" -ForegroundColor Magenta; k describe --namespace @args }
-function krmn { Write-Host "kubectl delete --namespace $args" -ForegroundColor Magenta; k delete --namespace @args }
-function kgpon { Write-Host "kubectl get pods --namespace $args" -ForegroundColor Magenta; k get pods --namespace @args }
-function kdpon { Write-Host "kubectl describe pods --namespace $args" -ForegroundColor Magenta; k describe pods --namespace @args }
-function krmpon { Write-Host "kubectl delete pods --namespace $args" -ForegroundColor Magenta; k delete pods --namespace @args }
-function kgdepn { Write-Host "kubectl get deployment --namespace $args" -ForegroundColor Magenta; k get deployment --namespace @args }
-function kddepn { Write-Host "kubectl describe deployment --namespace $args" -ForegroundColor Magenta; k describe deployment --namespace @args }
-function krmdepn { Write-Host "kubectl delete deployment --namespace $args" -ForegroundColor Magenta; k delete deployment --namespace @args }
-function kgsvcn { Write-Host "kubectl get service --namespace $args" -ForegroundColor Magenta; k get service --namespace @args }
-function kdsvcn { Write-Host "kubectl describe service --namespace $args" -ForegroundColor Magenta; k describe service --namespace @args }
-function krmsvcn { Write-Host "kubectl delete service --namespace $args" -ForegroundColor Magenta; k delete service --namespace @args }
-function kgingn { Write-Host "kubectl get ingress --namespace $args" -ForegroundColor Magenta; k get ingress --namespace @args }
-function kdingn { Write-Host "kubectl describe ingress --namespace $args" -ForegroundColor Magenta; k describe ingress --namespace @args }
-function krmingn { Write-Host "kubectl delete ingress --namespace $args" -ForegroundColor Magenta; k delete ingress --namespace @args }
-function kgcmn { Write-Host "kubectl get configmap --namespace $args" -ForegroundColor Magenta; k get configmap --namespace @args }
-function kdcmn { Write-Host "kubectl describe configmap --namespace $args" -ForegroundColor Magenta; k describe configmap --namespace @args }
-function krmcmn { Write-Host "kubectl delete configmap --namespace $args" -ForegroundColor Magenta; k delete configmap --namespace @args }
-function kgsecn { Write-Host "kubectl get secret --namespace $args" -ForegroundColor Magenta; k get secret --namespace @args }
-function kdsecn { Write-Host "kubectl describe secret --namespace $args" -ForegroundColor Magenta; k describe secret --namespace @args }
-function krmsecn { Write-Host "kubectl delete secret --namespace $args" -ForegroundColor Magenta; k delete secret --namespace @args }
-function kgoyamln { Write-Host "kubectl get -o=yaml --namespace $args" -ForegroundColor Magenta; k get -o=yaml --namespace @args }
-function kgpooyamln { Write-Host "kubectl get pods -o=yaml --namespace $args" -ForegroundColor Magenta; k get pods -o=yaml --namespace @args }
-function kgdepoyamln { Write-Host "kubectl get deployment -o=yaml --namespace $args" -ForegroundColor Magenta; k get deployment -o=yaml --namespace @args }
-function kgsvcoyamln { Write-Host "kubectl get service -o=yaml --namespace $args" -ForegroundColor Magenta; k get service -o=yaml --namespace @args }
-function kgingoyamln { Write-Host "kubectl get ingress -o=yaml --namespace $args" -ForegroundColor Magenta; k get ingress -o=yaml --namespace @args }
-function kgcmoyamln { Write-Host "kubectl get configmap -o=yaml --namespace $args" -ForegroundColor Magenta; k get configmap -o=yaml --namespace @args }
-function kgsecoyamln { Write-Host "kubectl get secret -o=yaml --namespace $args" -ForegroundColor Magenta; k get secret -o=yaml --namespace @args }
-function kgowiden { Write-Host "kubectl get -o=wide --namespace $args" -ForegroundColor Magenta; k get -o=wide --namespace @args }
-function kgpoowiden { Write-Host "kubectl get pods -o=wide --namespace $args" -ForegroundColor Magenta; k get pods -o=wide --namespace @args }
-function kgdepowiden { Write-Host "kubectl get deployment -o=wide --namespace $args" -ForegroundColor Magenta; k get deployment -o=wide --namespace @args }
-function kgsvcowiden { Write-Host "kubectl get service -o=wide --namespace $args" -ForegroundColor Magenta; k get service -o=wide --namespace @args }
-function kgingowiden { Write-Host "kubectl get ingress -o=wide --namespace $args" -ForegroundColor Magenta; k get ingress -o=wide --namespace @args }
-function kgcmowiden { Write-Host "kubectl get configmap -o=wide --namespace $args" -ForegroundColor Magenta; k get configmap -o=wide --namespace @args }
-function kgsecowiden { Write-Host "kubectl get secret -o=wide --namespace $args" -ForegroundColor Magenta; k get secret -o=wide --namespace @args }
-function kgojsonn { Write-Host "kubectl get -o=json --namespace $args" -ForegroundColor Magenta; k get -o=json --namespace @args }
-function kgpoojsonn { Write-Host "kubectl get pods -o=json --namespace $args" -ForegroundColor Magenta; k get pods -o=json --namespace @args }
-function kgdepojsonn { Write-Host "kubectl get deployment -o=json --namespace $args" -ForegroundColor Magenta; k get deployment -o=json --namespace @args }
-function kgsvcojsonn { Write-Host "kubectl get service -o=json --namespace $args" -ForegroundColor Magenta; k get service -o=json --namespace @args }
-function kgingojsonn { Write-Host "kubectl get ingress -o=json --namespace $args" -ForegroundColor Magenta; k get ingress -o=json --namespace @args }
-function kgcmojsonn { Write-Host "kubectl get configmap -o=json --namespace $args" -ForegroundColor Magenta; k get configmap -o=json --namespace @args }
-function kgsecojsonn { Write-Host "kubectl get secret -o=json --namespace $args" -ForegroundColor Magenta; k get secret -o=json --namespace @args }
-function kgsln { Write-Host "kubectl get --show-labels --namespace $args" -ForegroundColor Magenta; k get --show-labels --namespace @args }
-function kgposln { Write-Host "kubectl get pods --show-labels --namespace $args" -ForegroundColor Magenta; k get pods --show-labels --namespace @args }
-function kgdepsln { Write-Host "kubectl get deployment --show-labels --namespace $args" -ForegroundColor Magenta; k get deployment --show-labels --namespace @args }
-function kgwn { Write-Host "kubectl get --watch --namespace $args" -ForegroundColor Magenta; k get --watch --namespace @args }
-function kgpown { Write-Host "kubectl get pods --watch --namespace $args" -ForegroundColor Magenta; k get pods --watch --namespace @args }
-function kgdepwn { Write-Host "kubectl get deployment --watch --namespace $args" -ForegroundColor Magenta; k get deployment --watch --namespace @args }
-function kgsvcwn { Write-Host "kubectl get service --watch --namespace $args" -ForegroundColor Magenta; k get service --watch --namespace @args }
-function kgingwn { Write-Host "kubectl get ingress --watch --namespace $args" -ForegroundColor Magenta; k get ingress --watch --namespace @args }
-function kgcmwn { Write-Host "kubectl get configmap --watch --namespace $args" -ForegroundColor Magenta; k get configmap --watch --namespace @args }
-function kgsecwn { Write-Host "kubectl get secret --watch --namespace $args" -ForegroundColor Magenta; k get secret --watch --namespace @args }
-function kgwoyamln { Write-Host "kubectl get --watch -o=yaml --namespace $args" -ForegroundColor Magenta; k get --watch -o=yaml --namespace @args }
-function kgpowoyamln { Write-Host "kubectl get pods --watch -o=yaml --namespace $args" -ForegroundColor Magenta; k get pods --watch -o=yaml --namespace @args }
-function kgdepwoyamln { Write-Host "kubectl get deployment --watch -o=yaml --namespace $args" -ForegroundColor Magenta; k get deployment --watch -o=yaml --namespace @args }
-function kgsvcwoyamln { Write-Host "kubectl get service --watch -o=yaml --namespace $args" -ForegroundColor Magenta; k get service --watch -o=yaml --namespace @args }
-function kgingwoyamln { Write-Host "kubectl get ingress --watch -o=yaml --namespace $args" -ForegroundColor Magenta; k get ingress --watch -o=yaml --namespace @args }
-function kgcmwoyamln { Write-Host "kubectl get configmap --watch -o=yaml --namespace $args" -ForegroundColor Magenta; k get configmap --watch -o=yaml --namespace @args }
-function kgsecwoyamln { Write-Host "kubectl get secret --watch -o=yaml --namespace $args" -ForegroundColor Magenta; k get secret --watch -o=yaml --namespace @args }
-function kgowidesln { Write-Host "kubectl get -o=wide --show-labels --namespace $args" -ForegroundColor Magenta; k get -o=wide --show-labels --namespace @args }
-function kgpoowidesln { Write-Host "kubectl get pods -o=wide --show-labels --namespace $args" -ForegroundColor Magenta; k get pods -o=wide --show-labels --namespace @args }
-function kgdepowidesln { Write-Host "kubectl get deployment -o=wide --show-labels --namespace $args" -ForegroundColor Magenta; k get deployment -o=wide --show-labels --namespace @args }
-function kgslowiden { Write-Host "kubectl get --show-labels -o=wide --namespace $args" -ForegroundColor Magenta; k get --show-labels -o=wide --namespace @args }
-function kgposlowiden { Write-Host "kubectl get pods --show-labels -o=wide --namespace $args" -ForegroundColor Magenta; k get pods --show-labels -o=wide --namespace @args }
-function kgdepslowiden { Write-Host "kubectl get deployment --show-labels -o=wide --namespace $args" -ForegroundColor Magenta; k get deployment --show-labels -o=wide --namespace @args }
-function kgwowiden { Write-Host "kubectl get --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get --watch -o=wide --namespace @args }
-function kgpowowiden { Write-Host "kubectl get pods --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get pods --watch -o=wide --namespace @args }
-function kgdepwowiden { Write-Host "kubectl get deployment --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get deployment --watch -o=wide --namespace @args }
-function kgsvcwowiden { Write-Host "kubectl get service --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get service --watch -o=wide --namespace @args }
-function kgingwowiden { Write-Host "kubectl get ingress --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get ingress --watch -o=wide --namespace @args }
-function kgcmwowiden { Write-Host "kubectl get configmap --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get configmap --watch -o=wide --namespace @args }
-function kgsecwowiden { Write-Host "kubectl get secret --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get secret --watch -o=wide --namespace @args }
-function kgwojsonn { Write-Host "kubectl get --watch -o=json --namespace $args" -ForegroundColor Magenta; k get --watch -o=json --namespace @args }
-function kgpowojsonn { Write-Host "kubectl get pods --watch -o=json --namespace $args" -ForegroundColor Magenta; k get pods --watch -o=json --namespace @args }
-function kgdepwojsonn { Write-Host "kubectl get deployment --watch -o=json --namespace $args" -ForegroundColor Magenta; k get deployment --watch -o=json --namespace @args }
-function kgsvcwojsonn { Write-Host "kubectl get service --watch -o=json --namespace $args" -ForegroundColor Magenta; k get service --watch -o=json --namespace @args }
-function kgingwojsonn { Write-Host "kubectl get ingress --watch -o=json --namespace $args" -ForegroundColor Magenta; k get ingress --watch -o=json --namespace @args }
-function kgcmwojsonn { Write-Host "kubectl get configmap --watch -o=json --namespace $args" -ForegroundColor Magenta; k get configmap --watch -o=json --namespace @args }
-function kgsecwojsonn { Write-Host "kubectl get secret --watch -o=json --namespace $args" -ForegroundColor Magenta; k get secret --watch -o=json --namespace @args }
-function kgslwn { Write-Host "kubectl get --show-labels --watch --namespace $args" -ForegroundColor Magenta; k get --show-labels --watch --namespace @args }
-function kgposlwn { Write-Host "kubectl get pods --show-labels --watch --namespace $args" -ForegroundColor Magenta; k get pods --show-labels --watch --namespace @args }
-function kgdepslwn { Write-Host "kubectl get deployment --show-labels --watch --namespace $args" -ForegroundColor Magenta; k get deployment --show-labels --watch --namespace @args }
-function kgwsln { Write-Host "kubectl get --watch --show-labels --namespace $args" -ForegroundColor Magenta; k get --watch --show-labels --namespace @args }
-function kgpowsln { Write-Host "kubectl get pods --watch --show-labels --namespace $args" -ForegroundColor Magenta; k get pods --watch --show-labels --namespace @args }
-function kgdepwsln { Write-Host "kubectl get deployment --watch --show-labels --namespace $args" -ForegroundColor Magenta; k get deployment --watch --show-labels --namespace @args }
-function kgslwowiden { Write-Host "kubectl get --show-labels --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get --show-labels --watch -o=wide --namespace @args }
-function kgposlwowiden { Write-Host "kubectl get pods --show-labels --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get pods --show-labels --watch -o=wide --namespace @args }
-function kgdepslwowiden { Write-Host "kubectl get deployment --show-labels --watch -o=wide --namespace $args" -ForegroundColor Magenta; k get deployment --show-labels --watch -o=wide --namespace @args }
-function kgwowidesln { Write-Host "kubectl get --watch -o=wide --show-labels --namespace $args" -ForegroundColor Magenta; k get --watch -o=wide --show-labels --namespace @args }
-function kgpowowidesln { Write-Host "kubectl get pods --watch -o=wide --show-labels --namespace $args" -ForegroundColor Magenta; k get pods --watch -o=wide --show-labels --namespace @args }
-function kgdepwowidesln { Write-Host "kubectl get deployment --watch -o=wide --show-labels --namespace $args" -ForegroundColor Magenta; k get deployment --watch -o=wide --show-labels --namespace @args }
-function kgwslowiden { Write-Host "kubectl get --watch --show-labels -o=wide --namespace $args" -ForegroundColor Magenta; k get --watch --show-labels -o=wide --namespace @args }
-function kgpowslowiden { Write-Host "kubectl get pods --watch --show-labels -o=wide --namespace $args" -ForegroundColor Magenta; k get pods --watch --show-labels -o=wide --namespace @args }
-function kgdepwslowiden { Write-Host "kubectl get deployment --watch --show-labels -o=wide --namespace $args" -ForegroundColor Magenta; k get deployment --watch --show-labels -o=wide --namespace @args }
+function ktop { Invoke-WriteExecuteCommand -Command 'kubectl top pod --use-protocol-buffers' -Arguments $args }
+function ktopcntr { Invoke-WriteExecuteCommand -Command 'kubectl top pod --use-protocol-buffers --containers' -Arguments $args }
+function kinf { Invoke-WriteExecuteCommand -Command 'kubectl cluster-info' -Arguments $args }
+function kav { Invoke-WriteExecuteCommand -Command 'kubectl api-versions' -Arguments $args }
+function kcv { Invoke-WriteExecuteCommand -Command 'kubectl config view' -Arguments $args }
+function kcgctx { Invoke-WriteExecuteCommand -Command 'kubectl config get-contexts' -Arguments $args }
+function kcsctxcns { Invoke-WriteExecuteCommand -Command 'kubectl config set-context --current --namespace' -Arguments $args }
+function ksys { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system' -Arguments $args }
+function ka { Invoke-WriteExecuteCommand -Command 'kubectl apply --recursive -f' -Arguments $args }
+function ksysa { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system apply --recursive -f' -Arguments $args }
+function kak { Invoke-WriteExecuteCommand -Command 'kubectl apply -k' -Arguments $args }
+function kk { Invoke-WriteExecuteCommand -Command 'kubectl kustomize' -Arguments $args }
+function krmk { Invoke-WriteExecuteCommand -Command 'kubectl delete -k' -Arguments $args }
+function kex { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args }
+function kexsh { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
+function kexbash { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
+function kexpwsh { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
+function kexpy { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
+function kexipy { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
+function kre { Invoke-WriteExecuteCommand -Command 'kubectl replace' -Arguments $args }
+function kre! { Invoke-WriteExecuteCommand -Command 'kubectl replace --force' -Arguments $args }
+function kref { Invoke-WriteExecuteCommand -Command 'kubectl replace -f' -Arguments $args }
+function kref! { Invoke-WriteExecuteCommand -Command 'kubectl replace --force -f' -Arguments $args }
+function ksysex { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system exec -i -t' -Arguments $args }
+function klo { Invoke-WriteExecuteCommand -Command 'kubectl logs -f' -Arguments $args }
+function ksyslo { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system logs -f' -Arguments $args }
+function klop { Invoke-WriteExecuteCommand -Command 'kubectl logs -f -p' -Arguments $args }
+function ksyslop { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system logs -f -p' -Arguments $args }
+function kp { Invoke-WriteExecuteCommand -Command 'kubectl proxy' -Arguments $args }
+function kpf { Invoke-WriteExecuteCommand -Command 'kubectl port-forward' -Arguments $args }
+function kg { Invoke-WriteExecuteCommand -Command 'kubectl get' -Arguments $args }
+function ksysg { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get' -Arguments $args }
+function kd { Invoke-WriteExecuteCommand -Command 'kubectl describe' -Arguments $args }
+function ksysd { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe' -Arguments $args }
+function krm { Invoke-WriteExecuteCommand -Command 'kubectl delete' -Arguments $args }
+function ksysrm { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete' -Arguments $args }
+function krun { Invoke-WriteExecuteCommand -Command 'kubectl run --rm --restart=Never --image-pull-policy=IfNotPresent -i -t' -Arguments $args }
+function ksysrun { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system run --rm --restart=Never --image-pull-policy=IfNotPresent -i -t' -Arguments $args }
+function kgpo { Invoke-WriteExecuteCommand -Command 'kubectl get pods' -Arguments $args }
+function ksysgpo { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods' -Arguments $args }
+function kdpo { Invoke-WriteExecuteCommand -Command 'kubectl describe pods' -Arguments $args }
+function ksysdpo { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe pods' -Arguments $args }
+function krmpo { Invoke-WriteExecuteCommand -Command 'kubectl delete pods' -Arguments $args }
+function ksysrmpo { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete pods' -Arguments $args }
+function kgdep { Invoke-WriteExecuteCommand -Command 'kubectl get deployment' -Arguments $args }
+function ksysgdep { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment' -Arguments $args }
+function kddep { Invoke-WriteExecuteCommand -Command 'kubectl describe deployment' -Arguments $args }
+function ksysddep { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe deployment' -Arguments $args }
+function krmdep { Invoke-WriteExecuteCommand -Command 'kubectl delete deployment' -Arguments $args }
+function ksysrmdep { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete deployment' -Arguments $args }
+function kgsvc { Invoke-WriteExecuteCommand -Command 'kubectl get service' -Arguments $args }
+function ksysgsvc { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service' -Arguments $args }
+function kdsvc { Invoke-WriteExecuteCommand -Command 'kubectl describe service' -Arguments $args }
+function ksysdsvc { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe service' -Arguments $args }
+function krmsvc { Invoke-WriteExecuteCommand -Command 'kubectl delete service' -Arguments $args }
+function ksysrmsvc { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete service' -Arguments $args }
+function kging { Invoke-WriteExecuteCommand -Command 'kubectl get ingress' -Arguments $args }
+function ksysging { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress' -Arguments $args }
+function kding { Invoke-WriteExecuteCommand -Command 'kubectl describe ingress' -Arguments $args }
+function ksysding { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe ingress' -Arguments $args }
+function krming { Invoke-WriteExecuteCommand -Command 'kubectl delete ingress' -Arguments $args }
+function ksysrming { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete ingress' -Arguments $args }
+function kgcm { Invoke-WriteExecuteCommand -Command 'kubectl get configmap' -Arguments $args }
+function ksysgcm { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap' -Arguments $args }
+function kdcm { Invoke-WriteExecuteCommand -Command 'kubectl describe configmap' -Arguments $args }
+function ksysdcm { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe configmap' -Arguments $args }
+function krmcm { Invoke-WriteExecuteCommand -Command 'kubectl delete configmap' -Arguments $args }
+function ksysrmcm { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete configmap' -Arguments $args }
+function kgsec { Invoke-WriteExecuteCommand -Command 'kubectl get secret' -Arguments $args }
+function ksysgsec { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret' -Arguments $args }
+function kdsec { Invoke-WriteExecuteCommand -Command 'kubectl describe secret' -Arguments $args }
+function ksysdsec { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe secret' -Arguments $args }
+function krmsec { Invoke-WriteExecuteCommand -Command 'kubectl delete secret' -Arguments $args }
+function ksysrmsec { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete secret' -Arguments $args }
+function kgno { Invoke-WriteExecuteCommand -Command 'kubectl get nodes' -Arguments $args }
+function kdno { Invoke-WriteExecuteCommand -Command 'kubectl describe nodes' -Arguments $args }
+function kgns { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces' -Arguments $args }
+function kdns { Invoke-WriteExecuteCommand -Command 'kubectl describe namespaces' -Arguments $args }
+function krmns { Invoke-WriteExecuteCommand -Command 'kubectl delete namespaces' -Arguments $args }
+function kgoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get -o=yaml' -Arguments $args }
+function ksysgoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -o=yaml' -Arguments $args }
+function kgpooyaml { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=yaml' -Arguments $args }
+function ksysgpooyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -o=yaml' -Arguments $args }
+function kgdepoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=yaml' -Arguments $args }
+function ksysgdepoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -o=yaml' -Arguments $args }
+function kgsvcoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=yaml' -Arguments $args }
+function ksysgsvcoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service -o=yaml' -Arguments $args }
+function kgingoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=yaml' -Arguments $args }
+function ksysgingoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress -o=yaml' -Arguments $args }
+function kgcmoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=yaml' -Arguments $args }
+function ksysgcmoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap -o=yaml' -Arguments $args }
+function kgsecoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=yaml' -Arguments $args }
+function ksysgsecoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret -o=yaml' -Arguments $args }
+function kgnooyaml { Invoke-WriteExecuteCommand -Command 'kubectl get nodes -o=yaml' -Arguments $args }
+function kgnsoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=yaml' -Arguments $args }
+function kgowide { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide' -Arguments $args }
+function ksysgowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -o=wide' -Arguments $args }
+function kgpoowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide' -Arguments $args }
+function ksysgpoowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -o=wide' -Arguments $args }
+function kgdepowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide' -Arguments $args }
+function ksysgdepowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -o=wide' -Arguments $args }
+function kgsvcowide { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=wide' -Arguments $args }
+function ksysgsvcowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service -o=wide' -Arguments $args }
+function kgingowide { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=wide' -Arguments $args }
+function ksysgingowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress -o=wide' -Arguments $args }
+function kgcmowide { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=wide' -Arguments $args }
+function ksysgcmowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap -o=wide' -Arguments $args }
+function kgsecowide { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=wide' -Arguments $args }
+function ksysgsecowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret -o=wide' -Arguments $args }
+function kgnoowide { Invoke-WriteExecuteCommand -Command 'kubectl get nodes -o=wide' -Arguments $args }
+function kgnsowide { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=wide' -Arguments $args }
+function kgojson { Invoke-WriteExecuteCommand -Command 'kubectl get -o=json' -Arguments $args }
+function ksysgojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -o=json' -Arguments $args }
+function kgpoojson { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=json' -Arguments $args }
+function ksysgpoojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -o=json' -Arguments $args }
+function kgdepojson { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=json' -Arguments $args }
+function ksysgdepojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -o=json' -Arguments $args }
+function kgsvcojson { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=json' -Arguments $args }
+function ksysgsvcojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service -o=json' -Arguments $args }
+function kgingojson { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=json' -Arguments $args }
+function ksysgingojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress -o=json' -Arguments $args }
+function kgcmojson { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=json' -Arguments $args }
+function ksysgcmojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap -o=json' -Arguments $args }
+function kgsecojson { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=json' -Arguments $args }
+function ksysgsecojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret -o=json' -Arguments $args }
+function kgnoojson { Invoke-WriteExecuteCommand -Command 'kubectl get nodes -o=json' -Arguments $args }
+function kgnsojson { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=json' -Arguments $args }
+function kgall { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces' -Arguments $args }
+function kdall { Invoke-WriteExecuteCommand -Command 'kubectl describe --all-namespaces' -Arguments $args }
+function kgpoall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces' -Arguments $args }
+function kdpoall { Invoke-WriteExecuteCommand -Command 'kubectl describe pods --all-namespaces' -Arguments $args }
+function kgdepall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces' -Arguments $args }
+function kddepall { Invoke-WriteExecuteCommand -Command 'kubectl describe deployment --all-namespaces' -Arguments $args }
+function kgsvcall { Invoke-WriteExecuteCommand -Command 'kubectl get service --all-namespaces' -Arguments $args }
+function kdsvcall { Invoke-WriteExecuteCommand -Command 'kubectl describe service --all-namespaces' -Arguments $args }
+function kgingall { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --all-namespaces' -Arguments $args }
+function kdingall { Invoke-WriteExecuteCommand -Command 'kubectl describe ingress --all-namespaces' -Arguments $args }
+function kgcmall { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --all-namespaces' -Arguments $args }
+function kdcmall { Invoke-WriteExecuteCommand -Command 'kubectl describe configmap --all-namespaces' -Arguments $args }
+function kgsecall { Invoke-WriteExecuteCommand -Command 'kubectl get secret --all-namespaces' -Arguments $args }
+function kdsecall { Invoke-WriteExecuteCommand -Command 'kubectl describe secret --all-namespaces' -Arguments $args }
+function kgnsall { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --all-namespaces' -Arguments $args }
+function kdnsall { Invoke-WriteExecuteCommand -Command 'kubectl describe namespaces --all-namespaces' -Arguments $args }
+function kgsl { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels' -Arguments $args }
+function ksysgsl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --show-labels' -Arguments $args }
+function kgposl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels' -Arguments $args }
+function ksysgposl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --show-labels' -Arguments $args }
+function kgdepsl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels' -Arguments $args }
+function ksysgdepsl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --show-labels' -Arguments $args }
+function krmall { Invoke-WriteExecuteCommand -Command 'kubectl delete --all' -Arguments $args }
+function ksysrmall { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete --all' -Arguments $args }
+function krmpoall { Invoke-WriteExecuteCommand -Command 'kubectl delete pods --all' -Arguments $args }
+function ksysrmpoall { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete pods --all' -Arguments $args }
+function krmdepall { Invoke-WriteExecuteCommand -Command 'kubectl delete deployment --all' -Arguments $args }
+function ksysrmdepall { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete deployment --all' -Arguments $args }
+function krmsvcall { Invoke-WriteExecuteCommand -Command 'kubectl delete service --all' -Arguments $args }
+function ksysrmsvcall { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete service --all' -Arguments $args }
+function krmingall { Invoke-WriteExecuteCommand -Command 'kubectl delete ingress --all' -Arguments $args }
+function ksysrmingall { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete ingress --all' -Arguments $args }
+function krmcmall { Invoke-WriteExecuteCommand -Command 'kubectl delete configmap --all' -Arguments $args }
+function ksysrmcmall { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete configmap --all' -Arguments $args }
+function krmsecall { Invoke-WriteExecuteCommand -Command 'kubectl delete secret --all' -Arguments $args }
+function ksysrmsecall { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete secret --all' -Arguments $args }
+function krmnsall { Invoke-WriteExecuteCommand -Command 'kubectl delete namespaces --all' -Arguments $args }
+function kgw { Invoke-WriteExecuteCommand -Command 'kubectl get --watch' -Arguments $args }
+function ksysgw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch' -Arguments $args }
+function kgpow { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch' -Arguments $args }
+function ksysgpow { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch' -Arguments $args }
+function kgdepw { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch' -Arguments $args }
+function ksysgdepw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch' -Arguments $args }
+function kgsvcw { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch' -Arguments $args }
+function ksysgsvcw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service --watch' -Arguments $args }
+function kgingw { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch' -Arguments $args }
+function ksysgingw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress --watch' -Arguments $args }
+function kgcmw { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch' -Arguments $args }
+function ksysgcmw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap --watch' -Arguments $args }
+function kgsecw { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch' -Arguments $args }
+function ksysgsecw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret --watch' -Arguments $args }
+function kgnow { Invoke-WriteExecuteCommand -Command 'kubectl get nodes --watch' -Arguments $args }
+function kgnsw { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch' -Arguments $args }
+function kgoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get -o=yaml --all-namespaces' -Arguments $args }
+function kgpooyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=yaml --all-namespaces' -Arguments $args }
+function kgdepoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=yaml --all-namespaces' -Arguments $args }
+function kgsvcoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=yaml --all-namespaces' -Arguments $args }
+function kgingoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=yaml --all-namespaces' -Arguments $args }
+function kgcmoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=yaml --all-namespaces' -Arguments $args }
+function kgsecoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=yaml --all-namespaces' -Arguments $args }
+function kgnsoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=yaml --all-namespaces' -Arguments $args }
+function kgalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces -o=yaml' -Arguments $args }
+function kgpoalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces -o=yaml' -Arguments $args }
+function kgdepalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces -o=yaml' -Arguments $args }
+function kgsvcalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get service --all-namespaces -o=yaml' -Arguments $args }
+function kgingalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --all-namespaces -o=yaml' -Arguments $args }
+function kgcmalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --all-namespaces -o=yaml' -Arguments $args }
+function kgsecalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get secret --all-namespaces -o=yaml' -Arguments $args }
+function kgnsalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --all-namespaces -o=yaml' -Arguments $args }
+function kgwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=yaml' -Arguments $args }
+function ksysgwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -o=yaml' -Arguments $args }
+function kgpowoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=yaml' -Arguments $args }
+function ksysgpowoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -o=yaml' -Arguments $args }
+function kgdepwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=yaml' -Arguments $args }
+function ksysgdepwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -o=yaml' -Arguments $args }
+function kgsvcwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=yaml' -Arguments $args }
+function ksysgsvcwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service --watch -o=yaml' -Arguments $args }
+function kgingwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=yaml' -Arguments $args }
+function ksysgingwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress --watch -o=yaml' -Arguments $args }
+function kgcmwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=yaml' -Arguments $args }
+function ksysgcmwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap --watch -o=yaml' -Arguments $args }
+function kgsecwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=yaml' -Arguments $args }
+function ksysgsecwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret --watch -o=yaml' -Arguments $args }
+function kgnowoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get nodes --watch -o=yaml' -Arguments $args }
+function kgnswoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=yaml' -Arguments $args }
+function kgowideall { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --all-namespaces' -Arguments $args }
+function kgpoowideall { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide --all-namespaces' -Arguments $args }
+function kgdepowideall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide --all-namespaces' -Arguments $args }
+function kgsvcowideall { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=wide --all-namespaces' -Arguments $args }
+function kgingowideall { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=wide --all-namespaces' -Arguments $args }
+function kgcmowideall { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=wide --all-namespaces' -Arguments $args }
+function kgsecowideall { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=wide --all-namespaces' -Arguments $args }
+function kgnsowideall { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=wide --all-namespaces' -Arguments $args }
+function kgallowide { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces -o=wide' -Arguments $args }
+function kgpoallowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces -o=wide' -Arguments $args }
+function kgdepallowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces -o=wide' -Arguments $args }
+function kgsvcallowide { Invoke-WriteExecuteCommand -Command 'kubectl get service --all-namespaces -o=wide' -Arguments $args }
+function kgingallowide { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --all-namespaces -o=wide' -Arguments $args }
+function kgcmallowide { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --all-namespaces -o=wide' -Arguments $args }
+function kgsecallowide { Invoke-WriteExecuteCommand -Command 'kubectl get secret --all-namespaces -o=wide' -Arguments $args }
+function kgnsallowide { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --all-namespaces -o=wide' -Arguments $args }
+function kgowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --show-labels' -Arguments $args }
+function ksysgowidesl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -o=wide --show-labels' -Arguments $args }
+function kgpoowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide --show-labels' -Arguments $args }
+function ksysgpoowidesl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -o=wide --show-labels' -Arguments $args }
+function kgdepowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide --show-labels' -Arguments $args }
+function ksysgdepowidesl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -o=wide --show-labels' -Arguments $args }
+function kgslowide { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels -o=wide' -Arguments $args }
+function ksysgslowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --show-labels -o=wide' -Arguments $args }
+function kgposlowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels -o=wide' -Arguments $args }
+function ksysgposlowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --show-labels -o=wide' -Arguments $args }
+function kgdepslowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels -o=wide' -Arguments $args }
+function ksysgdepslowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --show-labels -o=wide' -Arguments $args }
+function kgwowide { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide' -Arguments $args }
+function ksysgwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -o=wide' -Arguments $args }
+function kgpowowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide' -Arguments $args }
+function ksysgpowowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -o=wide' -Arguments $args }
+function kgdepwowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide' -Arguments $args }
+function ksysgdepwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -o=wide' -Arguments $args }
+function kgsvcwowide { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=wide' -Arguments $args }
+function ksysgsvcwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service --watch -o=wide' -Arguments $args }
+function kgingwowide { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=wide' -Arguments $args }
+function ksysgingwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress --watch -o=wide' -Arguments $args }
+function kgcmwowide { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=wide' -Arguments $args }
+function ksysgcmwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap --watch -o=wide' -Arguments $args }
+function kgsecwowide { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=wide' -Arguments $args }
+function ksysgsecwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret --watch -o=wide' -Arguments $args }
+function kgnowowide { Invoke-WriteExecuteCommand -Command 'kubectl get nodes --watch -o=wide' -Arguments $args }
+function kgnswowide { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=wide' -Arguments $args }
+function kgojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get -o=json --all-namespaces' -Arguments $args }
+function kgpoojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=json --all-namespaces' -Arguments $args }
+function kgdepojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=json --all-namespaces' -Arguments $args }
+function kgsvcojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=json --all-namespaces' -Arguments $args }
+function kgingojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=json --all-namespaces' -Arguments $args }
+function kgcmojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=json --all-namespaces' -Arguments $args }
+function kgsecojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=json --all-namespaces' -Arguments $args }
+function kgnsojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=json --all-namespaces' -Arguments $args }
+function kgallojson { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces -o=json' -Arguments $args }
+function kgpoallojson { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces -o=json' -Arguments $args }
+function kgdepallojson { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces -o=json' -Arguments $args }
+function kgsvcallojson { Invoke-WriteExecuteCommand -Command 'kubectl get service --all-namespaces -o=json' -Arguments $args }
+function kgingallojson { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --all-namespaces -o=json' -Arguments $args }
+function kgcmallojson { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --all-namespaces -o=json' -Arguments $args }
+function kgsecallojson { Invoke-WriteExecuteCommand -Command 'kubectl get secret --all-namespaces -o=json' -Arguments $args }
+function kgnsallojson { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --all-namespaces -o=json' -Arguments $args }
+function kgwojson { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=json' -Arguments $args }
+function ksysgwojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -o=json' -Arguments $args }
+function kgpowojson { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=json' -Arguments $args }
+function ksysgpowojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -o=json' -Arguments $args }
+function kgdepwojson { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=json' -Arguments $args }
+function ksysgdepwojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -o=json' -Arguments $args }
+function kgsvcwojson { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=json' -Arguments $args }
+function ksysgsvcwojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service --watch -o=json' -Arguments $args }
+function kgingwojson { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=json' -Arguments $args }
+function ksysgingwojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress --watch -o=json' -Arguments $args }
+function kgcmwojson { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=json' -Arguments $args }
+function ksysgcmwojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap --watch -o=json' -Arguments $args }
+function kgsecwojson { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=json' -Arguments $args }
+function ksysgsecwojson { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret --watch -o=json' -Arguments $args }
+function kgnowojson { Invoke-WriteExecuteCommand -Command 'kubectl get nodes --watch -o=json' -Arguments $args }
+function kgnswojson { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=json' -Arguments $args }
+function kgallsl { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --show-labels' -Arguments $args }
+function kgpoallsl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --show-labels' -Arguments $args }
+function kgdepallsl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --show-labels' -Arguments $args }
+function kgslall { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --all-namespaces' -Arguments $args }
+function kgposlall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --all-namespaces' -Arguments $args }
+function kgdepslall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --all-namespaces' -Arguments $args }
+function kgallw { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --watch' -Arguments $args }
+function kgpoallw { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --watch' -Arguments $args }
+function kgdepallw { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --watch' -Arguments $args }
+function kgsvcallw { Invoke-WriteExecuteCommand -Command 'kubectl get service --all-namespaces --watch' -Arguments $args }
+function kgingallw { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --all-namespaces --watch' -Arguments $args }
+function kgcmallw { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --all-namespaces --watch' -Arguments $args }
+function kgsecallw { Invoke-WriteExecuteCommand -Command 'kubectl get secret --all-namespaces --watch' -Arguments $args }
+function kgnsallw { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --all-namespaces --watch' -Arguments $args }
+function kgwall { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --all-namespaces' -Arguments $args }
+function kgpowall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --all-namespaces' -Arguments $args }
+function kgdepwall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --all-namespaces' -Arguments $args }
+function kgsvcwall { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch --all-namespaces' -Arguments $args }
+function kgingwall { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch --all-namespaces' -Arguments $args }
+function kgcmwall { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch --all-namespaces' -Arguments $args }
+function kgsecwall { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch --all-namespaces' -Arguments $args }
+function kgnswall { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch --all-namespaces' -Arguments $args }
+function kgslw { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch' -Arguments $args }
+function ksysgslw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --show-labels --watch' -Arguments $args }
+function kgposlw { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch' -Arguments $args }
+function ksysgposlw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --show-labels --watch' -Arguments $args }
+function kgdepslw { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch' -Arguments $args }
+function ksysgdepslw { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --show-labels --watch' -Arguments $args }
+function kgwsl { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels' -Arguments $args }
+function ksysgwsl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch --show-labels' -Arguments $args }
+function kgpowsl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels' -Arguments $args }
+function ksysgpowsl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch --show-labels' -Arguments $args }
+function kgdepwsl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels' -Arguments $args }
+function ksysgdepwsl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch --show-labels' -Arguments $args }
+function kgallwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --watch -o=yaml' -Arguments $args }
+function kgpoallwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --watch -o=yaml' -Arguments $args }
+function kgdepallwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --watch -o=yaml' -Arguments $args }
+function kgsvcallwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get service --all-namespaces --watch -o=yaml' -Arguments $args }
+function kgingallwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --all-namespaces --watch -o=yaml' -Arguments $args }
+function kgcmallwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --all-namespaces --watch -o=yaml' -Arguments $args }
+function kgsecallwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get secret --all-namespaces --watch -o=yaml' -Arguments $args }
+function kgnsallwoyaml { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --all-namespaces --watch -o=yaml' -Arguments $args }
+function kgwoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=yaml --all-namespaces' -Arguments $args }
+function kgpowoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=yaml --all-namespaces' -Arguments $args }
+function kgdepwoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=yaml --all-namespaces' -Arguments $args }
+function kgsvcwoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=yaml --all-namespaces' -Arguments $args }
+function kgingwoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=yaml --all-namespaces' -Arguments $args }
+function kgcmwoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=yaml --all-namespaces' -Arguments $args }
+function kgsecwoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=yaml --all-namespaces' -Arguments $args }
+function kgnswoyamlall { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=yaml --all-namespaces' -Arguments $args }
+function kgwalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --all-namespaces -o=yaml' -Arguments $args }
+function kgpowalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --all-namespaces -o=yaml' -Arguments $args }
+function kgdepwalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --all-namespaces -o=yaml' -Arguments $args }
+function kgsvcwalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch --all-namespaces -o=yaml' -Arguments $args }
+function kgingwalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch --all-namespaces -o=yaml' -Arguments $args }
+function kgcmwalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch --all-namespaces -o=yaml' -Arguments $args }
+function kgsecwalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch --all-namespaces -o=yaml' -Arguments $args }
+function kgnswalloyaml { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch --all-namespaces -o=yaml' -Arguments $args }
+function kgowideallsl { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --all-namespaces --show-labels' -Arguments $args }
+function kgpoowideallsl { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide --all-namespaces --show-labels' -Arguments $args }
+function kgdepowideallsl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide --all-namespaces --show-labels' -Arguments $args }
+function kgowideslall { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --show-labels --all-namespaces' -Arguments $args }
+function kgpoowideslall { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide --show-labels --all-namespaces' -Arguments $args }
+function kgdepowideslall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide --show-labels --all-namespaces' -Arguments $args }
+function kgallowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces -o=wide --show-labels' -Arguments $args }
+function kgpoallowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces -o=wide --show-labels' -Arguments $args }
+function kgdepallowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces -o=wide --show-labels' -Arguments $args }
+function kgallslowide { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --show-labels -o=wide' -Arguments $args }
+function kgpoallslowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --show-labels -o=wide' -Arguments $args }
+function kgdepallslowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --show-labels -o=wide' -Arguments $args }
+function kgslowideall { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels -o=wide --all-namespaces' -Arguments $args }
+function kgposlowideall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels -o=wide --all-namespaces' -Arguments $args }
+function kgdepslowideall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels -o=wide --all-namespaces' -Arguments $args }
+function kgslallowide { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --all-namespaces -o=wide' -Arguments $args }
+function kgposlallowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --all-namespaces -o=wide' -Arguments $args }
+function kgdepslallowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --all-namespaces -o=wide' -Arguments $args }
+function kgallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --watch -o=wide' -Arguments $args }
+function kgpoallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --watch -o=wide' -Arguments $args }
+function kgdepallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --watch -o=wide' -Arguments $args }
+function kgsvcallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get service --all-namespaces --watch -o=wide' -Arguments $args }
+function kgingallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --all-namespaces --watch -o=wide' -Arguments $args }
+function kgcmallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --all-namespaces --watch -o=wide' -Arguments $args }
+function kgsecallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get secret --all-namespaces --watch -o=wide' -Arguments $args }
+function kgnsallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --all-namespaces --watch -o=wide' -Arguments $args }
+function kgwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --all-namespaces' -Arguments $args }
+function kgpowowideall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide --all-namespaces' -Arguments $args }
+function kgdepwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide --all-namespaces' -Arguments $args }
+function kgsvcwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=wide --all-namespaces' -Arguments $args }
+function kgingwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=wide --all-namespaces' -Arguments $args }
+function kgcmwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=wide --all-namespaces' -Arguments $args }
+function kgsecwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=wide --all-namespaces' -Arguments $args }
+function kgnswowideall { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=wide --all-namespaces' -Arguments $args }
+function kgwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --all-namespaces -o=wide' -Arguments $args }
+function kgpowallowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --all-namespaces -o=wide' -Arguments $args }
+function kgdepwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --all-namespaces -o=wide' -Arguments $args }
+function kgsvcwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch --all-namespaces -o=wide' -Arguments $args }
+function kgingwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch --all-namespaces -o=wide' -Arguments $args }
+function kgcmwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch --all-namespaces -o=wide' -Arguments $args }
+function kgsecwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch --all-namespaces -o=wide' -Arguments $args }
+function kgnswallowide { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch --all-namespaces -o=wide' -Arguments $args }
+function kgslwowide { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch -o=wide' -Arguments $args }
+function ksysgslwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --show-labels --watch -o=wide' -Arguments $args }
+function kgposlwowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch -o=wide' -Arguments $args }
+function ksysgposlwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --show-labels --watch -o=wide' -Arguments $args }
+function kgdepslwowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch -o=wide' -Arguments $args }
+function ksysgdepslwowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --show-labels --watch -o=wide' -Arguments $args }
+function kgwowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --show-labels' -Arguments $args }
+function ksysgwowidesl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -o=wide --show-labels' -Arguments $args }
+function kgpowowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide --show-labels' -Arguments $args }
+function ksysgpowowidesl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -o=wide --show-labels' -Arguments $args }
+function kgdepwowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide --show-labels' -Arguments $args }
+function ksysgdepwowidesl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -o=wide --show-labels' -Arguments $args }
+function kgwslowide { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels -o=wide' -Arguments $args }
+function ksysgwslowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch --show-labels -o=wide' -Arguments $args }
+function kgpowslowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels -o=wide' -Arguments $args }
+function ksysgpowslowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch --show-labels -o=wide' -Arguments $args }
+function kgdepwslowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels -o=wide' -Arguments $args }
+function ksysgdepwslowide { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch --show-labels -o=wide' -Arguments $args }
+function kgallwojson { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --watch -o=json' -Arguments $args }
+function kgpoallwojson { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --watch -o=json' -Arguments $args }
+function kgdepallwojson { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --watch -o=json' -Arguments $args }
+function kgsvcallwojson { Invoke-WriteExecuteCommand -Command 'kubectl get service --all-namespaces --watch -o=json' -Arguments $args }
+function kgingallwojson { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --all-namespaces --watch -o=json' -Arguments $args }
+function kgcmallwojson { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --all-namespaces --watch -o=json' -Arguments $args }
+function kgsecallwojson { Invoke-WriteExecuteCommand -Command 'kubectl get secret --all-namespaces --watch -o=json' -Arguments $args }
+function kgnsallwojson { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --all-namespaces --watch -o=json' -Arguments $args }
+function kgwojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=json --all-namespaces' -Arguments $args }
+function kgpowojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=json --all-namespaces' -Arguments $args }
+function kgdepwojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=json --all-namespaces' -Arguments $args }
+function kgsvcwojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=json --all-namespaces' -Arguments $args }
+function kgingwojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=json --all-namespaces' -Arguments $args }
+function kgcmwojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=json --all-namespaces' -Arguments $args }
+function kgsecwojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=json --all-namespaces' -Arguments $args }
+function kgnswojsonall { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=json --all-namespaces' -Arguments $args }
+function kgwallojson { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --all-namespaces -o=json' -Arguments $args }
+function kgpowallojson { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --all-namespaces -o=json' -Arguments $args }
+function kgdepwallojson { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --all-namespaces -o=json' -Arguments $args }
+function kgsvcwallojson { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch --all-namespaces -o=json' -Arguments $args }
+function kgingwallojson { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch --all-namespaces -o=json' -Arguments $args }
+function kgcmwallojson { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch --all-namespaces -o=json' -Arguments $args }
+function kgsecwallojson { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch --all-namespaces -o=json' -Arguments $args }
+function kgnswallojson { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch --all-namespaces -o=json' -Arguments $args }
+function kgallslw { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --show-labels --watch' -Arguments $args }
+function kgpoallslw { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --show-labels --watch' -Arguments $args }
+function kgdepallslw { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --show-labels --watch' -Arguments $args }
+function kgallwsl { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --watch --show-labels' -Arguments $args }
+function kgpoallwsl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --watch --show-labels' -Arguments $args }
+function kgdepallwsl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --watch --show-labels' -Arguments $args }
+function kgslallw { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --all-namespaces --watch' -Arguments $args }
+function kgposlallw { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --all-namespaces --watch' -Arguments $args }
+function kgdepslallw { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --all-namespaces --watch' -Arguments $args }
+function kgslwall { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch --all-namespaces' -Arguments $args }
+function kgposlwall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch --all-namespaces' -Arguments $args }
+function kgdepslwall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch --all-namespaces' -Arguments $args }
+function kgwallsl { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --all-namespaces --show-labels' -Arguments $args }
+function kgpowallsl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --all-namespaces --show-labels' -Arguments $args }
+function kgdepwallsl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --all-namespaces --show-labels' -Arguments $args }
+function kgwslall { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels --all-namespaces' -Arguments $args }
+function kgpowslall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels --all-namespaces' -Arguments $args }
+function kgdepwslall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels --all-namespaces' -Arguments $args }
+function kgallslwowide { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --show-labels --watch -o=wide' -Arguments $args }
+function kgpoallslwowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --show-labels --watch -o=wide' -Arguments $args }
+function kgdepallslwowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --show-labels --watch -o=wide' -Arguments $args }
+function kgallwowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --watch -o=wide --show-labels' -Arguments $args }
+function kgpoallwowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --watch -o=wide --show-labels' -Arguments $args }
+function kgdepallwowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --watch -o=wide --show-labels' -Arguments $args }
+function kgallwslowide { Invoke-WriteExecuteCommand -Command 'kubectl get --all-namespaces --watch --show-labels -o=wide' -Arguments $args }
+function kgpoallwslowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --all-namespaces --watch --show-labels -o=wide' -Arguments $args }
+function kgdepallwslowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --all-namespaces --watch --show-labels -o=wide' -Arguments $args }
+function kgslallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --all-namespaces --watch -o=wide' -Arguments $args }
+function kgposlallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --all-namespaces --watch -o=wide' -Arguments $args }
+function kgdepslallwowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --all-namespaces --watch -o=wide' -Arguments $args }
+function kgslwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch -o=wide --all-namespaces' -Arguments $args }
+function kgposlwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch -o=wide --all-namespaces' -Arguments $args }
+function kgdepslwowideall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch -o=wide --all-namespaces' -Arguments $args }
+function kgslwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch --all-namespaces -o=wide' -Arguments $args }
+function kgposlwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch --all-namespaces -o=wide' -Arguments $args }
+function kgdepslwallowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch --all-namespaces -o=wide' -Arguments $args }
+function kgwowideallsl { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --all-namespaces --show-labels' -Arguments $args }
+function kgpowowideallsl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide --all-namespaces --show-labels' -Arguments $args }
+function kgdepwowideallsl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide --all-namespaces --show-labels' -Arguments $args }
+function kgwowideslall { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --show-labels --all-namespaces' -Arguments $args }
+function kgpowowideslall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide --show-labels --all-namespaces' -Arguments $args }
+function kgdepwowideslall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide --show-labels --all-namespaces' -Arguments $args }
+function kgwallowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --all-namespaces -o=wide --show-labels' -Arguments $args }
+function kgpowallowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --all-namespaces -o=wide --show-labels' -Arguments $args }
+function kgdepwallowidesl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --all-namespaces -o=wide --show-labels' -Arguments $args }
+function kgwallslowide { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --all-namespaces --show-labels -o=wide' -Arguments $args }
+function kgpowallslowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --all-namespaces --show-labels -o=wide' -Arguments $args }
+function kgdepwallslowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --all-namespaces --show-labels -o=wide' -Arguments $args }
+function kgwslowideall { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels -o=wide --all-namespaces' -Arguments $args }
+function kgpowslowideall { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels -o=wide --all-namespaces' -Arguments $args }
+function kgdepwslowideall { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels -o=wide --all-namespaces' -Arguments $args }
+function kgwslallowide { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels --all-namespaces -o=wide' -Arguments $args }
+function kgpowslallowide { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels --all-namespaces -o=wide' -Arguments $args }
+function kgdepwslallowide { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels --all-namespaces -o=wide' -Arguments $args }
+function kgf { Invoke-WriteExecuteCommand -Command 'kubectl get --recursive -f' -Arguments $args }
+function kdf { Invoke-WriteExecuteCommand -Command 'kubectl describe --recursive -f' -Arguments $args }
+function krmf { Invoke-WriteExecuteCommand -Command 'kubectl delete --recursive -f' -Arguments $args }
+function kgoyamlf { Invoke-WriteExecuteCommand -Command 'kubectl get -o=yaml --recursive -f' -Arguments $args }
+function kgowidef { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --recursive -f' -Arguments $args }
+function kgojsonf { Invoke-WriteExecuteCommand -Command 'kubectl get -o=json --recursive -f' -Arguments $args }
+function kgslf { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --recursive -f' -Arguments $args }
+function kgwf { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --recursive -f' -Arguments $args }
+function kgwoyamlf { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=yaml --recursive -f' -Arguments $args }
+function kgowideslf { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --show-labels --recursive -f' -Arguments $args }
+function kgslowidef { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels -o=wide --recursive -f' -Arguments $args }
+function kgwowidef { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --recursive -f' -Arguments $args }
+function kgwojsonf { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=json --recursive -f' -Arguments $args }
+function kgslwf { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch --recursive -f' -Arguments $args }
+function kgwslf { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels --recursive -f' -Arguments $args }
+function kgslwowidef { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch -o=wide --recursive -f' -Arguments $args }
+function kgwowideslf { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --show-labels --recursive -f' -Arguments $args }
+function kgwslowidef { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels -o=wide --recursive -f' -Arguments $args }
+function kgl { Invoke-WriteExecuteCommand -Command 'kubectl get -l' -Arguments $args }
+function ksysgl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -l' -Arguments $args }
+function kdl { Invoke-WriteExecuteCommand -Command 'kubectl describe -l' -Arguments $args }
+function ksysdl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe -l' -Arguments $args }
+function krml { Invoke-WriteExecuteCommand -Command 'kubectl delete -l' -Arguments $args }
+function ksysrml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete -l' -Arguments $args }
+function kgpol { Invoke-WriteExecuteCommand -Command 'kubectl get pods -l' -Arguments $args }
+function ksysgpol { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -l' -Arguments $args }
+function kdpol { Invoke-WriteExecuteCommand -Command 'kubectl describe pods -l' -Arguments $args }
+function ksysdpol { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe pods -l' -Arguments $args }
+function krmpol { Invoke-WriteExecuteCommand -Command 'kubectl delete pods -l' -Arguments $args }
+function ksysrmpol { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete pods -l' -Arguments $args }
+function kgdepl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -l' -Arguments $args }
+function ksysgdepl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -l' -Arguments $args }
+function kddepl { Invoke-WriteExecuteCommand -Command 'kubectl describe deployment -l' -Arguments $args }
+function ksysddepl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe deployment -l' -Arguments $args }
+function krmdepl { Invoke-WriteExecuteCommand -Command 'kubectl delete deployment -l' -Arguments $args }
+function ksysrmdepl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete deployment -l' -Arguments $args }
+function kgsvcl { Invoke-WriteExecuteCommand -Command 'kubectl get service -l' -Arguments $args }
+function ksysgsvcl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service -l' -Arguments $args }
+function kdsvcl { Invoke-WriteExecuteCommand -Command 'kubectl describe service -l' -Arguments $args }
+function ksysdsvcl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe service -l' -Arguments $args }
+function krmsvcl { Invoke-WriteExecuteCommand -Command 'kubectl delete service -l' -Arguments $args }
+function ksysrmsvcl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete service -l' -Arguments $args }
+function kgingl { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -l' -Arguments $args }
+function ksysgingl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress -l' -Arguments $args }
+function kdingl { Invoke-WriteExecuteCommand -Command 'kubectl describe ingress -l' -Arguments $args }
+function ksysdingl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe ingress -l' -Arguments $args }
+function krmingl { Invoke-WriteExecuteCommand -Command 'kubectl delete ingress -l' -Arguments $args }
+function ksysrmingl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete ingress -l' -Arguments $args }
+function kgcml { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -l' -Arguments $args }
+function ksysgcml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap -l' -Arguments $args }
+function kdcml { Invoke-WriteExecuteCommand -Command 'kubectl describe configmap -l' -Arguments $args }
+function ksysdcml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe configmap -l' -Arguments $args }
+function krmcml { Invoke-WriteExecuteCommand -Command 'kubectl delete configmap -l' -Arguments $args }
+function ksysrmcml { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete configmap -l' -Arguments $args }
+function kgsecl { Invoke-WriteExecuteCommand -Command 'kubectl get secret -l' -Arguments $args }
+function ksysgsecl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret -l' -Arguments $args }
+function kdsecl { Invoke-WriteExecuteCommand -Command 'kubectl describe secret -l' -Arguments $args }
+function ksysdsecl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system describe secret -l' -Arguments $args }
+function krmsecl { Invoke-WriteExecuteCommand -Command 'kubectl delete secret -l' -Arguments $args }
+function ksysrmsecl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system delete secret -l' -Arguments $args }
+function kgnol { Invoke-WriteExecuteCommand -Command 'kubectl get nodes -l' -Arguments $args }
+function kdnol { Invoke-WriteExecuteCommand -Command 'kubectl describe nodes -l' -Arguments $args }
+function kgnsl { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -l' -Arguments $args }
+function kdnsl { Invoke-WriteExecuteCommand -Command 'kubectl describe namespaces -l' -Arguments $args }
+function krmnsl { Invoke-WriteExecuteCommand -Command 'kubectl delete namespaces -l' -Arguments $args }
+function kgoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get -o=yaml -l' -Arguments $args }
+function ksysgoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -o=yaml -l' -Arguments $args }
+function kgpooyamll { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=yaml -l' -Arguments $args }
+function ksysgpooyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -o=yaml -l' -Arguments $args }
+function kgdepoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=yaml -l' -Arguments $args }
+function ksysgdepoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -o=yaml -l' -Arguments $args }
+function kgsvcoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=yaml -l' -Arguments $args }
+function ksysgsvcoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service -o=yaml -l' -Arguments $args }
+function kgingoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=yaml -l' -Arguments $args }
+function ksysgingoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress -o=yaml -l' -Arguments $args }
+function kgcmoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=yaml -l' -Arguments $args }
+function ksysgcmoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap -o=yaml -l' -Arguments $args }
+function kgsecoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=yaml -l' -Arguments $args }
+function ksysgsecoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret -o=yaml -l' -Arguments $args }
+function kgnooyamll { Invoke-WriteExecuteCommand -Command 'kubectl get nodes -o=yaml -l' -Arguments $args }
+function kgnsoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=yaml -l' -Arguments $args }
+function kgowidel { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide -l' -Arguments $args }
+function ksysgowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -o=wide -l' -Arguments $args }
+function kgpoowidel { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide -l' -Arguments $args }
+function ksysgpoowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -o=wide -l' -Arguments $args }
+function kgdepowidel { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide -l' -Arguments $args }
+function ksysgdepowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -o=wide -l' -Arguments $args }
+function kgsvcowidel { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=wide -l' -Arguments $args }
+function ksysgsvcowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service -o=wide -l' -Arguments $args }
+function kgingowidel { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=wide -l' -Arguments $args }
+function ksysgingowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress -o=wide -l' -Arguments $args }
+function kgcmowidel { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=wide -l' -Arguments $args }
+function ksysgcmowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap -o=wide -l' -Arguments $args }
+function kgsecowidel { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=wide -l' -Arguments $args }
+function ksysgsecowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret -o=wide -l' -Arguments $args }
+function kgnoowidel { Invoke-WriteExecuteCommand -Command 'kubectl get nodes -o=wide -l' -Arguments $args }
+function kgnsowidel { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=wide -l' -Arguments $args }
+function kgojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get -o=json -l' -Arguments $args }
+function ksysgojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -o=json -l' -Arguments $args }
+function kgpoojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=json -l' -Arguments $args }
+function ksysgpoojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -o=json -l' -Arguments $args }
+function kgdepojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=json -l' -Arguments $args }
+function ksysgdepojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -o=json -l' -Arguments $args }
+function kgsvcojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=json -l' -Arguments $args }
+function ksysgsvcojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service -o=json -l' -Arguments $args }
+function kgingojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=json -l' -Arguments $args }
+function ksysgingojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress -o=json -l' -Arguments $args }
+function kgcmojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=json -l' -Arguments $args }
+function ksysgcmojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap -o=json -l' -Arguments $args }
+function kgsecojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=json -l' -Arguments $args }
+function ksysgsecojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret -o=json -l' -Arguments $args }
+function kgnoojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get nodes -o=json -l' -Arguments $args }
+function kgnsojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces -o=json -l' -Arguments $args }
+function kgsll { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels -l' -Arguments $args }
+function ksysgsll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --show-labels -l' -Arguments $args }
+function kgposll { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels -l' -Arguments $args }
+function ksysgposll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --show-labels -l' -Arguments $args }
+function kgdepsll { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels -l' -Arguments $args }
+function ksysgdepsll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --show-labels -l' -Arguments $args }
+function kgwl { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -l' -Arguments $args }
+function ksysgwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -l' -Arguments $args }
+function kgpowl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -l' -Arguments $args }
+function ksysgpowl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -l' -Arguments $args }
+function kgdepwl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -l' -Arguments $args }
+function ksysgdepwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -l' -Arguments $args }
+function kgsvcwl { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -l' -Arguments $args }
+function ksysgsvcwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service --watch -l' -Arguments $args }
+function kgingwl { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -l' -Arguments $args }
+function ksysgingwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress --watch -l' -Arguments $args }
+function kgcmwl { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -l' -Arguments $args }
+function ksysgcmwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap --watch -l' -Arguments $args }
+function kgsecwl { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -l' -Arguments $args }
+function ksysgsecwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret --watch -l' -Arguments $args }
+function kgnowl { Invoke-WriteExecuteCommand -Command 'kubectl get nodes --watch -l' -Arguments $args }
+function kgnswl { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -l' -Arguments $args }
+function kgwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=yaml -l' -Arguments $args }
+function ksysgwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -o=yaml -l' -Arguments $args }
+function kgpowoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=yaml -l' -Arguments $args }
+function ksysgpowoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -o=yaml -l' -Arguments $args }
+function kgdepwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=yaml -l' -Arguments $args }
+function ksysgdepwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -o=yaml -l' -Arguments $args }
+function kgsvcwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=yaml -l' -Arguments $args }
+function ksysgsvcwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service --watch -o=yaml -l' -Arguments $args }
+function kgingwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=yaml -l' -Arguments $args }
+function ksysgingwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress --watch -o=yaml -l' -Arguments $args }
+function kgcmwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=yaml -l' -Arguments $args }
+function ksysgcmwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap --watch -o=yaml -l' -Arguments $args }
+function kgsecwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=yaml -l' -Arguments $args }
+function ksysgsecwoyamll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret --watch -o=yaml -l' -Arguments $args }
+function kgnowoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get nodes --watch -o=yaml -l' -Arguments $args }
+function kgnswoyamll { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=yaml -l' -Arguments $args }
+function kgowidesll { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --show-labels -l' -Arguments $args }
+function ksysgowidesll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get -o=wide --show-labels -l' -Arguments $args }
+function kgpoowidesll { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide --show-labels -l' -Arguments $args }
+function ksysgpoowidesll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods -o=wide --show-labels -l' -Arguments $args }
+function kgdepowidesll { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide --show-labels -l' -Arguments $args }
+function ksysgdepowidesll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment -o=wide --show-labels -l' -Arguments $args }
+function kgslowidel { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels -o=wide -l' -Arguments $args }
+function ksysgslowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --show-labels -o=wide -l' -Arguments $args }
+function kgposlowidel { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels -o=wide -l' -Arguments $args }
+function ksysgposlowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --show-labels -o=wide -l' -Arguments $args }
+function kgdepslowidel { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels -o=wide -l' -Arguments $args }
+function ksysgdepslowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --show-labels -o=wide -l' -Arguments $args }
+function kgwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide -l' -Arguments $args }
+function ksysgwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -o=wide -l' -Arguments $args }
+function kgpowowidel { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide -l' -Arguments $args }
+function ksysgpowowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -o=wide -l' -Arguments $args }
+function kgdepwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide -l' -Arguments $args }
+function ksysgdepwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -o=wide -l' -Arguments $args }
+function kgsvcwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=wide -l' -Arguments $args }
+function ksysgsvcwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service --watch -o=wide -l' -Arguments $args }
+function kgingwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=wide -l' -Arguments $args }
+function ksysgingwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress --watch -o=wide -l' -Arguments $args }
+function kgcmwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=wide -l' -Arguments $args }
+function ksysgcmwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap --watch -o=wide -l' -Arguments $args }
+function kgsecwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=wide -l' -Arguments $args }
+function ksysgsecwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret --watch -o=wide -l' -Arguments $args }
+function kgnowowidel { Invoke-WriteExecuteCommand -Command 'kubectl get nodes --watch -o=wide -l' -Arguments $args }
+function kgnswowidel { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=wide -l' -Arguments $args }
+function kgwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=json -l' -Arguments $args }
+function ksysgwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -o=json -l' -Arguments $args }
+function kgpowojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=json -l' -Arguments $args }
+function ksysgpowojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -o=json -l' -Arguments $args }
+function kgdepwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=json -l' -Arguments $args }
+function ksysgdepwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -o=json -l' -Arguments $args }
+function kgsvcwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=json -l' -Arguments $args }
+function ksysgsvcwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get service --watch -o=json -l' -Arguments $args }
+function kgingwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=json -l' -Arguments $args }
+function ksysgingwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get ingress --watch -o=json -l' -Arguments $args }
+function kgcmwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=json -l' -Arguments $args }
+function ksysgcmwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get configmap --watch -o=json -l' -Arguments $args }
+function kgsecwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=json -l' -Arguments $args }
+function ksysgsecwojsonl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get secret --watch -o=json -l' -Arguments $args }
+function kgnowojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get nodes --watch -o=json -l' -Arguments $args }
+function kgnswojsonl { Invoke-WriteExecuteCommand -Command 'kubectl get namespaces --watch -o=json -l' -Arguments $args }
+function kgslwl { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch -l' -Arguments $args }
+function ksysgslwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --show-labels --watch -l' -Arguments $args }
+function kgposlwl { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch -l' -Arguments $args }
+function ksysgposlwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --show-labels --watch -l' -Arguments $args }
+function kgdepslwl { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch -l' -Arguments $args }
+function ksysgdepslwl { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --show-labels --watch -l' -Arguments $args }
+function kgwsll { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels -l' -Arguments $args }
+function ksysgwsll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch --show-labels -l' -Arguments $args }
+function kgpowsll { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels -l' -Arguments $args }
+function ksysgpowsll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch --show-labels -l' -Arguments $args }
+function kgdepwsll { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels -l' -Arguments $args }
+function ksysgdepwsll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch --show-labels -l' -Arguments $args }
+function kgslwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch -o=wide -l' -Arguments $args }
+function ksysgslwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --show-labels --watch -o=wide -l' -Arguments $args }
+function kgposlwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch -o=wide -l' -Arguments $args }
+function ksysgposlwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --show-labels --watch -o=wide -l' -Arguments $args }
+function kgdepslwowidel { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch -o=wide -l' -Arguments $args }
+function ksysgdepslwowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --show-labels --watch -o=wide -l' -Arguments $args }
+function kgwowidesll { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --show-labels -l' -Arguments $args }
+function ksysgwowidesll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch -o=wide --show-labels -l' -Arguments $args }
+function kgpowowidesll { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide --show-labels -l' -Arguments $args }
+function ksysgpowowidesll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch -o=wide --show-labels -l' -Arguments $args }
+function kgdepwowidesll { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide --show-labels -l' -Arguments $args }
+function ksysgdepwowidesll { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch -o=wide --show-labels -l' -Arguments $args }
+function kgwslowidel { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels -o=wide -l' -Arguments $args }
+function ksysgwslowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get --watch --show-labels -o=wide -l' -Arguments $args }
+function kgpowslowidel { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels -o=wide -l' -Arguments $args }
+function ksysgpowslowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get pods --watch --show-labels -o=wide -l' -Arguments $args }
+function kgdepwslowidel { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels -o=wide -l' -Arguments $args }
+function ksysgdepwslowidel { Invoke-WriteExecuteCommand -Command 'kubectl --namespace=kube-system get deployment --watch --show-labels -o=wide -l' -Arguments $args }
+function kexn { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t --namespace' -Arguments $args }
+function klon { Invoke-WriteExecuteCommand -Command 'kubectl logs -f --namespace' -Arguments $args }
+function kpfn { Invoke-WriteExecuteCommand -Command 'kubectl port-forward --namespace' -Arguments $args }
+function kgn { Invoke-WriteExecuteCommand -Command 'kubectl get --namespace' -Arguments $args }
+function kdn { Invoke-WriteExecuteCommand -Command 'kubectl describe --namespace' -Arguments $args }
+function krmn { Invoke-WriteExecuteCommand -Command 'kubectl delete --namespace' -Arguments $args }
+function kgpon { Invoke-WriteExecuteCommand -Command 'kubectl get pods --namespace' -Arguments $args }
+function kdpon { Invoke-WriteExecuteCommand -Command 'kubectl describe pods --namespace' -Arguments $args }
+function krmpon { Invoke-WriteExecuteCommand -Command 'kubectl delete pods --namespace' -Arguments $args }
+function kgdepn { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --namespace' -Arguments $args }
+function kddepn { Invoke-WriteExecuteCommand -Command 'kubectl describe deployment --namespace' -Arguments $args }
+function krmdepn { Invoke-WriteExecuteCommand -Command 'kubectl delete deployment --namespace' -Arguments $args }
+function kgsvcn { Invoke-WriteExecuteCommand -Command 'kubectl get service --namespace' -Arguments $args }
+function kdsvcn { Invoke-WriteExecuteCommand -Command 'kubectl describe service --namespace' -Arguments $args }
+function krmsvcn { Invoke-WriteExecuteCommand -Command 'kubectl delete service --namespace' -Arguments $args }
+function kgingn { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --namespace' -Arguments $args }
+function kdingn { Invoke-WriteExecuteCommand -Command 'kubectl describe ingress --namespace' -Arguments $args }
+function krmingn { Invoke-WriteExecuteCommand -Command 'kubectl delete ingress --namespace' -Arguments $args }
+function kgcmn { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --namespace' -Arguments $args }
+function kdcmn { Invoke-WriteExecuteCommand -Command 'kubectl describe configmap --namespace' -Arguments $args }
+function krmcmn { Invoke-WriteExecuteCommand -Command 'kubectl delete configmap --namespace' -Arguments $args }
+function kgsecn { Invoke-WriteExecuteCommand -Command 'kubectl get secret --namespace' -Arguments $args }
+function kdsecn { Invoke-WriteExecuteCommand -Command 'kubectl describe secret --namespace' -Arguments $args }
+function krmsecn { Invoke-WriteExecuteCommand -Command 'kubectl delete secret --namespace' -Arguments $args }
+function kgoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get -o=yaml --namespace' -Arguments $args }
+function kgpooyamln { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=yaml --namespace' -Arguments $args }
+function kgdepoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=yaml --namespace' -Arguments $args }
+function kgsvcoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=yaml --namespace' -Arguments $args }
+function kgingoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=yaml --namespace' -Arguments $args }
+function kgcmoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=yaml --namespace' -Arguments $args }
+function kgsecoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=yaml --namespace' -Arguments $args }
+function kgowiden { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --namespace' -Arguments $args }
+function kgpoowiden { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide --namespace' -Arguments $args }
+function kgdepowiden { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide --namespace' -Arguments $args }
+function kgsvcowiden { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=wide --namespace' -Arguments $args }
+function kgingowiden { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=wide --namespace' -Arguments $args }
+function kgcmowiden { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=wide --namespace' -Arguments $args }
+function kgsecowiden { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=wide --namespace' -Arguments $args }
+function kgojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get -o=json --namespace' -Arguments $args }
+function kgpoojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=json --namespace' -Arguments $args }
+function kgdepojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=json --namespace' -Arguments $args }
+function kgsvcojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get service -o=json --namespace' -Arguments $args }
+function kgingojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get ingress -o=json --namespace' -Arguments $args }
+function kgcmojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get configmap -o=json --namespace' -Arguments $args }
+function kgsecojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get secret -o=json --namespace' -Arguments $args }
+function kgsln { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --namespace' -Arguments $args }
+function kgposln { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --namespace' -Arguments $args }
+function kgdepsln { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --namespace' -Arguments $args }
+function kgwn { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --namespace' -Arguments $args }
+function kgpown { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --namespace' -Arguments $args }
+function kgdepwn { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --namespace' -Arguments $args }
+function kgsvcwn { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch --namespace' -Arguments $args }
+function kgingwn { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch --namespace' -Arguments $args }
+function kgcmwn { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch --namespace' -Arguments $args }
+function kgsecwn { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch --namespace' -Arguments $args }
+function kgwoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=yaml --namespace' -Arguments $args }
+function kgpowoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=yaml --namespace' -Arguments $args }
+function kgdepwoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=yaml --namespace' -Arguments $args }
+function kgsvcwoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=yaml --namespace' -Arguments $args }
+function kgingwoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=yaml --namespace' -Arguments $args }
+function kgcmwoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=yaml --namespace' -Arguments $args }
+function kgsecwoyamln { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=yaml --namespace' -Arguments $args }
+function kgowidesln { Invoke-WriteExecuteCommand -Command 'kubectl get -o=wide --show-labels --namespace' -Arguments $args }
+function kgpoowidesln { Invoke-WriteExecuteCommand -Command 'kubectl get pods -o=wide --show-labels --namespace' -Arguments $args }
+function kgdepowidesln { Invoke-WriteExecuteCommand -Command 'kubectl get deployment -o=wide --show-labels --namespace' -Arguments $args }
+function kgslowiden { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels -o=wide --namespace' -Arguments $args }
+function kgposlowiden { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels -o=wide --namespace' -Arguments $args }
+function kgdepslowiden { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels -o=wide --namespace' -Arguments $args }
+function kgwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --namespace' -Arguments $args }
+function kgpowowiden { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide --namespace' -Arguments $args }
+function kgdepwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide --namespace' -Arguments $args }
+function kgsvcwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=wide --namespace' -Arguments $args }
+function kgingwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=wide --namespace' -Arguments $args }
+function kgcmwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=wide --namespace' -Arguments $args }
+function kgsecwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=wide --namespace' -Arguments $args }
+function kgwojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=json --namespace' -Arguments $args }
+function kgpowojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=json --namespace' -Arguments $args }
+function kgdepwojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=json --namespace' -Arguments $args }
+function kgsvcwojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get service --watch -o=json --namespace' -Arguments $args }
+function kgingwojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get ingress --watch -o=json --namespace' -Arguments $args }
+function kgcmwojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get configmap --watch -o=json --namespace' -Arguments $args }
+function kgsecwojsonn { Invoke-WriteExecuteCommand -Command 'kubectl get secret --watch -o=json --namespace' -Arguments $args }
+function kgslwn { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch --namespace' -Arguments $args }
+function kgposlwn { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch --namespace' -Arguments $args }
+function kgdepslwn { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch --namespace' -Arguments $args }
+function kgwsln { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels --namespace' -Arguments $args }
+function kgpowsln { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels --namespace' -Arguments $args }
+function kgdepwsln { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels --namespace' -Arguments $args }
+function kgslwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get --show-labels --watch -o=wide --namespace' -Arguments $args }
+function kgposlwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get pods --show-labels --watch -o=wide --namespace' -Arguments $args }
+function kgdepslwowiden { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --show-labels --watch -o=wide --namespace' -Arguments $args }
+function kgwowidesln { Invoke-WriteExecuteCommand -Command 'kubectl get --watch -o=wide --show-labels --namespace' -Arguments $args }
+function kgpowowidesln { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch -o=wide --show-labels --namespace' -Arguments $args }
+function kgdepwowidesln { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch -o=wide --show-labels --namespace' -Arguments $args }
+function kgwslowiden { Invoke-WriteExecuteCommand -Command 'kubectl get --watch --show-labels -o=wide --namespace' -Arguments $args }
+function kgpowslowiden { Invoke-WriteExecuteCommand -Command 'kubectl get pods --watch --show-labels -o=wide --namespace' -Arguments $args }
+function kgdepwslowiden { Invoke-WriteExecuteCommand -Command 'kubectl get deployment --watch --show-labels -o=wide --namespace' -Arguments $args }
