@@ -49,7 +49,7 @@ Switch whether to get all commits, otherwise only last 50 will be shown.
 .PARAMETER Quiet
 Switch whether to write command.
 #>
-function Get-GitLogObject () {
+function Get-GitLogObject {
     param (
         [switch]$All,
 
@@ -71,10 +71,18 @@ function Get-GitLogObject () {
 <#
 .SYNOPSIS
 Clean local branches.
+
 .PARAMETER DeleteNoMerged
-Flag wether to delete no merged branches
+Switch whether to delete no merged branches.
+.PARAMETER WhatIf
+Switch whether to see what the command would have done instead of making changes.
 #>
-function Remove-GitLocalBranches ([switch]$DeleteNoMerged) {
+function Remove-GitLocalBranches {
+    param (
+        [switch]$DeleteNoMerged,
+
+        [switch]$WhatIf
+    )
     begin {
         # *switch to dev/main branch
         git switch $(Get-GitResolvedBranch)
@@ -88,17 +96,23 @@ function Remove-GitLocalBranches ([switch]$DeleteNoMerged) {
         # *get list of branches
         filter branchFilter { $_.Where({ $_ -notmatch '^ma(in|ster)$|^dev(|el|elop)$|^qa$|^stage$|^trunk$' }) }
         $merged = git branch --format='%(refname:short)' --merged | branchFilter
-        if ($DeleteNoMerged) {
-            $no_merged = git branch --format='%(refname:short)' --no-merged | branchFilter
-        }
         # *delete branches
         foreach ($branch in $merged) {
-            git branch --delete $branch
+            $param = @{ Command = "git branch --delete $branch" }
+            if ($WhatIf) {
+                $param.Arguments = '-WhatIf'
+            }
+            Invoke-WriteExecuteCommand @param
         }
         if ($DeleteNoMerged) {
+            $no_merged = git branch --format='%(refname:short)' --no-merged | branchFilter
             foreach ($branch in $no_merged) {
                 if ((Read-Host -Prompt "Do you want to remove branch: `e[1;97m$branch`e[0m? [y/N]") -eq 'y') {
-                    git branch -D $branch
+                    $param = @{ Command = "git branch -D $branch" }
+                    if ($WhatIf) {
+                        $param.Arguments = '-WhatIf'
+                    }
+                    Invoke-WriteExecuteCommand @param
                 }
             }
         }
@@ -136,17 +150,27 @@ function gca! { Invoke-WriteExecuteCommand -Command 'git commit -v -a --amend' -
 function gcam { Invoke-WriteExecuteCommand -Command 'git commit -a -m' -Arguments $args }
 function gcamp {
     Invoke-WriteExecuteCommand -Command 'git commit -a -m' -Arguments $args
-    $arg = '-WhatIf' -in $args ? @($(Get-GitCurrentBranch), '-WhatIf') : @($(Get-GitCurrentBranch))
-    Invoke-WriteExecuteCommand -Command 'git push origin' -Arguments $arg
+    $param = @{ Command = "git push origin $(Get-GitCurrentBranch)" }
+    if ('-WhatIf' -in $args) {
+        $param.Arguments = '-WhatIf'
+    }
+    Invoke-WriteExecuteCommand @param
 }
 function gcan! { Invoke-WriteExecuteCommand -Command 'git commit -v -a --no-edit --amend' -Arguments $args }
-function gcanp! { Invoke-WriteExecuteCommand -Command 'git commit -v -a --no-edit --amend' -Arguments $args }
+function gcanp! {
+    Invoke-WriteExecuteCommand -Command 'git commit -v -a --no-edit --amend' -Arguments $args
+    $param = @{ Command = "git push origin $(Get-GitCurrentBranch) --force" }
+    if ('-WhatIf' -in $args) {
+        $param.Arguments = '-WhatIf'
+    }
+    Invoke-WriteExecuteCommand @param
+}
 function gcans! { Invoke-WriteExecuteCommand -Command 'git commit -v -a -s --no-edit --amend' -Arguments $args }
 function gcb { Invoke-WriteExecuteCommand -Command 'git checkout -b' -Arguments $args }
 function gcf { Invoke-WriteExecuteCommand -Command 'git config --list' -Arguments $args }
 function gcl { Invoke-WriteExecuteCommand -Command 'git clone --recursive' -Arguments $args }
 function gclean { Invoke-WriteExecuteCommand -Command 'git clean -fd' -Arguments $args }
-function gcm { Invoke-WriteExecuteCommand -Command 'git commit -m' -Arguments $args }
+function gcmsg { Invoke-WriteExecuteCommand -Command 'git commit -m' -Arguments $args }
 function gcn! { Invoke-WriteExecuteCommand -Command 'git commit -v --no-edit --amend' -Arguments $args }
 function gcnp! { Invoke-WriteExecuteCommand -Command 'git commit -v --no-edit --amend' -Arguments $args }
 function gco { Invoke-WriteExecuteCommand -Command 'git checkout' -Arguments $args }
@@ -167,6 +191,9 @@ function gfa { Invoke-WriteExecuteCommand -Command 'git fetch --all --prune' -Ar
 function gfo { Invoke-WriteExecuteCommand -Command 'git fetch origin' -Arguments $args }
 function gg { Invoke-WriteExecuteCommand -Command 'git gui citool' -Arguments $args }
 function gga { Invoke-WriteExecuteCommand -Command 'git gui citool --amend' -Arguments $args }
+function ggr { Invoke-WriteExecuteCommand -Command 'git grep --ignore-case' -Arguments $args }
+function ggre { Invoke-WriteExecuteCommand -Command 'git grep --ignore-case --extended-regexp' -Arguments $args }
+function ggrp { Invoke-WriteExecuteCommand -Command 'git grep --ignore-case --perl-regexp' -Arguments $args }
 function ghh { Invoke-WriteExecuteCommand -Command 'git help' -Arguments $args }
 function gignore { Invoke-WriteExecuteCommand -Command 'git update-index --assume-unchanged' -Arguments $args }
 function gignored { Invoke-WriteExecuteCommand -Command 'git ls-files -v | Select-String "^[a-z]" -CaseSensitive' }
@@ -189,8 +216,8 @@ function gmum { Invoke-WriteExecuteCommand -Command 'git merge upstream/master' 
 function gp { Invoke-WriteExecuteCommand -Command 'git push' -Arguments $args }
 function gpd { Invoke-WriteExecuteCommand -Command 'git push --dry-run' -Arguments $args }
 function gpl { Invoke-WriteExecuteCommand -Command "git pull origin $(Get-GitCurrentBranch)" -Arguments $args }
-function gpoat { Invoke-WriteExecuteCommand -Command 'git push origin --all && git push origin --tags' -Arguments $args }
-function gpristine { Invoke-WriteExecuteCommand -Command 'git reset --hard && git clean -dfx' -Arguments $args }
+function gpoat { Invoke-WriteExecuteCommand -Command 'git push origin --all && git push origin --tags' }
+function gpristine { Invoke-WriteExecuteCommand -Command 'git reset --hard && git clean -dfx' }
 function gpsup { Invoke-WriteExecuteCommand -Command "git push --set-upstream origin $(Get-GitCurrentBranch)" -Arguments $args }
 function gpu { Invoke-WriteExecuteCommand -Command 'git push upstream' -Arguments $args }
 function gpull { Invoke-WriteExecuteCommand -Command 'git pull origin' -Arguments $args }
@@ -205,10 +232,8 @@ function grbc { Invoke-WriteExecuteCommand -Command 'git rebase --continue' -Arg
 function grbi { Invoke-WriteExecuteCommand -Command 'git rebase -i' -Arguments $args }
 function grbm { Invoke-WriteExecuteCommand -Command 'git rebase master' -Arguments $args }
 function grbs { Invoke-WriteExecuteCommand -Command 'git rebase --skip' -Arguments $args }
-function grh {
-    $arg = $args ? $args : "origin/$(Get-GitCurrentBranch)"
-    Invoke-WriteExecuteCommand -Command 'git reset --hard' -Arguments $arg
-}
+function grh { Invoke-WriteExecuteCommand -Command 'git reset --hard' -Arguments $args }
+function grho { Invoke-WriteExecuteCommand -Command "git reset --hard origin/$(Get-GitCurrentBranch)" -Arguments $args }
 function grmb { Invoke-WriteExecuteCommand -Command "git reset `$(git merge-base origin/$(Get-GitResolvedBranch) HEAD)" }
 function grmv { Invoke-WriteExecuteCommand -Command 'git remote rename' -Arguments $args }
 function grrm { Invoke-WriteExecuteCommand -Command 'git remote remove' -Arguments $args }
