@@ -29,20 +29,20 @@ if (Test-Path $CFG_PATH/_aliases_linux.ps1) {
 # *Copy global profiles
 if (Test-Path $CFG_PATH -PathType Container) {
     # PowerShell profile
-    Move-Item $CFG_PATH/profile.ps1 -Destination $PROFILE.AllUsersAllHosts -Force
+    install -o root -g root -m 0644 $CFG_PATH/profile.ps1 $PROFILE.AllUsersAllHosts
     # PowerShell functions
     if (-not (Test-Path $SCRIPTS_PATH)) {
         New-Item $SCRIPTS_PATH -ItemType Directory | Out-Null
     }
-    Move-Item $CFG_PATH/_aliases_common.ps1 -Destination $SCRIPTS_PATH -Force
-    Move-Item $CFG_PATH/_aliases_linux.ps1 -Destination $SCRIPTS_PATH -Force
+    install -o root -g root -m 0644 $CFG_PATH/_aliases_common.ps1 $SCRIPTS_PATH
+    install -o root -g root -m 0644 $CFG_PATH/_aliases_linux.ps1 $SCRIPTS_PATH
     # git functions
     if (Test-Path /usr/bin/git -PathType Leaf) {
-        Move-Item $CFG_PATH/_aliases_git.ps1 -Destination $SCRIPTS_PATH -Force
+        install -o root -g root -m 0644 $CFG_PATH/_aliases_git.ps1 $SCRIPTS_PATH
     }
     # kubectl functions
     if (Test-Path /usr/bin/kubectl -PathType Leaf) {
-        Move-Item $CFG_PATH/_aliases_kubectl.ps1 -Destination $SCRIPTS_PATH -Force
+        install -o root -g root -m 0644 $CFG_PATH/_aliases_kubectl.ps1 $SCRIPTS_PATH
     }
     # clean config folder
     Remove-Item $CFG_PATH -Recurse -Force

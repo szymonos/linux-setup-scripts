@@ -28,14 +28,14 @@ fi
 # *Copy global profiles
 if [ -d $CFG_PATH ]; then
   # bash aliases
-  mv -f $CFG_PATH/aliases.sh $PROFILE_PATH
+  install -o root -g root -m 0644 $CFG_PATH/aliases.sh $PROFILE_PATH
   # git aliases
   if type git &>/dev/null; then
-    mv -f $CFG_PATH/aliases_git.sh $PROFILE_PATH
+    install -o root -g root -m 0644 $CFG_PATH/aliases_git.sh $PROFILE_PATH
   fi
   # kubectl aliases
   if type -f kubectl &>/dev/null; then
-    mv -f $CFG_PATH/aliases_kubectl.sh $PROFILE_PATH
+    install -o root -g root -m 0644 $CFG_PATH/aliases_kubectl.sh $PROFILE_PATH
   fi
   # clean config folder
   rm -fr $CFG_PATH
