@@ -40,6 +40,6 @@ while [[ ! -f $TMP_DIR/k9s.tgz && $retry_count -lt 10 ]]; do
 done
 tar -zxvf $TMP_DIR/k9s.tgz -C $TMP_DIR
 mkdir -p /opt/k9s
-install -o root -g root -m 0755 $TMP_DIR/k9s /opt/k9s/k9s
+install -o root -g root -m 0755 $TMP_DIR/k9s /opt/k9s/
 [ -f /usr/bin/k9s ] || ln -s /opt/k9s/k9s /usr/bin/k9s
 rm -fr $TMP_DIR

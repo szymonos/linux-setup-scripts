@@ -67,9 +67,11 @@ if [[ "$binary" = true ]]; then
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f $TMP_DIR/bat && $retry_count -lt 10 ]]; do
-    curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx -C $TMP_DIR
+    curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx --strip-components=1 -C $TMP_DIR
     ((retry_count++))
   done
-  install -o root -g root -m 0755 $TMP_DIR/bat /usr/bin/bat
+  install -o root -g root -m 0755 $TMP_DIR/bat /usr/bin/
+  install -o root -g root -m 0644 $TMP_DIR/bat.1 $(manpath | cut -d : -f 1)/man1/
+  install -o root -g root -m 0644 $TMP_DIR/autocomplete/bat.bash /etc/bash_completion.d/
   rm -fr $TMP_DIR
 fi

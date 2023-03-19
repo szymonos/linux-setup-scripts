@@ -38,5 +38,5 @@ while [[ ! -f $TMP_DIR/kubeseal && $retry_count -lt 10 ]]; do
   curl -Lsk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -zx -C $TMP_DIR
   ((retry_count++))
 done
-install -o root -g root -m 0755 $TMP_DIR/kubeseal /usr/local/bin/kubeseal
+install -o root -g root -m 0755 $TMP_DIR/kubeseal /usr/local/bin/
 rm -fr $TMP_DIR
