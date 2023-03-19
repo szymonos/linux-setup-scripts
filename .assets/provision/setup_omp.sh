@@ -34,7 +34,7 @@ fi
 # *Copy oh-my-posh theme
 if [[ -f $CFG_PATH/${theme}.omp.json ]]; then
   mkdir -p $OH_MY_POSH_PATH
-  mv -f $CFG_PATH/${theme}.omp.json $OH_MY_POSH_PATH/theme.omp.json
+  install -o root -g root -m 0644 $CFG_PATH/${theme}.omp.json $OH_MY_POSH_PATH/theme.omp.json
 fi
 
 # clean config folder
