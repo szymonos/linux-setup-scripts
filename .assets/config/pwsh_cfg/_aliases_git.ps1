@@ -230,7 +230,7 @@ function gcam {
 }
 function gcamp {
     gcam @args
-    gpush ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+    gpush ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gcan! {
     Invoke-WriteExecuteCommand `
@@ -239,7 +239,7 @@ function gcan! {
 }
 function gcanp! {
     gcan! @args
-    gpush! ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+    gpush! ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gcans! {
     Invoke-WriteExecuteCommand `
@@ -273,7 +273,7 @@ function gcmsg {
 }
 function gcmsgp {
     gcmsg @args
-    gpush ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+    gpush ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gcn! {
     Invoke-WriteExecuteCommand `
@@ -282,7 +282,7 @@ function gcn! {
 }
 function gcnp! {
     gcn! @args
-    gpush! ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+    gpush! ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gco {
     Invoke-WriteExecuteCommand `
@@ -402,7 +402,7 @@ function gignore {
 function gignored {
     Invoke-WriteExecuteCommand `
         -Command 'git ls-files -v | Select-String "^[a-z]" -CaseSensitive' `
-        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function glg {
     Invoke-WriteExecuteCommand `
@@ -502,12 +502,12 @@ function gpl {
 function gpoat {
     Invoke-WriteExecuteCommand `
         -Command 'git push origin --all && git push origin --tags' `
-        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gpristine {
     Invoke-WriteExecuteCommand `
         -Command 'git reset --hard && git clean -dfx' `
-        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gpsup {
     Invoke-WriteExecuteCommand `
@@ -592,7 +592,7 @@ function grho {
 function grmb {
     Invoke-WriteExecuteCommand `
         -Command "git reset `$(git merge-base origin/$(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) HEAD)" `
-        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function grmv {
     Invoke-WriteExecuteCommand `
@@ -617,7 +617,7 @@ function grset {
 function grt {
     Invoke-WriteExecuteCommand `
         -Command "Set-Location '$(git rev-parse --show-toplevel 2>$null || '.')'" `
-        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gru {
     Invoke-WriteExecuteCommand `
@@ -642,12 +642,12 @@ function grv {
 function gs {
     Invoke-WriteExecuteCommand `
         -Command "git switch $(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') }))" `
-        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gs! {
     Invoke-WriteExecuteCommand `
         -Command "git switch $(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) --force" `
-        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Matches.Value
+        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gsb {
     Invoke-WriteExecuteCommand `
