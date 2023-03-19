@@ -18,12 +18,12 @@ if (Test-Path .assets/config/pwsh_cfg -PathType Container) {
     Copy-Item .assets/config/pwsh_cfg/* $CFG_PATH -Force
 }
 # *modify exa alias
-if (Test-Path $CFG_PATH/ps_aliases_linux.ps1) {
+if (Test-Path $CFG_PATH/_aliases_linux.ps1) {
     $exa_git = try { exa --version | Select-String '+git' -SimpleMatch -Quiet } catch { $false }
     $exa_nerd = try { Select-String '\ue725' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet } catch { $false }
     $exa_param = ($exa_git ? '--git ' : '') + ($exa_nerd ? '--icons ' : '')
-    [IO.File]::ReadAllLines("$CFG_PATH/ps_aliases_linux.ps1").Replace('exa -g ', "exa -g $exa_param") `
-    | Set-Content $CFG_PATH/ps_aliases_linux.ps1 -Encoding utf8
+    [IO.File]::ReadAllLines("$CFG_PATH/_aliases_linux.ps1").Replace('exa -g ', "exa -g $exa_param") `
+    | Set-Content $CFG_PATH/_aliases_linux.ps1 -Encoding utf8
 }
 
 # *Copy global profiles
@@ -34,15 +34,15 @@ if (Test-Path $CFG_PATH -PathType Container) {
     if (-not (Test-Path $SCRIPTS_PATH)) {
         New-Item $SCRIPTS_PATH -ItemType Directory | Out-Null
     }
-    Move-Item $CFG_PATH/ps_aliases_common.ps1 -Destination $SCRIPTS_PATH -Force
-    Move-Item $CFG_PATH/ps_aliases_linux.ps1 -Destination $SCRIPTS_PATH -Force
+    Move-Item $CFG_PATH/_aliases_common.ps1 -Destination $SCRIPTS_PATH -Force
+    Move-Item $CFG_PATH/_aliases_linux.ps1 -Destination $SCRIPTS_PATH -Force
     # git functions
     if (Test-Path /usr/bin/git -PathType Leaf) {
-        Move-Item $CFG_PATH/ps_aliases_git.ps1 -Destination $SCRIPTS_PATH -Force
+        Move-Item $CFG_PATH/_aliases_git.ps1 -Destination $SCRIPTS_PATH -Force
     }
     # kubectl functions
     if (Test-Path /usr/bin/kubectl -PathType Leaf) {
-        Move-Item $CFG_PATH/ps_aliases_kubectl.ps1 -Destination $SCRIPTS_PATH -Force
+        Move-Item $CFG_PATH/_aliases_kubectl.ps1 -Destination $SCRIPTS_PATH -Force
     }
     # clean config folder
     Remove-Item $CFG_PATH -Recurse -Force

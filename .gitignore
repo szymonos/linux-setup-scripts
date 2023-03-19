@@ -11,7 +11,6 @@
 /tmp/
 /.tmp/
 /.private/
-_*
 
 # vagrant
 **/.vagrant/
