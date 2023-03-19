@@ -39,6 +39,8 @@ if [ -d $CFG_PATH ]; then
   fi
   # clean config folder
   rm -fr $CFG_PATH
+  # TODO to be removed, cleanup legacy aliases
+  rm -f $PROFILE_PATH/bash_aliases $PROFILE_PATH/bash_aliases_git $PROFILE_PATH/bash_aliases_kubectl
 fi
 
 # *bash profile

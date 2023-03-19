@@ -46,6 +46,8 @@ if (Test-Path $CFG_PATH -PathType Container) {
     }
     # clean config folder
     Remove-Item $CFG_PATH -Recurse -Force
+    # TODO to be removed, cleanup legacy aliases
+    Get-ChildItem -Path $SCRIPTS_PATH -Filter 'ps_aliases_*.ps1' -File | Remove-Item -Force
 }
 
 # *PowerShell profile
