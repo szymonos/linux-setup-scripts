@@ -586,7 +586,7 @@ function grh {
 }
 function grho {
     Invoke-WriteExecuteCommand `
-        -Command "git reset --hard origin/$(Get-GitCurrentBranch)" `
+        -Command "git fetch && git reset --hard origin/$(Get-GitCurrentBranch)" `
         -Arguments $args
 }
 function grmb {
