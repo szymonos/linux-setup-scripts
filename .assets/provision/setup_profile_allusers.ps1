@@ -63,3 +63,5 @@ for ($i = 0; -not (Get-Module posh-git -ListAvailable) -and $i -lt 10; $i++) {
     Write-Host 'installing posh-git...'
     Install-PSResource -Name posh-git -Scope AllUsers
 }
+# update existing modules
+.assets/provision/update_psresources.ps1
