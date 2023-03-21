@@ -39,5 +39,5 @@ while [[ ! -f $TMP_DIR/kubelogin.zip && $retry_count -lt 10 ]]; do
   ((retry_count++))
 done
 unzip -q $TMP_DIR/kubelogin.zip -d $TMP_DIR
-install -o root -g root -m 0755 $TMP_DIR/bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
+install -o root -g root -m 0755 $TMP_DIR/bin/linux_amd64/kubelogin /usr/local/bin/
 rm -fr $TMP_DIR

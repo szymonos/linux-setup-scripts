@@ -7,19 +7,19 @@ PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 
 # add common bash aliases
-grep -qw 'd/bash_aliases' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
+grep -qw 'd/aliases.sh' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
 # common aliases
-if [ -f $PROFILE_PATH/bash_aliases ]; then
-  source $PROFILE_PATH/bash_aliases
+if [ -f $PROFILE_PATH/aliases.sh ]; then
+  source $PROFILE_PATH/aliases.sh
 fi
 EOF
 
 # add git aliases
-if ! grep -qw 'd/bash_aliases_git' ~/.bashrc 2>/dev/null && type git &>/dev/null; then
+if ! grep -qw 'd/aliases_git.sh' ~/.bashrc 2>/dev/null && type git &>/dev/null; then
   cat <<EOF >>~/.bashrc
 # git aliases
-if [ -f $PROFILE_PATH/bash_aliases_git ] && type git &>/dev/null; then
-  source $PROFILE_PATH/bash_aliases_git
+if [ -f $PROFILE_PATH/aliases_git.sh ] && type git &>/dev/null; then
+  source $PROFILE_PATH/aliases_git.sh
 fi
 EOF
 fi
@@ -35,8 +35,8 @@ if type -f kubectl &>/dev/null; then
     echo "\$(tput setaf 5)\$(tput bold)kubectl \@\$(tput sgr0)" >&2
     command kubectl \$@
   }
-  if [ -f $PROFILE_PATH/bash_aliases_kubectl ]; then
-    source $PROFILE_PATH/bash_aliases_kubectl
+  if [ -f $PROFILE_PATH/aliases_kubectl.sh ]; then
+    source $PROFILE_PATH/aliases_kubectl.sh
   fi
 fi
 EOF

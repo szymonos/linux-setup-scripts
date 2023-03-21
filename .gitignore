@@ -9,9 +9,9 @@
 /test/tmp/
 /test/version_tmp/
 /tmp/
-/.tmp/
 /.private/
-_*
+/.tmp/
+/console/
 
 # vagrant
 **/.vagrant/

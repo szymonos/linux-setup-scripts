@@ -17,36 +17,38 @@ if [[ -d .assets/config/bash_cfg ]]; then
   cp -f .assets/config/bash_cfg/* $CFG_PATH
 fi
 # *modify exa alias
-if [[ -f $CFG_PATH/bash_aliases ]]; then
+if [[ -f $CFG_PATH/aliases.sh ]]; then
   # *set nerd fonts if oh-my-posh uses them
   exa_param=''
   exa --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
   grep -Fqw '\ue725' $OMP_PATH/theme.omp.json 2>/dev/null && exa_param+='--icons ' || true
-  sed -i "s/exa -g /exa -g $exa_param/" $CFG_PATH/bash_aliases
+  sed -i "s/exa -g /exa -g $exa_param/" $CFG_PATH/aliases.sh
 fi
 
 # *Copy global profiles
 if [ -d $CFG_PATH ]; then
   # bash aliases
-  mv -f $CFG_PATH/bash_aliases $PROFILE_PATH
+  install -o root -g root -m 0644 $CFG_PATH/aliases.sh $PROFILE_PATH
   # git aliases
   if type git &>/dev/null; then
-    mv -f $CFG_PATH/bash_aliases_git $PROFILE_PATH
+    install -o root -g root -m 0644 $CFG_PATH/aliases_git.sh $PROFILE_PATH
   fi
   # kubectl aliases
   if type -f kubectl &>/dev/null; then
-    mv -f $CFG_PATH/bash_aliases_kubectl $PROFILE_PATH
+    install -o root -g root -m 0644 $CFG_PATH/aliases_kubectl.sh $PROFILE_PATH
   fi
   # clean config folder
   rm -fr $CFG_PATH
+  # TODO to be removed, cleanup legacy aliases
+  rm -f $PROFILE_PATH/bash_aliases $PROFILE_PATH/bash_aliases_git $PROFILE_PATH/bash_aliases_kubectl
 fi
 
 # *bash profile
 # add common bash aliases
-grep -qw 'd/bash_aliases' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
+grep -qw 'd/aliases.sh' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
 # common aliases
-if [ -f $PROFILE_PATH/bash_aliases ]; then
-  source $PROFILE_PATH/bash_aliases
+if [ -f $PROFILE_PATH/aliases.sh ]; then
+  source $PROFILE_PATH/aliases.sh
 fi
 EOF
 

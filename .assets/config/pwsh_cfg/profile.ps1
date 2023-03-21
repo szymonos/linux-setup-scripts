@@ -39,8 +39,8 @@ Set-PSReadLineKeyHandler -Key Alt+Delete -Function DeleteLine
         [Environment]::SetEnvironmentVariable('PATH', [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH))
     }
 }
-# aliases
-(Get-ChildItem -Path $env:SCRIPTS_PATH -Filter 'ps_aliases_*.ps1' -File).ForEach{ . $_.FullName }
+# dot source PowerShell scripts
+(Get-ChildItem -Path $env:SCRIPTS_PATH -Filter '_*.ps1' -File).ForEach{ . $_.FullName }
 #endregion
 
 # region brew

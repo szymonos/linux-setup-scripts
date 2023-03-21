@@ -15,6 +15,8 @@ if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
     Write-Host 'updating help...'
     Update-Help
 }
+# update existing modules
+.assets/provision/update_psresources.ps1
 
 $kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
 if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
@@ -25,6 +27,6 @@ if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
 
 $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
 if ((Test-Path $HOME/miniconda3/bin/conda) -and -not $condaSet) {
-    Write-Host 'adding miniconda initialization...'
+    Write-Verbose 'adding miniconda initialization...'
     & "$HOME/miniconda3/bin/conda" init powershell | Out-Null
 }

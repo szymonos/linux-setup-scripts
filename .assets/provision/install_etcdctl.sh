@@ -38,5 +38,5 @@ while [[ ! -f $TMP_DIR/etcdctl && $retry_count -lt 10 ]]; do
   curl -Lsk "https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz" | tar -zx -C $TMP_DIR
   ((retry_count++))
 done
-install -o root -g root -m 0755 $TMP_DIR/etcdctl /usr/local/bin/etcdctl
+install -o root -g root -m 0755 $TMP_DIR/etcdctl /usr/local/bin/
 rm -fr $TMP_DIR

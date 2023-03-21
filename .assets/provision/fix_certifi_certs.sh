@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-./fix_certifi_certs.sh
+.assets/provision/fix_certifi_certs.sh
 '
 if [[ $EUID -eq 0 ]]; then
   echo -e '\e[91mDo not run the script as root!\e[0m\n'
