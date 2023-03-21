@@ -176,7 +176,7 @@ process {
                         git clone $remote ../ps-modules
                     }
                     # *install PowerShell modules from ps-modules repository
-                    Write-Host 'installing PowerShell modules...' -ForegroundColor Cyan
+                    Write-Host 'installing ps-modules...' -ForegroundColor Cyan
                     foreach ($module in $PSModules) {
                         if ($module -eq 'do-common') {
                             wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
