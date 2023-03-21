@@ -17,10 +17,10 @@ param (
 
 begin {
     # determine scope
-    if ($(id -u) -eq 0) {
-        $param = @{ Scope = 'AllUsers' }
+    $param = if ($(id -u) -eq 0) {
+        @{ Scope = 'AllUsers' }
     } else {
-        $param = @{ Scope = 'CurrentUser' }
+        @{ Scope = 'CurrentUser' }
     }
 }
 
