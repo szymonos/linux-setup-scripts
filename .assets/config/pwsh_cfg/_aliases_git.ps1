@@ -26,12 +26,14 @@ function Get-GitResolvedBranch ([string]$BranchName) {
         }
     }
     process {
-        $branch = $(git branch -a --format='%(refname:short)').Replace('origin/', '') `
+        $branch = "$(git branch -a --format='%(refname:short)')".Replace('origin/', '') `
         | Select-String $branchMatch -Raw `
         | Sort-Object -Unique `
         | Select-Object -First 1
         if (-not $branch) {
-            Write-Host "invalid reference: $BranchName"
+            if ($BranchName) {
+                Write-Host "invalid reference: $BranchName"
+            }
             break
         }
     }
