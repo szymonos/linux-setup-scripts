@@ -159,12 +159,12 @@ function gb {
 }
 function gba {
     Invoke-WriteExecuteCommand `
-        -Command 'git branch -a' `
+        -Command 'git branch --all' `
         -Arguments $args
 }
 function gbd {
     Invoke-WriteExecuteCommand `
-        -Command 'git branch -d' `
+        -Command 'git branch --delete' `
         -Arguments $args
 }
 function gbl {
@@ -209,27 +209,27 @@ function gbss {
 }
 function gcv {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -v' `
+        -Command 'git commit --verbose' `
         -Arguments $args
 }
 function gc! {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -v --amend' `
+        -Command 'git commit --verbose --amend' `
         -Arguments $args
 }
 function gca {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -v -a' `
+        -Command 'git commit --verbose --all' `
         -Arguments $args
 }
 function gca! {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -v -a --amend' `
+        -Command 'git commit --verbose --all --amend' `
         -Arguments $args
 }
 function gcam {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -a -m' `
+        -Command 'git commit --all -m' `
         -Arguments $args
 }
 function gcamp {
@@ -238,7 +238,7 @@ function gcamp {
 }
 function gcan! {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -v -a --no-edit --amend' `
+        -Command 'git commit --verbose --all --no-edit --amend' `
         -Arguments $args
 }
 function gcanp! {
@@ -247,7 +247,7 @@ function gcanp! {
 }
 function gcans! {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -v -a -s --no-edit --amend' `
+        -Command 'git commit --verbose --all --signoff --no-edit --amend' `
         -Arguments $args
 }
 function gcf {
@@ -262,7 +262,7 @@ function gcl {
 }
 function gclean {
     Invoke-WriteExecuteCommand `
-        -Command 'git clean -fd' `
+        -Command 'git clean --force -d' `
         -Arguments $args
 }
 function gcmsg {
@@ -276,7 +276,7 @@ function gcmsgp {
 }
 function gcn! {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -v --no-edit --amend' `
+        -Command 'git commit --verbose--no-edit --amend' `
         -Arguments $args
 }
 function gcnp! {
@@ -288,14 +288,9 @@ function gco {
         -Command 'git checkout' `
         -Arguments $args
 }
-function gcob {
-    Invoke-WriteExecuteCommand `
-        -Command 'git checkout -b' `
-        -Arguments $args
-}
 function gcount {
     Invoke-WriteExecuteCommand `
-        -Command 'git shortlog -sn' `
+        -Command 'git shortlog --summary --numbered' `
         -Arguments $args
 }
 function gcp {
@@ -315,12 +310,12 @@ function gcpc {
 }
 function gcps {
     Invoke-WriteExecuteCommand `
-        -Command 'git cherry-pick -s' `
+        -Command 'git cherry-pick --signoff' `
         -Arguments $args
 }
 function gcsm {
     Invoke-WriteExecuteCommand `
-        -Command 'git commit -s -m' `
+        -Command 'git commit --signoff -m' `
         -Arguments $args
 }
 function gd {
@@ -425,7 +420,7 @@ function glgm {
 }
 function glgp {
     Invoke-WriteExecuteCommand `
-        -Command 'git log --stat -p' `
+        -Command 'git log --stat --patch' `
         -Arguments $args
 }
 function glo {
@@ -453,11 +448,6 @@ function glola {
         -Command 'git log --graph --pretty="%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit --all' `
         -Arguments $args
 }
-function glum {
-    Invoke-WriteExecuteCommand `
-        -Command 'git pull upstream master' `
-        -Arguments $args
-}
 function gmg {
     Invoke-WriteExecuteCommand `
         -Command 'git merge' `
@@ -483,39 +473,44 @@ function gmtvim {
         -Command 'git mergetool --no-prompt --tool=vimdiff' `
         -Arguments $args
 }
-function gpd {
-    Invoke-WriteExecuteCommand `
-        -Command 'git push --dry-run' `
-        -Arguments $args
-}
 function gpl {
     Invoke-WriteExecuteCommand `
         -Command "git pull origin $(Get-GitCurrentBranch)" `
         -Arguments $args
-}
-function gpoat {
-    Invoke-WriteExecuteCommand `
-        -Command 'git push origin --all && git push origin --tags' `
-        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
 function gpristine {
     Invoke-WriteExecuteCommand `
         -Command 'git reset --hard && git clean -dfx' `
         -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
-function gpsup {
-    Invoke-WriteExecuteCommand `
-        -Command "git push --set-upstream origin $(Get-GitCurrentBranch)" `
-        -Arguments $args
-}
-function gpu {
-    Invoke-WriteExecuteCommand `
-        -Command 'git push upstream' `
-        -Arguments $args
-}
 function gpull {
     Invoke-WriteExecuteCommand `
-        -Command 'git pull origin' `
+        -Command 'git pull' `
+        -Arguments $args
+}
+function gpullr {
+    Invoke-WriteExecuteCommand `
+        -Command 'git pull --rebase' `
+        -Arguments $args
+}
+function gpullra {
+    Invoke-WriteExecuteCommand `
+        -Command 'git pull --rebase --autostash' `
+        -Arguments $args
+}
+function gpullrav {
+    Invoke-WriteExecuteCommand `
+        -Command 'git pull --rebase --autostash --verbose' `
+        -Arguments $args
+}
+function gpullrv {
+    Invoke-WriteExecuteCommand `
+        -Command 'git pull --rebase --verbose' `
+        -Arguments $args
+}
+function gpullum {
+    Invoke-WriteExecuteCommand `
+        -Command 'git pull upstream master' `
         -Arguments $args
 }
 function gpush {
@@ -526,6 +521,26 @@ function gpush {
 function gpush! {
     Invoke-WriteExecuteCommand `
         -Command 'git push origin --force' `
+        -Arguments $args
+}
+function gpushd {
+    Invoke-WriteExecuteCommand `
+        -Command 'git push --dry-run' `
+        -Arguments $args
+}
+function gpushoat {
+    Invoke-WriteExecuteCommand `
+        -Command 'git push origin --all && git push origin --tags' `
+        -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
+}
+function gpushsup {
+    Invoke-WriteExecuteCommand `
+        -Command "git push --set-upstream origin $(Get-GitCurrentBranch)" `
+        -Arguments $args
+}
+function gpushu {
+    Invoke-WriteExecuteCommand `
+        -Command 'git push upstream' `
         -Arguments $args
 }
 function gr {
@@ -555,7 +570,7 @@ function grbc {
 }
 function grbi {
     Invoke-WriteExecuteCommand `
-        -Command 'git rebase -i' `
+        -Command 'git rebase --interactive' `
         -Arguments $args
 }
 function grbm {
@@ -625,7 +640,7 @@ function grupp {
 }
 function grv {
     Invoke-WriteExecuteCommand `
-        -Command 'git remote -v' `
+        -Command 'git remote --verbose' `
         -Arguments $args
 }
 function gs {
@@ -638,17 +653,12 @@ function gs! {
         -Command "git switch $(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) --force" `
         -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line
 }
-function gsb {
+function gsc {
     Invoke-WriteExecuteCommand `
-        -Command 'git status -sb' `
+        -Command 'git switch --create' `
         -Arguments $args
 }
-function gsd {
-    Invoke-WriteExecuteCommand `
-        -Command 'git svn dcommit' `
-        -Arguments $args
-}
-function gsi {
+function gsmi {
     Invoke-WriteExecuteCommand `
         -Command 'git submodule init' `
         -Arguments $args
@@ -658,22 +668,12 @@ function gsps {
         -Command 'git show --pretty=short --show-signature' `
         -Arguments $args
 }
-function gsr {
-    Invoke-WriteExecuteCommand `
-        -Command 'git svn rebase' `
-        -Arguments $args
-}
-function gss {
-    Invoke-WriteExecuteCommand `
-        -Command 'git status -s' `
-        -Arguments $args
-}
 function gst {
     Invoke-WriteExecuteCommand `
         -Command 'git status' `
         -Arguments $args
 }
-function gsta {
+function gstas {
     Invoke-WriteExecuteCommand `
         -Command 'git stash save' `
         -Arguments $args
@@ -683,29 +683,39 @@ function gstaa {
         -Command 'git stash apply' `
         -Arguments $args
 }
-function gstc {
+function gstac {
     Invoke-WriteExecuteCommand `
         -Command 'git stash clear' `
         -Arguments $args
 }
-function gstd {
+function gstad {
     Invoke-WriteExecuteCommand `
         -Command 'git stash drop' `
         -Arguments $args
 }
-function gstl {
+function gstal {
     Invoke-WriteExecuteCommand `
         -Command 'git stash list' `
         -Arguments $args
 }
-function gstp {
+function gstap {
     Invoke-WriteExecuteCommand `
         -Command 'git stash pop' `
         -Arguments $args
 }
-function gsts {
+function gstast {
     Invoke-WriteExecuteCommand `
         -Command 'git stash show --text' `
+        -Arguments $args
+}
+function gstb {
+    Invoke-WriteExecuteCommand `
+        -Command 'git status --short --branch' `
+        -Arguments $args
+}
+function gsts {
+    Invoke-WriteExecuteCommand `
+        -Command 'git status --short' `
         -Arguments $args
 }
 function gsu {
@@ -718,39 +728,29 @@ function gsup {
         -Command "git branch --set-upstream-to=origin/$(Get-GitCurrentBranch)" `
         -Arguments $args
 }
-function gts {
+function gsvnd {
     Invoke-WriteExecuteCommand `
-        -Command 'git tag -s' `
+        -Command 'git svn dcommit' `
         -Arguments $args
 }
-function gtv {
+function gsvnr {
+    Invoke-WriteExecuteCommand `
+        -Command 'git svn rebase' `
+        -Arguments $args
+}
+function gt {
     Invoke-WriteExecuteCommand `
         -Command 'git tag' `
+        -Arguments $args
+}
+function gts {
+    Invoke-WriteExecuteCommand `
+        -Command 'git tag --sign' `
         -Arguments $args
 }
 function gunignore {
     Invoke-WriteExecuteCommand `
         -Command 'git update-index --no-assume-unchanged' `
-        -Arguments $args
-}
-function gup {
-    Invoke-WriteExecuteCommand `
-        -Command 'git pull --rebase' `
-        -Arguments $args
-}
-function gupa {
-    Invoke-WriteExecuteCommand `
-        -Command 'git pull --rebase --autostash' `
-        -Arguments $args
-}
-function gupav {
-    Invoke-WriteExecuteCommand `
-        -Command 'git pull --rebase --autostash -v' `
-        -Arguments $args
-}
-function gupv {
-    Invoke-WriteExecuteCommand `
-        -Command 'git pull --rebase -v' `
         -Arguments $args
 }
 function gwch {
