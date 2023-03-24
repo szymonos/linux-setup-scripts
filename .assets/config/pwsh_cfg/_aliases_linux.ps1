@@ -8,7 +8,6 @@ function ip { $input | & /usr/bin/env ip --color=auto @args }
 function ls { & /usr/bin/env ls --color=auto --time-style=long-iso --group-directories-first @args }
 function l { ls -1 @args }
 function lsa { ls -lah @args }
-function md { mkdir -p @args }
 function mkdir { & /usr/bin/env mkdir -pv @args }
 function mv { & /usr/bin/env mv -iv @args }
 function nano { & /usr/bin/env nano -W @args }

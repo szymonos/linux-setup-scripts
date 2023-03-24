@@ -207,7 +207,7 @@ function gbss {
         -Command 'git bisect start' `
         -Arguments $args
 }
-function gc {
+function gcv {
     Invoke-WriteExecuteCommand `
         -Command 'git commit -v' `
         -Arguments $args
@@ -250,11 +250,6 @@ function gcans! {
         -Command 'git commit -v -a -s --no-edit --amend' `
         -Arguments $args
 }
-function gcb {
-    Invoke-WriteExecuteCommand `
-        -Command 'git checkout -b' `
-        -Arguments $args
-}
 function gcf {
     Invoke-WriteExecuteCommand `
         -Command 'git config --list' `
@@ -293,6 +288,11 @@ function gco {
         -Command 'git checkout' `
         -Arguments $args
 }
+function gcob {
+    Invoke-WriteExecuteCommand `
+        -Command 'git checkout -b' `
+        -Arguments $args
+}
 function gcount {
     Invoke-WriteExecuteCommand `
         -Command 'git shortlog -sn' `
@@ -316,11 +316,6 @@ function gcpc {
 function gcps {
     Invoke-WriteExecuteCommand `
         -Command 'git cherry-pick -s' `
-        -Arguments $args
-}
-function gcs {
-    Invoke-WriteExecuteCommand `
-        -Command 'git commit -S' `
         -Arguments $args
 }
 function gcsm {
@@ -463,14 +458,19 @@ function glum {
         -Command 'git pull upstream master' `
         -Arguments $args
 }
-function gm {
+function gmg {
     Invoke-WriteExecuteCommand `
         -Command 'git merge' `
         -Arguments $args
 }
-function gmom {
+function gmgom {
     Invoke-WriteExecuteCommand `
         -Command 'git merge origin/master' `
+        -Arguments $args
+}
+function gmgum {
+    Invoke-WriteExecuteCommand `
+        -Command 'git merge upstream/master' `
         -Arguments $args
 }
 function gmt {
@@ -481,16 +481,6 @@ function gmt {
 function gmtvim {
     Invoke-WriteExecuteCommand `
         -Command 'git mergetool --no-prompt --tool=vimdiff' `
-        -Arguments $args
-}
-function gmum {
-    Invoke-WriteExecuteCommand `
-        -Command 'git merge upstream/master' `
-        -Arguments $args
-}
-function gp {
-    Invoke-WriteExecuteCommand `
-        -Command 'git push' `
         -Arguments $args
 }
 function gpd {
@@ -536,11 +526,6 @@ function gpush {
 function gpush! {
     Invoke-WriteExecuteCommand `
         -Command 'git push origin --force' `
-        -Arguments $args
-}
-function gpv {
-    Invoke-WriteExecuteCommand `
-        -Command 'git push -v' `
         -Arguments $args
 }
 function gr {
