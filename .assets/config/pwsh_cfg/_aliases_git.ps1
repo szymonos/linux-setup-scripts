@@ -26,13 +26,13 @@ function Get-GitResolvedBranch ([string]$BranchName) {
         }
     }
     process {
-        $branches = git branch -a --format='%(refname:short)'
-        if ($branches) {
+        if ($branches = git branch -a --format='%(refname:short)') {
             $branch = $branches.Replace('origin/', '') `
             | Select-String $branchMatch -Raw `
             | Sort-Object -Unique `
             | Select-Object -First 1
-        } else {
+        }
+        if (-not $branch) {
             if ($BranchName) {
                 Write-Host "invalid reference: $BranchName"
             }
@@ -658,6 +658,11 @@ function gsc {
         -Command 'git switch --create' `
         -Arguments $args
 }
+function gsd {
+    Invoke-WriteExecuteCommand `
+        -Command "git switch --detach" `
+        -Arguments $args
+}
 function gsmi {
     Invoke-WriteExecuteCommand `
         -Command 'git submodule init' `
@@ -746,6 +751,11 @@ function gt {
 function gts {
     Invoke-WriteExecuteCommand `
         -Command 'git tag --sign' `
+        -Arguments $args
+}
+function gtr {
+    Invoke-WriteExecuteCommand `
+        -Command 'git show-ref --tags' `
         -Arguments $args
 }
 function gunignore {
