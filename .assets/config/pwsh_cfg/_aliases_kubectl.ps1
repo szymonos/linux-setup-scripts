@@ -127,11 +127,11 @@ function kak { Invoke-WriteExecuteCommand -Command 'kubectl apply -k' -Arguments
 function kk { Invoke-WriteExecuteCommand -Command 'kubectl kustomize' -Arguments $args }
 function krmk { Invoke-WriteExecuteCommand -Command 'kubectl delete -k' -Arguments $args }
 function kex { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args }
-function kexsh { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
-function kexbash { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
-function kexpwsh { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
-function kexpy { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
-function kexipy { Invoke-WriteExecuteCommand -Command 'kubectl exec -i -t' -Arguments $args  }
+function kexsh { Invoke-WriteExecuteCommand -Command "kubectl exec -i -t $($args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) -- sh" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line  }
+function kexbash { Invoke-WriteExecuteCommand -Command "kubectl exec -i -t $($args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) -- bash" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line  }
+function kexpwsh { Invoke-WriteExecuteCommand -Command "kubectl exec -i -t $($args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) -- pwsh" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line  }
+function kexpy { Invoke-WriteExecuteCommand -Command "kubectl exec -i -t $($args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) -- python" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line  }
+function kexipy { Invoke-WriteExecuteCommand -Command "kubectl exec -i -t $($args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) -- ipython" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line  }
 function kre { Invoke-WriteExecuteCommand -Command 'kubectl replace' -Arguments $args }
 function kre! { Invoke-WriteExecuteCommand -Command 'kubectl replace --force' -Arguments $args }
 function kref { Invoke-WriteExecuteCommand -Command 'kubectl replace -f' -Arguments $args }
