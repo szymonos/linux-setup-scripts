@@ -170,14 +170,25 @@ process {
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
                 if ($PSModules) {
-                    if (-not (Test-Path '../ps-modules' -PathType Container)) {
-                        # clone ps-modules repository if not exists
-                        $remote = (git config --get remote.origin.url).Replace('vagrant-scripts', 'ps-modules')
+                    Write-Host 'installing ps-modules...' -ForegroundColor Cyan
+                    $getOrigin = { git config --get remote.origin.url }
+                    $remote = (Invoke-Command $getOrigin).Replace('vagrant-scripts', 'ps-modules')
+                    try {
+                        Push-Location '../ps-modules' -ErrorAction Stop
+                        if ($(Invoke-Command $getOrigin) -eq $remote) {
+                            # pull ps-modules repository
+                            git reset --hard --quiet && git clean --force -d && git pull --quiet
+                        } else {
+                            $PSModules = @()
+                        }
+                        Pop-Location
+                    } catch {
+                        # clone ps-modules repository
                         git clone $remote ../ps-modules
                     }
                     # *install PowerShell modules from ps-modules repository
-                    Write-Host 'installing ps-modules...' -ForegroundColor Cyan
                     foreach ($module in $PSModules) {
+                        Write-Host "$module" -ForegroundColor DarkGreen
                         if ($module -eq 'do-common') {
                             wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
                         } else {

@@ -22,8 +22,8 @@ while [ $# -gt 0 ]; do
 done
 
 # set script working directory to workspace folder
-SCRIPT_ROOT=$( cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd )
-pushd "$( cd "${SCRIPT_ROOT}/../../" && pwd )" >/dev/null
+SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
+pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
 
 # *Install packages and setup profiles
 if $sys_upgrade; then
@@ -66,13 +66,24 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   .assets/provision/setup_profile_user.sh
   .assets/provision/setup_profile_user.ps1
   if [[ -n "$ps_modules" ]]; then
-    if [ ! -d ../ps-modules ]; then
-      remote=$(git config --get remote.origin.url)
-      git clone ${remote/vagrant-scripts/ps-modules} ../ps-modules
+    echo -e "\e[96minstalling ps-modules...\e[0m"
+    get_origin="git config --get remote.origin.url"
+    origin=$(eval $get_origin)
+    remote=${origin/vagrant-scripts/ps-modules}
+    if [ -d ../ps-modules ]; then
+      pushd ../ps-modules >/dev/null
+      if [ "$(eval $get_origin)" = "$remote" ]; then
+        git reset --hard --quiet && git clean --force -d && git pull --quiet
+      else
+        ps_modules=''
+      fi
+      popd >/dev/null
+    else
+      git clone $remote ../ps-modules
     fi
-    echo -e "\e[96minstalling PowerShell modules...\e[0m"
     modules=($ps_modules)
     for mod in ${modules[@]}; do
+      echo -e "\e[32m$mod\e[0m" >&2
       if [ "$mod" = 'do-common' ]; then
         sudo ../ps-modules/module_manage.ps1 "$mod" -CleanUp
       else
