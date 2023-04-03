@@ -134,6 +134,14 @@ Set-Alias -Name gbda -Value Remove-GitLocalBranches
 #region alias functions
 function ga { Invoke-WriteExecuteCommand -Command 'git add' -Arguments $args }
 function gaa { Invoke-WriteExecuteCommand -Command 'git add --all' -Arguments $args }
+function gaca { gaa $($args -match '^-WhatIf$|^-Quiet$'); gca @args }
+function gaca! { gaa $($args -match '^-WhatIf$|^-Quiet$'); gca! @args }
+function gacam { gaa $($args -match '^-WhatIf$|^-Quiet$'); gcam @args }
+function gacamp { gaa $($args -match '^-WhatIf$|^-Quiet$'); gcamp @args }
+function gacan! { gaa $($args -match '^-WhatIf$|^-Quiet$'); gcan! @args }
+function gacanp! { gaa $($args -match '^-WhatIf$|^-Quiet$'); gcanp! @args }
+function gacans! { gaa $($args -match '^-WhatIf$|^-Quiet$'); gcans! @args }
+function gacap { gaa $($args -match '^-WhatIf$|^-Quiet$'); gcap @args }
 function gapa { Invoke-WriteExecuteCommand -Command 'git add --patch' -Arguments $args }
 function gau { Invoke-WriteExecuteCommand -Command 'git add --update' -Arguments $args }
 function gb { Invoke-WriteExecuteCommand -Command 'git branch' -Arguments $args }
@@ -150,19 +158,21 @@ function gbss { Invoke-WriteExecuteCommand -Command 'git bisect start' -Argument
 function gcv { Invoke-WriteExecuteCommand -Command 'git commit --verbose' -Arguments $args }
 function gc! { Invoke-WriteExecuteCommand -Command 'git commit --verbose --amend' -Arguments $args }
 function gca { Invoke-WriteExecuteCommand -Command 'git commit --verbose --all' -Arguments $args }
+function gcap { gca @args; gpush $($args -match '^-WhatIf$|^-Quiet$') }
 function gca! { Invoke-WriteExecuteCommand -Command 'git commit --verbose --all --amend' -Arguments $args }
 function gcam { Invoke-WriteExecuteCommand -Command 'git commit --all -m' -Arguments $args }
-function gcamp { gcam @args; gpush ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function gcamp { gcam @args; gpush $($args -match '^-WhatIf$|^-Quiet$') }
 function gcan! { Invoke-WriteExecuteCommand -Command 'git commit --verbose --all --no-edit --amend' -Arguments $args }
-function gcanp! { gcan! @args; gpush! ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function gcanp! { gcan! @args; gpush! $($args -match '^-WhatIf$|^-Quiet$') }
 function gcans! { Invoke-WriteExecuteCommand -Command 'git commit --verbose --all --signoff --no-edit --amend' -Arguments $args }
 function gcf { Invoke-WriteExecuteCommand -Command 'git config --list' -Arguments $args }
 function gcl { Invoke-WriteExecuteCommand -Command 'git clone --recursive' -Arguments $args }
 function gclean { Invoke-WriteExecuteCommand -Command 'git clean --force -d' -Arguments $args }
+function gclean! { Invoke-WriteExecuteCommand -Command 'git reset --hard --quiet'; gclean @args }
 function gcmsg { Invoke-WriteExecuteCommand -Command 'git commit -m' -Arguments $args }
-function gcmsgp { gcmsg @args; gpush ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function gcmsgp { gcmsg @args; gpush $($args -match '^-WhatIf$|^-Quiet$') }
 function gcn! { Invoke-WriteExecuteCommand -Command 'git commit --verbose --no-edit --amend' -Arguments $args }
-function gcnp! { gcn! @args; gpush! ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function gcnp! { gcn! @args; gpush! $($args -match '^-WhatIf$|^-Quiet$') }
 function gco { Invoke-WriteExecuteCommand -Command 'git checkout' -Arguments $args }
 function gcount { Invoke-WriteExecuteCommand -Command 'git shortlog --summary --numbered' -Arguments $args }
 function gcp { Invoke-WriteExecuteCommand -Command 'git cherry-pick' -Arguments $args }
@@ -185,7 +195,7 @@ function ggre { Invoke-WriteExecuteCommand -Command 'git grep --ignore-case --ex
 function ggrp { Invoke-WriteExecuteCommand -Command 'git grep --ignore-case --perl-regexp' -Arguments $args }
 function ghh { Invoke-WriteExecuteCommand -Command 'git help' -Arguments $args }
 function gignore { Invoke-WriteExecuteCommand -Command 'git update-index --assume-unchanged' -Arguments $args }
-function gignored { Invoke-WriteExecuteCommand -Command 'git ls-files -v | Select-String "^[a-z]" -CaseSensitive' -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function gignored { Invoke-WriteExecuteCommand -Command 'git ls-files -v | Select-String "^[a-z]" -CaseSensitive' -Arguments $($args -match '^-WhatIf$|^-Quiet$') }
 function glg { Invoke-WriteExecuteCommand -Command 'git log --stat' -Arguments $args }
 function glgg { Invoke-WriteExecuteCommand -Command 'git log --graph' -Arguments $args }
 function glgga { Invoke-WriteExecuteCommand -Command 'git log --graph --decorate --all' -Arguments $args }
@@ -202,17 +212,17 @@ function gmgum { Invoke-WriteExecuteCommand -Command 'git merge upstream/master'
 function gmt { Invoke-WriteExecuteCommand -Command 'git mergetool --no-prompt' -Arguments $args }
 function gmtvim { Invoke-WriteExecuteCommand -Command 'git mergetool --no-prompt --tool=vimdiff' -Arguments $args }
 function gpl { Invoke-WriteExecuteCommand -Command "git pull origin $(Get-GitCurrentBranch)" -Arguments $args }
-function gpristine { Invoke-WriteExecuteCommand -Command 'git reset --hard && git clean -dfx' -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function gpristine { Invoke-WriteExecuteCommand -Command 'git reset --hard && git clean -dfx' -Arguments $($args -match '^-WhatIf$|^-Quiet$') }
 function gpull { Invoke-WriteExecuteCommand -Command 'git pull' -Arguments $args }
 function gpullr { Invoke-WriteExecuteCommand -Command 'git pull --rebase' -Arguments $args }
 function gpullra { Invoke-WriteExecuteCommand -Command 'git pull --rebase --autostash' -Arguments $args }
 function gpullrav { Invoke-WriteExecuteCommand -Command 'git pull --rebase --autostash --verbose' -Arguments $args }
 function gpullrv { Invoke-WriteExecuteCommand -Command 'git pull --rebase --verbose' -Arguments $args }
 function gpullum { Invoke-WriteExecuteCommand -Command 'git pull upstream master' -Arguments $args }
-function gpush { Invoke-WriteExecuteCommand -Command 'git push origin' -Arguments $args }
-function gpush! { Invoke-WriteExecuteCommand -Command 'git push origin --force' -Arguments $args }
+function gpush { Invoke-WriteExecuteCommand -Command 'git push' -Arguments $args }
+function gpush! { Invoke-WriteExecuteCommand -Command 'git push --force' -Arguments $args }
 function gpushd { Invoke-WriteExecuteCommand -Command 'git push --dry-run' -Arguments $args }
-function gpushoat { Invoke-WriteExecuteCommand -Command 'git push origin --all && git push origin --tags' -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function gpushoat { Invoke-WriteExecuteCommand -Command 'git push origin --all && git push origin --tags' -Arguments $($args -match '^-WhatIf$|^-Quiet$') }
 function gpushsup { Invoke-WriteExecuteCommand -Command "git push --set-upstream origin $(Get-GitCurrentBranch)" -Arguments $args }
 function gpushu { Invoke-WriteExecuteCommand -Command 'git push upstream' -Arguments $args }
 function gr { Invoke-WriteExecuteCommand -Command 'git remote' -Arguments $args }
@@ -233,16 +243,16 @@ function grrm { Invoke-WriteExecuteCommand -Command 'git remote remove' -Argumen
 function grrn { Invoke-WriteExecuteCommand -Command 'git remote rename' -Arguments $args }
 function grs { Invoke-WriteExecuteCommand -Command 'git reset --soft' -Arguments $args }
 function grset { Invoke-WriteExecuteCommand -Command 'git remote set-url' -Arguments $args }
-function grsmb { Invoke-WriteExecuteCommand -Command "git reset `$(git merge-base origin/$(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) HEAD)" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
-function grt { Invoke-WriteExecuteCommand -Command "Set-Location '$(git rev-parse --show-toplevel 2>$null || '.')'" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function grsmb { Invoke-WriteExecuteCommand -Command "git reset `$(git merge-base origin/$(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) HEAD)" -Arguments $($args -match '^-WhatIf$|^-Quiet$') }
+function grt { Invoke-WriteExecuteCommand -Command "Set-Location '$(git rev-parse --show-toplevel 2>$null || '.')'" -Arguments $($args -match '^-WhatIf$|^-Quiet$') }
 function gru { Invoke-WriteExecuteCommand -Command 'git reset --' -Arguments $args }
 function grup { Invoke-WriteExecuteCommand -Command 'git remote update origin' -Arguments $args }
 function grupp { Invoke-WriteExecuteCommand -Command 'git remote update origin --prune' -Arguments $args }
 function grv { Invoke-WriteExecuteCommand -Command 'git remote --verbose' -Arguments $args }
-function gs { Invoke-WriteExecuteCommand -Command "git switch $(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') }))" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
-function gs! { Invoke-WriteExecuteCommand -Command "git switch $(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) --force" -Arguments ($args | Select-String '^-WhatIf$|^-Quiet$').Line }
+function gs { Invoke-WriteExecuteCommand -Command "git switch $(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') }))" -Arguments $($args -match '^-WhatIf$|^-Quiet$') }
+function gs! { Invoke-WriteExecuteCommand -Command "git switch $(Get-GitResolvedBranch $args.Where({ $_ -notin $('-WhatIf', '-Quiet') })) --force" -Arguments $($args -match '^-WhatIf$|^-Quiet$') }
 function gsc { Invoke-WriteExecuteCommand -Command 'git switch --create' -Arguments $args }
-function gsd { Invoke-WriteExecuteCommand -Command "git switch --detach" -Arguments $args }
+function gsd { Invoke-WriteExecuteCommand -Command 'git switch --detach' -Arguments $args }
 function gsmi { Invoke-WriteExecuteCommand -Command 'git submodule init' -Arguments $args }
 function gsps { Invoke-WriteExecuteCommand -Command 'git show --pretty=short --show-signature' -Arguments $args }
 function gst { Invoke-WriteExecuteCommand -Command 'git status' -Arguments $args }
