@@ -65,8 +65,15 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   echo -e "\e[96msetting up profile for current user...\e[0m"
   .assets/provision/setup_profile_user.sh
   .assets/provision/setup_profile_user.ps1
-  if [[ -n "$ps_modules" ]]; then
+fi
+# install powershell modules
+if [ -f /usr/bin/pwsh ]; then
+  modules=($ps_modules)
+  [ -f /usr/bin/git ] && modules+=(aliases-git) || true
+  [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true
+  if [[ -n $modules ]]; then
     echo -e "\e[96minstalling ps-modules...\e[0m"
+    # determine if ps-modules repository exist and clone if necessary
     get_origin="git config --get remote.origin.url"
     origin=$(eval $get_origin)
     remote=${origin/vagrant-scripts/ps-modules}
@@ -75,13 +82,13 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
       if [ "$(eval $get_origin)" = "$remote" ]; then
         git reset --hard --quiet && git clean --force -d && git pull --quiet
       else
-        ps_modules=''
+        modules=()
       fi
       popd >/dev/null
     else
       git clone $remote ../ps-modules
     fi
-    modules=($ps_modules)
+    # install modules
     for mod in ${modules[@]}; do
       echo -e "\e[32m$mod\e[0m" >&2
       if [ "$mod" = 'do-common' ]; then

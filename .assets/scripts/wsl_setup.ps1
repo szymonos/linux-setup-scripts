@@ -169,31 +169,47 @@ process {
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
-                if ($PSModules) {
-                    Write-Host 'installing ps-modules...' -ForegroundColor Cyan
-                    $getOrigin = { git config --get remote.origin.url }
-                    $remote = (Invoke-Command $getOrigin).Replace('vagrant-scripts', 'ps-modules')
-                    try {
-                        Push-Location '../ps-modules' -ErrorAction Stop
-                        if ($(Invoke-Command $getOrigin) -eq $remote) {
-                            # pull ps-modules repository
-                            git reset --hard --quiet && git clean --force -d && git pull --quiet
-                        } else {
-                            $PSModules = @()
-                        }
-                        Pop-Location
-                    } catch {
-                        # clone ps-modules repository
-                        git clone $remote ../ps-modules
+            }
+        }
+        # *install PowerShell modules from ps-modules repository
+        # determine, if pwsh, git and kubectl binaries installed
+        $cmd = [string]::Join("`n",
+            '[ -f /usr/bin/pwsh ] && pwsh="true" || pwsh="false"',
+            '[ -f /usr/bin/git ] && git="true" || git="false"',
+            '[ -f /usr/bin/kubectl ] && kubectl="true" || kubectl="false"',
+            'echo "{\"pwsh\":$pwsh,\"git\":$git,\"kubectl\":$kubectl}"'
+        )
+        $chkbin = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
+        if ($chkbin.pwsh) {
+            $moduleList = [Collections.Generic.List[string]]::new()
+            $PSModules.ForEach({ $moduleList.Add($_) })
+            $chkbin.git ? $($moduleList.Add('aliases-git')) : $null
+            $chkbin.kubectl ? $($moduleList.Add('aliases-kubectl')) : $null
+            if ($moduleList) {
+                Write-Host 'installing ps-modules...' -ForegroundColor Cyan
+                # determine if ps-modules repository exist and clone if necessary
+                $getOrigin = { git config --get remote.origin.url }
+                $remote = (Invoke-Command $getOrigin).Replace('vagrant-scripts', 'ps-modules')
+                try {
+                    Push-Location '../ps-modules' -ErrorAction Stop
+                    if ($(Invoke-Command $getOrigin) -eq $remote) {
+                        # pull ps-modules repository
+                        git reset --hard --quiet && git clean --force -d && git pull --quiet
+                    } else {
+                        $moduleList = [Collections.Generic.List[string]]::new()
                     }
-                    # *install PowerShell modules from ps-modules repository
-                    foreach ($module in $PSModules) {
-                        Write-Host "$module" -ForegroundColor DarkGreen
-                        if ($module -eq 'do-common') {
-                            wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
-                        } else {
-                            wsl.exe --distribution $Distro --exec ../ps-modules/module_manage.ps1 $module -CleanUp
-                        }
+                    Pop-Location
+                } catch {
+                    # clone ps-modules repository
+                    git clone $remote ../ps-modules
+                }
+                # install modules
+                foreach ($module in $moduleList) {
+                    Write-Host "$module" -ForegroundColor DarkGreen
+                    if ($module -eq 'do-common') {
+                        wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
+                    } else {
+                        wsl.exe --distribution $Distro --exec ../ps-modules/module_manage.ps1 $module -CleanUp
                     }
                 }
             }
