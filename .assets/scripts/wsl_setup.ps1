@@ -231,7 +231,7 @@ process {
         # set git eol config
         wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
         # copy git user settings from the host
-        $gitConfigCmd = (git config --list --global | Select-String '^user\b').ForEach({
+        $gitConfigCmd = (git config --list --global 2>$null | Select-String '^user\b').ForEach({
                 $split = $_.Line.Split('=')
                 "git config --global $($split[0]) '$($split[1])'"
             }
