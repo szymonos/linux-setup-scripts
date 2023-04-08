@@ -19,7 +19,7 @@ while [ $# -gt 0 ]; do
 done
 
 # path variables
-CFG_PATH='/tmp/config/omp_cfg'
+CFG_PATH="/home/$(id -un 1000)/tmp/config/omp_cfg"
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 # copy profile for WSL setup
 if [[ -f .assets/config/omp_cfg/${theme}.omp.json ]]; then

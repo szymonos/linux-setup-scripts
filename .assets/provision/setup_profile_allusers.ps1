@@ -8,7 +8,7 @@ sudo .assets/provision/setup_profile_allusers.ps1
 $WarningPreference = 'Ignore'
 
 # path variables
-$CFG_PATH = '/tmp/config/pwsh_cfg'
+$CFG_PATH = "/home/$(id -un 1000)/tmp/config/pwsh_cfg"
 $SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
 # copy config files for WSL setup
 if (Test-Path .assets/config/pwsh_cfg -PathType Container) {

@@ -8,7 +8,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # path variables
-CFG_PATH='/tmp/config/bash_cfg'
+CFG_PATH="/home/$(id -un 1000)/tmp/config/bash_cfg"
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
