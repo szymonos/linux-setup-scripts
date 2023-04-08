@@ -24,7 +24,7 @@ done
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(k9s version -s | grep -Po '(?<=v)[\d\.]+$')
+  VER=$(k9s version -s | grep -Po '(?<=v)[0-9\.]+$')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
     exit 0

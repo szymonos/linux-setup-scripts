@@ -24,7 +24,7 @@ done
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(k3d --version | grep -Po '(?<=v)[\d\.]+$')
+  VER=$(k3d --version | grep -Po '(?<=v)[0-9\.]+$')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
     exit 0
@@ -36,5 +36,5 @@ retry_count=0
 while
   curl -sk 'https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh' | bash >&2
   ((retry_count++))
-  [[ $(k3d --version 2>/dev/null | grep -Po '(?<=v)[\d\.]+$') != $REL && $retry_count -le 10 ]]
+  [[ $(k3d --version 2>/dev/null | grep -Po '(?<=v)[0-9\.]+$') != $REL && $retry_count -le 10 ]]
 do :; done

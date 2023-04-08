@@ -24,7 +24,7 @@ done
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(etcdctl version | grep -Po '(?<=etcdctl version: )[\d\.]+$')
+  VER=$(etcdctl version | grep -Po '(?<=etcdctl version: )[0-9\.]+$')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
     exit 0

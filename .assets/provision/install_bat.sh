@@ -24,7 +24,7 @@ done
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(bat --version | grep -Po '(?<=^bat )[\d\.]+')
+  VER=$(bat --version | grep -Po '(?<=^bat )[0-9\.]+')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
     exit 0

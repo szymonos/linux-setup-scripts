@@ -24,7 +24,7 @@ done
 echo $REL
 
 if [ -f /usr/bin/kubectl ]; then
-  VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
+  VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[0-9\.]+$')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[32m$APP $VER is already latest\e[0m" >&2
     exit 0
