@@ -19,11 +19,11 @@ arch)
   ;;
 fedora)
   dnf groupinstall -y 'Development Tools'
-  dnf install -y bash-completion bind-utils curl git jq redhat-lsb-core man-db openssl tar tree unzip vim
+  dnf install -y bash-completion bind-utils curl dnf-plugins-core git jq redhat-lsb-core man-db openssl tar tree unzip vim
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y build-essential bash-completion dnsutils curl git jq lsb-release man-db openssl tar tree unzip vim
+  apt-get update && apt-get install -y build-essential bash-completion ca-certificates gnupg dnsutils curl git jq lsb-release man-db openssl tar tree unzip vim
   ;;
 opensuse)
   zypper in -yt pattern devel_basis
