@@ -59,4 +59,6 @@ for ($i = 0; -not (Get-Module posh-git -ListAvailable) -and $i -lt 10; $i++) {
     Install-PSResource -Name posh-git -Scope AllUsers
 }
 # update existing modules
-.assets/provision/update_psresources.ps1
+if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
+    .assets/provision/update_psresources.ps1
+}

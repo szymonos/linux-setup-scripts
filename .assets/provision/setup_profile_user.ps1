@@ -16,7 +16,9 @@ if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
     Update-Help
 }
 # update existing modules
-.assets/provision/update_psresources.ps1
+if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
+    .assets/provision/update_psresources.ps1
+}
 
 $kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
 if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
