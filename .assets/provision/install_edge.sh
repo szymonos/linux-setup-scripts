@@ -12,7 +12,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  sudo -u vagrant paru -Sy --needed --noconfirm microsoft-edge-stable-bin
+  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm microsoft-edge-stable-bin
   ;;
 fedora)
   rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
