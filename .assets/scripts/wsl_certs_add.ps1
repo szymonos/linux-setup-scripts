@@ -13,9 +13,9 @@ Uri used for intercepting certificate chain.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
-~install certificates into specified distro
+# ~install certificates into specified distro
 .assets/scripts/wsl_certs_add.ps1 $Distro
-~specify custom Uri
+# ~specify custom Uri
 $Uri = 'www.powershellgallery.com'
 .assets/scripts/wsl_certs_add.ps1 $Distro -u $Uri
 #>

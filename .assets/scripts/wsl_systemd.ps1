@@ -14,7 +14,7 @@ $Distro = 'Ubuntu'
 .assets/scripts/wsl_systemd.ps1 $Distro -Systemd 'true'
 .assets/scripts/wsl_systemd.ps1 $Distro -Systemd 'false'
 
-systemctl list-units --type=service
+systemctl list-units --type=service --no-pager
 #>
 [CmdletBinding()]
 param (
