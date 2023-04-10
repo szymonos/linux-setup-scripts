@@ -27,7 +27,7 @@ function git_resolve_branch {
 
   br=$(git branch -a --format='%(refname:short)' | sed -E 's/.*\///' | grep -E "$pattern" | sort -u | head -1)
 
-  [[ -n "$br" ]] && echo "$br" || echo "$pattern"
+  [ -n "$br" ] && echo "$br" || echo "$pattern"
 }
 
 function gs {

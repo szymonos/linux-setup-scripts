@@ -43,7 +43,7 @@ EOF
 fi
 
 # add conda initialization
-if ! grep -qw '__conda_setup' ~/.bashrc 2>/dev/null && [[ -f $HOME/miniconda3/bin/conda ]]; then
+if ! grep -qw '__conda_setup' ~/.bashrc 2>/dev/null && [ -f $HOME/miniconda3/bin/conda ]; then
   $HOME/miniconda3/bin/conda init bash >/dev/null
 fi
 

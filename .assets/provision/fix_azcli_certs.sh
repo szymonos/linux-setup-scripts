@@ -2,7 +2,7 @@
 : '
 .assets/provision/fix_azcli_certs.sh
 '
-if [[ $EUID -eq 0 ]]; then
+if [ $EUID -eq 0 ]; then
   echo -e '\e[91mDo not run the script as root!\e[0m\n'
   exit 1
 fi
@@ -15,7 +15,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(fedora|debian|ubuntu|opensuse)' /etc/os-r
 # specify path for installed custom certificates
 case $SYS_ID in
 fedora | opensuse)
-  [[ "$SYS_ID" = 'fedora' ]] && CERT_PATH='/etc/pki/ca-trust/source/anchors' || CERT_PATH='/usr/share/pki/trust/anchors'
+  [ "$SYS_ID" = 'fedora' ] && CERT_PATH='/etc/pki/ca-trust/source/anchors' || CERT_PATH='/usr/share/pki/trust/anchors'
   CERTIFY_CRT=$(rpm -ql azure-cli 2>/dev/null | grep 'site-packages/certifi/cacert.pem') || true
   ;;
 debian | ubuntu)
@@ -27,7 +27,7 @@ esac
 # determine certifi path to add certificate
 if [ -z "$CERTIFY_CRT" ]; then
   CERTIFY_CRT="$(pip show azure-cli 2>/dev/null | grep -oP '^Location: \K.+')/certifi/cacert.pem"
-  [[ -f "$CERTIFY_CRT" ]] || (echo -e '\e[91mcertifi/cacert.pem not found!\e[0m' >&2 && exit 0)
+  [ -f "$CERTIFY_CRT" ] || (echo -e '\e[91mcertifi/cacert.pem not found!\e[0m' >&2 && exit 0)
 fi
 
 # get list of installed certificates

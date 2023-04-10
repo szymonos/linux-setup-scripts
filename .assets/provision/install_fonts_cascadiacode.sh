@@ -3,7 +3,7 @@
 #
 sudo .assets/provision/install_fonts_cascadiacode.sh >/dev/null
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -13,14 +13,14 @@ REL=$1
 TMP_DIR=$(mktemp -dp "$PWD")
 
 # get latest release if not provided as a parameter
-while [[ -z "$REL" ]]; do
+while [ -z "$REL" ]; do
   REL=$(curl -sk https://api.github.com/repos/microsoft/cascadia-code/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   ((retry_count++))
-  if [[ $retry_count -eq 10 ]]; then
+  if [ $retry_count -eq 10 ]; then
     echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
     exit 0
   fi
-  [[ -n "$REL" ]] || echo 'retrying...' >&2
+  [ -n "$REL" ] || echo 'retrying...' >&2
 done
 # return latest release
 echo $REL

@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/install_pwsh.sh >/dev/null
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -11,14 +11,14 @@ APP='pwsh'
 REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
-while [[ -z "$REL" ]]; do
+while [ -z "$REL" ]; do
   REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   ((retry_count++))
-  if [[ $retry_count -eq 10 ]]; then
+  if [ $retry_count -eq 10 ]; then
     echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
     exit 0
   fi
-  [[ -n "$REL" ]] || echo 'retrying...' >&2
+  [ -n "$REL" ] || echo 'retrying...' >&2
 done
 # return latest release
 echo $REL
@@ -65,7 +65,7 @@ debian | ubuntu)
   ;;
 esac
 
-if [[ "$binary" = true ]]; then
+if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
   [ "$SYS_ID" = 'opensuse' ] && zypper in -y libicu >&2 2>/dev/null || true
   retry_count=0

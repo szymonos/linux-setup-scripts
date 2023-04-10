@@ -65,7 +65,7 @@ wsl.exe -d $srcDistro --user root --exec bash -c $cmd
 # *copy files
 $cmd = @"
 dst="`$(readlink -m $dstPath)"
-if [[ -f '$srcPath' ]] && [[ "`$(basename '$srcPath')" = "`$(basename `$dst)" ]]; then
+if [[ -f '$srcPath' && "`$(basename '$srcPath')" = "`$(basename `$dst)" ]]; then
     mkdir -p "`$(dirname `$dst)"
 else
     mkdir -p "`$dst"

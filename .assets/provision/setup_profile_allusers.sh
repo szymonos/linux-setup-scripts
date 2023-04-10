@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/setup_profile_allusers.sh
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -12,12 +12,12 @@ CFG_PATH="/home/$(id -un 1000)/tmp/config/bash_cfg"
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
-if [[ -d .assets/config/bash_cfg ]]; then
+if [ -d .assets/config/bash_cfg ]; then
   mkdir -p $CFG_PATH
   cp -f .assets/config/bash_cfg/* $CFG_PATH
 fi
 # *modify exa alias
-if [[ -f $CFG_PATH/aliases.sh ]]; then
+if [ -f $CFG_PATH/aliases.sh ]; then
   # *set nerd fonts if oh-my-posh uses them
   exa_param=''
   exa --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
@@ -69,7 +69,7 @@ grep -qw 'completion-ignore-case' /etc/inputrc || echo 'set completion-ignore-ca
 [ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime
 
 # *add reboot/shutdown polkit rule for vagrant group
-if getent group | grep -qw '^vagrant' && [ -d /usr/share/polkit-1/rules.d ] && [ ! -f /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules ]; then
+if getent group | grep -qw '^vagrant' && [[ ! -f /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules && -d /usr/share/polkit-1/rules.d ]]; then
   cat <<EOF >/usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules
 /* Allow members of the vagrant group to shutdown or restart
  * without password authentication.
