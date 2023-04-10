@@ -8,12 +8,14 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # path variables
-CFG_PATH="/home/$(id -un 1000)/tmp/config/bash_cfg"
+user="$(id -un 1000)"
+CFG_PATH="/home/$user/tmp/config/bash_cfg"
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
 if [ -d .assets/config/bash_cfg ]; then
   mkdir -p $CFG_PATH
+  chown -R $user:$user /home/$user/tmp
   cp -f .assets/config/bash_cfg/* $CFG_PATH
 fi
 # *modify exa alias
@@ -38,7 +40,7 @@ if [ -d $CFG_PATH ]; then
     install -o root -g root -m 0644 $CFG_PATH/aliases_kubectl.sh $PROFILE_PATH
   fi
   # clean config folder
-  rm -fr $CFG_PATH
+  rm -fr $(dirname $CFG_PATH)
   # TODO to be removed, cleanup legacy aliases
   rm -f $PROFILE_PATH/bash_aliases $PROFILE_PATH/bash_aliases_git $PROFILE_PATH/bash_aliases_kubectl
 fi
