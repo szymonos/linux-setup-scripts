@@ -16,37 +16,46 @@ Name of the WSL distro to set up. If not specified, script will update all exist
 .PARAMETER OmpTheme
 Specify oh-my-posh theme to be installed, from themes available on the page.
 There are also two baseline profiles included: base, powerline and nerd.
+Default: 'base'
 .PARAMETER GtkTheme
-Specify gtk theme for wslg.
-Available values: 'light', 'dark'
+Specify gtk theme for wslg. Available values: light, dark.
+Default: 'dark'
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- docker: docker
+- none: do not install any scopes
+- az: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.
+- docker: docker, containerd buildx docker-compose
 - k8s_base: kubectl, helm, minikube, k3d, k9s, yq
 - k8s_ext: flux, kubeseal, kustomize, argorollouts-cli
 - python: pip, venv, miniconda
 - shell: bat, exa, oh-my-posh, pwsh, ripgrep
-Every following option expands the scope.
+Default: @('shell').
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER PSModules
 List of PowerShell modules from ps-modules repository to be installed.
+Default: @('do-common', 'do-linux')
+.PARAMETER AddCertificate
+Intercept and add self-signed certificates from chain into selected distro.
+.PARAMETER FixNetwork
+Set network settings from the selected network interface in Windows.
 
 .EXAMPLE
 $Distro    = 'Ubuntu'
-$OmpTheme  = 'powerline'
-$GtkTheme  = 'dark'
-$Scope     = @('docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
-$PSModules = @('do-common', 'do-linux')
+# ~set up WSL distro using default values
+.assets/scripts/wsl_setup.ps1 $Distro
+# ~set up WSL distro using specified values
+$OmpTheme  = 'nerd'
+$Scope     = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
+$PSModules = @('do-common', 'do-linux', 'do-az')
 $Repos     = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
-# ~install packages and setup profile
-.assets/scripts/wsl_setup.ps1 $Distro -g $GtkTheme -m $PSModules -o $OmpTheme -s $Scope
-# ~install packages, setup profiles and clone GitHub repositories
-.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -g $GtkTheme -m $PSModules -o $OmpTheme -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -m $PSModules -o $OmpTheme -s $Scope
+# ~set up WSL distro, install self-signed certificates and fix network settings
+.assets/scripts/wsl_setup.ps1 $Distro -m $PSModules -o $OmpTheme -s $Scope -AddCertificate -FixNetwork
+# ~set up WSL distro and clone specified GitHub repositories
+.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -m $PSModules -o $OmpTheme -s $Scope
 # ~update all existing WSL distros
-.assets/scripts/wsl_setup.ps1 -g $GtkTheme -m $PSModules -o $OmpTheme
-# ~fix network, add certificates and update all distros
-.assets/scripts/wsl_setup.ps1 -g $GtkTheme -m $PSModules -o $OmpTheme -AddCertificate -FixNetwork
+.assets/scripts/wsl_setup.ps1 -m $PSModules -o $OmpTheme
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -57,30 +66,20 @@ param (
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
+    [ValidateNotNullOrEmpty()]
     [string]$OmpTheme = 'base',
 
-    [Alias('g')]
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('light', 'dark')]
-    [string]$GtkTheme = 'light',
+    [string]$GtkTheme = 'dark',
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $Scope.ForEach({ $_ -in @('docker', 'k8s_base', 'k8s_ext', 'python', 'shell') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid scopes: docker k8s_base k8s_ext python shell')]
-    [string[]]$Scope,
-
-    [Parameter(ParameterSetName = 'Update')]
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [switch]$FixNetwork,
-
-    [Parameter(ParameterSetName = 'Update')]
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [switch]$AddCertificate,
+    [ValidateScript({ $_.ForEach({ $_ -in @('none', 'az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: none az docker k8s_base k8s_ext python shell')]
+    [string[]]$Scope = @('shell'),
 
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
@@ -91,7 +90,17 @@ param (
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [string[]]$PSModules
+    [ValidateScript({ $_.ForEach({ $_ -in @('do-az', 'do-common', 'do-linux') }) -notcontains $false },
+        ErrorMessage = 'Wrong modules provided. Valid values: do-az do-common do-linux')]
+    [string[]]$PSModules = @('do-common', 'do-linux'),
+
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [switch]$AddCertificate,
+
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [switch]$FixNetwork
 )
 
 begin {
@@ -105,6 +114,12 @@ begin {
             exit
         }
         [string[]]$distros = $Distro
+    }
+
+    # verify scopes
+    if ('none' -in $Scope -and $Scope.Count -gt 1) {
+        Write-Warning "Do not provide any other scopes when `e[3m'none'`e[23m specified."
+        return
     }
 
     # set location to workspace folder
@@ -179,6 +194,9 @@ process {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
+                if ('az' -in $Scope) {
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true
+                }
                 continue
             }
             shell {
@@ -211,11 +229,17 @@ process {
         if ($chk.pwsh) {
             $modules = @(
                 $PSModules
+                'az' -in $Scope ? 'do-az' : $null
                 $chk.git ? 'aliases-git' : $null
                 $chk.kubectl ? 'aliases-kubectl' : $null
-            ).Where({ $_ }) # exclude null entries from array
+            ).Where({ $_ }) | Select-Object -Unique
             if ($modules) {
                 Write-Host 'installing ps-modules...' -ForegroundColor Cyan
+                if ('az' -in $Scope) {
+                    # Install Az module
+                    $cmd = 'if (-not (Get-Module Az -ListAvailable)) { Install-PSResource Az }'
+                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
+                }
                 # determine if ps-modules repository exist and clone if necessary
                 $getOrigin = { git config --get remote.origin.url }
                 $remote = (Invoke-Command $getOrigin).Replace('vagrant-scripts', 'ps-modules')

@@ -63,6 +63,7 @@ for sc in "${scope_arr[@]}"; do
     echo -e "\e[96minstalling python packages...\e[0m"
     .assets/provision/install_miniconda.sh
     sudo .assets/provision/setup_python.sh
+    grep -qw 'az' <<< $scope && .assets/provision/install_azurecli.sh --fix_certify true || true
     ;;
   shell)
     echo -e "\e[96minstalling shell packages...\e[0m"
@@ -84,6 +85,7 @@ done
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
   modules=($ps_modules)
+  grep -qw 'az' <<< $scope && modules+=(do-az) || true
   [ -f /usr/bin/git ] && modules+=(aliases-git) || true
   [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true
   if [ -n "$modules" ]; then

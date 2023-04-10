@@ -6,8 +6,6 @@ if [ $EUID -eq 0 ]; then
   echo -e '\e[91mDo not run the script as root!\e[0m\n'
   exit 1
 fi
-# cache root credentials
-sudo true
 
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(fedora|debian|ubuntu|opensuse)' /etc/os-release)
@@ -24,6 +22,13 @@ opensuse)
   CERT_PATH='/usr/share/pki/trust/anchors'
   ;;
 esac
+
+# get list of installed certificates
+cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
+if [ -z "$cert_paths" ]; then
+  echo -e '\e[33mno self-signed certificates installed\e[0m' >&2
+  exit 0
+fi
 
 certify_paths=()
 # determine certifi cacert.pem path
@@ -50,21 +55,24 @@ if [ -n "$SHOW" ]; then
 fi
 
 # exit script if no certify cacert.pem found
-[ -n "$certify_paths" ] || (echo -e '\e[91mcertifi/cacert.pem not found!\e[0m' >&2 && exit 0)
-
-# get list of installed certificates
-cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
+if [ -z "$certify_paths" ]; then
+  echo -e '\e[33mcertifi/cacert.pem not found\e[0m' >&2
+  exit 0
+fi
 
 for path in ${cert_paths[@]}; do
   serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
   for certify in ${certify_paths[@]}; do
     if ! grep -qw "$serial" "$certify"; then
       echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253)"
-      cat <<EOF | sudo tee -a "$certify" >/dev/null
-
+      CERT="
 $(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | xargs -I {} echo "# {}")
-$(cat $path)
-EOF
+$(cat $path)"
+      if [ -w "$certify" ]; then
+        echo "$CERT" >>"$certify"
+      else
+        echo "$CERT" | sudo tee -a "$certify" >/dev/null
+      fi
     fi
   done
 done
