@@ -18,7 +18,7 @@ done
 gh_repos=($repos)
 
 # *copy ssh keys on WSL
-if [[ -n "$WSL_DISTRO_NAME" ]]; then
+if [ -n "$WSL_DISTRO_NAME" ]; then
   ID="$WSL_DISTRO_NAME"
   echo -e "\e[32mcopying ssh keys from the host...\e[0m"
   mkdir -p ~/.ssh
@@ -52,7 +52,7 @@ for repo in ${gh_repos[@]}; do
   mkdir -p "${gh_path[0]}"
   pushd "${gh_path[0]}" >/dev/null
   git clone "git@github.com:$repo.git" 2>/dev/null && echo $repo
-  if ! grep -qw "$repo" $ws_path && [[ -d "${gh_path[1]}" ]]; then
+  if ! grep -qw "$repo" $ws_path && [ -d "${gh_path[1]}" ]; then
     folder="\t{\n\t\t\t\"name\": \"${gh_path[1]}\",\n\t\t\t\"path\": \"..\/repos\/${repo/\//\\\/}\"\n\t\t},\n\t"
     sed -i "s/\(\]\)/$folder\1/" $ws_path
   fi

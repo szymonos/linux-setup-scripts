@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/install_edge.sh
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -12,11 +12,11 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  sudo -u vagrant paru -Sy --needed --noconfirm microsoft-edge-stable-bin
+  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm microsoft-edge-stable-bin
   ;;
 fedora)
   rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
-  if [[ ! -f /etc/yum.repos.d/microsoft-edge-stable.repo ]]; then
+  if [ ! -f /etc/yum.repos.d/microsoft-edge-stable.repo ]; then
     dnf config-manager --add-repo 'https://packages.microsoft.com/yumrepos/edge'
     mv -f /etc/yum.repos.d/packages.microsoft.com_yumrepos_edge.repo /etc/yum.repos.d/microsoft-edge.repo
   fi

@@ -3,7 +3,7 @@
 .assets/scripts/nopasswd_sudoers.sh
 .assets/scripts/nopasswd_sudoers.sh revert
 '
-if [[ $EUID -eq 0 ]]; then
+if [ $EUID -eq 0 ]; then
   echo -e '\e[91mDo not run the script as root!\e[0m'
   exit 1
 fi
@@ -11,15 +11,15 @@ fi
 # store user name in separate variable tu use in sudo commands.
 user=$USER
 
-if [[ "$1" = 'revert' ]]; then
+if [ "$1" = 'revert' ]; then
   # delete user's configuration file from sudoers folder
   sudo rm -f "/etc/sudoers.d/$user"
   echo -e "\e[32mFile \e[1m/etc/sudoers.d/${user}\e[22m deleted.\e[0m"
 else
   # check if user is eligible to run sudo commands
   group=$(id -nG "$USER" | grep -Eow 'wheel|sudo')
-  if [[ -n $group ]]; then
-    if [[ -f /etc/sudoers.d/$user ]]; then
+  if [ -n "$group" ]; then
+    if [ -f /etc/sudoers.d/$user ]; then
       echo -e "\e[33mFile \e[1m/etc/sudoers.d/${user}\e[22m already exists.\e[0m"
     else
       # disable sudo password prompt for current user

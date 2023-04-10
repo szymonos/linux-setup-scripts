@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_npm.sh
+sudo .assets/provision/install_podman.sh
 '
 if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
@@ -12,19 +12,20 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache npm
+  apk add --no-cache distrobox
   ;;
 arch)
-  pacman -Sy --needed --noconfirm icu npm
+  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm distrobox
   ;;
 fedora)
-  dnf install -y npm
+  dnf install -y distrobox
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y npm
+  add-apt-repository -y ppa:michel-slm/distrobox
+  apt-get update && apt-get install -y distrobox
   ;;
 opensuse)
-  zypper in -y npm
+  zypper in -y distrobox
   ;;
 esac

@@ -15,37 +15,47 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER OmpTheme
 Specify oh-my-posh theme to be installed, from themes available on the page.
-There are also two baseline profiles included: base and powerline.
+There are also two baseline profiles included: base, powerline and nerd.
+Default: 'base'
 .PARAMETER GtkTheme
-Specify gtk theme for wslg.
-Available values: 'light', 'dark'
+Specify gtk theme for wslg. Available values: light, dark.
+Default: 'dark'
 .PARAMETER Scope
-Installation scope - valid values, and packages installed:
-- none: no additional packages installed
-- base: curl, git, jq, tree, vim, oh-my-posh, pwsh, bat, exa, ripgrep
-- k8s_basic: kubectl, helm, minikube, k3d, k9s, yq
-- k8s_full: flux, kubeseal, kustomize, argorolloutts-cli
-Every following option expands the scope.
+List of installation scopes. Valid values:
+- none: do not install any scopes
+- az: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.
+- docker: docker, containerd buildx docker-compose
+- k8s_base: kubectl, helm, minikube, k3d, k9s, yq
+- k8s_ext: flux, kubeseal, kustomize, argorollouts-cli
+- python: pip, venv, miniconda
+- shell: bat, exa, oh-my-posh, pwsh, ripgrep
+Default: @('shell').
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER PSModules
 List of PowerShell modules from ps-modules repository to be installed.
+Default: @('do-common', 'do-linux')
+.PARAMETER AddCertificate
+Intercept and add self-signed certificates from chain into selected distro.
+.PARAMETER FixNetwork
+Set network settings from the selected network interface in Windows.
 
 .EXAMPLE
 $Distro    = 'Ubuntu'
-$OmpTheme  = 'powerline'
-$GtkTheme  = 'dark'
-$Scope     = 'k8s_basic'
-$PSModules = @('do-common', 'do-linux')
+# ~set up WSL distro using default values
+.assets/scripts/wsl_setup.ps1 $Distro
+# ~set up WSL distro using specified values
+$OmpTheme  = 'nerd'
+$Scope     = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
+$PSModules = @('do-common', 'do-linux', 'do-az')
 $Repos     = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
-~install packages and setup profile
-.assets/scripts/wsl_setup.ps1 $Distro -g $GtkTheme -m $PSModules -o $OmpTheme -s $Scope
-~install packages, setup profiles and clone GitHub repositories
-.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -g $GtkTheme -m $PSModules -o $OmpTheme -s $Scope
-~update all existing WSL distros
-.assets/scripts/wsl_setup.ps1 -g $GtkTheme -m $PSModules -o $OmpTheme
-# fix network, add certificates and update all distros
-.assets/scripts/wsl_setup.ps1 -g $GtkTheme -m $PSModules -o $OmpTheme -AddCertificate -FixNetwork
+.assets/scripts/wsl_setup.ps1 $Distro -m $PSModules -o $OmpTheme -s $Scope
+# ~set up WSL distro, install self-signed certificates and fix network settings
+.assets/scripts/wsl_setup.ps1 $Distro -m $PSModules -o $OmpTheme -s $Scope -AddCertificate -FixNetwork
+# ~set up WSL distro and clone specified GitHub repositories
+.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -m $PSModules -o $OmpTheme -s $Scope
+# ~update all existing WSL distros
+.assets/scripts/wsl_setup.ps1 -m $PSModules -o $OmpTheme
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -56,39 +66,41 @@ param (
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
+    [ValidateNotNullOrEmpty()]
     [string]$OmpTheme = 'base',
 
-    [Alias('g')]
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('light', 'dark')]
-    [string]$GtkTheme = 'light',
+    [string]$GtkTheme = 'dark',
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateSet('none', 'base', 'k8s_basic', 'k8s_full')]
-    [string]$Scope = 'base',
-
-    [Parameter(ParameterSetName = 'Update')]
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [switch]$FixNetwork,
-
-    [Parameter(ParameterSetName = 'Update')]
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [switch]$AddCertificate,
+    [ValidateScript({ $_.ForEach({ $_ -in @('none', 'az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: none az docker k8s_base k8s_ext python shell')]
+    [string[]]$Scope = @('shell'),
 
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [ValidateScript({ -not ($_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -contains $false) }, ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
+    [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
+        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
     [string[]]$Repos,
 
     [Alias('m')]
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [string[]]$PSModules
+    [ValidateScript({ $_.ForEach({ $_ -in @('do-az', 'do-common', 'do-linux') }) -notcontains $false },
+        ErrorMessage = 'Wrong modules provided. Valid values: do-az do-common do-linux')]
+    [string[]]$PSModules = @('do-common', 'do-linux'),
+
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [switch]$AddCertificate,
+
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [switch]$FixNetwork
 )
 
 begin {
@@ -104,6 +116,12 @@ begin {
         [string[]]$distros = $Distro
     }
 
+    # verify scopes
+    if ('none' -in $Scope -and $Scope.Count -gt 1) {
+        Write-Warning "Do not provide any other scopes when `e[3m'none'`e[23m specified."
+        return
+    }
+
     # set location to workspace folder
     Push-Location "$PSScriptRoot/../.."
 }
@@ -112,9 +130,25 @@ process {
     foreach ($Distro in $distros) {
         # *determine scope for WSL update
         if ($PsCmdlet.ParameterSetName -eq 'Update') {
-            $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
+            $cmd = [string]::Join("`n",
+                '[ -f /usr/bin/pwsh ] && shell="true" || shell="false"',
+                '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false"',
+                '[ -f /usr/bin/kustomize ] && k8s_ext="true" || k8s_ext="false"',
+                '[ -d $HOME/miniconda3 ] && python="true" || python="false"',
+                'echo "{\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"python\":$python}"'
+            )
+            $chk = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
+            $Scope = @(
+                $chk.k8s_base ? 'k8s_base' : $null
+                $chk.k8s_ext ? 'k8s_ext' : $null
+                $chk.python ? 'python' : $null
+                $chk.shell ? 'shell' : $null
+            ).Where({ $_ }) # exclude null entries from array
+        } else {
+            # sort scopes
+            $Scope = $Scope | Sort-Object
         }
-        Write-Host "$distro - $Scope" -ForegroundColor Magenta
+        Write-Host "$distro$($Scope ? " - $Scope" : '')" -ForegroundColor Magenta
         # *fix WSL networking
         if ($FixNetwork) {
             .assets/scripts/wsl_network_fix.ps1 $Distro
@@ -131,11 +165,13 @@ process {
             Write-Warning 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.'
             exit
         }
-        switch -Regex ($Scope) {
-            none {
+        switch ($Scope) {
+            docker {
+                Write-Host 'installing docker...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_docker.sh
                 continue
             }
-            'k8s_basic|k8s_full' {
+            k8s_base {
                 Write-Host 'installing kubernetes base packages...' -ForegroundColor Cyan
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
@@ -144,23 +180,32 @@ process {
                 $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
                 $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
+                continue
             }
-            k8s_full {
+            k8s_ext {
                 Write-Host 'installing kubernetes additional packages...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
                 $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
                 $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
+                continue
             }
-            'base|k8s_basic|k8s_full' {
-                Write-Host 'installing base packages...' -ForegroundColor Cyan
+            python {
+                Write-Host 'installing python packages...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
+                if ('az' -in $Scope) {
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true
+                }
+                continue
+            }
+            shell {
+                Write-Host 'installing shell packages...' -ForegroundColor Cyan
                 $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
                 $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
-                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
@@ -169,20 +214,55 @@ process {
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
-                if ($PSModules) {
-                    if (-not (Test-Path '../ps-modules' -PathType Container)) {
-                        # clone ps-modules repository if not exists
-                        $remote = (git config --get remote.origin.url).Replace('vagrant-scripts', 'ps-modules')
-                        git clone $remote ../ps-modules
+                continue
+            }
+        }
+        # *install PowerShell modules from ps-modules repository
+        # determine, if pwsh, git and kubectl binaries installed
+        $cmd = [string]::Join("`n",
+            '[ -f /usr/bin/pwsh ] && pwsh="true" || pwsh="false"',
+            '[ -f /usr/bin/git ] && git="true" || git="false"',
+            '[ -f /usr/bin/kubectl ] && kubectl="true" || kubectl="false"',
+            'echo "{\"pwsh\":$pwsh,\"git\":$git,\"kubectl\":$kubectl}"'
+        )
+        $chk = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
+        if ($chk.pwsh) {
+            $modules = @(
+                $PSModules
+                'az' -in $Scope ? 'do-az' : $null
+                $chk.git ? 'aliases-git' : $null
+                $chk.kubectl ? 'aliases-kubectl' : $null
+            ).Where({ $_ }) | Select-Object -Unique
+            if ($modules) {
+                Write-Host 'installing ps-modules...' -ForegroundColor Cyan
+                if ('az' -in $Scope) {
+                    # Install Az module
+                    $cmd = 'if (-not (Get-Module Az -ListAvailable)) { Install-PSResource Az }'
+                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
+                }
+                # determine if ps-modules repository exist and clone if necessary
+                $getOrigin = { git config --get remote.origin.url }
+                $remote = (Invoke-Command $getOrigin).Replace('vagrant-scripts', 'ps-modules')
+                try {
+                    Push-Location '../ps-modules' -ErrorAction Stop
+                    if ($(Invoke-Command $getOrigin) -eq $remote) {
+                        # pull ps-modules repository
+                        git reset --hard --quiet && git clean --force -d && git pull --quiet
+                    } else {
+                        $modules = $()
                     }
-                    # *install PowerShell modules from ps-modules repository
-                    Write-Host 'installing ps-modules...' -ForegroundColor Cyan
-                    foreach ($module in $PSModules) {
-                        if ($module -eq 'do-common') {
-                            wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
-                        } else {
-                            wsl.exe --distribution $Distro --exec ../ps-modules/module_manage.ps1 $module -CleanUp
-                        }
+                    Pop-Location
+                } catch {
+                    # clone ps-modules repository
+                    git clone $remote ../ps-modules
+                }
+                # install modules
+                foreach ($module in $modules) {
+                    Write-Host "$module" -ForegroundColor DarkGreen
+                    if ($module -eq 'do-common') {
+                        wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
+                    } else {
+                        wsl.exe --distribution $Distro --exec ../ps-modules/module_manage.ps1 $module -CleanUp
                     }
                 }
             }
@@ -204,7 +284,7 @@ process {
         # set git eol config
         wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
         # copy git user settings from the host
-        $gitConfigCmd = (git config --list --global | Select-String '^user\b').ForEach({
+        $gitConfigCmd = (git config --list --global 2>$null | Select-String '^user\b').ForEach({
                 $split = $_.Line.Split('=')
                 "git config --global $($split[0]) '$($split[1])'"
             }

@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/upgrade_system.sh
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -14,7 +14,7 @@ alpine)
   ;;
 arch)
   # ArchWSL fix for WSL2
-  if [[ -n $WSL_DISTRO_NAME ]]; then
+  if [ -n "$WSL_DISTRO_NAME" ]; then
     sed -i '/\bfakeroot\b/d' /etc/pacman.conf
     pacman -R --noconfirm fakeroot-tcp 2>/dev/null || true
   fi

@@ -3,7 +3,7 @@
 .assets/provision/install_azurecli.sh
 .assets/provision/install_azurecli.sh --fix_certify true
 '
-if [[ $EUID -eq 0 ]]; then
+if [ $EUID -eq 0 ]; then
   echo -e '\e[91mDo not run the script as root!\e[0m\n'
   exit 1
 fi

@@ -3,7 +3,7 @@
 sudo .assets/provision/setup_omp.sh
 sudo .assets/provision/setup_omp.sh --theme "powerline"
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -19,20 +19,20 @@ while [ $# -gt 0 ]; do
 done
 
 # path variables
-CFG_PATH='/tmp/config/omp_cfg'
+CFG_PATH="/home/$(id -un 1000)/tmp/config/omp_cfg"
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 # copy profile for WSL setup
-if [[ -f .assets/config/omp_cfg/${theme}.omp.json ]]; then
+if [ -f .assets/config/omp_cfg/${theme}.omp.json ]; then
   mkdir -p $CFG_PATH
   cp -f .assets/config/omp_cfg/${theme}.omp.json $CFG_PATH
 fi
 
-if ! [[ -f $CFG_PATH/${theme}.omp.json ]]; then
+if ! [ -f $CFG_PATH/${theme}.omp.json ]; then
   curl -fsSk -o $CFG_PATH/${theme}.omp.json --create-dirs "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
 fi
 
 # *Copy oh-my-posh theme
-if [[ -f $CFG_PATH/${theme}.omp.json ]]; then
+if [ -f $CFG_PATH/${theme}.omp.json ]; then
   mkdir -p $OH_MY_POSH_PATH
   install -o root -g root -m 0644 $CFG_PATH/${theme}.omp.json $OH_MY_POSH_PATH/theme.omp.json
 fi

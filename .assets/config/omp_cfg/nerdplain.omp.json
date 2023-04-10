@@ -5,19 +5,19 @@
       "alignment": "left",
       "segments": [
         {
-          "type": "os",
-          "style": "plain",
           "foreground": "#26C6DA",
           "foreground_templates": [
             "{{ if .WSL }}#ff0000{{ end }}"
           ],
-          "template": "{{.Icon}} "
+          "style": "plain",
+          "template": "{{.Icon}} ",
+          "type": "os"
         },
         {
-          "type": "root",
-          "style": "plain",
           "foreground": "#FF6666",
-          "template": "# "
+          "style": "plain",
+          "template": "# ",
+          "type": "root"
         },
         {
           "foreground": "#CCCCCC",
@@ -45,14 +45,14 @@
         },
         {
           "foreground": "#3B8EEA",
-          "leading_diamond": "\ue0b3\ue0b2",
+          "leading_diamond": "",
           "properties": {
             "folder_separator_icon": "/",
             "style": "agnoster_short"
           },
           "style": "plain",
-          "template": "\uf07b <b>{{ .Path }}</b> ",
-          "trailing_diamond": "\ue0b0\ue0b1 ",
+          "template": " <b>{{ .Path }}</b> ",
+          "trailing_diamond": " ",
           "type": "path"
         },
         {
@@ -64,8 +64,8 @@
             "{{ if gt .Behind 0 }}#B388FF{{ end }}"
           ],
           "properties": {
+            "branch_icon": " ",
             "branch_max_length": 25,
-            "branch_icon": "\ue725 ",
             "commit_icon": "",
             "fetch_status": true,
             "tag_icon": ""
@@ -79,7 +79,7 @@
           "properties": {
             "mapped_shell_names": {
               "bash": "$",
-              "pwsh": "\u276d",
+              "pwsh": "❭",
               "zsh": "%"
             }
           },
@@ -98,7 +98,7 @@
             "parse_kubeconfig": true
           },
           "style": "plain",
-          "template": "\ufd31 {{ .Context }}{{ if and (.Namespace) (ne .Namespace \"default\") }}::<i>{{ .Namespace }}</i>{{ end }}",
+          "template": "ﴱ {{ .Context }}{{ if and (.Namespace) (ne .Namespace \"default\") }}::<i>{{ .Namespace }}</i>{{ end }}",
           "type": "kubectl"
         }
       ],

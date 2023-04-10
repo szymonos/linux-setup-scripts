@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/install_xrdp.sh
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -12,7 +12,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  sudo -u vagrant paru -Sy --needed --noconfirm xrdp
+  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm xrdp
   ;;
 fedora)
   # Load the Hyper-V kernel module

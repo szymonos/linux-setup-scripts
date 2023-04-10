@@ -17,34 +17,36 @@ param (
 )
 
 function Get-SshInstallScript ([string]$crt) {
-    return @"
-#!/usr/bin/env bash
-# determine system id
-SYS_ID=`$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
-case `$SYS_ID in
-arch)
-  CERT_PATH='/etc/ca-certificates/trust-source/anchors';;
-fedora)
-  CERT_PATH='/etc/pki/ca-trust/source/anchors';;
-debian | ubuntu)
-  CERT_PATH='/usr/local/share/ca-certificates';;
-opensuse)
-  CERT_PATH='/usr/share/pki/trust/anchors/';;
-esac
-# write certificate in CERT_PATH
-cat <<EOF >`$CERT_PATH/root_ca.crt
-$crt
-EOF
-# update certificates
-case `$SYS_ID in
-arch)
-  trust extract-compat;;
-fedora)
-  update-ca-trust;;
-debian | ubuntu | opensuse)
-  update-ca-certificates;;
-esac
-"@
+    $script = [string]::Join("`n",
+        "#!/usr/bin/env bash`n",
+        '# determine system id',
+        'SYS_ID=$(grep -oPm1 "^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)" /etc/os-release)',
+        'case $SYS_ID in',
+        'arch)',
+        "  CERT_PATH=/etc/ca-certificates/trust-source/anchors`n  ;;",
+        'fedora)',
+        "  CERT_PATH=/etc/pki/ca-trust/source/anchors`n  ;;",
+        'debian | ubuntu)',
+        "  CERT_PATH=/usr/local/share/ca-certificates`n  ;;",
+        'opensuse)',
+        "  CERT_PATH=/usr/share/pki/trust/anchors`n  ;;",
+        "esac`n",
+        '# write certificate in CERT_PATH',
+        'cat <<EOF >$CERT_PATH/root_ca.crt',
+        "$($crt.Trim())",
+        "EOF`n",
+        '# update certificates',
+        'case $SYS_ID in',
+        'arch)',
+        "  trust extract-compat`n  ;;",
+        'fedora)',
+        "  update-ca-trust`n  ;;",
+        'debian | ubuntu | opensuse)',
+        "  update-ca-certificates`n  ;;",
+        'esac'
+    )
+
+    return $script
 }
 
 $scriptInstallRootCA = [IO.Path]::Combine($PWD, '.tmp', 'script_install_root_ca.sh')

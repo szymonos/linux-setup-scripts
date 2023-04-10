@@ -3,7 +3,7 @@
 .assets/provision/install_miniconda.sh
 '
 APP='conda'
-if [[ -f $HOME/miniconda3/bin/conda ]]; then
+if [ -f $HOME/miniconda3/bin/conda ]; then
   echo -e "\e[32m$APP already installed\e[0m"
   exit 0
 fi

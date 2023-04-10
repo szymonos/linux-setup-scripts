@@ -5,10 +5,10 @@
       "alignment": "left",
       "segments": [
         {
-          "type": "root",
-          "style": "plain",
           "foreground": "#FF6666",
-          "template": "# "
+          "style": "plain",
+          "template": "# ",
+          "type": "root"
         },
         {
           "foreground": "#CCCCCC",
@@ -37,17 +37,17 @@
             "always_enabled": true
           },
           "style": "plain",
-          "template": "<b>\u2192</b> ",
+          "template": "<b>→</b> ",
           "type": "exit"
         },
         {
-          "foreground": "#2CC7EE",
+          "foreground": "#FFE082",
           "style": "plain",
-          "template": "{{ if .SSHSession }}{{ .UserName }}<#4CD7FF>@</>{{ .HostName }} {{ end }}",
+          "template": "{{ if .SSHSession }}{{ .UserName }}@{{ .HostName }} {{ end }}",
           "type": "session"
         },
         {
-          "foreground": "#3B8EEA",
+          "foreground": "#56B6C2",
           "properties": {
             "folder_separator_icon": "/",
             "style": "agnoster_short"
@@ -65,16 +65,14 @@
             "{{ if gt .Behind 0 }}#B388FF{{ end }}"
           ],
           "properties": {
+            "branch_icon": "",
             "branch_max_length": 25,
             "commit_icon": "",
-            "branch_icon": "",
             "fetch_status": true,
             "tag_icon": ""
           },
-          "style": "diamond",
-          "leading_diamond": "(",
-          "template": "{{ .HEAD }}",
-          "trailing_diamond": ") ",
+          "style": "plain",
+          "template": "<#E8CC97>(</>{{ .HEAD }}<#E8CC97>) </>",
           "type": "git"
         },
         {

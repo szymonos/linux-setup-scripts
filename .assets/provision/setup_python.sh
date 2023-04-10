@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/setup_python.sh
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -32,4 +32,4 @@ opensuse)
 esac
 
 # create python symbolic link
-[[ -f /usr/bin/python3 ]] && [[ -f /usr/bin/python ]] || ln -s /usr/bin/python3 /usr/bin/python
+[[ ! -f /usr/bin/python && -f /usr/bin/python3 ]] && ln -s /usr/bin/python3 /usr/bin/python || true

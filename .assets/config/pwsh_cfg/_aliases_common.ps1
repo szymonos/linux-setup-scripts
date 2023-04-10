@@ -8,26 +8,43 @@ You can suppress executing the command by providing -WhatIf as one of the argume
 .PARAMETER Command
 Command to be executed.
 .PARAMETER Arguments
-Command arguments.
+Command arguments to be passed to the provided command.
+.PARAMETER Parameters
+Control parameters: WhatIf, Quiet.
 #>
-function Invoke-WriteExecuteCommand {
+function Invoke-WriteExecCmd {
+    [CmdletBinding(DefaultParameterSetName = 'Default')]
     param (
         [Parameter(Mandatory, Position = 0)]
         [string]$Command,
 
-        [Parameter(Position = 1)]
-        [string[]]$Arguments
+        [Parameter(ParameterSetName = 'Arguments')]
+        [string[]]$Arguments,
+
+        [Parameter(ParameterSetName = 'Parameters')]
+        [string[]]$Parameters
     )
 
-    # build the command to write and execute
-    $cmd = "$Command $($Arguments.Where({ $_ -notin $('-WhatIf', '-Quiet') }).ForEach({ $_ -match '\s' ? "'$_'" : $_ }))"
-    if ('-Quiet' -notin $Arguments) {
-        # write the command
-        Write-Host $cmd -ForegroundColor Magenta
+    begin {
+        # clean up command from control parameters
+        $Command = $Command -replace (' -WhatIf| -Quiet')
+        # calculate control parameters
+        $Parameters = $($Parameters ? $Parameters : $Arguments).Where({ $_ -match '^-WhatIf$|^-Quiet$' })
+        # remove control parameters from arguments and quote arguments with spaces
+        $Arguments = $Arguments.Where({ $_ -notmatch '^-WhatIf$|^-Quiet$' }).ForEach({ $_ -match '\s' ? "'$_'" : $_ })
+        # build the command expression
+        $cmd = "$Command $Arguments"
     }
-    if ('-WhatIf' -notin $Arguments) {
-        # execute the command
-        Invoke-Expression $cmd
+
+    process {
+        if ('-Quiet' -notin $Parameters) {
+            # write the command
+            Write-Host $cmd -ForegroundColor Magenta
+        }
+        if ('-WhatIf' -notin $Parameters) {
+            # execute the command
+            Invoke-Expression $cmd
+        }
     }
 }
 

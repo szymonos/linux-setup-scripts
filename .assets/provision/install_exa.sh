@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/install_exa.sh >/dev/null
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -11,10 +11,10 @@ APP='exa'
 REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
-while [[ -z "$REL" ]]; do
+while [ -z "$REL" ]; do
   REL=$(curl -sk https://api.github.com/repos/ogham/exa/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   ((retry_count++))
-  if [[ $retry_count -eq 10 ]]; then
+  if [ $retry_count -eq 10 ]; then
     echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
     exit 0
   fi
@@ -24,7 +24,7 @@ done
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(exa --version | grep -Po '(?<=^v)[\d\.]+')
+  VER=$(exa --version | grep -Po '(?<=^v)[0-9\.]+')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
     exit 0
@@ -57,7 +57,7 @@ opensuse)
   ;;
 esac
 
-if [[ "$binary" = true ]]; then
+if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0

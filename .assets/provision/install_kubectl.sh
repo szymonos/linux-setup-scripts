@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/install_kubectl.sh >/dev/null
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
@@ -11,20 +11,20 @@ APP='kubectl'
 REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
-while [[ -z "$REL" ]]; do
+while [ -z "$REL" ]; do
   REL=$(curl -Lsk https://dl.k8s.io/release/stable.txt)
   ((retry_count++))
-  if [[ $retry_count -eq 10 ]]; then
+  if [ $retry_count -eq 10 ]; then
     echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
     exit 0
   fi
-  [[ -n "$REL" ]] || echo 'retrying...' >&2
+  [ -n "$REL" ] || echo 'retrying...' >&2
 done
 # return latest release
 echo $REL
 
 if [ -f /usr/bin/kubectl ]; then
-  VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
+  VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[0-9\.]+$')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[32m$APP $VER is already latest\e[0m" >&2
     exit 0
@@ -65,7 +65,7 @@ debian | ubuntu)
   ;;
 esac
 
-if [[ "$binary" = true ]]; then
+if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
   retry_count=0
   while [[ ! -f kubectl && $retry_count -lt 10 ]]; do

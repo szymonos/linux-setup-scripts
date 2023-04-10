@@ -5,10 +5,10 @@
       "alignment": "left",
       "segments": [
         {
-          "type": "root",
-          "style": "plain",
           "foreground": "#FF6666",
-          "template": "# "
+          "style": "plain",
+          "template": "# ",
+          "type": "root"
         },
         {
           "foreground": "#CCCCCC",
@@ -36,14 +36,14 @@
         },
         {
           "background": "#3B8EEA",
-          "leading_diamond": "\ue0b3\ue0b2",
+          "leading_diamond": "",
           "properties": {
             "folder_separator_icon": "/",
             "style": "agnoster_short"
           },
           "style": "diamond",
           "template": "<b>{{ .Path }}</b>",
-          "trailing_diamond": "\ue0b0\ue0b1 ",
+          "trailing_diamond": " ",
           "type": "path"
         },
         {
@@ -55,8 +55,8 @@
             "{{ if gt .Behind 0 }}#B388FF{{ end }}"
           ],
           "properties": {
-            "branch_max_length": 25,
             "branch_icon": " ",
+            "branch_max_length": 25,
             "commit_icon": "",
             "fetch_status": true,
             "tag_icon": ""
@@ -70,7 +70,7 @@
           "properties": {
             "mapped_shell_names": {
               "bash": "$",
-              "pwsh": "\u276d",
+              "pwsh": "❭",
               "zsh": "%"
             }
           },

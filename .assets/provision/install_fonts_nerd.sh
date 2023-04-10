@@ -8,7 +8,7 @@ sudo .assets/provision/install_fonts_nerd.sh --version
 '
 __ScriptVersion='0.1'
 
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m' >&2
   exit 1
 fi
@@ -76,7 +76,7 @@ while getopts "$optspec" optchar; do
 done
 shift $((OPTIND - 1))
 
-if [[ -n "$1" ]]; then
+if [ -n "$1" ]; then
   font=$1
   if [ "true" = "$UNINSTALL_FONT" ]; then
     echo "uninstalling '$font' font..." >&2
@@ -87,7 +87,7 @@ if [[ -n "$1" ]]; then
     echo "installing '$font' font..." >&2
     TMP_DIR=$(mktemp -dp "$PWD")
     http_code=$(curl -Lo /dev/null --silent -Iw '%{http_code}' "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip")
-    if [[ $http_code -eq 200 ]]; then
+    if [ $http_code -eq 200 ]; then
       retry_count=0
       while [[ ! -f $TMP_DIR/$font.zip && $retry_count -lt 10 ]]; do
         curl -Lsk -o $TMP_DIR/$font.zip "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
