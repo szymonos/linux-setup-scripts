@@ -13,13 +13,6 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 
 .PARAMETER Distro
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
-.PARAMETER OmpTheme
-Specify oh-my-posh theme to be installed, from themes available on the page.
-There are also two baseline profiles included: base, powerline and nerd.
-Default: 'base'
-.PARAMETER GtkTheme
-Specify gtk theme for wslg. Available values: light, dark.
-Default: 'dark'
 .PARAMETER Scope
 List of installation scopes. Valid values:
 - none: do not install any scopes
@@ -30,32 +23,38 @@ List of installation scopes. Valid values:
 - python: pip, venv, miniconda
 - shell: bat, exa, oh-my-posh, pwsh, ripgrep
 Default: @('shell').
-.PARAMETER Repos
-List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
+.PARAMETER OmpTheme
+Specify oh-my-posh theme to be installed, from themes available on the page.
+There are also two baseline profiles included: base, powerline and nerd.
+Default: 'base'
 .PARAMETER PSModules
 List of PowerShell modules from ps-modules repository to be installed.
 Default: @('do-common', 'do-linux')
+.PARAMETER GtkTheme
+Specify gtk theme for wslg. Available values: light, dark.
+Default: 'dark'
+.PARAMETER Repos
+List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER AddCertificate
 Intercept and add self-signed certificates from chain into selected distro.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
 
 .EXAMPLE
-$Distro    = 'Ubuntu'
+$Distro = 'Ubuntu'
 # ~set up WSL distro using default values
 .assets/scripts/wsl_setup.ps1 $Distro
+.assets/scripts/wsl_setup.ps1 $Distro -AddCertificate
+.assets/scripts/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
 # ~set up WSL distro using specified values
-$OmpTheme  = 'nerd'
-$Scope     = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
-$PSModules = @('do-common', 'do-linux', 'do-az')
-$Repos     = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
-.assets/scripts/wsl_setup.ps1 $Distro -m $PSModules -o $OmpTheme -s $Scope
-# ~set up WSL distro, install self-signed certificates and fix network settings
-.assets/scripts/wsl_setup.ps1 $Distro -m $PSModules -o $OmpTheme -s $Scope -AddCertificate -FixNetwork
+$Scope = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
+$OmpTheme = 'nerd'
+.assets/scripts/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
 # ~set up WSL distro and clone specified GitHub repositories
-.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -m $PSModules -o $OmpTheme -s $Scope
+$Repos = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
+.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
 # ~update all existing WSL distros
-.assets/scripts/wsl_setup.ps1 -m $PSModules -o $OmpTheme
+.assets/scripts/wsl_setup.ps1 -o $OmpTheme
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -63,28 +62,17 @@ param (
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'GitHub')]
     [string]$Distro,
 
-    [Parameter(ParameterSetName = 'Update')]
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateNotNullOrEmpty()]
-    [string]$OmpTheme = 'base',
-
-    [Parameter(ParameterSetName = 'Update')]
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateSet('light', 'dark')]
-    [string]$GtkTheme = 'dark',
-
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -in @('none', 'az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell') }) -notcontains $false },
         ErrorMessage = 'Wrong scope provided. Valid values: none az docker k8s_base k8s_ext python shell')]
     [string[]]$Scope = @('shell'),
 
-    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
-        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
-    [string[]]$Repos,
+    [Parameter(ParameterSetName = 'Update')]
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [ValidateNotNullOrEmpty()]
+    [string]$OmpTheme,
 
     [Alias('m')]
     [Parameter(ParameterSetName = 'Update')]
@@ -93,6 +81,17 @@ param (
     [ValidateScript({ $_.ForEach({ $_ -in @('do-az', 'do-common', 'do-linux') }) -notcontains $false },
         ErrorMessage = 'Wrong modules provided. Valid values: do-az do-common do-linux')]
     [string[]]$PSModules = @('do-common', 'do-linux'),
+
+    [Parameter(ParameterSetName = 'Update')]
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [ValidateSet('light', 'dark')]
+    [string]$GtkTheme = 'dark',
+
+    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
+    [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
+        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
+    [string[]]$Repos,
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
@@ -201,14 +200,16 @@ process {
             }
             shell {
                 Write-Host 'installing shell packages...' -ForegroundColor Cyan
-                $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
                 $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
+                if ($OmpTheme) {
+                    $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
+                }
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
