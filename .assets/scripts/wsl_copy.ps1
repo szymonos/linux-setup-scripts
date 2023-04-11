@@ -3,15 +3,20 @@
 Copy files between WSL distributions.
 
 .PARAMETER Source
-Source Distro:Path. Path needs to be absolute or starts in ~ home directory.
+Source written using the <distro>:<path> convention.
+Path needs to be absolute or starts in ~ home directory.
 .PARAMETER Destination
-Destination Distro:Path.
+Destination written using the <distro>:<path> convention.
+You can specify only the destination <distro> and the source path will be used.
 .PARAMETER Root
 Copy files as root.
 
 .EXAMPLE
 $Source = 'Debian:~/source'
-$Destination = 'Ubuntu:~'
+# ~ copy to the same path in destination distro
+$Destination = 'Ubuntu'
+# ~ copy to other specified path in destination distro
+$Destination = 'Ubuntu:~/myfiles'
 
 .assets/scripts/wsl_copy.ps1 $Source $Destination
 .assets/scripts/wsl_copy.ps1 $Source $Destination -Root
@@ -31,6 +36,9 @@ param (
 # *calculate source and destination distros and paths
 $srcDistro, $srcPath = $Source.Split(':')
 $dstDistro, $dstPath = $Destination.Split(':')
+if (-not $dstPath) {
+    $dstPath = $srcPath
+}
 
 # *check if specified distros exist
 [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
@@ -64,13 +72,12 @@ wsl.exe -d $srcDistro --user root --exec bash -c $cmd
 
 # *copy files
 $cmd = @"
-dst="`$(readlink -m $dstPath)"
-if [[ -f '$srcPath' && "`$(basename '$srcPath')" = "`$(basename `$dst)" ]]; then
-    mkdir -p "`$(dirname `$dst)"
+if [ "`$(basename '$srcPath')" = "`$(basename $dstPath)" ]; then
+    dst="`$(readlink -m `$(dirname $dstPath))"
 else
-    mkdir -p "`$dst"
+    dst="`$(readlink -m $dstPath)"
 fi
-cp -rf "$srcPath" "`$dst"
+mkdir -p "`$dst" && cp -rf "$srcPath" "`$dst"
 "@
 if ($Root) {
     wsl.exe -d $dstDistro --user root --exec bash -c $cmd
