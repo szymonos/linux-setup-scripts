@@ -30,7 +30,7 @@ function git_resolve_branch {
   [ -n "$br" ] && echo "$br" || echo "$pattern"
 }
 
-function gs {
+function gsw {
   br=$(git_resolve_branch $1)
   git switch $(git_resolve_branch $br)
 }
@@ -164,8 +164,8 @@ alias grtsu='git remote set-url'
 alias grtup='git remote update origin'
 alias grtupp='git remote update origin --prune'
 alias grtv='git remote -v'
-alias gsc='git switch --create'
-alias gsd='git switch --detach'
+alias gswc='git switch --create'
+alias gswd='git switch --detach'
 alias gsmi='git submodule init'
 alias gsmu='git submodule update'
 alias gsps='git show --pretty=short --show-signature'
