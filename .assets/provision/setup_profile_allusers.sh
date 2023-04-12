@@ -9,13 +9,14 @@ fi
 
 # path variables
 user="$(id -un 1000)"
+group="$(sudo -u $user groups | awk '{print $1}')"
 CFG_PATH="/home/$user/tmp/config/bash_cfg"
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
 if [ -d .assets/config/bash_cfg ]; then
   mkdir -p $CFG_PATH
-  chown -R $user:$user /home/$user/tmp
+  chown -R $user:$group /home/$user/tmp
   cp -f .assets/config/bash_cfg/* $CFG_PATH
 fi
 # *modify exa alias
