@@ -9,23 +9,39 @@ fi
 
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+# check if package installed already using package manager
+APP='distrobox'
+case $SYS_ID in
+alpine)
+  apk -e info $APP &>/dev/null && exit 0 || true
+  ;;
+arch)
+  pacman -Qqe $APP &>/dev/null && exit 0 || true
+  ;;
+fedora | opensuse)
+  rpm -q $APP &>/dev/null && exit 0 || true
+  ;;
+debian | ubuntu)
+  dpkg -s $APP &>/dev/null && exit 0 || true
+  ;;
+esac
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache distrobox
+  apk add --no-cache $APP
   ;;
 arch)
-  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm distrobox
+  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm $APP
   ;;
 fedora)
-  dnf install -y distrobox
+  dnf install -y $APP
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   add-apt-repository -y ppa:michel-slm/distrobox
-  apt-get update && apt-get install -y distrobox
+  apt-get update && apt-get install -y $APP
   ;;
 opensuse)
-  zypper in -y distrobox
+  zypper in -y $APP
   ;;
 esac
