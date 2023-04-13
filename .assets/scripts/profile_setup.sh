@@ -112,15 +112,20 @@ if [ -f /usr/bin/pwsh ]; then
     else
       git clone $remote ../ps-modules
     fi
-    # install modules
-    for mod in ${modules[@]}; do
-      echo -e "\e[32m$mod\e[0m" >&2
-      if [ "$mod" = 'do-common' ]; then
-        sudo ../ps-modules/module_manage.ps1 "$mod" -CleanUp
-      else
-        ../ps-modules/module_manage.ps1 "$mod" -CleanUp
-      fi
-    done
+    # install do-common module for all users
+    if grep -qw 'do-common' <<<$ps_modules; then
+      sudo ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+    fi
+    # install rest of the modules for the current user
+    modules=(${modules[@]/do-common/})
+    if [ -n "$modules" ]; then
+      # Convert the modules array to a comma-separated string with quoted elements
+      mods=''
+      for element in "${modules[@]}"; do
+        mods="$mods'$element',"
+      done
+      pwsh -nop -c "@(${mods%,}) | ../ps-modules/module_manage.ps1 -CleanUp"
+    fi
   fi
 fi
 
