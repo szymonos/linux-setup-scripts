@@ -38,9 +38,14 @@ sudo .assets/provision/install_base.sh
 
 # convert scope string to array
 array=($scope)
+# add oh_my_posh scope if necessary
+if ! grep -w 'none' <<< $scope && [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
+  array+=(oh_my_posh)
+fi
 # sort array
-IFS=$'\n' scope_arr=($(sort <<<"${array[*]}"))
-unset IFS
+IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")) && unset IFS
+
+echo -e "\e[95m${scope_arr[@]}\e[0m"
 for sc in "${scope_arr[@]}"; do
   case $sc in
   docker)
@@ -64,6 +69,13 @@ for sc in "${scope_arr[@]}"; do
     sudo .assets/provision/install_kubeseal.sh >/dev/null
     sudo .assets/provision/install_argorolloutscli.sh >/dev/null
     ;;
+  oh_my_posh)
+    echo -e "\e[96minstalling oh-my-posh...\e[0m"
+    sudo .assets/provision/install_omp.sh >/dev/null
+    if [ -n "$omp_theme" ]; then
+      sudo .assets/provision/setup_omp.sh --theme $omp_theme
+    fi
+    ;;
   python)
     echo -e "\e[96minstalling python packages...\e[0m"
     .assets/provision/install_miniconda.sh
@@ -77,10 +89,6 @@ for sc in "${scope_arr[@]}"; do
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     echo -e "\e[96msetting up profile for all users...\e[0m"
-    if [ -n "$omp_theme" ]; then
-      sudo .assets/provision/install_omp.sh >/dev/null
-      sudo .assets/provision/setup_omp.sh --theme $omp_theme
-    fi
     sudo .assets/provision/setup_profile_allusers.sh
     sudo .assets/provision/setup_profile_allusers.ps1
     echo -e "\e[96msetting up profile for current user...\e[0m"
@@ -114,12 +122,14 @@ if [ -f /usr/bin/pwsh ]; then
     fi
     # install do-common module for all users
     if grep -qw 'do-common' <<<$ps_modules; then
+      echo -e "\e[3;32mAllUsers\e[23m    : do-common\e[0m"
       sudo ../ps-modules/module_manage.ps1 'do-common' -CleanUp
     fi
     # install rest of the modules for the current user
     modules=(${modules[@]/do-common/})
     if [ -n "$modules" ]; then
       # Convert the modules array to a comma-separated string with quoted elements
+      echo -e "\e[3;32mCurrentUser\e[23m : ${modules[@]}\e[0m"
       mods=''
       for element in "${modules[@]}"; do
         mods="$mods'$element',"
