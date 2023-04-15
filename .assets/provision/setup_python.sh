@@ -7,10 +7,25 @@ if [ $EUID -ne 0 ]; then
   exit 1
 fi
 
-echo -e "\e[92minstalling python pip & virtualenv\e[0m" >&2
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+# check if package installed already using package manager
+case $SYS_ID in
+alpine)
+  apk -e info py3-pip &>/dev/null && exit 0 || true
+  ;;
+arch)
+  pacman -Qqe python-pip &>/dev/null && exit 0 || true
+  ;;
+fedora | opensuse)
+  rpm -q python3-pip &>/dev/null && exit 0 || true
+  ;;
+debian | ubuntu)
+  dpkg -s python3-pip &>/dev/null && exit 0 || true
+  ;;
+esac
 
+echo -e "\e[92minstalling python pip & virtualenv\e[0m" >&2
 # install packages
 case $SYS_ID in
 alpine)

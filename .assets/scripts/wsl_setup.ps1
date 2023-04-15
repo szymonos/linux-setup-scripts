@@ -5,21 +5,16 @@ Setting up WSL distro(s).
 .DESCRIPTION
 You can use the script for:
 - installing base packages and setting up bash and pwsh shells,
+- installing docker-ce locally in WSL,
 - installing tools for interacting with kubernetes,
-- setting gtk theme in WSLg
+- setting gtk theme in WSLg,
+- installing Python environment management tools: venv and miniconda,
 - cloning GH repositories and setting up VSCode workspace,
 - updating packages in all existing WSL distros.
 When GH repositories cloning is used, you need to generate and add an SSH key to your GH account.
 
 .PARAMETER Distro
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
-.PARAMETER OmpTheme
-Specify oh-my-posh theme to be installed, from themes available on the page.
-There are also two baseline profiles included: base, powerline and nerd.
-Default: 'base'
-.PARAMETER GtkTheme
-Specify gtk theme for wslg. Available values: light, dark.
-Default: 'dark'
 .PARAMETER Scope
 List of installation scopes. Valid values:
 - none: do not install any scopes
@@ -30,32 +25,39 @@ List of installation scopes. Valid values:
 - python: pip, venv, miniconda
 - shell: bat, exa, oh-my-posh, pwsh, ripgrep
 Default: @('shell').
-.PARAMETER Repos
-List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
+.PARAMETER OmpTheme
+Specify to install oh-my-posh prompt theme engine and name of the theme to be used.
+You can specify one of the three included profiles: base, powerline, nerd,
+or use any theme available on the page: https://ohmyposh.dev/docs/themes/
+Default: 'base'
 .PARAMETER PSModules
 List of PowerShell modules from ps-modules repository to be installed.
 Default: @('do-common', 'do-linux')
+.PARAMETER GtkTheme
+Specify gtk theme for wslg. Available values: light, dark.
+Default: 'dark'
+.PARAMETER Repos
+List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER AddCertificate
 Intercept and add self-signed certificates from chain into selected distro.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
 
 .EXAMPLE
-$Distro    = 'Ubuntu'
+$Distro = 'Ubuntu'
 # ~set up WSL distro using default values
 .assets/scripts/wsl_setup.ps1 $Distro
+.assets/scripts/wsl_setup.ps1 $Distro -AddCertificate
+.assets/scripts/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
 # ~set up WSL distro using specified values
-$OmpTheme  = 'nerd'
-$Scope     = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
-$PSModules = @('do-common', 'do-linux', 'do-az')
-$Repos     = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
-.assets/scripts/wsl_setup.ps1 $Distro -m $PSModules -o $OmpTheme -s $Scope
-# ~set up WSL distro, install self-signed certificates and fix network settings
-.assets/scripts/wsl_setup.ps1 $Distro -m $PSModules -o $OmpTheme -s $Scope -AddCertificate -FixNetwork
+$Scope = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
+$OmpTheme = 'nerd'
+.assets/scripts/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
 # ~set up WSL distro and clone specified GitHub repositories
-.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -m $PSModules -o $OmpTheme -s $Scope
+$Repos = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
+.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
 # ~update all existing WSL distros
-.assets/scripts/wsl_setup.ps1 -m $PSModules -o $OmpTheme
+.assets/scripts/wsl_setup.ps1
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -63,28 +65,17 @@ param (
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'GitHub')]
     [string]$Distro,
 
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [ValidateScript({ $_.ForEach({ $_ -in @('none', 'az', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'python', 'shell') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: none az docker k8s_base k8s_ext python shell')]
+    [string[]]$Scope = @('shell'),
+
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateNotNullOrEmpty()]
-    [string]$OmpTheme = 'base',
-
-    [Parameter(ParameterSetName = 'Update')]
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateSet('light', 'dark')]
-    [string]$GtkTheme = 'dark',
-
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('none', 'az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: none az docker k8s_base k8s_ext python shell')]
-    [string[]]$Scope = @('shell'),
-
-    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
-        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
-    [string[]]$Repos,
+    [string]$OmpTheme,
 
     [Alias('m')]
     [Parameter(ParameterSetName = 'Update')]
@@ -93,6 +84,17 @@ param (
     [ValidateScript({ $_.ForEach({ $_ -in @('do-az', 'do-common', 'do-linux') }) -notcontains $false },
         ErrorMessage = 'Wrong modules provided. Valid values: do-az do-common do-linux')]
     [string[]]$PSModules = @('do-common', 'do-linux'),
+
+    [Parameter(ParameterSetName = 'Update')]
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [ValidateSet('light', 'dark')]
+    [string]$GtkTheme = 'dark',
+
+    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
+    [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
+        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
+    [string[]]$Repos,
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
@@ -134,19 +136,24 @@ process {
                 '[ -f /usr/bin/pwsh ] && shell="true" || shell="false"',
                 '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false"',
                 '[ -f /usr/bin/kustomize ] && k8s_ext="true" || k8s_ext="false"',
+                '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false"',
                 '[ -d $HOME/miniconda3 ] && python="true" || python="false"',
-                'echo "{\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"python\":$python}"'
+                'echo "{\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,\"python\":$python}"'
             )
             $chk = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
             $Scope = @(
                 $chk.k8s_base ? 'k8s_base' : $null
                 $chk.k8s_ext ? 'k8s_ext' : $null
+                $chk.omp -or $OmpTheme ? 'oh_my_posh' : $null
                 $chk.python ? 'python' : $null
                 $chk.shell ? 'shell' : $null
             ).Where({ $_ }) # exclude null entries from array
         } else {
             # sort scopes
-            $Scope = $Scope | Sort-Object
+            $Scope = $(
+                $Scope
+                $OmpTheme ? 'oh_my_posh' : $null
+            ).Where({ $_ }) | Sort-Object
         }
         Write-Host "$distro$($Scope ? " - $Scope" : '')" -ForegroundColor Magenta
         # *fix WSL networking
@@ -190,6 +197,13 @@ process {
                 $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
                 continue
             }
+            oh_my_posh {
+                Write-Host 'installing oh-my-posh...' -ForegroundColor Cyan
+                $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
+                if ($OmpTheme) {
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
+                }
+            }
             python {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
@@ -201,14 +215,12 @@ process {
             }
             shell {
                 Write-Host 'installing shell packages...' -ForegroundColor Cyan
-                $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh
                 $rel_exa = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_exa.sh $Script:rel_exa
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
@@ -257,13 +269,15 @@ process {
                     git clone $remote ../ps-modules
                 }
                 # install modules
-                foreach ($module in $modules) {
-                    Write-Host "$module" -ForegroundColor DarkGreen
-                    if ($module -eq 'do-common') {
-                        wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
-                    } else {
-                        wsl.exe --distribution $Distro --exec ../ps-modules/module_manage.ps1 $module -CleanUp
-                    }
+                if ('do-common' -in $modules) {
+                    Write-Host 'do-common' -ForegroundColor DarkGreen
+                    wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+                    $modules = $modules.Where({ $_ -ne 'do-common' })
+                }
+                if ($modules) {
+                    Write-Host "$modules" -ForegroundColor DarkGreen
+                    $cmd = "@($($modules.ForEach({ "'$_'" }) -join ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
+                    wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
                 }
             }
         }

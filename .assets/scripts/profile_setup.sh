@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 : '
-.assets/scripts/profile_setup.sh --theme powerline --ps_modules "do-common do-linux" --scope "docker k8s_base k8s_ext python shell"
-.assets/scripts/profile_setup.sh --sys_upgrade true --theme powerline --ps_modules "do-common do-linux" --scope "docker k8s_base k8s_ext python shell"
+# :set up the system using default values
+.assets/scripts/profile_setup.sh
+# :set up the system using specified values
+.assets/scripts/profile_setup.sh --scope "az docker k8s_base k8s_ext python shell" --omp_theme nerd
+# :upgrade system first and then set up the system
+.assets/scripts/profile_setup.sh --sys_upgrade true --scope "az docker k8s_base k8s_ext python shell" --omp_theme nerd
 '
 if [ $EUID -eq 0 ]; then
   echo -e '\e[91mDo not run the script as root!\e[0m'
@@ -9,10 +13,10 @@ if [ $EUID -eq 0 ]; then
 fi
 
 # parse named parameters
-theme=${theme:-base}
-scope=${scope}
+scope=${scope:-'shell'}
+omp_theme=${omp_theme}
+ps_modules=${ps_modules:-'do-common do-linux'}
 sys_upgrade=${sys_upgrade:-false}
-ps_modules=${ps_modules}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
@@ -35,7 +39,8 @@ sudo .assets/provision/install_base.sh
 # convert scope string to array
 array=($scope)
 # sort array
-IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")); unset IFS
+IFS=$'\n' scope_arr=($(sort <<<"${array[*]}"))
+unset IFS
 for sc in "${scope_arr[@]}"; do
   case $sc in
   docker)
@@ -63,17 +68,19 @@ for sc in "${scope_arr[@]}"; do
     echo -e "\e[96minstalling python packages...\e[0m"
     .assets/provision/install_miniconda.sh
     sudo .assets/provision/setup_python.sh
-    grep -qw 'az' <<< $scope && .assets/provision/install_azurecli.sh --fix_certify true || true
+    grep -qw 'az' <<<$scope && .assets/provision/install_azurecli.sh --fix_certify true || true
     ;;
   shell)
     echo -e "\e[96minstalling shell packages...\e[0m"
-    sudo .assets/provision/install_omp.sh >/dev/null
     sudo .assets/provision/install_pwsh.sh >/dev/null
     sudo .assets/provision/install_exa.sh >/dev/null
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     echo -e "\e[96msetting up profile for all users...\e[0m"
-    sudo .assets/provision/setup_omp.sh --theme $theme
+    if [ -n "$omp_theme" ]; then
+      sudo .assets/provision/install_omp.sh >/dev/null
+      sudo .assets/provision/setup_omp.sh --theme $omp_theme
+    fi
     sudo .assets/provision/setup_profile_allusers.sh
     sudo .assets/provision/setup_profile_allusers.ps1
     echo -e "\e[96msetting up profile for current user...\e[0m"
@@ -85,7 +92,7 @@ done
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
   modules=($ps_modules)
-  grep -qw 'az' <<< $scope && modules+=(do-az) || true
+  grep -qw 'az' <<<$scope && modules+=(do-az) || true
   [ -f /usr/bin/git ] && modules+=(aliases-git) || true
   [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true
   if [ -n "$modules" ]; then
@@ -105,15 +112,20 @@ if [ -f /usr/bin/pwsh ]; then
     else
       git clone $remote ../ps-modules
     fi
-    # install modules
-    for mod in ${modules[@]}; do
-      echo -e "\e[32m$mod\e[0m" >&2
-      if [ "$mod" = 'do-common' ]; then
-        sudo ../ps-modules/module_manage.ps1 "$mod" -CleanUp
-      else
-        ../ps-modules/module_manage.ps1 "$mod" -CleanUp
-      fi
-    done
+    # install do-common module for all users
+    if grep -qw 'do-common' <<<$ps_modules; then
+      sudo ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+    fi
+    # install rest of the modules for the current user
+    modules=(${modules[@]/do-common/})
+    if [ -n "$modules" ]; then
+      # Convert the modules array to a comma-separated string with quoted elements
+      mods=''
+      for element in "${modules[@]}"; do
+        mods="$mods'$element',"
+      done
+      pwsh -nop -c "@(${mods%,}) | ../ps-modules/module_manage.ps1 -CleanUp"
+    fi
   fi
 fi
 
