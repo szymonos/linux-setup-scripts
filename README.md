@@ -1,7 +1,8 @@
 # Linux Setup Scripts
 
 This is a scripts repository for setting up Linux OS. Scripts can be used for setting up bare-metal Linux OS, provisioning Linux VMs using Vagrant or setting up WSL distros.  
-Scripts have been written to work with the most common distros based on Fedora/RHEL, Debian/Ubuntu, Arch, OpenSUSE, Alpine with an emphasis on Fedora, Debian and Ubuntu which are the most extensively used distros by me.
+
+Provisioning scripts are most of the time distro agnostic and work with the commonly used distros based on Fedora/RHEL, Debian/Ubuntu, Arch, OpenSUSE, Alpine with an emphasis on Fedora, Debian and Ubuntu which are the most extensively used distros by me.
 
 ## Setup scenarios
 
@@ -9,18 +10,19 @@ Depending on the use case you can use scripts in the repository for different sc
 
 ### Windows Subsystem for Linux (WSL)
 
-Run the [wsl/wsl_setup.ps1](wsl/wsl_setup.ps1) script following the examples included in the script.  
-For more detailed instructions about setting up the WSL read the [WSL Setup Guideline](docs/WSL.md).
+To set up the distro from scratch, run the [wsl/wsl_setup.ps1](wsl/wsl_setup.ps1) script, following the examples included in the script.  
+For more detailed instructions about setting up the WSL read the [WSL Setup Guideline](docs/wsl_setup.md).  
+To learn about other WSL management scripts, please read the [Other WSL scripts](docs/wsl_scripts.md) page.
 
 ### VM provisioning with Vagrant
 
 Set location to one of the Vagrantfiles depending on the used provider and target distro and run the command
 
 ``` sh
-vagrant up
+PS C:\..\vagrant\hyperv\fedora> vagrant up
 ```
 
-For more detailed instructions about provisioning VMs using Vagrant read the [Vagrant Provisioning Guideline](docs/VAGRANT.md).
+For more detailed instructions about provisioning VMs using Vagrant read the [Vagrant Provisioning Guideline](docs/vagrant.md).
 
 ### Already provisioned Linux OS
 
