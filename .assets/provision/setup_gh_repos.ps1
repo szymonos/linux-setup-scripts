@@ -11,7 +11,7 @@ Workspace suffix to build the name in format "DistroName-WorkspaceSuffix".
 Windows user name to copy ssh keys from.
 
 .EXAMPLE
-$Repos = 'szymonos/vagrant-scripts szymonos/ps-modules'
+$Repos = 'szymonos/linux-setup-scripts szymonos/ps-modules'
 $User  = 'szymo'
 .assets/provision/setup_gh_repos.ps1 $Repos -u $User
 .assets/provision/setup_gh_repos.ps1 $Repos -u $User -WorkspaceSuffix 'scripts'

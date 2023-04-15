@@ -1,0 +1,135 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# *Variables
+provider = "hyperv"
+# network configuration
+nat_net  = "192.168.121.0/24"
+dns      = "9.9.9.9,149.112.112.112"
+# vm configuration
+memory   = 2048
+cpu      = 2
+
+# calculate global variables
+gateway, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
+
+# *VMs spec
+vm_boxes = {
+  "rhel" => {
+    :name => "Ansible-RHEL",
+    :ip => "192.168.121.31",
+    :box => "generic/rhel8",
+    :script => <<~SCRIPT
+      # set static IP
+      nmcli connection modify 'System eth0' \\
+        ipv4.method manual \\
+        ipv4.addresses 192.168.121.11/#{prefix} \\
+        ipv4.gateway #{gateway} \\
+        ipv4.dns #{dns}
+    SCRIPT
+  },
+  "centos" => {
+    :name => "Ansible-Centos",
+    :ip => "192.168.121.32",
+    :box => "generic/centos8s",
+    :script => <<~SCRIPT
+      # install packages
+      dnf install -y ansible
+      # set static IP
+      nmcli connection modify 'System eth0' \\
+        ipv4.method manual \\
+        ipv4.addresses 192.168.121.12/#{prefix} \\
+        ipv4.gateway #{gateway} \\
+        ipv4.dns #{dns}
+    SCRIPT
+  },
+  "ubuntu" => {
+    :name => "Ansible-Ubuntu",
+    :ip => "192.168.121.33",
+    :box => "generic/ubuntu2204",
+    :script => <<~SCRIPT
+      # install packages
+      export DEBIAN_FRONTEND=noninteractive
+      apt-add-repository -y ppa:ansible/ansible \\
+        && apt-get update && apt-get install -qy ansible
+      # set static IP
+      cat <<'EOF' >/etc/netplan/01-netcfg.yaml
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          eth0:
+            dhcp4: false
+            dhcp6: false
+            optional: true
+            nameservers:
+              addresses: [#{dns}]
+            addresses: [192.168.121.13/#{prefix}]
+            routes:
+              - to: default
+                via: #{gateway}
+      EOF
+      netplan generate
+    SCRIPT
+  }
+}
+
+# *VM provisioning
+Vagrant.configure("2") do |config|
+  # common triggers
+  config.trigger.before :up do |trigger|
+    trigger.info = "Creating 'NATSwitch' Hyper-V switch if it does not exist..."
+    trigger.run = {
+      privileged: "true", powershell_elevated_interactive: "true",
+      path: "../../../.assets/trigger/create_hyperv_natswitch.ps1", :args => [nat_net]
+    }
+  end
+  # common config
+  config.vm.network "public_network"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  vm_boxes.each do |key, value|
+    boxname = value[:name]
+    hostname = boxname.downcase
+    ip_addr = value[:ip]
+    config.vm.define key do |node|
+      identity_file = "#{Dir.pwd}/.vagrant/machines/#{key}/#{provider}/private_key"
+      # node triggers
+      node.trigger.before :reload do |trigger|
+        trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
+        trigger.run = {
+          privileged: "true", powershell_elevated_interactive: "true",
+          path: "../../../.assets/trigger/set_hyperv_switch.ps1", :args => [boxname]
+        }
+      end
+      node.trigger.after :reload do |trigger|
+        trigger.info = "Add vagrant configuration to ssh config file..."
+        trigger.run = {
+          privileged: "false", powershell_elevated_interactive: "false",
+          path: "../../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, hostname, identity_file]
+        }
+      end
+      config.trigger.after :destroy do |trigger|
+        trigger.info = "Cleaning up ssh config, known_hosts files and .vagrant directory..."
+        trigger.run = {
+          privileged: "false", powershell_elevated_interactive: "false",
+          path: "../../../.assets/trigger/delete_ssh_config.ps1", :args => [ip_addr, hostname]
+        }
+      end
+      # node setup
+      node.vm.box = value[:box]
+      node.vm.hostname = key
+      node.vm.provider provider do |h|
+        h.enable_virtualization_extensions = true
+        h.linked_clone = true
+        h.memory = memory
+        h.maxmemory = memory
+        h.cpus = cpu
+        h.vmname = boxname
+      end
+      # node provision
+      node.vm.provision "shell", name: "run inline script...", inline: value[:script]
+      # ~reload vm
+      node.vm.provision :reload
+    end
+  end
+end

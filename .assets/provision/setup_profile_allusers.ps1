@@ -45,7 +45,7 @@ if (Test-Path $CFG_PATH -PathType Container) {
     install -o root -g root -m 0644 $CFG_PATH/_aliases_common.ps1 $SCRIPTS_PATH
     install -o root -g root -m 0644 $CFG_PATH/_aliases_linux.ps1 $SCRIPTS_PATH
     # clean config folder
-    Remove-Item (Split-Path $CFG_PATH) -Recurse -Force
+    Remove-Item $CFG_PATH -Recurse -Force
 }
 
 # *PowerShell profile

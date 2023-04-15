@@ -18,3 +18,5 @@ else
     ((retry_count++))
   done
 fi
+
+exit 0

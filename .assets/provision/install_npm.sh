@@ -44,3 +44,5 @@ opensuse)
   zypper in -y $APP
   ;;
 esac
+
+exit 0

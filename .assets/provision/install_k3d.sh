@@ -38,3 +38,5 @@ while
   ((retry_count++))
   [[ $(k3d --version 2>/dev/null | grep -Po '(?<=v)[0-9\.]+$') != $REL && $retry_count -le 10 ]]
 do :; done
+
+exit 0

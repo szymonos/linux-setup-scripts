@@ -13,3 +13,5 @@ while [[ ! -f kustomize && $retry_count -lt 10 ]]; do
   ((retry_count++))
 done
 install -o root -g root -m 0755 kustomize /usr/local/bin/ && rm -f kustomize
+
+exit 0

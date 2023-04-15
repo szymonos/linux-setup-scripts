@@ -1,0 +1,129 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# *Variables
+box      = "opensuse/Tumbleweed.x86_64"
+provider = "libvirt"
+boxname  = "tumbleweed"
+# network configuration
+net_name = "vagrant-33"
+ip_addr  = "192.168.33.55"
+# vm configuration
+memory   = 4096
+cpu      = 4
+# conditions
+install_packages   = true
+install_kubernetes = false
+install_gnome      = false
+install_edge       = false
+setup_bash         = true
+setup_pwsh         = true
+
+# calculate global variables
+hostname = "vg-#{boxname.downcase}"
+
+# *Scripts
+script_install_packages = <<~SCRIPT
+  zypper in -y btop nano
+SCRIPT
+
+script_configure_static_ip = <<~SCRIPT
+  cat <<'EOF' >/etc/sysconfig/network/ifcfg-eth1
+  BOOTPROTO='static'
+  IPADDR='#{ip_addr}'
+  NETMASK='255.255.255.0'
+  DEVICE='eth1'
+  PEERDNS='no'
+  STARTMODE='auto'
+  USERCONTROL='no'
+  EOF
+SCRIPT
+
+# *VM provisioning
+Vagrant.configure("2") do |config|
+  # common config
+  config.vm.provider provider do |libvirt|
+    libvirt.default_prefix = "vg_"
+    libvirt.management_network_keep = true
+    libvirt.memory = memory
+    libvirt.cpus = cpu
+  end
+  config.vm.define boxname do |node|
+    identity_file = "#{Dir.pwd}/.vagrant/machines/#{boxname}/#{provider}/private_key"
+    # node triggers
+    node.trigger.after :reload do |trigger|
+      trigger.info = "Add vagrant configuration to ssh config file..."
+      trigger.run = {
+        privileged: "false", powershell_elevated_interactive: "false",
+        path: "../../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, hostname, identity_file]
+      }
+    end
+    config.trigger.after :destroy do |trigger|
+      trigger.info = "Cleaning up ssh config, known_hosts files and .vagrant directory..."
+      trigger.run = {
+        privileged: "false", powershell_elevated_interactive: "false",
+        path: "../../../.assets/trigger/delete_ssh_config.ps1", :args => [ip_addr, hostname]
+      }
+    end
+    # node setup
+    node.vm.box = box
+    node.vm.hostname = hostname
+    node.vm.network :private_network,
+      :ip => ip_addr,
+      :libvirt__network_name => net_name,
+      :libvirt__dhcp_enabled => false,
+      :libvirt__always_destroy => false,
+      :autostart => true
+    # node provision
+    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    node.vm.provision "shell", name: "fix secure_path in sudoers", path: "../../../.assets/provision/fix_secure_path.sh"
+    node.vm.provision "shell", name: "upgrade system...", path: "../../../.assets/provision/upgrade_system.sh"
+    node.vm.provision "shell", name: "install base...", path: "../../../.assets/provision/install_base.sh"
+    if install_packages
+      node.vm.provision "shell", name: "install packages...", inline: script_install_packages
+      node.vm.provision "shell", name: "install exa...", path: "../../../.assets/provision/install_exa.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install bat...", path: "../../../.assets/provision/install_bat.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install ripgrep...", path: "../../../.assets/provision/install_ripgrep.sh", :args => '>/dev/null'
+    end
+    if install_kubernetes
+      node.vm.provision "shell", name: "install yq...", path: "../../../.assets/provision/install_yq.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install docker...", path: "../../../.assets/provision/install_docker.sh"
+      node.vm.provision "shell", name: "install kubectl...", path: "../../../.assets/provision/install_kubectl.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install kubelogin...", path: "../../../.assets/provision/install_kubelogin.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install helm...", path: "../../../.assets/provision/install_helm.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install minikube...", path: "../../../.assets/provision/install_minikube.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install k3d...", path: "../../../.assets/provision/install_k3d.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install k9s...", path: "../../../.assets/provision/install_k9s.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install flux...", path: "../../../.assets/provision/install_flux.sh"
+      node.vm.provision "shell", name: "install kubeseal...", path: "../../../.assets/provision/install_kubeseal.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install kustomize...", path: "../../../.assets/provision/install_kustomize.sh"
+      node.vm.provision "shell", name: "install argo-rollouts cli...", path: "../../../.assets/provision/install_argorolloutscli.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install npm...", path: "../../../.assets/provision/install_npm.sh"
+      node.vm.provision "shell", name: "install smee...", path: "../../../.assets/provision/install_smee.sh"
+    end
+    if install_gnome
+      node.vm.provision "shell", name: "install Gnome...", path: "../../../.assets/provision/install_gnome.sh"
+      node.vm.provision "shell", name: "set up Gnome...", path: "../../../.assets/provision/setup_gnome.sh", privileged: false
+      node.vm.provision "shell", name: "install xrdp...", path: "../../../.assets/provision/install_xrdp.sh"
+      if install_edge
+        node.vm.provision "shell", name: "install Edge...", path: "../../../.assets/provision/install_edge.sh"
+      end
+    end
+    if setup_bash || setup_pwsh
+      node.vm.provision "file", source: "../../../.assets/config", destination: "$HOME/tmp/"
+      node.vm.provision "shell", name: "install oh-my-posh...", path: "../../../.assets/provision/install_omp.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "set up oh-my-posh...", path: "../../../.assets/provision/setup_omp.sh"
+    end
+    if setup_bash
+      node.vm.provision "shell", name: "set up bash for all users...", path: "../../../.assets/provision/setup_profile_allusers.sh"
+      node.vm.provision "shell", name: "set up bash for current user...", path: "../../../.assets/provision/setup_profile_user.sh", privileged: false
+    end
+    if setup_pwsh
+      node.vm.provision "shell", name: "install pwsh...", path: "../../../.assets/provision/install_pwsh.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../../.assets/provision/setup_profile_allusers.ps1"
+      node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../../.assets/provision/setup_profile_user.ps1", privileged: false
+    end
+    # ~reload vm
+    node.vm.provision :reload
+  end
+end
