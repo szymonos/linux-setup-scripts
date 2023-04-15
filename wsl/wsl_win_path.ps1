@@ -1,6 +1,10 @@
 <#
 .SYNOPSIS
-Manage appending windows paths in PowerShell profile.
+Manage appending windows paths in PowerShell profile. Script has to be executed inside WSL distro.
+
+.PARAMETER DisableWinPath
+Flag wheter to remove windows paths from the PATH environment variable.
+
 .EXAMPLE
 $DisableWinPath = $false
 wsl/wsl_win_path.ps1

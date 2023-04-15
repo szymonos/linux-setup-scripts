@@ -18,8 +18,8 @@ $Destination = 'Ubuntu'
 # ~ copy to other specified path in destination distro
 $Destination = 'Ubuntu:~/myfiles'
 
-wsl/wsl_copy.ps1 $Source $Destination
-wsl/wsl_copy.ps1 $Source $Destination -Root
+wsl/wsl_files_copy.ps1 $Source $Destination
+wsl/wsl_files_copy.ps1 $Source $Destination -Root
 #>
 [CmdletBinding()]
 param (

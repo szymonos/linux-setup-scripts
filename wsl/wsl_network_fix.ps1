@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
 Fix WSL network configuration for use with VPN interface.
+
 .PARAMETER Distro
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER InterfaceDescription

@@ -2,13 +2,27 @@
 <#
 .SYNOPSIS
 Restart WSL.
+
+.PARAMETER StopDockerDesktop
+Flag whether to stop DockerDesktop process.
+
 .EXAMPLE
 wsl/wsl_restart.ps1
 gsudo wsl/wsl_restart.ps1
+gsudo wsl/wsl_restart.ps1 -StopDockerDesktop
 #>
+[CmdletBinding()]
+param (
+    [Parameter()]
+    [switch]$StopDockerDesktop
+)
 
-Get-Process docker* | Stop-Process -Force
-Start-Sleep 1
+if ($StopDockerDesktop) {
+    Get-Process docker* | Stop-Process -Force
+}
+
+# stop wsl processess
 Get-Process wsl* | Stop-Process -Force
-Start-Sleep 1
+
+# restart LxssManagerUser service
 Get-Service LxssManagerUser* | Restart-Service -Force
