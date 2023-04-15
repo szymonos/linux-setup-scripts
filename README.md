@@ -1,54 +1,56 @@
-# Vagrant
+# Linux Setup Scripts
 
-Repository for vagrant VM deployments using different hypervisor providers.
-The main idea for writing Vagrantfiles is to make them as generic as possible, by separating all the provisioning scripts and triggers into separate files, that may be called from any box provisioning, and keeping inside Vagrantfile, only the code, that is specific to the used provider and box combo.
+This is a scripts repository for setting up Linux OS. Scripts can be used for setting up bare-metal Linux OS, provisioning Linux VMs using Vagrant or setting up WSL distros.  
+Scripts have been written to work with the most common distros based on Fedora/RHEL, Debian/Ubuntu, Arch, OpenSUSE, Alpine with an emphasis on Fedora, Debian and Ubuntu which are the most extensively used distros by me.
 
-Vagranfile consists of the following sections:
+## Setup scenarios
 
-- **Variables declaration**
-  - hypervisor provider
-  - VM specification
-  - ...
-- **Scripts**
-  - box specific packages installation
-  - box specific network configuration
-- **VM Provisioning**
-  - common configuration, that can be used among all boxes
-  - node specific configuration
-  - node installation scripts
-  - reload trigger for applying network changes /*optional for specific box/provider*/
+Depending on the use case you can use scripts in the repository for different scenarios for setting up your Linux.
 
-## SSH configuration
+### Windows Subsystem for Linux (WSL)
 
-For convenience's sake, newly provisioned virtual machines are being added automatically to the SSH config and known_hosts file, so you don't need to use the `vagrant ssh` command which is much slower than the built-in `ssh` one, but also allows you to use the Remote SSH feature of the Visual Studio Code, for remote development. All the VMs should be instantly visible in the VSCode Remote SSH extension pane after provisioning.
+Run the [wsl/wsl_setup.ps1](wsl/wsl_setup.ps1) script following the examples included in the script.  
+For more detailed instructions about setting up the WSL read the [WSL Setup Guideline](docs/WSL.md).
 
-## Repository structure
+### VM provisioning with Vagrant
+
+Set location to one of the Vagrantfiles depending on the used provider and target distro and run the command
+
+``` sh
+vagrant up
+```
+
+For more detailed instructions about provisioning VMs using Vagrant read the [Vagrant Provisioning Guideline](docs/VAGRANT.md).
+
+### Already provisioned Linux OS
+
+Run the [.assets/scripts/linux_setup.sh](.assets/scripts/linux_setup.sh) script following the examples included in the script.  
+The script can be used to set up an already provisioned Linux OS, it may be a bare-metal OS, VM or WSL.
+
+## Repository directories structure
 
 ``` sh
 .
-├── .assets         # All helper scripts and assets used for deployments
+├── .assets         # all helper scripts and assets used for deployments
+│   ├── config        # shell configuration assets
+│   │   ├── bash_cfg    # bash aliases
+│   │   ├── omp_cfg     # oh-my-posh themes
+│   │   └── pwsh_cfg    # PowerShell profile and aliases functions
 │   ├── config        # bash and PowerShell profiles along the themes, aliases, etc...
+│   ├── docker        # dockerfiles
 │   ├── playbooks     # ansible playbooks
 │   ├── provision     # scripts used during vm provisioning for apps install, os setup, etc...
-│   ├── scripts       # other scripts not used directly by vagrant
+│   ├── scripts       # other scripts not used for setting up VMs or WSLs.
+│   ├── tools         # tools scripts not related to Linux provisioning
 │   └── trigger       # scripts used externally to setup the VM in hypervisor, etc...
-├── hyperv          # Hyper-V provider VM deployments
-│   ├── ansible       # multiple VMs deployment for ansible testing
-│   ├── FedoraHV      # Fedora VM with Gnome DE for kubernetes development
-│   └── ...
-├── libvirt         # libvirt provider VM deployments
-│   ├── ansible       # multiple VMs deployment for ansible testing
-│   ├── fedora        # Fedora VM with Gnome DE for kubernetes development
-│   └── ...
-└── virtualbox      # VirtualBox provider VM deployments
-    ├── ansible       # multiple VMs deployment for ansible testing
-    ├── FedoraVB      # Fedora VM with Gnome DE for kubernetes development
-    └── ...
+├── .github         # GitHub Actions
+├── docs            # repository documentation
+├── vagrant         # Vagrant configuration files
+│   ├── hyperv        # Hyper-V provider VM deployments
+│   │   └── ...
+│   ├── libvirt       # Libvirt provider VM deployments
+│   │   └── ...
+│   └── virtualbox    # VirtualBox provider VM deployments
+│   │   └── ...
+└── wsl             # WSL configuration scripts
 ```
-
-## Prerequisites
-
-To provision any box using provided Vagrantfiles you need to have:
-
-- **vagrant-reload** plugin. Can be installed using the command:\
-  `vagrant plugin install vagrant-reload`
