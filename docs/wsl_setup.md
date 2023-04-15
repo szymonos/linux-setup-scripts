@@ -26,6 +26,7 @@ winget install --id Git.Git
 # Other usefull tools/applications
 winget install --id Microsoft.WindowsTerminal
 winget install --id Microsoft.VisualStudioCode
+winget install --id gerardog.gsudo
 ```
 
 ## Setting up WSL distro

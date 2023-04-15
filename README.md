@@ -10,17 +10,18 @@ Depending on the use case you can use scripts in the repository for different sc
 ### Windows Subsystem for Linux (WSL)
 
 Run the [wsl/wsl_setup.ps1](wsl/wsl_setup.ps1) script following the examples included in the script.  
-For more detailed instructions about setting up the WSL read the [WSL Setup Guideline](docs/WSL.md).
+For more detailed instructions about setting up the WSL read the [WSL Setup Guideline](docs/wsl_setup.md).  
+To learn about other WSL management scripts, please read the [Other WSL scripts](docs/wsl_scripts.md) page.
 
 ### VM provisioning with Vagrant
 
 Set location to one of the Vagrantfiles depending on the used provider and target distro and run the command
 
 ``` sh
-vagrant up
+PS C:\..\vagrant\hyperv\fedora> vagrant up
 ```
 
-For more detailed instructions about provisioning VMs using Vagrant read the [Vagrant Provisioning Guideline](docs/VAGRANT.md).
+For more detailed instructions about provisioning VMs using Vagrant read the [Vagrant Provisioning Guideline](docs/vagrant.md).
 
 ### Already provisioned Linux OS
 
