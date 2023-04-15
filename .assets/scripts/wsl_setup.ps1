@@ -54,7 +54,7 @@ $Scope = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
 $OmpTheme = 'nerd'
 .assets/scripts/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
 # ~set up WSL distro and clone specified GitHub repositories
-$Repos = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
+$Repos = @('szymonos/linux-setup-scripts', 'szymonos/ps-modules')
 .assets/scripts/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
 # ~update all existing WSL distros
 .assets/scripts/wsl_setup.ps1
@@ -254,7 +254,7 @@ process {
                 }
                 # determine if ps-modules repository exist and clone if necessary
                 $getOrigin = { git config --get remote.origin.url }
-                $remote = (Invoke-Command $getOrigin).Replace('vagrant-scripts', 'ps-modules')
+                $remote = (Invoke-Command $getOrigin).Replace('linux-setup-scripts', 'ps-modules')
                 try {
                     Push-Location '../ps-modules' -ErrorAction Stop
                     if ($(Invoke-Command $getOrigin) -eq $remote) {

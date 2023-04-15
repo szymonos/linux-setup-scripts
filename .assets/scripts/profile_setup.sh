@@ -100,7 +100,7 @@ if [ -f /usr/bin/pwsh ]; then
     # determine if ps-modules repository exist and clone if necessary
     get_origin="git config --get remote.origin.url"
     origin=$(eval $get_origin)
-    remote=${origin/vagrant-scripts/ps-modules}
+    remote=${origin/linux-setup-scripts/ps-modules}
     if [ -d ../ps-modules ]; then
       pushd ../ps-modules >/dev/null
       if [ "$(eval $get_origin)" = "$remote" ]; then
