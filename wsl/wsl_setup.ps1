@@ -144,7 +144,7 @@ process {
             $Scope = @(
                 $chk.k8s_base ? 'k8s_base' : $null
                 $chk.k8s_ext ? 'k8s_ext' : $null
-                $chk.omp -or $OmpTheme ? 'oh_my_posh' : $null
+                -not 'none' -in $Scope -and ($chk.omp -or $OmpTheme) ? 'oh_my_posh' : $null
                 $chk.python ? 'python' : $null
                 $chk.shell ? 'shell' : $null
             ).Where({ $_ }) # exclude null entries from array
@@ -152,7 +152,7 @@ process {
             # sort scopes
             $Scope = $(
                 $Scope
-                $OmpTheme ? 'oh_my_posh' : $null
+                -not 'none' -in $Scope -and $OmpTheme ? 'oh_my_posh' : $null
             ).Where({ $_ }) | Sort-Object
         }
         Write-Host "$distro$($Scope ? " - $Scope" : '')" -ForegroundColor Magenta
@@ -229,15 +229,17 @@ process {
                 continue
             }
         }
-        # *install PowerShell modules from ps-modules repository
-        # determine, if pwsh, git and kubectl binaries installed
+        # *perform additional distro checks
         $cmd = [string]::Join("`n",
             '[ -f /usr/bin/pwsh ] && pwsh="true" || pwsh="false"',
             '[ -f /usr/bin/git ] && git="true" || git="false"',
             '[ -f /usr/bin/kubectl ] && kubectl="true" || kubectl="false"',
-            'echo "{\"pwsh\":$pwsh,\"git\":$git,\"kubectl\":$kubectl}"'
+            '[ -d /mnt/wslg ] && wslg="true" || wslg="false"',
+            'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false"',
+            'echo "{\"pwsh\":$pwsh,\"git\":$git,\"kubectl\":$kubectl,\"wslg\":$wslg,\"gtkd\":$gtkd}"'
         )
         $chk = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
+        # *install PowerShell modules from ps-modules repository
         if ($chk.pwsh) {
             $modules = @(
                 $PSModules
@@ -270,25 +272,31 @@ process {
                 }
                 # install modules
                 if ('do-common' -in $modules) {
-                    Write-Host 'do-common' -ForegroundColor DarkGreen
+                    Write-Host "`e[3mAllUsers`e[23m    : do-common" -ForegroundColor DarkGreen
                     wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
                     $modules = $modules.Where({ $_ -ne 'do-common' })
                 }
                 if ($modules) {
-                    Write-Host "$modules" -ForegroundColor DarkGreen
+                    Write-Host "`e[3mCurrentUser`e[23m : $modules" -ForegroundColor DarkGreen
                     $cmd = "@($($modules.ForEach({ "'$_'" }) -join ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                     wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
                 }
             }
         }
         # *set gtk theme for wslg
-        if (wsl.exe --distribution $Distro -- bash -c '[ -d /mnt/wslg ] && echo 1') {
-            Write-Host 'setting gtk theme...' -ForegroundColor Cyan
-            $themeString = switch ($GtkTheme) {
-                light { 'export GTK_THEME="Adwaita"' }
-                dark { 'export GTK_THEME="Adwaita:dark"' }
+        if ($chk.wslg) {
+            [string]$GTK_THEME = switch ($GtkTheme) {
+                light {
+                    $chk.gtkd ? 'export GTK_THEME="Adwaita"' : ''
+                }
+                dark {
+                    $chk.gtkd ? '' : 'export GTK_THEME="Adwaita:dark"'
+                }
             }
-            wsl.exe --distribution $Distro --user root -- bash -c "echo '$themeString' >/etc/profile.d/gtk_theme.sh"
+            if ($GTK_THEME) {
+                Write-Host 'setting gtk theme...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root -- bash -c "echo '$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
+            }
         }
     }
 
