@@ -3,9 +3,12 @@
 # :set up the system using default values
 .assets/scripts/linux_setup.sh
 # :set up the system using specified values
-.assets/scripts/linux_setup.sh --scope "az docker k8s_base k8s_ext python shell" --omp_theme nerd
+omp_theme="nerd"
+scope="none"
+scope="az docker k8s_base k8s_ext python shell"
+.assets/scripts/linux_setup.sh --omp_theme $omp_theme --scope $scope
 # :upgrade system first and then set up the system
-.assets/scripts/linux_setup.sh --sys_upgrade true --scope "az docker k8s_base k8s_ext python shell" --omp_theme nerd
+.assets/scripts/linux_setup.sh --omp_theme $omp_theme --scope $scope --sys_upgrade true
 '
 if [ $EUID -eq 0 ]; then
   echo -e '\e[91mDo not run the script as root!\e[0m'
@@ -39,9 +42,10 @@ sudo .assets/provision/install_base.sh
 # convert scope string to array
 array=($scope)
 # add oh_my_posh scope if necessary
-if ! grep -w 'none' <<< $scope && [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
-  array+=(oh_my_posh)
+if [ -n "$omp_theme" ]; then
+  grep -qw 'none' <<< $scope && array=(oh_my_posh) || array+=(oh_my_posh)
 fi
+
 # sort array
 IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")) && unset IFS
 

@@ -69,7 +69,7 @@ param (
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -in @('none', 'az', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'python', 'shell') }) -notcontains $false },
         ErrorMessage = 'Wrong scope provided. Valid values: none az docker k8s_base k8s_ext python shell')]
-    [string[]]$Scope = @('shell'),
+    [Collections.Generic.List[String]]$Scope = @('shell'),
 
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
@@ -140,20 +140,27 @@ process {
                 '[ -d $HOME/miniconda3 ] && python="true" || python="false"',
                 'echo "{\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,\"python\":$python}"'
             )
+            # check existing packages
             $chk = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
-            $Scope = @(
-                $chk.k8s_base ? 'k8s_base' : $null
-                $chk.k8s_ext ? 'k8s_ext' : $null
-                -not 'none' -in $Scope -and ($chk.omp -or $OmpTheme) ? 'oh_my_posh' : $null
-                $chk.python ? 'python' : $null
-                $chk.shell ? 'shell' : $null
-            ).Where({ $_ }) # exclude null entries from array
+            # calculate update scope
+            $Scope = [Collections.Generic.List[String]]::new()
+            switch ($chk) {
+                { $_.k8s_base } { $Scope.Add('k8s_base') }
+                { $_.k8s_ext } { $Scope.Add('k8s_ext') }
+                { $_.omp } { $Scope.Add('oh_my_posh') }
+                { $_.python } { $Scope.Add('python') }
+                { $_.shell } { $Scope.Add('shell') }
+            }
         } else {
-            # sort scopes
-            $Scope = $(
-                $Scope
-                -not 'none' -in $Scope -and $OmpTheme ? 'oh_my_posh' : $null
-            ).Where({ $_ }) | Sort-Object
+            # determine 'oh_my_posh' scope
+            if ($OmpTheme) {
+                $Scope.Add('oh_my_posh')
+                if ('none' -in $Scope) {
+                    $Scope.Remove('none') | Out-Null
+                }
+            }
+            # remove duplicates and sort scopes
+            $Scope = $Scope | Select-Object -Unique | Sort-Object
         }
         Write-Host "$distro$($Scope ? " - $Scope" : '')" -ForegroundColor Magenta
         # *fix WSL networking
@@ -203,6 +210,7 @@ process {
                 if ($OmpTheme) {
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
                 }
+                continue
             }
             python {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
