@@ -29,33 +29,52 @@ winget install --id Microsoft.VisualStudioCode
 winget install --id gerardog.gsudo
 ```
 
-## Setting up WSL distro
+## Setting up the WSL distro
 
-### Base setup
+### Setup script
 
-Assuming, that you're using the default *Ubuntu* distro, you can set it up using the command:
+To set up specified WSL distro you can use the [wsl/wsl_setup.ps1](wsl/wsl_setup.ps1) script. Assuming, that you're using the default *Ubuntu* distro, you can run the script using the command:
 
 ``` powershell
 wsl/wsl_setup.ps1 'Ubuntu'
 ```
 
-It will update the distro, install developer tools, other base packages (e.g. git, jq, tar, vim), PowerShell and common bash and PowerShell aliases.
+It will just update the distro, install developer tools, other base packages (e.g. git, jq, tar, vim) and other determined **setup scopes**.
 
-### Generic setup with oh-my-posh prompt theme engine
+To install other *features* you need to specify the list of **setup scopes** using `-Scope` parameter. Available scopes are:
 
-You can opt to use a very powerful oh-my-posh prompt theme engine, by simply specifying `-OmpTheme` parameter with the name of the theme.
+- `az`: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.
+- `docker`: docker, containerd, buildx docker-compose
+- `k8s_base`: kubectl, helm, minikube, k3d, k9s, yq
+- `k8s_ext`: flux, kubeseal, kustomize, argorollouts-cli
+- `python`: python-pip, python-venv, miniconda
+- `shell`: bat, exa, oh-my-posh, pwsh, ripgrep; bash and pwsh profiles, aliases and PS modules
+
+To set up distro using the specified scopes you need to run the command:
 
 ``` powershell
-wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base'
+# use the recommended 'shell' scope
+wsl/wsl_setup.ps1 'Ubuntu' -Scope 'shell'
+# use list of scopes for the setup
+wsl/wsl_setup.ps1 'Ubuntu' -Scope @('python', 'shell')
+```
+
+### Set up distro with oh-my-posh prompt theme engine
+
+You can opt to use a very powerful oh-my-posh prompt theme engine, by specifying `-OmpTheme` parameter with the name of the theme.
+To use the engine you also need to specify the `shell` scope, to configure oh-my-posh in the shell profiles.
+
+``` powershell
+wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope 'shell'
 ```
 
 There are three themes included in the repository:
 
-- base - using standard, preinstalled fonts
+- `base` - using standard, preinstalled fonts
   ![omp_base.png](images/omp_base.png)
-- powerline - using extended, powerline fonts, e.g. **Cascadia Code PL** fonts, to be downloaded from [microsoft/cascadia-code](https://github.com/microsoft/cascadia-code)
+- `powerline` - using extended, powerline fonts, e.g. **Cascadia Code PL** fonts, to be downloaded from [microsoft/cascadia-code](https://github.com/microsoft/cascadia-code)
   ![omp_base.png](images/omp_powerline.png)
-- nerd - using nerd fonts - can be downloaded manually from [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts) or installed using the script [install_fonts_nerd.ps1](../.assets/scripts/install_fonts_nerd.ps1)
+- `nerd` - using nerd fonts - can be downloaded manually from [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts) or installed using the script [install_fonts_nerd.ps1](../.assets/scripts/install_fonts_nerd.ps1)
   ![omp_base.png](images/omp_nerd.png)
 
 You can also specify any other theme name from [Themes | Oh My Posh](https://ohmyposh.dev/docs/themes) - it will be downloaded and installed automatically during the provisioning.
@@ -73,25 +92,14 @@ wsl/wsl_setup.ps1 'Ubuntu' -AddCertificate
 ### Using other packages scopes
 
 Depending on the use case you can install many other package `scopes` to further customize the system.
-
-Available scopes:
-
-- none: do not install any scopes
-- az: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.
-- docker: docker, containerd, buildx docker-compose
-- k8s_base: kubectl, helm, minikube, k3d, k9s, yq
-- k8s_ext: flux, kubeseal, kustomize, argorollouts-cli
-- python: pip, venv, miniconda
-- shell: bat, exa, oh-my-posh, pwsh, ripgrep
-
-[wsl_setup.ps1](wsl/wsl_setup.ps1) command examples for different scopes:
+Examples of the most common setup scopes:
 
 ``` powershell
-# generic setup with omp theme 'az' scope for the Azure Cloud and Python virtual environments management.
-wsl/wsl_setup.ps1 'Ubuntu' -Scope @('az', 'python', 'shell') -OmpTheme 'base'
+# generic setup with omp theme, 'az' scope for the Azure Cloud and Python virtual environments management.
+wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('az', 'python', 'shell')
 
 # above setup with tools for interacting with externally hosted kubernetes clusters
-wsl/wsl_setup.ps1 'Ubuntu' -Scope @('az', 'k8s_base', 'python', 'shell') -OmpTheme 'base'
+wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('az', 'k8s_base', 'python', 'shell')
 
 <# Setup with docker and kubernetes stack to experiment with kubernetes clusters using minikube or k3d.
    It requires additional steps to enable systemd in WSL for the docker to automatically start. #>
@@ -100,18 +108,18 @@ wsl/wsl_systemd.ps1 'Ubuntu' -Systemd 'true'
 # shutdown distro for the systemd to start on next WSL use
 wsl.exe --shutdown 'Ubuntu'
 # run wsl_setup with docker and kubernetes scopes
-wsl/wsl_setup.ps1 'Ubuntu' -Scope @('docker', 'k8s_base', 'k8s_ext', 'shell') -OmpTheme 'base'
+wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('docker', 'k8s_base', 'k8s_ext', 'shell')
 ```
 
-## Update all existing WSL distros
+## Update all WSL distros
 
-Just run the command:
+To update all existing WSL distros just run the command:
 
 ``` powershell
 wsl/wsl_setup.ps1
 ```
 
-It will find all installed WSL distros, detect installed package scopes and update them.
+It will find all installed WSL distros, detect installed **setup scopes** and update them.
 
 ## Other WSL distros
 
