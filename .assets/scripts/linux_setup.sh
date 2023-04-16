@@ -3,12 +3,16 @@
 # :set up the system using default values
 .assets/scripts/linux_setup.sh
 # :set up the system using specified values
-omp_theme="nerd"
 scope="none"
+scope="k8s_base python shell"
 scope="az docker k8s_base k8s_ext python shell"
-.assets/scripts/linux_setup.sh --omp_theme $omp_theme --scope $scope
+# :set up the system using the specified scope
+.assets/scripts/linux_setup.sh --scope "$scope"
+# :set up the system using the specified scope and omp theme
+omp_theme="nerd"
+.assets/scripts/linux_setup.sh --scope "$scope" --omp_theme "$omp_theme"
 # :upgrade system first and then set up the system
-.assets/scripts/linux_setup.sh --omp_theme $omp_theme --scope $scope --sys_upgrade true
+.assets/scripts/linux_setup.sh --sys_upgrade true --scope "$scope" --omp_theme "$omp_theme"
 '
 if [ $EUID -eq 0 ]; then
   echo -e '\e[91mDo not run the script as root!\e[0m'
@@ -32,6 +36,24 @@ done
 SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
 
+# *Calculate and show installation scopes
+# convert scope string to array
+array=($scope)
+# add oh_my_posh scope if necessary
+if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
+  if grep -qw 'none' <<< $scope; then
+    [ -n "$omp_theme" ] && array=(oh_my_posh) || true
+  else
+    array+=(oh_my_posh)
+  fi
+fi
+# sort array
+IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")) && unset IFS
+# get distro name from os-release
+. /etc/os-release
+# display distro name and scopes to install
+echo -e "\e[95m$NAME : \e[3m${scope_arr[@]}\e[0m"
+
 # *Install packages and setup profiles
 if $sys_upgrade; then
   echo -e "\e[96mupgrading system...\e[0m"
@@ -39,17 +61,6 @@ if $sys_upgrade; then
 fi
 sudo .assets/provision/install_base.sh
 
-# convert scope string to array
-array=($scope)
-# add oh_my_posh scope if necessary
-if [ -n "$omp_theme" ]; then
-  grep -qw 'none' <<< $scope && array=(oh_my_posh) || array+=(oh_my_posh)
-fi
-
-# sort array
-IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")) && unset IFS
-
-echo -e "\e[95m${scope_arr[@]}\e[0m"
 for sc in "${scope_arr[@]}"; do
   case $sc in
   docker)

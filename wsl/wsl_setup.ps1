@@ -162,7 +162,10 @@ process {
             # remove duplicates and sort scopes
             $Scope = $Scope | Select-Object -Unique | Sort-Object
         }
-        Write-Host "$distro$($Scope ? " - $Scope" : '')" -ForegroundColor Magenta
+        # separate log for multpiple distros update
+        Write-Host "$($Distro -eq $distros[0] ? '': "`n")" -NoNewline
+        # display distro name and installed scopes
+        Write-Host "$distro$($Scope ? " : `e[3m$Scope`e[0m" : '')" -ForegroundColor Magenta
         # *fix WSL networking
         if ($FixNetwork) {
             wsl/wsl_network_fix.ps1 $Distro
