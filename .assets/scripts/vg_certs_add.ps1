@@ -4,7 +4,7 @@ Script synopsis.
 .PATH
 Path to the Vagrantfile.
 .EXAMPLE
-$Path = 'hyperv/fedora/Vagrantfile'
+$Path = 'vagrant/hyperv/fedora/Vagrantfile'
 .assets/scripts/vg_certs_add.ps1 -p $Path
 #>
 

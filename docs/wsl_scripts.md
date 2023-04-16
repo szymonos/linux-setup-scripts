@@ -17,7 +17,7 @@ wsl/wsl_certs_add.ps1 'Ubuntu' -Uri 'www.powershellgallery.com'
 
 ## [wsl_distro_move](../wsl/wsl_distro_move.ps1)
 
-Script allows moving WSL distro from the default location e.g. to another disk. If you specify `NewName` parameter, it will also rename the  distribution - it allows to conveniently *multiply* existing distros.  
+Script allows moving WSL distro from the default location e.g. to another disk. If you specify `-NewName` parameter, it will also rename the  distribution - it allows to conveniently *multiply* existing distros.  
 Imagine, that you have Ubuntu distro installed, but you want to have another, fresh one. You can use the script to move distro to existing location with the new name, and then you can type `ubuntu.exe` in therminal and it will setup new, fresh Ubuntu distro.
 
 ``` powershell

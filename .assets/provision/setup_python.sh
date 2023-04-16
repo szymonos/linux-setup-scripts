@@ -17,11 +17,14 @@ alpine)
 arch)
   pacman -Qqe python-pip &>/dev/null && exit 0 || true
   ;;
-fedora | opensuse)
+fedora)
   rpm -q python3-pip &>/dev/null && exit 0 || true
   ;;
 debian | ubuntu)
   dpkg -s python3-pip &>/dev/null && exit 0 || true
+  ;;
+opensuse)
+  rpm -qa python3*-pip &>/dev/null && exit 0 || true
   ;;
 esac
 

@@ -3,9 +3,16 @@
 # :set up the system using default values
 .assets/scripts/linux_setup.sh
 # :set up the system using specified values
-.assets/scripts/linux_setup.sh --scope "az docker k8s_base k8s_ext python shell" --omp_theme nerd
+scope="none"
+scope="k8s_base python shell"
+scope="az docker k8s_base k8s_ext python shell"
+# :set up the system using the specified scope
+.assets/scripts/linux_setup.sh --scope "$scope"
+# :set up the system using the specified scope and omp theme
+omp_theme="nerd"
+.assets/scripts/linux_setup.sh --scope "$scope" --omp_theme "$omp_theme"
 # :upgrade system first and then set up the system
-.assets/scripts/linux_setup.sh --sys_upgrade true --scope "az docker k8s_base k8s_ext python shell" --omp_theme nerd
+.assets/scripts/linux_setup.sh --sys_upgrade true --scope "$scope" --omp_theme "$omp_theme"
 '
 if [ $EUID -eq 0 ]; then
   echo -e '\e[91mDo not run the script as root!\e[0m'
@@ -29,6 +36,24 @@ done
 SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
 
+# *Calculate and show installation scopes
+# convert scope string to array
+array=($scope)
+# add oh_my_posh scope if necessary
+if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
+  if grep -qw 'none' <<< $scope; then
+    [ -n "$omp_theme" ] && array=(oh_my_posh) || true
+  else
+    array+=(oh_my_posh)
+  fi
+fi
+# sort array
+IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")) && unset IFS
+# get distro name from os-release
+. /etc/os-release
+# display distro name and scopes to install
+echo -e "\e[95m$NAME : \e[3m${scope_arr[@]}\e[0m"
+
 # *Install packages and setup profiles
 if $sys_upgrade; then
   echo -e "\e[96mupgrading system...\e[0m"
@@ -36,11 +61,6 @@ if $sys_upgrade; then
 fi
 sudo .assets/provision/install_base.sh
 
-# convert scope string to array
-array=($scope)
-# sort array
-IFS=$'\n' scope_arr=($(sort <<<"${array[*]}"))
-unset IFS
 for sc in "${scope_arr[@]}"; do
   case $sc in
   docker)
@@ -64,6 +84,13 @@ for sc in "${scope_arr[@]}"; do
     sudo .assets/provision/install_kubeseal.sh >/dev/null
     sudo .assets/provision/install_argorolloutscli.sh >/dev/null
     ;;
+  oh_my_posh)
+    echo -e "\e[96minstalling oh-my-posh...\e[0m"
+    sudo .assets/provision/install_omp.sh >/dev/null
+    if [ -n "$omp_theme" ]; then
+      sudo .assets/provision/setup_omp.sh --theme $omp_theme
+    fi
+    ;;
   python)
     echo -e "\e[96minstalling python packages...\e[0m"
     .assets/provision/install_miniconda.sh
@@ -77,10 +104,6 @@ for sc in "${scope_arr[@]}"; do
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     echo -e "\e[96msetting up profile for all users...\e[0m"
-    if [ -n "$omp_theme" ]; then
-      sudo .assets/provision/install_omp.sh >/dev/null
-      sudo .assets/provision/setup_omp.sh --theme $omp_theme
-    fi
     sudo .assets/provision/setup_profile_allusers.sh
     sudo .assets/provision/setup_profile_allusers.ps1
     echo -e "\e[96msetting up profile for current user...\e[0m"
@@ -114,12 +137,14 @@ if [ -f /usr/bin/pwsh ]; then
     fi
     # install do-common module for all users
     if grep -qw 'do-common' <<<$ps_modules; then
+      echo -e "\e[3;32mAllUsers\e[23m    : do-common\e[0m"
       sudo ../ps-modules/module_manage.ps1 'do-common' -CleanUp
     fi
     # install rest of the modules for the current user
     modules=(${modules[@]/do-common/})
     if [ -n "$modules" ]; then
       # Convert the modules array to a comma-separated string with quoted elements
+      echo -e "\e[3;32mCurrentUser\e[23m : ${modules[@]}\e[0m"
       mods=''
       for element in "${modules[@]}"; do
         mods="$mods'$element',"
