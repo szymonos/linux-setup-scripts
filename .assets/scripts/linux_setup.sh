@@ -3,7 +3,7 @@
 # :set up the system using default values
 .assets/scripts/linux_setup.sh
 # :set up the system using specified values
-scope="none"
+scope="shell"
 scope="k8s_base python shell"
 scope="az docker k8s_base k8s_ext python shell"
 # :set up the system using the specified scope
@@ -20,7 +20,7 @@ if [ $EUID -eq 0 ]; then
 fi
 
 # parse named parameters
-scope=${scope:-'shell'}
+scope=${scope}
 omp_theme=${omp_theme}
 ps_modules=${ps_modules:-'do-common do-linux'}
 sys_upgrade=${sys_upgrade:-false}
@@ -39,20 +39,22 @@ pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
 # *Calculate and show installation scopes
 # convert scope string to array
 array=($scope)
+# determine scope for update if not provided
+if [ -z "$array" ]; then
+  [ -f /usr/bin/kubectl ] && array+=(k8s_base) || true
+  [ -f /usr/bin/kustomize ] && array+=(k8s_ext) || true
+  [ -f /usr/bin/pwsh ] && array+=(shell) || true
+fi
 # add oh_my_posh scope if necessary
 if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
-  if grep -qw 'none' <<< $scope; then
-    [ -n "$omp_theme" ] && array=(oh_my_posh) || true
-  else
-    array+=(oh_my_posh)
-  fi
+  array+=(oh_my_posh)
 fi
 # sort array
 IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")) && unset IFS
 # get distro name from os-release
 . /etc/os-release
 # display distro name and scopes to install
-echo -e "\e[95m$NAME : \e[3m${scope_arr[@]}\e[0m"
+echo -e "\e[95m$NAME$([ -n "$scope_arr" ] && echo " : \e[3m${scope_arr[@]}" || true )\e[0m"
 
 # *Install packages and setup profiles
 if $sys_upgrade; then
