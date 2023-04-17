@@ -88,7 +88,7 @@ param (
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('light', 'dark')]
-    [string]$GtkTheme = 'dark',
+    [string]$GtkTheme,
 
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
@@ -105,6 +105,8 @@ param (
 )
 
 begin {
+    $ErrorActionPreference = 'Stop'
+
     # *get list of distros
     [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
     | ForEach-Object { $_.GetValue('DistributionName') } `
@@ -123,6 +125,17 @@ begin {
     # instantiate psmodules generic lists
     $modules = [Collections.Generic.List[String]]::new()
     $PSModules.ForEach({ $modules.Add($_) })
+
+    # determine GTK theme if not provided, based on system theme
+    if (-not $GtkTheme) {
+        $systemUsesLightTheme = Get-ItemPropertyValue `
+            -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' `
+            -Name 'SystemUsesLightTheme'
+        $GtkTheme = switch ($systemUsesLightTheme) {
+            0 { 'dark' }
+            1 { 'light' }
+        }
+    }
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
