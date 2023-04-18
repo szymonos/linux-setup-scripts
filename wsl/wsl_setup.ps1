@@ -166,6 +166,10 @@ process {
         # determine 'oh_my_posh' scope
         if ($chk.omp -or $OmpTheme) {
             $scopes.Add('oh_my_posh')
+            if (-not 'shell' -in $scopes) {
+                Write-Verbose "Added `e[3mshell`e[23m to the setup scopes."
+                $scopes.Add('shell')
+            }
         }
         # remove duplicates and sort scopes
         $scopes = $scopes | Select-Object -Unique | Sort-Object
@@ -256,7 +260,9 @@ process {
             # determine modules to install
             if ('az' -in $scopes) { $modules.Add('do-az') }
             $modules.Add('aliases-git') # git is always installed
+            Write-Verbose "Added `e[3maliases-git`e[23m to be installed from ps-modules."
             if ($chk.k8s_base) { $modules.Add('aliases-kubectl') }
+            Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
 
             # determine if ps-modules repository exist and clone if necessary
             $getOrigin = { git config --get remote.origin.url }
@@ -297,7 +303,7 @@ process {
                 }
             }
             if ($GTK_THEME) {
-                Write-Host 'setting gtk theme...' -ForegroundColor Cyan
+                Write-Host "setting `e[3m$GTK_THEME`e[23m gtk theme..." -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root -- bash -c "echo '$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
             }
         }

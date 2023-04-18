@@ -48,6 +48,9 @@ fi
 # add oh_my_posh scope if necessary
 if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
   array+=(oh_my_posh)
+  if ! grep -qw 'shell' <<<$scope; then
+    array+=(shell)
+  fi
 fi
 # sort array
 IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")) && unset IFS
