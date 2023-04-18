@@ -166,7 +166,7 @@ process {
         # determine 'oh_my_posh' scope
         if ($chk.omp -or $OmpTheme) {
             $scopes.Add('oh_my_posh')
-            if (-not 'shell' -in $scopes) {
+            if ('shell' -notin $scopes) {
                 Write-Verbose "Added `e[3mshell`e[23m to the setup scopes."
                 $scopes.Add('shell')
             }
