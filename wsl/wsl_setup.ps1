@@ -121,13 +121,10 @@ begin {
 
     # determine GTK theme if not provided, based on system theme
     if (-not $GtkTheme) {
-        $systemUsesLightTheme = Get-ItemPropertyValue `
+        $systemUsesLightTheme = Get-ItemPropertyValue -ErrorAction SilentlyContinue `
             -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' `
             -Name 'SystemUsesLightTheme'
-        $GtkTheme = switch ($systemUsesLightTheme) {
-            0 { 'dark' }
-            1 { 'light' }
-        }
+        $GtkTheme = $systemUsesLightTheme ? 'light' : 'dark'
     }
 
     # set location to workspace folder
@@ -303,7 +300,7 @@ process {
                 }
             }
             if ($GTK_THEME) {
-                Write-Host "setting `e[3m$GTK_THEME`e[23m gtk theme..." -ForegroundColor Cyan
+                Write-Host "setting `e[3m$GtkTheme`e[23m gtk theme..." -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root -- bash -c "echo '$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
             }
         }
