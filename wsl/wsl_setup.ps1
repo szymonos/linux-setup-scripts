@@ -88,7 +88,7 @@ param (
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('light', 'dark')]
-    [string]$GtkTheme = 'dark',
+    [string]$GtkTheme,
 
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
@@ -105,6 +105,8 @@ param (
 )
 
 begin {
+    $ErrorActionPreference = 'Stop'
+
     # *get list of distros
     [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
     | ForEach-Object { $_.GetValue('DistributionName') } `
@@ -123,6 +125,17 @@ begin {
     # instantiate psmodules generic lists
     $modules = [Collections.Generic.List[String]]::new()
     $PSModules.ForEach({ $modules.Add($_) })
+
+    # determine GTK theme if not provided, based on system theme
+    if (-not $GtkTheme) {
+        $systemUsesLightTheme = Get-ItemPropertyValue `
+            -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' `
+            -Name 'SystemUsesLightTheme'
+        $GtkTheme = switch ($systemUsesLightTheme) {
+            0 { 'dark' }
+            1 { 'light' }
+        }
+    }
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
@@ -153,6 +166,10 @@ process {
         # determine 'oh_my_posh' scope
         if ($chk.omp -or $OmpTheme) {
             $scopes.Add('oh_my_posh')
+            if (-not 'shell' -in $scopes) {
+                Write-Verbose "Added `e[3mshell`e[23m to the setup scopes."
+                $scopes.Add('shell')
+            }
         }
         # remove duplicates and sort scopes
         $scopes = $scopes | Select-Object -Unique | Sort-Object
@@ -243,7 +260,9 @@ process {
             # determine modules to install
             if ('az' -in $scopes) { $modules.Add('do-az') }
             $modules.Add('aliases-git') # git is always installed
+            Write-Verbose "Added `e[3maliases-git`e[23m to be installed from ps-modules."
             if ($chk.k8s_base) { $modules.Add('aliases-kubectl') }
+            Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
 
             # determine if ps-modules repository exist and clone if necessary
             $getOrigin = { git config --get remote.origin.url }
@@ -269,7 +288,7 @@ process {
             }
             if ($modules) {
                 Write-Host "`e[3mCurrentUser`e[23m : $modules" -ForegroundColor DarkGreen
-                $cmd = "@($($modules.ForEach({ "'$_'" }) -join ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
+                $cmd = "@($($modules.ToArray().ForEach({ "'$_'" }) -join ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
             }
         }
@@ -284,7 +303,7 @@ process {
                 }
             }
             if ($GTK_THEME) {
-                Write-Host 'setting gtk theme...' -ForegroundColor Cyan
+                Write-Host "setting `e[3m$GTK_THEME`e[23m gtk theme..." -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root -- bash -c "echo '$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
             }
         }
