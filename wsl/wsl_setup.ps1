@@ -119,13 +119,6 @@ begin {
         [string[]]$distros = $Distro
     }
 
-    # instantiate scope generic lists
-    $scopes = [Collections.Generic.List[String]]::new()
-    $Scope.ForEach({ $scopes.Add($_) })
-    # instantiate psmodules generic lists
-    $modules = [Collections.Generic.List[String]]::new()
-    $PSModules.ForEach({ $modules.Add($_) })
-
     # determine GTK theme if not provided, based on system theme
     if (-not $GtkTheme) {
         $systemUsesLightTheme = Get-ItemPropertyValue `
@@ -155,6 +148,9 @@ process {
         )
         # check existing packages
         $chk = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
+        # instantiate scope generic lists
+        $scopes = [Collections.Generic.List[String]]::new()
+        $Scope.ForEach({ $scopes.Add($_) })
         # *determine scope if not provided
         if (-not $scopes) {
             switch ($chk) {
@@ -257,6 +253,10 @@ process {
         }
         # *install PowerShell modules from ps-modules repository
         if ($chk.shell) {
+            # instantiate psmodules generic lists
+            $modules = [Collections.Generic.List[String]]::new()
+            $PSModules.ForEach({ $modules.Add($_) })
+
             # determine modules to install
             if ('az' -in $scopes) { $modules.Add('do-az') }
             $modules.Add('aliases-git') # git is always installed
