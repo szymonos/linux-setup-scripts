@@ -308,7 +308,7 @@ process {
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
         # *setup GitHub repositories
-        Write-Host 'setting up GitHub repositories...' -ForegroundColor Cyan
+        Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         # set git eol config
         wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
         # copy git user settings from the host

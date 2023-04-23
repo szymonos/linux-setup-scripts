@@ -31,7 +31,7 @@ ws_path="$HOME/source/workspaces/${ID,,}-${ws_suffix,,}.code-workspace"
 
 # *add github.com to known_hosts
 if ! grep -qw 'github.com' ~/.ssh/known_hosts 2>/dev/null; then
-  echo -e "\e[32madding github public keys...\e[0m"
+  echo -e "\e[32madding github fingerprint...\e[0m"
   ssh-keyscan github.com 1>>~/.ssh/known_hosts 2>/dev/null
 fi
 
