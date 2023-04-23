@@ -294,17 +294,14 @@ process {
         }
         # *set gtk theme for wslg
         if ($chk.wslg) {
-            [string]$GTK_THEME = switch ($GtkTheme) {
-                light {
-                    $chk.gtkd ? 'export GTK_THEME="Adwaita"' : ''
-                }
-                dark {
-                    $chk.gtkd ? '' : 'export GTK_THEME="Adwaita:dark"'
-                }
+            $GTK_THEME = if ($GtkTheme -eq 'light') {
+                $chk.gtkd ? '"Adwaita"' : $null
+            } else {
+                $chk.gtkd ? $null : '"Adwaita:dark"'
             }
             if ($GTK_THEME) {
                 Write-Host "setting `e[3m$GtkTheme`e[23m gtk theme..." -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root -- bash -c "echo '$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
+                wsl.exe --distribution $Distro --user root -- bash -c "echo 'export GTK_THEME=$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
             }
         }
     }
