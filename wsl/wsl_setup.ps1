@@ -294,24 +294,21 @@ process {
         }
         # *set gtk theme for wslg
         if ($chk.wslg) {
-            [string]$GTK_THEME = switch ($GtkTheme) {
-                light {
-                    $chk.gtkd ? 'export GTK_THEME="Adwaita"' : ''
-                }
-                dark {
-                    $chk.gtkd ? '' : 'export GTK_THEME="Adwaita:dark"'
-                }
+            $GTK_THEME = if ($GtkTheme -eq 'light') {
+                $chk.gtkd ? '"Adwaita"' : $null
+            } else {
+                $chk.gtkd ? $null : '"Adwaita:dark"'
             }
             if ($GTK_THEME) {
                 Write-Host "setting `e[3m$GtkTheme`e[23m gtk theme..." -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root -- bash -c "echo '$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
+                wsl.exe --distribution $Distro --user root -- bash -c "echo 'export GTK_THEME=$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
             }
         }
     }
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
         # *setup GitHub repositories
-        Write-Host 'setting up GitHub repositories...' -ForegroundColor Cyan
+        Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         # set git eol config
         wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
         # copy git user settings from the host

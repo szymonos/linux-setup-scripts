@@ -72,11 +72,11 @@ function Get-GitResolvedBranch {
     begin {
         [string]$BranchName = $BranchName.Where({ $_ -notmatch '^-WhatIf$|^-Quiet$' })
         $branchMatch = switch ($BranchName) {
-            '' { '(^|/)dev(|el|elop|elopment)$|(^|/)ma(in|ster)$|(^|/)trunk$' }
-            d { '(^|/)dev(|el|elop|elopment)$' }
-            m { '(^|/)ma(in|ster)$' }
-            s { '(^|/)stage$' }
-            t { '(^|/)trunk$' }
+            '' { '(^|/)dev(|el|elop|elopment)$|(^|/)ma(in|ster)$|(^|/)trunk$'; continue }
+            d { '(^|/)dev(|el|elop|elopment)$'; continue }
+            m { '(^|/)ma(in|ster)$'; continue }
+            s { '(^|/)stage$'; continue }
+            t { '(^|/)trunk$'; continue }
             Default { "(^|/)$BranchName$" }
         }
     }

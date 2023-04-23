@@ -35,7 +35,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 if ($env:WSL_DISTRO_NAME) {
     $distro = $env:WSL_DISTRO_NAME
     if ($UserName) {
-        Write-Host 'copying ssh keys from the host...' -ForegroundColor DarkGreen
+        Write-Host 'copying ssh keys from the host' -ForegroundColor DarkGreen
         New-Item ~/.ssh -ItemType Directory | Out-Null
         Copy-Item /mnt/c/Users/$UserName/.ssh/id_* ~/.ssh/
         chmod 400 ~/.ssh/id_*
@@ -49,7 +49,7 @@ $ws_path = "$HOME/source/workspaces/$($distro.ToLower())-$($WorkspaceSuffix.ToLo
 $knownHosts = "$HOME/.ssh/known_hosts"
 $keysExist = try { Select-String 'github.com' $knownHosts -Quiet } catch { $false }
 if (-not $keysExist) {
-    Write-Host 'adding github public keys...' -ForegroundColor DarkGreen
+    Write-Host 'adding github public keys' -ForegroundColor DarkGreen
     [string[]]$ghKeys = ssh-keyscan 'github.com' 2>$null
     [IO.File]::AppendAllLines($knownHosts, $ghKeys)
 }
@@ -67,7 +67,7 @@ $ws = if (Test-Path $ws_path -PathType Leaf) {
 }
 
 # clone repositories and add them to workspace file
-Write-Host 'cloning repositories...' -ForegroundColor DarkGreen
+Write-Host 'cloning repos' -ForegroundColor DarkGreen
 foreach ($repo in $Repos) {
     $owner, $repo_name = $repo.Split('/')
     New-Item $owner -ItemType Directory | Out-Null
