@@ -85,7 +85,7 @@ process {
 
     if ($isChainValid) {
         $certs = $chain.ChainElements.Certificate
-        Write-Host 'Intercepted certificates' -ForegroundColor Cyan
+        Write-Host 'Intercepted certificates' -ForegroundColor DarkGreen
         for ($i = 1; $i -lt $certs.Count; $i++) {
             # convert certificate to base64
             $base64 = [Convert]::ToBase64String($certs[$i].RawData)

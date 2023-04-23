@@ -18,7 +18,7 @@ arch)
     sed -i '/\bfakeroot\b/d' /etc/pacman.conf
     pacman -R --noconfirm fakeroot-tcp 2>/dev/null || true
   fi
-  pacman -Sy --needed --noconfirm archlinux-keyring
+  pacman -Sy --needed --noconfirm archlinux-keyring 2>/dev/null
   pacman -Syu --noconfirm
   ;;
 fedora)

@@ -172,13 +172,16 @@ process {
         Write-Host "$distro$($scopes ? " : `e[3m$scopes`e[23m" : '')" -ForegroundColor Magenta
         # *fix WSL networking
         if ($FixNetwork) {
+            Write-Host 'fixing network...' -ForegroundColor Cyan
             wsl/wsl_network_fix.ps1 $Distro
         }
         # *install certificates
         if ($AddCertificate) {
+            Write-Host 'adding certificates in chain...' -ForegroundColor Cyan
             wsl/wsl_certs_add.ps1 $Distro
         }
         # *install packages
+        Write-Host 'updating system...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
