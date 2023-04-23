@@ -26,7 +26,7 @@ begin {
 
 process {
     #region update modules
-    Write-Host "updating modules in the `e[3m$($param.Scope)`e[23m scope..." -ForegroundColor DarkGreen
+    Write-Host "updating modules in the `e[3m$($param.Scope)`e[23m scope" -ForegroundColor DarkGreen
     Update-PSResource @param -AcceptLicense -ErrorAction SilentlyContinue
     # update pre-release modules
     Write-Verbose 'checking pre-release versions...'
