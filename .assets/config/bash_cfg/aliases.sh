@@ -1,3 +1,6 @@
+export SWD=$(pwd)
+alias swd="echo $SWD"
+alias cds="cd $SWD"
 alias sudo='sudo '
 alias _='sudo'
 alias please='sudo'
