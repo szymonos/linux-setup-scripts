@@ -288,7 +288,7 @@ process {
             }
             if ($modules) {
                 Write-Host "`e[3mCurrentUser`e[23m : $modules" -ForegroundColor DarkGreen
-                $cmd = "@($($modules.ToArray().ForEach({ "'$_'" }) -join ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
+                $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
             }
         }
