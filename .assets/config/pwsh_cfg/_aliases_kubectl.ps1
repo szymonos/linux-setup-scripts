@@ -114,7 +114,7 @@ function Set-KubectlLocal {
 
     $serverVersion = Get-KubectlServerVersion
     if (-not $serverVersion) {
-        Write-Warning "Server not available."
+        Write-Warning 'Server not available.'
         break
     }
     $kctlVer = [IO.Path]::Combine($KUBECTL_DIR, $serverVersion, $KUBECTL)
@@ -146,9 +146,19 @@ function Set-KubectlLocal {
 
 <#
 .SYNOPSIS
+Get list of available kubernetes contexts.
+#>
+function Get-KubectlContext {
+    (kubectl config get-contexts) -replace '\s+', "`f" `
+    | ConvertFrom-Csv -Delimiter "`f" `
+    | Format-Table @{ N = '@'; E = { $_.CURRENT } }, NAME, CLUSTER, NAMESPACE
+}
+
+<#
+.SYNOPSIS
 Change kubernetes context and sets the corresponding kubectl client version.
 #>
-function Set-KubectlUseContext {
+function Set-KubectlContext {
     Write-Host "kubectl config use-context $args" -ForegroundColor Magenta
     kubectl config use-context @args
     Set-KubectlLocal
@@ -160,7 +170,8 @@ Set-Alias -Name k -Value kubectl
 Set-Alias -Name kv -Value Get-KubectlVersion
 Set-Alias -Name kvc -Value Get-KubectlClientVersion
 Set-Alias -Name kvs -Value Get-KubectlServerVersion
-Set-Alias -Name kcuctx -Value Set-KubectlUseContext
+Set-Alias -Name kcgctx -Value Get-KubectlContext
+Set-Alias -Name kcuctx -Value Set-KubectlContext
 #endregion
 
 #region alias functions
@@ -169,7 +180,6 @@ function ktopcntr { Invoke-WriteExecCmd -Command 'kubectl top pod --use-protocol
 function kinf { Invoke-WriteExecCmd -Command 'kubectl cluster-info' -Arguments $args }
 function kav { Invoke-WriteExecCmd -Command 'kubectl api-versions' -Arguments $args }
 function kcv { Invoke-WriteExecCmd -Command 'kubectl config view' -Arguments $args }
-function kcgctx { Invoke-WriteExecCmd -Command 'kubectl config get-contexts' -Arguments $args }
 function kcsctxcns { Invoke-WriteExecCmd -Command 'kubectl config set-context --current --namespace' -Arguments $args }
 function ksys { Invoke-WriteExecCmd -Command 'kubectl --namespace=kube-system' -Arguments $args }
 function ka { Invoke-WriteExecCmd -Command 'kubectl apply --recursive -f' -Arguments $args }

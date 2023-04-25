@@ -48,25 +48,23 @@ fi
 # add oh_my_posh scope if necessary
 if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
   array+=(oh_my_posh)
-  if ! grep -qw 'shell' <<<$scope; then
-    array+=(shell)
-  fi
+  grep -qw 'shell' <<<${array[@]} || array+=(shell)
 fi
 # sort array
-IFS=$'\n' scope_arr=($(sort <<<"${array[*]}")) && unset IFS
+IFS=$'\n' scope_arr=($(sort <<<${array[*]})) && unset IFS
 # get distro name from os-release
 . /etc/os-release
 # display distro name and scopes to install
-echo -e "\e[95m$NAME$([ -n "$scope_arr" ] && echo " : \e[3m${scope_arr[@]}" || true )\e[0m"
+echo -e "\e[95m$NAME$([ -n "$scope_arr" ] && echo " : \e[3m${scope_arr[@]}" || true)\e[0m"
 
 # *Install packages and setup profiles
+echo -e "\e[96mupdating system...\e[0m"
 if $sys_upgrade; then
-  echo -e "\e[96mupgrading system...\e[0m"
   sudo .assets/provision/upgrade_system.sh
 fi
 sudo .assets/provision/install_base.sh
 
-for sc in "${scope_arr[@]}"; do
+for sc in ${scope_arr[@]}; do
   case $sc in
   docker)
     echo -e "\e[96minstalling docker...\e[0m"
