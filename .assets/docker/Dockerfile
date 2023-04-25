@@ -8,7 +8,7 @@ COPY ps-modules/modules/do-linux/ /usr/local/share/powershell/Modules/do-linux
 
 RUN \
     # install common utilities
-    apt-get update && apt-get install -y curl dnsutils exa iputils-tracepath man-db openssl tree unzip vim \
+    apt-get update && apt-get install -y curl dnsutils exa git iputils-tracepath man-db openssl tree unzip vim \
     # setup PS modules
     && pwsh -nop -c \
     "Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force \
@@ -24,6 +24,7 @@ RUN \
     # install aliases functions
     && mkdir -p /usr/local/share/powershell/Scripts \
     && install -o root -g root -m 0644 /tmp/cfg/_aliases_common.ps1 /usr/local/share/powershell/Scripts \
+    && install -o root -g root -m 0644 /tmp/cfg/_aliases_git.ps1 /usr/local/share/powershell/Scripts \
     && install -o root -g root -m 0644 /tmp/cfg/_aliases_linux.ps1 /usr/local/share/powershell/Scripts \
     # install oh-my-posh theme
     && mkdir -p /usr/local/share/oh-my-posh \
