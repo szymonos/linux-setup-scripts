@@ -270,8 +270,11 @@ process {
             try {
                 Push-Location '../ps-modules' -ErrorAction Stop
                 if ($(Invoke-Command $getOrigin) -eq $remote) {
-                    # pull ps-modules repository
-                    git reset --hard --quiet && git clean --force -d && git pull --quiet
+                    # refresh ps-modules repository
+                    git fetch --prune --quiet
+                    git reset --hard --quiet "origin/$(git branch --show-current)"
+                    git clean --force -d
+
                 } else {
                     $modules = [System.Collections.Generic.List[string]]::new()
                 }
