@@ -37,8 +37,7 @@ if ($env:WSL_DISTRO_NAME) {
     if ($UserName) {
         Write-Host 'copying ssh keys from the host' -ForegroundColor DarkGreen
         New-Item ~/.ssh -ItemType Directory | Out-Null
-        Copy-Item /mnt/c/Users/$UserName/.ssh/id_* ~/.ssh/
-        chmod 400 ~/.ssh/id_*
+        install -m 0400 /mnt/c/Users/$UserName/.ssh/id_* ~/.ssh/ 2>$null
     }
 } else {
     $distro = (Select-String '(?<=^ID=).+' -Path /etc/os-release).Matches.Value.Trim("'`" ")

@@ -22,8 +22,7 @@ if [ -n "$WSL_DISTRO_NAME" ]; then
   ID="$WSL_DISTRO_NAME"
   echo -e "\e[32mcopying ssh keys from the host\e[0m"
   mkdir -p ~/.ssh
-  cp /mnt/c/Users/$user/.ssh/id_* ~/.ssh/ 2>/dev/null
-  chmod 400 ~/.ssh/id_*
+  install -m 0400 /mnt/c/Users/$user/.ssh/id_* ~/.ssh/ 2>/dev/null
 else
   . /etc/os-release distro
 fi
