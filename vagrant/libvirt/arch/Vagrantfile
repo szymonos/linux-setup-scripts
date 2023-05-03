@@ -26,11 +26,6 @@ hostname = "vg-#{boxname.downcase}"
 script_install_packages = <<~SCRIPT
   grep -qw '^Color' /etc/pacman.conf || sed -i 's/^#Color/Color/' /etc/pacman.conf
   pacman -Sy --needed --noconfirm btop nano
-  if ! type paru &>/dev/null; then
-    sudo -u vagrant bash -c 'git clone https://aur.archlinux.org/paru-bin.git \\
-      && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
-  fi
-  grep -qw '^BottomUp' /etc/paru.conf || sed -i 's/^#BottomUp/BottomUp/' /etc/paru.conf
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT

@@ -4,6 +4,7 @@
 Setting up PowerShell for the all users.
 .EXAMPLE
 sudo .assets/provision/setup_profile_allusers.ps1
+sudo .assets/provision/setup_profile_allusers.ps1 $(id -un)
 #>
 param (
     [Parameter(Position = 0)]

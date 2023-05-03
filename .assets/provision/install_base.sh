@@ -16,6 +16,20 @@ alpine)
   ;;
 arch)
   pacman -Sy --needed --noconfirm --color auto base-devel bash-completion dnsutils git jq lsb-release man-db openssh openssl tar tree unzip vim 2>/dev/null
+  # install paru
+  if ! pacman -Qqe paru &>/dev/null; then
+    user=${1:-$(id -un 1000 2>/dev/null)}
+    if ! grep -qw "^$user" /etc/passwd; then
+      if [ -n "$user" ]; then
+        printf "\e[31;1mUser does not exist ($user).\e[0m\n"
+      else
+        printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
+      fi
+      exit 1
+    fi
+    sudo -u $user bash -c 'git clone https://aur.archlinux.org/paru-bin.git && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
+    grep -qw '^BottomUp' /etc/paru.conf || sed -i 's/^#BottomUp/BottomUp/' /etc/paru.conf
+  fi
   ;;
 fedora)
   rpm -q patch &>/dev/null || dnf groupinstall -y 'Development Tools'

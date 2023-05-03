@@ -47,6 +47,22 @@ alpine)
   mkdir -p /opt/microsoft/powershell/7 && tar -zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm powershell.tar.gz
   chmod +x /opt/microsoft/powershell/7/pwsh && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
   ;;
+arch)
+  if pacman -Qqe paru &>/dev/null; then
+    user="$(id -un 1000 2>/dev/null)"
+    if ! grep -qw "^$user" /etc/passwd; then
+      if [ -n "$user" ]; then
+        printf "\e[31;1mUser does not exist ($user).\e[0m\n"
+      else
+        printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
+      fi
+      exit 1
+    fi
+    sudo -u $user paru -Sy --needed --noconfirm powershell-bin
+  else
+    binary=true
+  fi
+  ;;
 fedora)
   dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-1.rh.x86_64.rpm" >&2 2>/dev/null || binary=true
   ;;

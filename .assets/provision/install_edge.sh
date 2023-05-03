@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 : '
 sudo .assets/provision/install_edge.sh
+sudo .assets/provision/install_edge.sh $(id -un)
 '
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n'
@@ -12,7 +13,20 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm microsoft-edge-stable-bin
+  if pacman -Qqe paru &>/dev/null; then
+    user=${1:-$(id -un 1000 2>/dev/null)}
+    if ! grep -qw "^$user" /etc/passwd; then
+      if [ -n "$user" ]; then
+        printf "\e[31;1mUser does not exist ($user).\e[0m\n"
+      else
+        printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
+      fi
+      exit 1
+    fi
+    sudo -u $user paru -Sy --needed --noconfirm microsoft-edge-stable-bin
+  else
+    printf '\e[33;1mWarning: paru not installed.\e[0m\n'
+  fi
   ;;
 fedora)
   rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
