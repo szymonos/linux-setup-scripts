@@ -17,6 +17,8 @@ omp_theme="nerd"
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n'
   exit 1
+else
+  user=$(id -un)
 fi
 
 # parse named parameters
@@ -62,13 +64,13 @@ printf "\e[96mupdating system...\e[0m\n"
 if $sys_upgrade; then
   sudo .assets/provision/upgrade_system.sh
 fi
-sudo .assets/provision/install_base.sh
+sudo .assets/provision/install_base.sh $user
 
 for sc in ${scope_arr[@]}; do
   case $sc in
   docker)
     printf "\e[96minstalling docker...\e[0m\n"
-    sudo .assets/provision/install_docker.sh
+    sudo .assets/provision/install_docker.sh $user
     ;;
   k8s_base)
     printf "\e[96minstalling kubernetes base packages...\e[0m\n"
@@ -91,7 +93,7 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling oh-my-posh...\e[0m\n"
     sudo .assets/provision/install_omp.sh >/dev/null
     if [ -n "$omp_theme" ]; then
-      sudo .assets/provision/setup_omp.sh --theme $omp_theme
+      sudo .assets/provision/setup_omp.sh --theme $omp_theme --user $user
     fi
     ;;
   python)
@@ -107,8 +109,8 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     printf "\e[96msetting up profile for all users...\e[0m\n"
-    sudo .assets/provision/setup_profile_allusers.sh
-    sudo .assets/provision/setup_profile_allusers.ps1
+    sudo .assets/provision/setup_profile_allusers.sh $user
+    sudo .assets/provision/setup_profile_allusers.ps1 -UserName $user
     printf "\e[96msetting up profile for current user...\e[0m\n"
     .assets/provision/setup_profile_user.sh
     .assets/provision/setup_profile_user.ps1

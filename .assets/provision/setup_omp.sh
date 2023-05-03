@@ -34,7 +34,7 @@ CFG_PATH="$(sudo -u $user sh -c 'echo $HOME')/tmp/config/omp_cfg"
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 # copy profile for WSL setup
 if [ -f .assets/config/omp_cfg/${theme}.omp.json ]; then
-  mkdir -p $CFG_PATH
+  sudo -u $user mkdir -p $CFG_PATH
   cp -f .assets/config/omp_cfg/${theme}.omp.json $CFG_PATH
 fi
 
