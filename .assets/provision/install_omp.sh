@@ -37,4 +37,4 @@ while [[ ! -f posh-linux-amd64 && $retry_count -lt 10 ]]; do
   curl -LsOk "https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v${REL}/posh-linux-amd64"
   ((retry_count++))
 done
-install -o root -g root -m 0755 posh-linux-amd64 /usr/bin/oh-my-posh && rm -f posh-linux-amd64
+install -m 0755 posh-linux-amd64 /usr/bin/oh-my-posh && rm -f posh-linux-amd64

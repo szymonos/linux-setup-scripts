@@ -81,9 +81,9 @@ if [ "$binary" = true ]; then
     ((retry_count++))
   done
   unzip -q $TMP_DIR/exa-linux-x86_64.zip -d $TMP_DIR
-  install -o root -g root -m 0755 $TMP_DIR/bin/exa /usr/bin/
-  install -o root -g root -m 0644 $TMP_DIR/man/exa.1 $(manpath | cut -d : -f 1)/man1/
-  install -o root -g root -m 0644 $TMP_DIR/man/exa_colors.5 $(manpath | cut -d : -f 1)/man5/
-  install -o root -g root -m 0644 $TMP_DIR/completions/exa.bash /etc/bash_completion.d/
+  install -m 0755 $TMP_DIR/bin/exa /usr/bin/
+  install -m 0644 $TMP_DIR/man/exa.1 $(manpath | cut -d : -f 1)/man1/
+  install -m 0644 $TMP_DIR/man/exa_colors.5 $(manpath | cut -d : -f 1)/man5/
+  install -m 0644 $TMP_DIR/completions/exa.bash /etc/bash_completion.d/
   rm -fr $TMP_DIR
 fi

@@ -88,5 +88,5 @@ if [ "$binary" = true ]; then
     ((retry_count++))
   done
   # install
-  install -o root -g root -m 0755 kubectl /usr/bin/ && rm -f kubectl
+  install -m 0755 kubectl /usr/bin/ && rm -f kubectl
 fi

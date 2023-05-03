@@ -38,6 +38,6 @@ while [[ ! -f $TMP_DIR/yq_linux_amd64 && $retry_count -lt 10 ]]; do
   curl -Lsk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx -C $TMP_DIR
   ((retry_count++))
 done
-install -o root -g root -m 0755 $TMP_DIR/yq_linux_amd64 /usr/local/bin/yq
+install -m 0755 $TMP_DIR/yq_linux_amd64 /usr/local/bin/yq
 pushd $TMP_DIR >/dev/null && bash ./install-man-page.sh && popd >/dev/null
 rm -fr $TMP_DIR

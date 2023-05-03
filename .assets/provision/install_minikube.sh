@@ -66,5 +66,5 @@ if [ "$binary" = true ]; then
     curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
     ((retry_count++))
   done
-  install -o root -g root -m 0755 minikube-linux-amd64 /usr/local/bin/minikube
+  install -m 0755 minikube-linux-amd64 /usr/local/bin/minikube
 fi

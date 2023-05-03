@@ -80,8 +80,8 @@ if [ "$binary" = true ]; then
     curl -Lsk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx --strip-components=1 -C $TMP_DIR
     ((retry_count++))
   done
-  install -o root -g root -m 0755 $TMP_DIR/rg /usr/bin/
-  install -o root -g root -m 0644 $TMP_DIR/doc/rg.1 $(manpath | cut -d : -f 1)/man1/
-  install -o root -g root -m 0644 $TMP_DIR/complete/rg.bash /etc/bash_completion.d/
+  install -m 0755 $TMP_DIR/rg /usr/bin/
+  install -m 0644 $TMP_DIR/doc/rg.1 $(manpath | cut -d : -f 1)/man1/
+  install -m 0644 $TMP_DIR/complete/rg.bash /etc/bash_completion.d/
   rm -fr $TMP_DIR
 fi

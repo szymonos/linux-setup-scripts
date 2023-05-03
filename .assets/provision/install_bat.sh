@@ -85,8 +85,8 @@ if [ "$binary" = true ]; then
     curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx --strip-components=1 -C $TMP_DIR
     ((retry_count++))
   done
-  install -o root -g root -m 0755 $TMP_DIR/bat /usr/bin/
-  install -o root -g root -m 0644 $TMP_DIR/bat.1 $(manpath | cut -d : -f 1)/man1/
-  install -o root -g root -m 0644 $TMP_DIR/autocomplete/bat.bash /etc/bash_completion.d/
+  install -m 0755 $TMP_DIR/bat /usr/bin/
+  install -m 0644 $TMP_DIR/bat.1 $(manpath | cut -d : -f 1)/man1/
+  install -m 0644 $TMP_DIR/autocomplete/bat.bash /etc/bash_completion.d/
   rm -fr $TMP_DIR
 fi

@@ -108,7 +108,7 @@ process {
     }
 
     # copy certificates to specified distro and install them
-    $cmd = "mkdir -p $($crt.path) && install -o root -g root -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmd)"
+    $cmd = "mkdir -p $($crt.path) && install -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmd)"
     wsl -d $Distro -u root --exec bash -c $cmd
 }
 
