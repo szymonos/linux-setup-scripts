@@ -80,7 +80,7 @@ process {
         Write-Host 'setting PSGallery trusted...'
         Set-PSResourceRepository -Name PSGallery -Trusted
     }
-    for ($i = 0; -not (Get-Module posh-git -ListAvailable) -and $i -lt 10; $i++) {
+    for ($i = 0; (Test-Path /usr/bin/git) -and -not (Get-Module posh-git -ListAvailable) -and $i -lt 10; $i++) {
         Write-Host 'installing posh-git...'
         Install-PSResource -Name posh-git -Scope AllUsers
     }
