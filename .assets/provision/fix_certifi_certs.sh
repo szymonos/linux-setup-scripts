@@ -3,7 +3,7 @@
 .assets/provision/fix_certifi_certs.sh
 '
 if [ $EUID -eq 0 ]; then
-  echo -e '\e[91mDo not run the script as root!\e[0m\n'
+  printf '\e[31;1mDo not run the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -26,7 +26,7 @@ esac
 # get list of installed certificates
 cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
 if [ -z "$cert_paths" ]; then
-  echo -e '\e[33mno self-signed certificates installed\e[0m' >&2
+  printf '\e[33mno self-signed certificates installed\e[0m\n' >&2
   exit 0
 fi
 
@@ -56,7 +56,7 @@ fi
 
 # exit script if no certify cacert.pem found
 if [ -z "$certify_paths" ]; then
-  echo -e '\e[33mcertifi/cacert.pem not found\e[0m' >&2
+  printf '\e[33mcertifi/cacert.pem not found\e[0m\n' >&2
   exit 0
 fi
 

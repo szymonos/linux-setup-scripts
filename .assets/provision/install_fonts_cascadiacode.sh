@@ -4,7 +4,7 @@
 sudo .assets/provision/install_fonts_cascadiacode.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m'
+  printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -17,7 +17,7 @@ while [ -z "$REL" ]; do
   REL=$(curl -sk https://api.github.com/repos/microsoft/cascadia-code/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
-    echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
+    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
   fi
   [ -n "$REL" ] || echo 'retrying...' >&2

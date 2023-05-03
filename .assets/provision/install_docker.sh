@@ -3,7 +3,7 @@
 sudo .assets/provision/install_docker.sh
 '
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m'
+  printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -52,5 +52,5 @@ if systemctl status 2>/dev/null | grep -qw systemd; then
   systemctl enable --now docker.service
   systemctl enable --now containerd.service
 else
-  echo -e '\e[93mwarning: systemd is not running\e[0m'
+  printf '\e[33;1mWarning: systemd is not running.\e[0m\n'
 fi

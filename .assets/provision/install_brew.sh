@@ -4,7 +4,7 @@
 .assets/provision/install_brew.sh >/dev/null
 '
 if [ $EUID -eq 0 ]; then
-  printf '\e[91mDo not run the script as root!\e[0m\n'
+  printf '\e[31;1mDo not run the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -16,7 +16,7 @@ while [ -z "$REL" ]; do
   REL=$(curl -sk https://api.github.com/repos/Homebrew/brew/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
-    echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
+    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
   fi
   [ -n "$REL" ] || echo 'retrying...' >&2
