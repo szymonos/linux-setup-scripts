@@ -20,7 +20,7 @@ if ! grep -qw "^$user" /etc/passwd; then
 fi
 
 # path variables
-CFG_PATH="$(sudo -u $user sh -c 'echo $HOME/tmp/config/pwsh_cfg')"
+CFG_PATH="$(sudo -u $user sh -c 'echo $HOME/tmp/config/bash_cfg')"
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
