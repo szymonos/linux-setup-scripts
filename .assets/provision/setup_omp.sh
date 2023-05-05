@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/setup_omp.sh
-sudo .assets/provision/setup_omp.sh --theme nerd --user $(id -un)
+# :setup oh-my-posh theme using default base fonts
+sudo .assets/provision/setup_omp.sh --user $(id -un)
+# :setup oh-my-posh theme using powerline fonts
+sudo .assets/provision/setup_omp.sh --user $(id -un) --theme powerline
+# :setup oh-my-posh theme using nerd fonts
+sudo .assets/provision/setup_omp.sh --user $(id -un) --theme nerd
+# :you can specify any themes from https://ohmyposh.dev/docs/themes/ (e.g. atomic)
+sudo .assets/provision/setup_omp.sh --user $(id -un) --theme atomic
 '
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n'
@@ -20,7 +26,7 @@ while [ $# -gt 0 ]; do
 done
 
 # check if specified user exists
-if ! grep -qw "^$user" /etc/passwd; then
+if ! sudo -u $user true 2>/dev/null; then
   if [ -n "$user" ]; then
     printf "\e[31;1mUser does not exist ($user).\e[0m\n"
   else
