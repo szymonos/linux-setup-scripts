@@ -132,7 +132,7 @@ if [ -f /usr/bin/pwsh ]; then
     if [ -d ../ps-modules ]; then
       pushd ../ps-modules >/dev/null
       if [ "$(eval $get_origin)" = "$remote" ]; then
-        git reset --hard --quiet && git clean --force -d && git pull --quiet
+        git fetch -q && git reset --hard -q "origin/$(git branch --show-current)"
       else
         modules=()
       fi
