@@ -32,14 +32,13 @@ fi
 # path variables
 CFG_PATH="$(sudo -u $user sh -c 'echo $HOME/tmp/config/omp_cfg')"
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
+# create CFG folder
+sudo -u $user mkdir -p $CFG_PATH
 # copy profile for WSL setup
 if [ -f .assets/config/omp_cfg/${theme}.omp.json ]; then
-  sudo -u $user mkdir -p $CFG_PATH
   cp -f .assets/config/omp_cfg/${theme}.omp.json $CFG_PATH
-fi
-
-if ! [ -f $CFG_PATH/${theme}.omp.json ]; then
-  curl -fsSk -o $CFG_PATH/${theme}.omp.json --create-dirs "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
+else
+  curl -fsSk -o $CFG_PATH/${theme}.omp.json "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
 fi
 
 # *Copy oh-my-posh theme
