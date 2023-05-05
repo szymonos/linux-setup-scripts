@@ -20,10 +20,9 @@ gh_repos=($repos)
 # *copy ssh keys on WSL
 if [ -n "$WSL_DISTRO_NAME" ]; then
   ID="$WSL_DISTRO_NAME"
-  echo -e "\e[32mcopying ssh keys from the host\e[0m"
+  printf "\e[32mcopying ssh keys from the host\e[0m\n"
   mkdir -p ~/.ssh
-  cp /mnt/c/Users/$user/.ssh/id_* ~/.ssh/ 2>/dev/null
-  chmod 400 ~/.ssh/id_*
+  install -m 0400 /mnt/c/Users/$user/.ssh/id_* ~/.ssh/ 2>/dev/null
 else
   . /etc/os-release distro
 fi
@@ -31,7 +30,7 @@ ws_path="$HOME/source/workspaces/${ID,,}-${ws_suffix,,}.code-workspace"
 
 # *add github.com to known_hosts
 if ! grep -qw 'github.com' ~/.ssh/known_hosts 2>/dev/null; then
-  echo -e "\e[32madding github fingerprint\e[0m"
+  printf "\e[32madding github fingerprint\e[0m\n"
   ssh-keyscan github.com 1>>~/.ssh/known_hosts 2>/dev/null
 fi
 
@@ -41,12 +40,12 @@ mkdir -p ~/source/repos
 mkdir -p ~/source/workspaces
 # create workspace file
 if [ ! -f $ws_path ]; then
-  echo -e "{\n\t\"folders\": [\n\t]\n}" >$ws_path
+  printf "{\n\t\"folders\": [\n\t]\n}\n" >$ws_path
 fi
 
 # clone repositories and add them to workspace file
 cd ~/source/repos
-echo -e "\e[32mcloning repos\e[0m"
+printf "\e[32mcloning repos\e[0m\n"
 for repo in ${gh_repos[@]}; do
   IFS='/' read -ra gh_path <<< "$repo"
   mkdir -p "${gh_path[0]}"

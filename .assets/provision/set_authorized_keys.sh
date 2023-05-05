@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check if the passed parameter starts with rsa phrase
 if ! echo "$1" | grep -qE '^(ssh-|ecdsa-)'; then
-  echo -e '\e[91mMissing ssh public key in the script parameter!'
+  printf '\e[31;1mMissing ssh public key in the script parameter.\e[0m\n'
   exit 1
 fi
 

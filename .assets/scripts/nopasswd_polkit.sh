@@ -4,7 +4,7 @@
 .assets/scripts/nopasswd_polkit.sh revert
 '
 if [ $EUID -eq 0 ]; then
-  echo -e '\e[91mDo not run the script as root!\e[0m'
+  printf '\e[31;1mDo not run the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -23,5 +23,5 @@ polkit.addRule(function(action, subject) {
 });
 EOF
 else
-  echo -e "\e[33mUser \e[1m${USER}\e[22m is not in the \e[1mwheel\e[22m group\e[0m"
+  printf "\e[33mUser \e[1m${USER}\e[22m is not in the \e[1mwheel\e[22m group\e[0m\n"
 fi

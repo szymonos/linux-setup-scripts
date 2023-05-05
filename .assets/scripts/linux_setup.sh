@@ -15,8 +15,10 @@ omp_theme="nerd"
 .assets/scripts/linux_setup.sh --sys_upgrade true --scope "$scope" --omp_theme "$omp_theme"
 '
 if [ $EUID -eq 0 ]; then
-  echo -e '\e[91mDo not run the script as root!\e[0m'
+  printf '\e[31;1mDo not run the script as root.\e[0m\n'
   exit 1
+else
+  user=$(id -un)
 fi
 
 # parse named parameters
@@ -55,23 +57,23 @@ IFS=$'\n' scope_arr=($(sort <<<${array[*]})) && unset IFS
 # get distro name from os-release
 . /etc/os-release
 # display distro name and scopes to install
-echo -e "\e[95m$NAME$([ -n "$scope_arr" ] && echo " : \e[3m${scope_arr[@]}" || true)\e[0m"
+printf "\e[95m$NAME$([ -n "$scope_arr" ] && echo " : \e[3m${scope_arr[*]}" || true)\e[0m\n"
 
 # *Install packages and setup profiles
-echo -e "\e[96mupdating system...\e[0m"
+printf "\e[96mupdating system...\e[0m\n"
 if $sys_upgrade; then
   sudo .assets/provision/upgrade_system.sh
 fi
-sudo .assets/provision/install_base.sh
+sudo .assets/provision/install_base.sh $user
 
 for sc in ${scope_arr[@]}; do
   case $sc in
   docker)
-    echo -e "\e[96minstalling docker...\e[0m"
-    sudo .assets/provision/install_docker.sh
+    printf "\e[96minstalling docker...\e[0m\n"
+    sudo .assets/provision/install_docker.sh $user
     ;;
   k8s_base)
-    echo -e "\e[96minstalling kubernetes base packages...\e[0m"
+    printf "\e[96minstalling kubernetes base packages...\e[0m\n"
     sudo .assets/provision/install_kubectl.sh >/dev/null
     sudo .assets/provision/install_kubelogin.sh >/dev/null
     sudo .assets/provision/install_helm.sh >/dev/null
@@ -81,35 +83,35 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_yq.sh >/dev/null
     ;;
   k8s_ext)
-    echo -e "\e[96minstalling kubernetes additional packages...\e[0m"
+    printf "\e[96minstalling kubernetes additional packages...\e[0m\n"
     sudo .assets/provision/install_flux.sh
     sudo .assets/provision/install_kustomize.sh
     sudo .assets/provision/install_kubeseal.sh >/dev/null
     sudo .assets/provision/install_argorolloutscli.sh >/dev/null
     ;;
   oh_my_posh)
-    echo -e "\e[96minstalling oh-my-posh...\e[0m"
+    printf "\e[96minstalling oh-my-posh...\e[0m\n"
     sudo .assets/provision/install_omp.sh >/dev/null
     if [ -n "$omp_theme" ]; then
-      sudo .assets/provision/setup_omp.sh --theme $omp_theme
+      sudo .assets/provision/setup_omp.sh --theme $omp_theme --user $user
     fi
     ;;
   python)
-    echo -e "\e[96minstalling python packages...\e[0m"
+    printf "\e[96minstalling python packages...\e[0m\n"
     .assets/provision/install_miniconda.sh
     sudo .assets/provision/setup_python.sh
     grep -qw 'az' <<<$scope && .assets/provision/install_azurecli.sh --fix_certify true || true
     ;;
   shell)
-    echo -e "\e[96minstalling shell packages...\e[0m"
+    printf "\e[96minstalling shell packages...\e[0m\n"
     sudo .assets/provision/install_pwsh.sh >/dev/null
     sudo .assets/provision/install_exa.sh >/dev/null
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
-    echo -e "\e[96msetting up profile for all users...\e[0m"
-    sudo .assets/provision/setup_profile_allusers.sh
-    sudo .assets/provision/setup_profile_allusers.ps1
-    echo -e "\e[96msetting up profile for current user...\e[0m"
+    printf "\e[96msetting up profile for all users...\e[0m\n"
+    sudo .assets/provision/setup_profile_allusers.sh $user
+    sudo .assets/provision/setup_profile_allusers.ps1 -UserName $user
+    printf "\e[96msetting up profile for current user...\e[0m\n"
     .assets/provision/setup_profile_user.sh
     .assets/provision/setup_profile_user.ps1
     ;;
@@ -121,8 +123,8 @@ if [ -f /usr/bin/pwsh ]; then
   grep -qw 'az' <<<$scope && modules+=(do-az) || true
   [ -f /usr/bin/git ] && modules+=(aliases-git) || true
   [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true
-  if [ -n "$modules" ]; then
-    echo -e "\e[96minstalling ps-modules...\e[0m"
+  if [[ -n "$modules" && -f /usr/bin/git ]]; then
+    printf "\e[96minstalling ps-modules...\e[0m\n"
     # determine if ps-modules repository exist and clone if necessary
     get_origin="git config --get remote.origin.url"
     origin=$(eval $get_origin)
@@ -130,7 +132,7 @@ if [ -f /usr/bin/pwsh ]; then
     if [ -d ../ps-modules ]; then
       pushd ../ps-modules >/dev/null
       if [ "$(eval $get_origin)" = "$remote" ]; then
-        git reset --hard --quiet && git clean --force -d && git pull --quiet
+        git fetch -q && git reset --hard -q "origin/$(git branch --show-current)"
       else
         modules=()
       fi
@@ -140,14 +142,14 @@ if [ -f /usr/bin/pwsh ]; then
     fi
     # install do-common module for all users
     if grep -qw 'do-common' <<<$ps_modules; then
-      echo -e "\e[3;32mAllUsers\e[23m    : do-common\e[0m"
+      printf "\e[3;32mAllUsers\e[23m    : do-common\e[0m\n"
       sudo ../ps-modules/module_manage.ps1 'do-common' -CleanUp
     fi
     # install rest of the modules for the current user
     modules=(${modules[@]/do-common/})
     if [ -n "$modules" ]; then
       # Convert the modules array to a comma-separated string with quoted elements
-      echo -e "\e[3;32mCurrentUser\e[23m : ${modules[@]}\e[0m"
+      printf "\e[3;32mCurrentUser\e[23m : ${modules[*]}\e[0m\n"
       mods=''
       for element in "${modules[@]}"; do
         mods="$mods'$element',"

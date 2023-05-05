@@ -3,7 +3,7 @@
 sudo .assets/provision/install_flux.sh
 '
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m'
+  printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi
 

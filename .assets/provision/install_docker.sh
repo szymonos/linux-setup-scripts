@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 : '
 sudo .assets/provision/install_docker.sh
+sudo .assets/provision/install_docker.sh $(id -un)
 '
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m'
+  printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -12,7 +13,20 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm docker
+  if pacman -Qqe paru &>/dev/null; then
+    user=${1:-$(id -un 1000 2>/dev/null)}
+    if ! grep -qw "^$user" /etc/passwd; then
+      if [ -n "$user" ]; then
+        printf "\e[31;1mUser does not exist ($user).\e[0m\n"
+      else
+        printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
+      fi
+      exit 1
+    fi
+    sudo -u $user paru -Sy --needed --noconfirm docker
+  else
+    printf '\e[33;1mWarning: paru not installed.\e[0m\n'
+  fi
   ;;
 fedora)
   if rpm -q docker &>/dev/null; then
@@ -52,5 +66,5 @@ if systemctl status 2>/dev/null | grep -qw systemd; then
   systemctl enable --now docker.service
   systemctl enable --now containerd.service
 else
-  echo -e '\e[93mwarning: systemd is not running\e[0m'
+  printf '\e[33;1mWarning: systemd is not running.\e[0m\n'
 fi

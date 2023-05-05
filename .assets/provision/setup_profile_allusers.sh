@@ -1,22 +1,31 @@
 #!/usr/bin/env bash
 : '
 sudo .assets/provision/setup_profile_allusers.sh
+sudo .assets/provision/setup_profile_allusers.sh $(id -un)
 '
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m'
+  printf '\e[31;1mRun the script as root.\e[0m\n'
+  exit 1
+fi
+
+# check if specified user exists
+user=${1:-$(id -un 1000 2>/dev/null)}
+if ! grep -qw "^$user" /etc/passwd; then
+  if [ -n "$user" ]; then
+    printf "\e[31;1mUser does not exist ($user).\e[0m\n"
+  else
+    printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
+  fi
   exit 1
 fi
 
 # path variables
-user="$(id -un 1000)"
-group="$(sudo -u $user groups | awk '{print $1}')"
-CFG_PATH="/home/$user/tmp/config/bash_cfg"
+CFG_PATH="$(sudo -u $user sh -c 'echo $HOME/tmp/config/bash_cfg')"
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
 if [ -d .assets/config/bash_cfg ]; then
-  mkdir -p $CFG_PATH
-  chown -R $user:$group /home/$user/tmp
+  sudo -u $user mkdir -p $CFG_PATH
   cp -f .assets/config/bash_cfg/* $CFG_PATH
 fi
 # *modify exa alias
@@ -24,21 +33,21 @@ if [ -f $CFG_PATH/aliases.sh ]; then
   # *set nerd fonts if oh-my-posh uses them
   exa_param=''
   exa --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
-  grep -Fqw '\ue725' $OMP_PATH/theme.omp.json 2>/dev/null && exa_param+='--icons ' || true
+  grep -Fqw '' $OMP_PATH/theme.omp.json 2>/dev/null && exa_param+='--icons ' || true
   sed -i "s/exa -g /exa -g $exa_param/" $CFG_PATH/aliases.sh
 fi
 
 # *Copy global profiles
 if [ -d $CFG_PATH ]; then
   # bash aliases
-  install -o root -g root -m 0644 $CFG_PATH/aliases.sh $PROFILE_PATH
+  install -m 0644 $CFG_PATH/aliases.sh $PROFILE_PATH
   # git aliases
   if type git &>/dev/null; then
-    install -o root -g root -m 0644 $CFG_PATH/aliases_git.sh $PROFILE_PATH
+    install -m 0644 $CFG_PATH/aliases_git.sh $PROFILE_PATH
   fi
   # kubectl aliases
   if type -f kubectl &>/dev/null; then
-    install -o root -g root -m 0644 $CFG_PATH/aliases_kubectl.sh $PROFILE_PATH
+    install -m 0644 $CFG_PATH/aliases_kubectl.sh $PROFILE_PATH
   fi
   # clean config folder
   rm -fr $CFG_PATH
@@ -72,7 +81,7 @@ grep -qw 'completion-ignore-case' /etc/inputrc || echo 'set completion-ignore-ca
 [ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime
 
 # *add reboot/shutdown polkit rule for vagrant group
-if getent group | grep -qw '^vagrant' && [[ ! -f /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules && -d /usr/share/polkit-1/rules.d ]]; then
+if grep -qw '^vagrant' <<<$(getent group) && [[ ! -f /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules && -d /usr/share/polkit-1/rules.d ]]; then
   cat <<EOF >/usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules
 /* Allow members of the vagrant group to shutdown or restart
  * without password authentication.

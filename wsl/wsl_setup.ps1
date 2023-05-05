@@ -141,7 +141,7 @@ process {
             '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false"',
             '[ -d /mnt/wslg ] && wslg="true" || wslg="false"',
             'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false"',
-            'echo "{\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,\"wslg\":$wslg,\"gtkd\":$gtkd}"'
+            'echo "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,\"wslg\":$wslg,\"gtkd\":$gtkd}"'
         )
         # check existing packages
         $chk = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
@@ -184,7 +184,7 @@ process {
         Write-Host 'updating system...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh $chk.user
         if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
             Write-Warning 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.'
             exit
@@ -192,7 +192,7 @@ process {
         switch ($scopes) {
             docker {
                 Write-Host 'installing docker...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_docker.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_docker.sh $chk.user
                 continue
             }
             k8s_base {
@@ -218,7 +218,7 @@ process {
                 Write-Host 'installing oh-my-posh...' -ForegroundColor Cyan
                 $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
                 if ($OmpTheme) {
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme --user $chk.user
                 }
                 continue
             }
@@ -239,8 +239,8 @@ process {
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
                 if ('az' -in $scopes) {
@@ -271,10 +271,7 @@ process {
                 Push-Location '../ps-modules' -ErrorAction Stop
                 if ($(Invoke-Command $getOrigin) -eq $remote) {
                     # refresh ps-modules repository
-                    git fetch --prune --quiet
-                    git reset --hard --quiet "origin/$(git branch --show-current)"
-                    git clean --force -d
-
+                    git fetch -q && git reset --hard --q "origin/$(git branch --show-current)"
                 } else {
                     $modules = [System.Collections.Generic.List[string]]::new()
                 }

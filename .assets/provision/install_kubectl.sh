@@ -3,7 +3,7 @@
 sudo .assets/provision/install_kubectl.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m'
+  printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -33,7 +33,7 @@ while [ -z "$REL" ]; do
   REL=$(curl -Lsk https://dl.k8s.io/release/stable.txt)
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
-    echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
+    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
   fi
   [ -n "$REL" ] || echo 'retrying...' >&2
@@ -44,12 +44,12 @@ echo $REL
 if [ -f /usr/bin/kubectl ]; then
   VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[0-9\.]+$')
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[32m$APP $VER is already latest\e[0m" >&2
+    printf "\e[32m$APP $VER is already latest\e[0m\n" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[92minstalling $APP $REL\e[0m" >&2
+printf "\e[92minstalling $APP $REL\e[0m\n" >&2
 case $SYS_ID in
 arch)
   pacman -Sy --needed --noconfirm kubectl >&2 2>/dev/null || binary=true
@@ -88,5 +88,5 @@ if [ "$binary" = true ]; then
     ((retry_count++))
   done
   # install
-  install -o root -g root -m 0755 kubectl /usr/bin/ && rm -f kubectl
+  install -m 0755 kubectl /usr/bin/ && rm -f kubectl
 fi

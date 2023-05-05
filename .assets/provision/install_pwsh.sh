@@ -3,7 +3,7 @@
 sudo .assets/provision/install_pwsh.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m'
+  printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -15,7 +15,7 @@ while [ -z "$REL" ]; do
   REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
-    echo -e "\e[33m$APP version couldn't be retrieved\e[0m" >&2
+    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
   fi
   [ -n "$REL" ] || echo 'retrying...' >&2
@@ -26,12 +26,12 @@ echo $REL
 if type $APP &>/dev/null; then
   VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
   if [ "$REL" = "$VER" ]; then
-    echo -e "\e[32m$APP v$VER is already latest\e[0m" >&2
+    printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
   fi
 fi
 
-echo -e "\e[92minstalling $APP v$REL\e[0m" >&2
+printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
@@ -46,6 +46,22 @@ alpine)
   done
   mkdir -p /opt/microsoft/powershell/7 && tar -zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm powershell.tar.gz
   chmod +x /opt/microsoft/powershell/7/pwsh && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+  ;;
+arch)
+  if pacman -Qqe paru &>/dev/null; then
+    user="$(id -un 1000 2>/dev/null)"
+    if ! grep -qw "^$user" /etc/passwd; then
+      if [ -n "$user" ]; then
+        printf "\e[31;1mUser does not exist ($user).\e[0m\n"
+      else
+        printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
+      fi
+      exit 1
+    fi
+    sudo -u $user paru -Sy --needed --noconfirm powershell-bin
+  else
+    binary=true
+  fi
   ;;
 fedora)
   dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-1.rh.x86_64.rpm" >&2 2>/dev/null || binary=true

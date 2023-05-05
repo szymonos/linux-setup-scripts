@@ -9,7 +9,7 @@ sudo .assets/provision/install_fonts_nerd.sh --version
 __ScriptVersion='0.1'
 
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m' >&2
+  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -101,11 +101,11 @@ if [ -n "$1" ]; then
       # build font information caches
       fc-cache -f /usr/share/fonts/${font,,}-nf
     else
-      echo -e '\e[91mFont "'$font'" not found on GitHub!\e[0m' >&2
+      printf '\e[31;1mFont "'$font'" not found on GitHub.\e[0m\n' >&2
       exit 1
     fi
   fi
 else
-  echo -e '\e[91mProvide font name!\e[0m' >&2
+  printf '\e[31;1mProvide font name.\e[0m\n' >&2
   exit 1
 fi

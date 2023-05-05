@@ -3,7 +3,7 @@
 sudo .assets/provision/setup_python.sh
 '
 if [ $EUID -ne 0 ]; then
-  echo -e '\e[91mRun the script as root!\e[0m'
+  printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi
 
@@ -28,7 +28,7 @@ opensuse)
   ;;
 esac
 
-echo -e "\e[92minstalling python pip & virtualenv\e[0m" >&2
+printf "\e[92minstalling python pip & virtualenv\e[0m\n" >&2
 # install packages
 case $SYS_ID in
 alpine)
