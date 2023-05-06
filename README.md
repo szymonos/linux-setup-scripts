@@ -1,6 +1,6 @@
 # Linux Setup Scripts
 
-This is a scripts repository for setting up Linux OS. Scripts can be used for setting up bare-metal Linux OS, provisioning Linux VMs using Vagrant or setting up WSL distros.  
+This is a scripts repository for setting up Linux OS. Scripts can be used for setting up bare-metal Linux OS, provisioning Linux VMs using Vagrant or setting up WSL distros as well as distroboxes.  
 
 Provisioning scripts are most of the time distro agnostic and work with the commonly used distros based on Fedora/RHEL, Debian/Ubuntu, Arch, OpenSUSE, Alpine with an emphasis on Fedora, Debian and Ubuntu which are the most extensively used distros by me.
 
