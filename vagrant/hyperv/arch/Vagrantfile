@@ -45,6 +45,10 @@ script_configure_static_ip = <<~SCRIPT
   EOF
 SCRIPT
 
+script_install_psmodules = <<~SCRIPT
+  pwsh -nop -c "@('aliases-git', 'do-common', 'do-linux') | ~/source/repos/szymonos/ps-modules/module_manage.ps1 -CleanUp" || true
+SCRIPT
+
 # *VM provisioning
 Vagrant.configure("2") do |config|
   # common triggers
@@ -140,6 +144,8 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "install pwsh...", path: "../../../.assets/provision/install_pwsh.sh", :args => '>/dev/null'
       node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../../.assets/provision/setup_profile_allusers.ps1"
       node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../../.assets/provision/setup_profile_user.ps1", privileged: false
+      node.vm.provision "shell", name: "clone ps-modules repo...", path: "../../../.assets/provision/setup_gh_repos.sh", :args => ['--repos', 'szymonos/ps-modules'], privileged: false
+      node.vm.provision "shell", name: "install ps-modules...", inline: script_install_psmodules, privileged: false
     end
     # ~reload vm
     node.vm.provision :reload
