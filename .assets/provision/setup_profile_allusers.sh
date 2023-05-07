@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/setup_profile_allusers.sh
 sudo .assets/provision/setup_profile_allusers.sh $(id -un)
 '
 if [ $EUID -ne 0 ]; then
@@ -10,7 +9,7 @@ fi
 
 # check if specified user exists
 user=${1:-$(id -un 1000 2>/dev/null)}
-if ! grep -qw "^$user" /etc/passwd; then
+if ! sudo -u $user true 2>/dev/null; then
   if [ -n "$user" ]; then
     printf "\e[31;1mUser does not exist ($user).\e[0m\n"
   else
