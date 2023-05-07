@@ -31,10 +31,12 @@ alpine)
   apk add --no-cache $APP
   ;;
 arch)
-  pacman -Sy --needed --noconfirm $APP
+  pacman -Sy --noconfirm $APP shadow
   ;;
 fedora)
   dnf install -y $APP
+  # fix shadow-utils
+  rpm -V shadow-utils >/dev/null || dnf reinstall -y shadow-utils
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive

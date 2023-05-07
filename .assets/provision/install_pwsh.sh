@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_pwsh.sh >/dev/null
+sudo .assets/provision/install_pwsh.sh $(id -un) >/dev/null
 '
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n'
@@ -49,8 +49,8 @@ alpine)
   ;;
 arch)
   if pacman -Qqe paru &>/dev/null; then
-    user="$(id -un 1000 2>/dev/null)"
-    if ! grep -qw "^$user" /etc/passwd; then
+    user=${1:-$(id -un 1000 2>/dev/null)}
+    if ! sudo -u $user true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"
       else

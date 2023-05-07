@@ -18,6 +18,7 @@ Name of the WSL distro to set up. If not specified, script will update all exist
 .PARAMETER Scope
 List of installation scopes. Valid values:
 - az: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.
+- distrobox: podman and distrobox
 - docker: docker, containerd buildx docker-compose
 - k8s_base: kubectl, helm, minikube, k3d, k9s, yq
 - k8s_ext: flux, kubeseal, kustomize, argorollouts-cli
@@ -66,8 +67,8 @@ param (
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'python', 'shell') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az docker k8s_base k8s_ext python shell')]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'python', 'shell') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: az distrobox docker k8s_base k8s_ext python shell')]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
@@ -190,6 +191,12 @@ process {
             exit
         }
         switch ($scopes) {
+            distrobox {
+                Write-Host 'installing distrobox...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_podman.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_distrobox.sh $chk.user
+                continue
+            }
             docker {
                 Write-Host 'installing docker...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_docker.sh $chk.user
