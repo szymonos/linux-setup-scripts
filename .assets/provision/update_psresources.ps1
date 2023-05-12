@@ -16,6 +16,8 @@ param (
 )
 
 begin {
+    $ErrorActionPreference = 'SilentlyContinue'
+
     # determine scope
     $param = if ($(id -u) -eq 0) {
         @{ Scope = 'AllUsers' }
@@ -27,27 +29,15 @@ begin {
 process {
     #region update modules
     Write-Host "updating modules in the `e[3m$($param.Scope)`e[23m scope" -ForegroundColor DarkGreen
-    Update-PSResource @param -AcceptLicense -ErrorAction SilentlyContinue
-    # update pre-release modules
-    Write-Verbose 'checking pre-release versions...'
-    $prerelease = Get-PSResource @param | Where-Object PrereleaseLabel
-    foreach ($mod in $prerelease) {
-        Write-Host "- $($mod.Name)"
-        (Find-PSResource -Name $mod.Name -Prerelease) | ForEach-Object {
-            if ($_.Version.ToString() -notmatch $mod.Version.ToString()) {
-                Write-Host "found newer version: `e[1m$($_.Version)`e[22m" -ForegroundColor DarkYellow
-                Update-PSResource @param -Name $mod.Name -Prerelease -AcceptLicense -Force
-            }
-        }
-    }
+    Update-PSResource @param -AcceptLicense
     #endregion
 
     #region cleanup modules
     Write-Verbose 'getting duplicate modules...'
-    $dupedModules = Get-PSResource @param | Group-Object -Property Name | Where-Object Count -gt 1 | Select-Object -ExpandProperty Name
+    $dupedModules = Get-InstalledPSResource @param | Group-Object -Property Name | Where-Object Count -gt 1 | Select-Object -ExpandProperty Name
     foreach ($mod in $dupedModules) {
         # determine lates version of the module
-        $allVersions = Get-PSResource @param -Name $mod
+        $allVersions = Get-InstalledPSResource @param -Name $mod
         $latestVersion = ($allVersions | Sort-Object PublishedDate)[-1].Version
         # uninstall old versions
         Write-Host "`n`e[4m$($mod)`e[24m - $($allVersions.Count) versions of the module found, latest: `e[1mv$latestVersion`e[22m" -ForegroundColor DarkYellow
