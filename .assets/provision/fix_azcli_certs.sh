@@ -8,10 +8,13 @@ if [ $EUID -eq 0 ]; then
 fi
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID="$(sed -En '/^ID.*(alpine|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 
 # specify path for installed custom certificates
 case $SYS_ID in
+alpine)
+  exit 0
+  ;;
 fedora | opensuse)
   [ "$SYS_ID" = 'fedora' ] && CERT_PATH='/etc/pki/ca-trust/source/anchors' || CERT_PATH='/usr/share/pki/trust/anchors'
   CERTIFY_CRT=$(rpm -ql azure-cli 2>/dev/null | grep 'site-packages/certifi/cacert.pem') || true

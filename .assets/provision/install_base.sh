@@ -8,11 +8,11 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache build-base ca-certificates iputils curl git jq less lsb-release-minimal mandoc openssl tar tree unzip vim
+  apk add --no-cache build-base ca-certificates iputils curl git jq less lsb-release-minimal mandoc openssh-client openssl tar tree unzip vim
   ;;
 arch)
   pacman -Sy --needed --noconfirm --color auto base-devel bash-completion dnsutils git jq lsb-release man-db openssh openssl tar tree unzip vim 2>/dev/null

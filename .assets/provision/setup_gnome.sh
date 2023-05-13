@@ -4,7 +4,7 @@
 '
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID="$(sed -En '/^ID.*(arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 
 INSTALL_DASH=true
 case $SYS_ID in

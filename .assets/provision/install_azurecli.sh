@@ -18,6 +18,9 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+# check if conda installed
+[ -f "$HOME/miniconda3/bin/conda" ] || exit 0
+
 # >>> conda initialize >>>
 __conda_setup="$("$HOME/miniconda3/bin/conda" 'shell.bash' 'hook' 2>/dev/null)"
 if [ $? -eq 0 ]; then

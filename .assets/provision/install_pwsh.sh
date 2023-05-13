@@ -12,7 +12,7 @@ REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
@@ -33,7 +33,7 @@ fi
 
 printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 
 case $SYS_ID in
 alpine)
