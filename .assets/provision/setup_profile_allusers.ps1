@@ -11,7 +11,7 @@ param (
 )
 
 begin {
-    $ErrorActionPreference = 'Stop'
+    $ErrorActionPreference = 'SilentlyContinue'
     $WarningPreference = 'Ignore'
 
     # check if script is executed as root
@@ -45,8 +45,8 @@ begin {
 process {
     # *modify exa alias
     if (Test-Path $CFG_PATH/_aliases_linux.ps1) {
-        $exa_git = try { exa --version | Select-String '+git' -SimpleMatch -Quiet } catch { $false }
-        $exa_nerd = try { Select-String '' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet } catch { $false }
+        $exa_git = exa --version | Select-String '+git' -SimpleMatch -Quiet
+        $exa_nerd = Select-String '' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet
         $exa_param = ($exa_git ? '--git ' : '') + ($exa_nerd ? '--icons ' : '')
         $content = [IO.File]::ReadAllLines("$CFG_PATH/_aliases_linux.ps1").Replace('exa -g ', "exa -g $exa_param")
         [IO.File]::WriteAllLines("$CFG_PATH/_aliases_linux.ps1", $content)
@@ -77,16 +77,19 @@ process {
         Write-Host 'installing PowerShellGet...'
         Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -SkipPublisherCheck
     }
-    if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
-        Write-Host 'setting PSGallery trusted...'
-        Set-PSResourceRepository -Name PSGallery -Trusted
-    }
-    for ($i = 0; (Test-Path /usr/bin/git) -and -not (Get-Module posh-git -ListAvailable) -and $i -lt 10; $i++) {
-        Write-Host 'installing posh-git...'
-        Install-PSResource -Name posh-git -Scope AllUsers
-    }
-    # update existing modules
-    if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
-        .assets/provision/update_psresources.ps1
+    # install/update modules
+    if (Get-InstalledModule -Name PowerShellGet) {
+        if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
+            Write-Host 'setting PSGallery trusted...'
+            Set-PSResourceRepository -Name PSGallery -Trusted
+        }
+        for ($i = 0; (Test-Path /usr/bin/git) -and -not (Get-Module posh-git -ListAvailable) -and $i -lt 10; $i++) {
+            Write-Host 'installing posh-git...'
+            Install-PSResource -Name posh-git -Scope AllUsers
+        }
+        # update existing modules
+        if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
+            .assets/provision/update_psresources.ps1
+        }
     }
 }

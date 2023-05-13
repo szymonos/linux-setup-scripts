@@ -16,6 +16,8 @@ param (
 )
 
 begin {
+    $ErrorActionPreference = 'SilentlyContinue'
+
     # determine scope
     $param = if ($(id -u) -eq 0) {
         @{ Scope = 'AllUsers' }
@@ -27,19 +29,7 @@ begin {
 process {
     #region update modules
     Write-Host "updating modules in the `e[3m$($param.Scope)`e[23m scope" -ForegroundColor DarkGreen
-    Update-PSResource @param -AcceptLicense -ErrorAction SilentlyContinue
-    # update pre-release modules
-    Write-Verbose 'checking pre-release versions...'
-    $prerelease = Get-InstalledPSResource @param | Where-Object PrereleaseLabel
-    foreach ($mod in $prerelease) {
-        Write-Host "- $($mod.Name)"
-        (Find-PSResource -Name $mod.Name -Prerelease) | ForEach-Object {
-            if ($_.Version.ToString() -notmatch $mod.Version.ToString()) {
-                Write-Host "found newer version: `e[1m$($_.Version)`e[22m" -ForegroundColor DarkYellow
-                Update-PSResource @param -Name $mod.Name -Prerelease -AcceptLicense -Force
-            }
-        }
-    }
+    Update-PSResource @param -AcceptLicense
     #endregion
 
     #region cleanup modules
