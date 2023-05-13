@@ -30,7 +30,7 @@ REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/sharkdp/bat/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/sharkdp/bat/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
@@ -42,7 +42,7 @@ done
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(bat --version | grep -Po '(?<=^bat )[0-9\.]+')
+  VER=$(bat --version | sed -En 's/.*\s([0-9\.]+)/\1/p')
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
@@ -52,25 +52,25 @@ fi
 printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
 case $SYS_ID in
 alpine)
-  apk add --no-cache bat >&2 2>/dev/null
+  apk add --no-cache $APP >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm bat >&2 2>/dev/null || binary=true
+  pacman -Sy --needed --noconfirm $APP >&2 2>/dev/null || binary=true
   ;;
 fedora)
-  dnf install -y bat >&2 2>/dev/null || binary=true
+  dnf install -y $APP >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   retry_count=0
-  while [[ ! -f bat.deb && $retry_count -lt 10 ]]; do
-    curl -Lsk -o bat.deb "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
+  while [[ ! -f $APP.deb && $retry_count -lt 10 ]]; do
+    curl -Lsk -o $APP.deb "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
     ((retry_count++))
   done
-  dpkg -i bat.deb >&2 2>/dev/null && rm -f bat.deb || binary=true
+  dpkg -i $APP.deb >&2 2>/dev/null && rm -f $APP.deb || binary=true
   ;;
 opensuse)
-  zypper in -y bat >&2 2>/dev/null || binary=true
+  zypper in -y $APP >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true

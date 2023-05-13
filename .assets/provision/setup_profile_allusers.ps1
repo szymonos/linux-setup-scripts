@@ -27,7 +27,7 @@ begin {
             Write-Error "User does not exist ($user)."
         }
     } else {
-        Write-Error "User ID 1000 not found."
+        Write-Error 'User ID 1000 not found.'
     }
     # calculate path variables
     $CFG_PATH = sudo -u $user sh -c 'echo $HOME/tmp/config/pwsh_cfg'
@@ -72,9 +72,10 @@ process {
     }
 
     # *PowerShell profile
-    for ($i = 0; -not ((Get-Module PowerShellGet -ListAvailable).Version.Major -ge 3) -and $i -lt 10; $i++) {
+    $psGetVer = (Find-Module PowerShellGet -AllowPrerelease).Version
+    for ($i = 0; $psGetVer -and ($psGetVer -notin (Get-InstalledModule -Name PowerShellGet -AllVersions).Version) -and $i -lt 10; $i++) {
         Write-Host 'installing PowerShellGet...'
-        Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force
+        Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -SkipPublisherCheck
     }
     if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
         Write-Host 'setting PSGallery trusted...'
