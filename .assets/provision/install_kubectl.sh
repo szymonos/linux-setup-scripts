@@ -8,7 +8,7 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 # check if package installed already using package manager
 APP='kubectl'
 case $SYS_ID in
@@ -42,7 +42,7 @@ done
 echo $REL
 
 if [ -f /usr/bin/kubectl ]; then
-  VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[0-9\.]+$')
+  VER=$(/usr/bin/kubectl version --client -o yaml | sed -En 's/.*gitVersion: v([0-9\.]+)$/\1/p')
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP $VER is already latest\e[0m\n" >&2
     exit 0

@@ -3,8 +3,8 @@
 .assets/provision/install_miniconda.sh
 '
 APP='conda'
-if [ -f $HOME/miniconda3/bin/conda ]; then
-  printf "\e[32m$APP already installed\e[0m\n"
+if [ -d $HOME/miniconda3 ]; then
+  printf "\e[32mDirectory already exists: '$HOME/miniconda3'\e[0m\n"
   exit 0
 fi
 

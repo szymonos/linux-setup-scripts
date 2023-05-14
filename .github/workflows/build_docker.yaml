@@ -10,10 +10,12 @@ jobs:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repo
+      - name: Checkout the repo
         uses: actions/checkout@v3
+        with:
+          path: linux-setup-scripts
 
-      - name: Check ps-modules repo
+      - name: Checkout the ps-modules repo
         uses: actions/checkout@v3
         with:
           repository: szymonos/ps-modules
@@ -30,6 +32,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: .assets/docker/Dockerfile
+          file: linux-setup-scripts/.assets/docker/Dockerfile
           push: true
           tags: muscimol/pwsh:latest

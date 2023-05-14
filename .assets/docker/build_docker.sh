@@ -1,12 +1,26 @@
 #!/usr/bin/env bash
+# *Build Docker image locally.
 : '
 .assets/docker/build_docker.sh
 '
 # set script working directory to workspace folder
-SCRIPT_ROOT=$( cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd )
-pushd "$( cd "${SCRIPT_ROOT}/../../" && pwd )" >/dev/null
+cd "$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../../")"
 
-docker build -f .assets/docker/Dockerfile -t muscimol/pwsh .
+# determine if ps-modules repository exist and clone if necessary
+get_origin="git config --get remote.origin.url"
+origin=$(eval $get_origin)
+remote=${origin/linux-setup-scripts/ps-modules}
+if [ -d ../ps-modules ]; then
+  pushd ../ps-modules >/dev/null
+  if [ "$(eval $get_origin)" = "$remote" ]; then
+    git fetch -q && git reset --hard -q "origin/$(git branch --show-current)"
+  else
+    modules=()
+  fi
+  popd >/dev/null
+else
+  git clone $remote ../ps-modules
+fi
 
-# restore working directory
-popd >/dev/null
+# build the image
+cd .. && docker build -f linux-setup-scripts/.assets/docker/Dockerfile -t muscimol/pwsh .

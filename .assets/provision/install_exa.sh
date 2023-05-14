@@ -8,7 +8,7 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 # check if package installed already using package manager
 APP='exa'
 case $SYS_ID in
@@ -30,7 +30,7 @@ REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/ogham/exa/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/ogham/exa/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
@@ -42,7 +42,7 @@ done
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(exa --version | grep -Po '(?<=^v)[0-9\.]+')
+  VER=$(exa --version | sed -En 's/v([0-9\.]+).*/\1/p')
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0

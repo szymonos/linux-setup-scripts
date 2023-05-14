@@ -8,7 +8,7 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 # check if package installed already using package manager
 APP='bat'
 case $SYS_ID in

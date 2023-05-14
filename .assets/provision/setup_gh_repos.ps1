@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pwsh -nop
+#!/usr/bin/pwsh -nop
 <#
 .SYNOPSIS
 Clone specified GitHub repositories into ~/source/repos folder.

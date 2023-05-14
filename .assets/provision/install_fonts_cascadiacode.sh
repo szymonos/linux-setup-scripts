@@ -14,7 +14,7 @@ TMP_DIR=$(mktemp -dp "$PWD")
 
 # get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/microsoft/cascadia-code/releases/latest | grep -Po '"tag_name": *"v?\K.*?(?=")')
+  REL=$(curl -sk https://api.github.com/repos/microsoft/cascadia-code/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2

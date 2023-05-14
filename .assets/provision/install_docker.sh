@@ -8,9 +8,12 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 
 case $SYS_ID in
+alpine)
+  exit 0
+  ;;
 arch)
   if pacman -Qqe paru &>/dev/null; then
     user=${1:-$(id -un 1000 2>/dev/null)}
