@@ -265,11 +265,16 @@ process {
             $PSModules.ForEach({ $modules.Add($_) })
 
             # determine modules to install
-            if ('az' -in $scopes) { $modules.Add('do-az') }
+            if ('az' -in $scopes) {
+                $modules.Add('do-az')
+                Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
+            }
             $modules.Add('aliases-git') # git is always installed
             Write-Verbose "Added `e[3maliases-git`e[23m to be installed from ps-modules."
-            if ($chk.k8s_base) { $modules.Add('aliases-kubectl') }
-            Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
+            if ($chk.k8s_base) {
+                $modules.Add('aliases-kubectl')
+                Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
+            }
 
             # determine if ps-modules repository exist and clone if necessary
             $getOrigin = { git config --get remote.origin.url }
@@ -278,7 +283,7 @@ process {
                 Push-Location '../ps-modules' -ErrorAction Stop
                 if ($(Invoke-Command $getOrigin) -eq $remote) {
                     # refresh ps-modules repository
-                    git fetch -q && git reset --hard --q "origin/$(git branch --show-current)"
+                    git fetch --quiet && git reset --hard --quiet "origin/$(git branch --show-current)"
                 } else {
                     $modules = [System.Collections.Generic.List[string]]::new()
                 }
