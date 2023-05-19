@@ -76,14 +76,14 @@ if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f $TMP_DIR/exa-linux-x86_64.zip && $retry_count -lt 10 ]]; do
-    curl -Lsk -o $TMP_DIR/exa-linux-x86_64.zip "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
+  while [[ ! -f "$TMP_DIR/exa-linux-x86_64.zip" && $retry_count -lt 10 ]]; do
+    curl -Lsk -o "$TMP_DIR/exa-linux-x86_64.zip" "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
     ((retry_count++))
   done
-  unzip -q $TMP_DIR/exa-linux-x86_64.zip -d $TMP_DIR
-  install -m 0755 $TMP_DIR/bin/exa /usr/bin/
-  install -m 0644 $TMP_DIR/man/exa.1 $(manpath | cut -d : -f 1)/man1/
-  install -m 0644 $TMP_DIR/man/exa_colors.5 $(manpath | cut -d : -f 1)/man5/
-  install -m 0644 $TMP_DIR/completions/exa.bash /etc/bash_completion.d/
-  rm -fr $TMP_DIR
+  unzip -q "$TMP_DIR/exa-linux-x86_64.zip" -d "$TMP_DIR"
+  install -m 0755 "$TMP_DIR/bin/exa" /usr/bin/
+  install -m 0644 "$TMP_DIR/man/exa.1" "$(manpath | cut -d : -f 1)/man1/"
+  install -m 0644 "$TMP_DIR/man/exa_colors.5" "$(manpath | cut -d : -f 1)/man5/"
+  install -m 0644 "$TMP_DIR/completions/exa.bash" /etc/bash_completion.d/
+  rm -fr "$TMP_DIR"
 fi

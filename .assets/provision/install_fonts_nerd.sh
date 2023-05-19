@@ -89,15 +89,15 @@ if [ -n "$1" ]; then
     http_code=$(curl -Lo /dev/null --silent -Iw '%{http_code}' "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip")
     if [ $http_code -eq 200 ]; then
       retry_count=0
-      while [[ ! -f $TMP_DIR/$font.zip && $retry_count -lt 10 ]]; do
-        curl -Lsk -o $TMP_DIR/$font.zip "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
+      while [[ ! -f "$TMP_DIR/$font.zip" && $retry_count -lt 10 ]]; do
+        curl -Lsk -o "$TMP_DIR/$font.zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
         ((retry_count++))
       done
-      unzip -q $TMP_DIR/$font.zip -d $TMP_DIR
-      rm -f $TMP_DIR/*Compatible.ttf
+      unzip -q "$TMP_DIR/$font.zip" -d "$TMP_DIR"
+      rm -f "$TMP_DIR/*Compatible.ttf"
       mkdir -p /usr/share/fonts/${font,,}-nf
-      cp -rf $TMP_DIR/*.ttf /usr/share/fonts/${font,,}-nf/
-      rm -fr $TMP_DIR
+      find "$TMP_DIR" -type f -name "*.ttf" -exec cp {} /usr/share/fonts/${font,,}-nf/ \;
+      rm -fr "$TMP_DIR"
       # build font information caches
       fc-cache -f /usr/share/fonts/${font,,}-nf
     else

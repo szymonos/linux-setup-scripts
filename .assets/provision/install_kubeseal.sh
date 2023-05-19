@@ -34,9 +34,9 @@ fi
 printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
-while [[ ! -f $TMP_DIR/kubeseal && $retry_count -lt 10 ]]; do
-  curl -Lsk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -zx -C $TMP_DIR
+while [[ ! -f "$TMP_DIR/kubeseal" && $retry_count -lt 10 ]]; do
+  curl -Lsk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -zx -C "$TMP_DIR"
   ((retry_count++))
 done
-install -m 0755 $TMP_DIR/kubeseal /usr/local/bin/
-rm -fr $TMP_DIR
+install -m 0755 "$TMP_DIR/kubeseal" /usr/local/bin/
+rm -fr "$TMP_DIR"
