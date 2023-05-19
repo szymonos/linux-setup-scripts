@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 : '
 sudo .assets/provision/install_base.sh $(id -un)
 '
-if [ $EUID -ne 0 ]; then
+if [ $(id -u) -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi
@@ -12,7 +12,7 @@ SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p
 
 case $SYS_ID in
 alpine)
-  apk add --no-cache bind-tools build-base ca-certificates iputils curl git jq less lsb-release-minimal mandoc nmap openssh-client openssl tar tree unzip vim
+  apk add --no-cache bash bind-tools build-base ca-certificates iputils curl git jq less lsb-release-minimal mandoc nmap openssh-client openssl sudo tar tree unzip vim
   ;;
 arch)
   pacman -Sy --needed --noconfirm --color auto base-devel bash-completion dnsutils git jq lsb-release man-db nmap openssh openssl tar tree unzip vim 2>/dev/null

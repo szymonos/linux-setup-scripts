@@ -34,10 +34,10 @@ fi
 printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
-while [[ ! -f $TMP_DIR/kubelogin.zip && $retry_count -lt 10 ]]; do
-  curl -Lsk -o $TMP_DIR/kubelogin.zip "https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"
+while [[ ! -f "$TMP_DIR/kubelogin.zip" && $retry_count -lt 10 ]]; do
+  curl -Lsk -o "$TMP_DIR/kubelogin.zip" "https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"
   ((retry_count++))
 done
-unzip -q $TMP_DIR/kubelogin.zip -d $TMP_DIR
-install -m 0755 $TMP_DIR/bin/linux_amd64/kubelogin /usr/local/bin/
-rm -fr $TMP_DIR
+unzip -q "$TMP_DIR/kubelogin.zip" -d "$TMP_DIR"
+install -m 0755 "$TMP_DIR/bin/linux_amd64/kubelogin" /usr/local/bin/
+rm -fr "$TMP_DIR"

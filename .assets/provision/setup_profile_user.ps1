@@ -23,7 +23,8 @@ if (Get-InstalledModule -Name PowerShellGet) {
     }
 }
 
-if ((Test-Path /usr/bin/kubectl) -and -not (Select-String '__kubectl_debug' -Path $PROFILE -Quiet)) {
+$kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
+if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
     Write-Host 'adding kubectl auto-completion...'
     $profileDir = [IO.Path]::GetDirectoryName($PROFILE)
     if (-not (Test-Path $profileDir -PathType Container)) {
@@ -32,7 +33,8 @@ if ((Test-Path /usr/bin/kubectl) -and -not (Select-String '__kubectl_debug' -Pat
     (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
 }
 
-if ((Test-Path $HOME/miniconda3/bin/conda) -and -not (Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet)) {
+$condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
+if ((Test-Path $HOME/miniconda3/bin/conda) -and -not $condaSet) {
     Write-Verbose 'adding miniconda initialization...'
     & "$HOME/miniconda3/bin/conda" init powershell | Out-Null
 }

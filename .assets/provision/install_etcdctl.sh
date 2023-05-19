@@ -34,9 +34,9 @@ fi
 printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
-while [[ ! -f $TMP_DIR/etcdctl && $retry_count -lt 10 ]]; do
-  curl -Lsk "https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz" | tar -zx --strip-components=1 --no-same-owner -C $TMP_DIR
+while [[ ! -f "$TMP_DIR/etcdctl" && $retry_count -lt 10 ]]; do
+  curl -Lsk "https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz" | tar -zx --strip-components=1 --no-same-owner -C "$TMP_DIR"
   ((retry_count++))
 done
-install -m 0755 $TMP_DIR/etcdctl /usr/local/bin/
-rm -fr $TMP_DIR
+install -m 0755 "$TMP_DIR/etcdctl" /usr/local/bin/
+rm -fr "$TMP_DIR"

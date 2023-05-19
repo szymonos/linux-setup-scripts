@@ -28,12 +28,12 @@ echo $REL
 echo "Install CascadiaCode v$REL" >&2
 retry_count=0
 while [[ ! -f CascadiaCode.zip && $retry_count -lt 10 ]]; do
-  curl -Lsk -o $TMP_DIR/CascadiaCode.zip "https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
+  curl -Lsk -o "$TMP_DIR/CascadiaCode.zip" "https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
   ((retry_count++))
 done
-unzip -q $TMP_DIR/CascadiaCode.zip -d $TMP_DIR
+unzip -q "$TMP_DIR/CascadiaCode.zip" -d "$TMP_DIR"
 mkdir -p /usr/share/fonts/cascadia-code
-cp -rf $TMP_DIR/ttf/*.ttf /usr/share/fonts/cascadia-code/
-rm -fr $TMP_DIR
+find "$TMP_DIR/ttf" -type f -name "*.ttf" -exec cp {} /usr/share/fonts/cascadia-code/ \;
+rm -fr "$TMP_DIR"
 # build font information caches
 fc-cache -f /usr/share/fonts/cascadia-code/

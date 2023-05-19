@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 : '
 sudo .assets/provision/upgrade_system.sh
 '
-if [ $EUID -ne 0 ]; then
+if [ $(id -u) -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n'
   exit 1
 fi

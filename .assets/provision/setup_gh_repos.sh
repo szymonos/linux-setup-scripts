@@ -41,8 +41,8 @@ fi
 mkdir -p ~/source/repos
 mkdir -p ~/source/workspaces
 # create workspace file
-if [ ! -f $ws_path ]; then
-  printf "{\n\t\"folders\": [\n\t]\n}\n" >$ws_path
+if [ ! -f "$ws_path" ]; then
+  printf "{\n\t\"folders\": [\n\t]\n}\n" >"$ws_path"
 fi
 
 # clone repositories and add them to workspace file
@@ -53,9 +53,9 @@ for repo in ${gh_repos[@]}; do
   mkdir -p "${gh_path[0]}"
   pushd "${gh_path[0]}" >/dev/null
   git clone "${github}${repo}.git" 2>/dev/null && echo $repo || true
-  if ! grep -qw "$repo" $ws_path && [ -d "${gh_path[1]}" ]; then
+  if ! grep -qw "$repo" "$ws_path" && [ -d "${gh_path[1]}" ]; then
     folder="\t{\n\t\t\t\"name\": \"${gh_path[1]}\",\n\t\t\t\"path\": \"..\/repos\/${repo/\//\\\/}\"\n\t\t},\n\t"
-    sed -i "s/\(\]\)/$folder\1/" $ws_path
+    sed -i "s/\(\]\)/$folder\1/" "$ws_path"
   fi
   popd >/dev/null
 done

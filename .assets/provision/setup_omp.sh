@@ -41,17 +41,17 @@ OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 # create CFG folder
 sudo -u $user mkdir -p $CFG_PATH
 # copy profile for WSL setup
-if [ -f .assets/config/omp_cfg/${theme}.omp.json ]; then
-  cp -f .assets/config/omp_cfg/${theme}.omp.json $CFG_PATH
+if [ -f ".assets/config/omp_cfg/${theme}.omp.json" ]; then
+  cp -f ".assets/config/omp_cfg/${theme}.omp.json" "$CFG_PATH"
 else
-  curl -fsSk -o $CFG_PATH/${theme}.omp.json "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
+  curl -fsSk -o "$CFG_PATH/${theme}.omp.json" "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
 fi
 
 # *Copy oh-my-posh theme
-if [ -f $CFG_PATH/${theme}.omp.json ]; then
-  mkdir -p $OH_MY_POSH_PATH
-  install -m 0644 $CFG_PATH/${theme}.omp.json $OH_MY_POSH_PATH/theme.omp.json
+if [ -f "$CFG_PATH/${theme}.omp.json" ]; then
+  mkdir -p "$OH_MY_POSH_PATH"
+  install -m 0644 "$CFG_PATH/${theme}.omp.json" "$OH_MY_POSH_PATH/theme.omp.json"
 fi
 
 # clean config folder
-rm -fr $CFG_PATH
+rm -fr "$CFG_PATH"

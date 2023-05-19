@@ -59,5 +59,5 @@ fi
 conda deactivate
 
 # make symbolic link to az cli
-mkdir -p $HOME/.local/bin
-ln -sf $HOME/miniconda3/envs/azurecli/bin/az $HOME/.local/bin/
+mkdir -p "$HOME/.local/bin"
+ln -sf "$HOME/miniconda3/envs/azurecli/bin/az" "$HOME/.local/bin/"

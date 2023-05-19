@@ -145,7 +145,7 @@ process {
             'echo "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,\"wslg\":$wslg,\"gtkd\":$gtkd}"'
         )
         # check existing packages
-        $chk = wsl.exe -d $Distro --exec bash -c $cmd | ConvertFrom-Json -AsHashtable
+        $chk = wsl.exe -d $Distro --exec sh -c $cmd | ConvertFrom-Json -AsHashtable
         # instantiate scope generic lists
         $scopes = [Collections.Generic.List[String]]::new()
         $Scope.ForEach({ $scopes.Add($_) })

@@ -24,42 +24,42 @@ PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
 if [ -d .assets/config/bash_cfg ]; then
-  sudo -u $user mkdir -p $CFG_PATH
-  cp -f .assets/config/bash_cfg/* $CFG_PATH
+  sudo -u $user mkdir -p "$CFG_PATH"
+  cp -f .assets/config/bash_cfg/* "$CFG_PATH"
 fi
 # *modify exa alias
-if [ -f $CFG_PATH/aliases.sh ]; then
+if [ -f "$CFG_PATH/aliases.sh" ]; then
   # *set nerd fonts if oh-my-posh uses them
   exa_param=''
   exa --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
-  grep -Fqw '' $OMP_PATH/theme.omp.json 2>/dev/null && exa_param+='--icons ' || true
-  sed -i "s/exa -g /exa -g $exa_param/" $CFG_PATH/aliases.sh
+  grep -Fqw '' ""$OMP_PATH/theme.omp.json"" 2>/dev/null && exa_param+='--icons ' || true
+  sed -i "s/exa -g /exa -g $exa_param/" "$CFG_PATH/aliases.sh"
 fi
 
 # *Copy global profiles
-if [ -d $CFG_PATH ]; then
+if [ -d "$CFG_PATH" ]; then
   # bash aliases
-  install -m 0644 $CFG_PATH/aliases.sh $PROFILE_PATH
+  install -m 0644 "$CFG_PATH/aliases.sh" "$PROFILE_PATH"
   # git aliases
   if type git &>/dev/null; then
-    install -m 0644 $CFG_PATH/aliases_git.sh $PROFILE_PATH
+    install -m 0644 "$CFG_PATH/aliases_git.sh" "$PROFILE_PATH"
   fi
   # kubectl aliases
   if type -f kubectl &>/dev/null; then
-    install -m 0644 $CFG_PATH/aliases_kubectl.sh $PROFILE_PATH
+    install -m 0644 "$CFG_PATH/aliases_kubectl.sh" "$PROFILE_PATH"
   fi
   # clean config folder
-  rm -fr $CFG_PATH
+  rm -fr "$CFG_PATH"
   # TODO to be removed, cleanup legacy aliases
-  rm -f $PROFILE_PATH/bash_aliases $PROFILE_PATH/bash_aliases_git $PROFILE_PATH/bash_aliases_kubectl
+  rm -f "$PROFILE_PATH/bash_aliases" "$PROFILE_PATH/bash_aliases_git" "$PROFILE_PATH/bash_aliases_kubectl"
 fi
 
 # *bash profile
 # add common bash aliases
 grep -qw 'd/aliases.sh' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
 # common aliases
-if [ -f $PROFILE_PATH/aliases.sh ]; then
-  source $PROFILE_PATH/aliases.sh
+if [ -f "$PROFILE_PATH/aliases.sh" ]; then
+  source "$PROFILE_PATH/aliases.sh"
 fi
 EOF
 
@@ -67,8 +67,8 @@ EOF
 if ! grep -qw 'oh-my-posh' ~/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then
   cat <<EOF >>~/.bashrc
 # initialize oh-my-posh prompt
-if [ -f $OMP_PATH/theme.omp.json ] && type oh-my-posh &>/dev/null; then
-  eval "\$(oh-my-posh --init --shell bash --config $OMP_PATH/theme.omp.json)"
+if [ -f "$OMP_PATH/theme.omp.json" ] && type oh-my-posh &>/dev/null; then
+  eval "\$(oh-my-posh --init --shell bash --config "$OMP_PATH/theme.omp.json")"
 fi
 EOF
 fi
