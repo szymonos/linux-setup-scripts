@@ -41,7 +41,7 @@ begin {
     }
 
     # determine update ca parameters depending on distro
-    $sysId = wsl.exe -d $Distro --exec grep -oPm1 '^ID(_LIKE)?=.*?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release
+    $sysId = wsl.exe -d $Distro --exec sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release
     switch -Regex ($sysId) {
         arch {
             $crt = @{ path = '/etc/ca-certificates/trust-source/anchors'; cmd = 'trust extract-compat' }
@@ -60,6 +60,9 @@ begin {
         opensuse {
             $crt = @{ path = '/usr/share/pki/trust/anchors'; cmd = 'update-ca-certificates' }
             continue
+        }
+        Default {
+            exit
         }
     }
 
