@@ -1,3 +1,21 @@
+#region functions
+function gsys {
+  . /etc/os-release
+  SYS_PROP="\e[1;32mNAME             :\e[0m $NAME"
+  [ -n "$VERSION" ]          && SYS_PROP+="\n\e[1;32mVERSION          :\e[0m $VERSION"
+  [ -n "$ID" ]               && SYS_PROP+="\n\e[1;32mID               :\e[0m $ID"
+  [ -n "$ID_LIKE" ]          && SYS_PROP+="\n\e[1;32mID_LIKE          :\e[0m $ID_LIKE"
+  [ -n "$VERSION_ID" ]       && SYS_PROP+="\n\e[1;32mVERSION_ID       :\e[0m $VERSION_ID"
+  [ -n "$VERSION_CODENAME" ] && SYS_PROP+="\n\e[1;32mVERSION_CODENAME :\e[0m $VERSION_CODENAME"
+  [ -n "$PRETTY_NAME" ]      && SYS_PROP+="\n\e[1;32mPRETTY_NAME      :\e[0m $PRETTY_NAME"
+  [ -n "$WSL_DISTRO_NAME" ]  && SYS_PROP+="\n\e[1;32mWSL_DISTRO_NAME  :\e[0m $WSL_DISTRO_NAME" || true
+  [ -n "$CONTAINER_ID" ]     && SYS_PROP+="\n\e[1;32mCONTAINER_ID     :\e[0m $CONTAINER_ID" || true
+  SYS_PROP+="\n\e[1;32mDEVICE           :\e[0m $([ -n "HOSTNAME" ] && printf $HOSTNAME || printf $NAME)"
+  printf "$SYS_PROP\n"
+}
+#endregion
+
+#region aliases
 export SWD=$(pwd)
 alias swd="echo $SWD"
 alias cds="cd $SWD"
@@ -42,6 +60,7 @@ alias less='less -FRXc'
 alias md='mkdir -p'
 alias mkdir='mkdir -pv'
 alias mv='mv -iv'
+alias osr='cat /etc/os-release'
 alias nano='nano -W'
 alias path='printf "${PATH//:/\\n}\n"'
 alias pwsh='pwsh -NoProfileLoadTime'
@@ -53,3 +72,4 @@ alias systemctl='systemctl --no-pager'
 alias tree='tree -C'
 alias vi='vim'
 alias wget='wget -c'
+#endregion
