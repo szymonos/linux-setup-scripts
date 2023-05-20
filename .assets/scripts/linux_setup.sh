@@ -10,7 +10,8 @@ scope="az docker k8s_base k8s_ext python shell"
 .assets/scripts/linux_setup.sh --scope "$scope"
 # :set up the system using the specified scope and omp theme
 omp_theme="nerd"
-.assets/scripts/linux_setup.sh --scope "$scope" --omp_theme "$omp_theme"
+.assets/scripts/linux_setup.sh --omp_theme "$omp_theme"
+.assets/scripts/linux_setup.sh --omp_theme "$omp_theme" --scope "$scope"
 # :upgrade system first and then set up the system
 .assets/scripts/linux_setup.sh --sys_upgrade true --scope "$scope" --omp_theme "$omp_theme"
 '
