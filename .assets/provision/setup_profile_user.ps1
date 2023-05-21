@@ -36,5 +36,9 @@ if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
 $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
 if ((Test-Path $HOME/miniconda3/bin/conda) -and -not $condaSet) {
     Write-Verbose 'adding miniconda initialization...'
-    & "$HOME/miniconda3/bin/conda" init powershell | Out-Null
+    [string]::Join("`n",
+        '#region conda initialize',
+        'try { (& "$HOME/miniconda3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression } catch { Out-Null }',
+        '#endregion'
+    ) | Add-Content $PROFILE.CurrentUserAllHosts
 }

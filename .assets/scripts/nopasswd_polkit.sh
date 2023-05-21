@@ -10,7 +10,7 @@ fi
 
 if [ "$1" = 'revert' ]; then
   sudo rm -f /usr/share/polkit-1/rules.d/49-nopasswd_global.rules
-elif id -nG "$USER" | grep -qw 'wheel'; then
+elif id -Gn | grep -qw 'wheel'; then
   # disable password in desktop environment
   [ -d /usr/share/polkit-1/rules.d ] && cat <<EOF | sudo tee /usr/share/polkit-1/rules.d/49-nopasswd_global.rules >/dev/null
 /* Allow members of the wheel group to execute any actions

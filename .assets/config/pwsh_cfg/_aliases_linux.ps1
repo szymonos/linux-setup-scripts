@@ -17,5 +17,6 @@ function tree { & /usr/bin/env tree -C @args }
 function wget { & /usr/bin/env wget -c @args }
 
 # *Aliases
+Set-Alias -Name ff -Value fastfetch
 Set-Alias -Name rd -Value rmdir
 Set-Alias -Name vi -Value vim

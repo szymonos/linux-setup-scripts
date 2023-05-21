@@ -8,25 +8,25 @@ if [ $EUID -eq 0 ]; then
   exit 1
 fi
 
-# store user name in separate variable tu use in sudo commands.
-user=$USER
-
 if [ "$1" = 'revert' ]; then
-  # delete user's configuration file from sudoers folder
-  sudo rm -f "/etc/sudoers.d/$user"
-  printf "\e[32mFile \e[1m/etc/sudoers.d/${user}\e[22m deleted.\e[0m\n"
+  # delete user's configuration file from the sudoers.d folder
+  if sudo test -f "/etc/sudoers.d/$USER"; then
+    sudo rm -f "/etc/sudoers.d/$USER"
+    printf "\e[32m\e[1m/etc/sudoers.d/${USER}\e[22m file deleted\e[0m\n"
+  else
+    printf "\e[33m\e[1m/etc/sudoers.d/${USER}\e[22m file does not exist\e[0m\n"
+  fi
 else
-  # check if user is eligible to run sudo commands
-  group=$(id -nG "$USER" | grep -Eow 'wheel|sudo')
-  if [ -n "$group" ]; then
-    if [ -f /etc/sudoers.d/$user ]; then
-      printf "\e[33mFile \e[1m/etc/sudoers.d/${user}\e[22m already exists.\e[0m\n"
+  # check if user is eligible to run the sudo command
+  if id -Gn | grep -Eqw 'wheel|sudo'; then
+    if sudo test -f "/etc/sudoers.d/$USER"; then
+      printf "\e[33m\e[1m/etc/sudoers.d/${USER}\e[22m file already exists\e[0m\n"
     else
-      # disable sudo password prompt for current user
-      echo "$user ALL=(root) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/$user >/dev/null
-      printf "\e[32mFile \e[1m/etc/sudoers.d/${user}\e[22m created.\e[0m\n"
+      # disable sudo password prompt for the current user
+      echo "$USER ALL=(root) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/$USER >/dev/null
+      printf "\e[32m\e[1m/etc/sudoers.d/${USER}\e[22m file created\e[0m\n"
     fi
   else
-    printf "\e[33mUser \e[1m${user}\e[22m is not in the \e[1m${group}\e[22m group.\e[0m\n"
+    printf "\e[33m\e[1m${USER}\e[22m user is not eligible to run the sudo command\e[0m\n"
   fi
 fi
