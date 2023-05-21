@@ -1,16 +1,23 @@
 #region functions
-function gsys {
+function gsi {
+  # dot-source os-release file
   . /etc/os-release
-  SYS_PROP="\e[1;32mNAME             :\e[0m $NAME"
-  [ -n "$VERSION" ]          && SYS_PROP+="\n\e[1;32mVERSION          :\e[0m $VERSION"
-  [ -n "$ID" ]               && SYS_PROP+="\n\e[1;32mID               :\e[0m $ID"
-  [ -n "$ID_LIKE" ]          && SYS_PROP+="\n\e[1;32mID_LIKE          :\e[0m $ID_LIKE"
-  [ -n "$VERSION_ID" ]       && SYS_PROP+="\n\e[1;32mVERSION_ID       :\e[0m $VERSION_ID"
-  [ -n "$VERSION_CODENAME" ] && SYS_PROP+="\n\e[1;32mVERSION_CODENAME :\e[0m $VERSION_CODENAME"
-  [ -n "$PRETTY_NAME" ]      && SYS_PROP+="\n\e[1;32mPRETTY_NAME      :\e[0m $PRETTY_NAME"
-  [ -n "$WSL_DISTRO_NAME" ]  && SYS_PROP+="\n\e[1;32mWSL_DISTRO_NAME  :\e[0m $WSL_DISTRO_NAME" || true
-  [ -n "$CONTAINER_ID" ]     && SYS_PROP+="\n\e[1;32mCONTAINER_ID     :\e[0m $CONTAINER_ID" || true
-  SYS_PROP+="\n\e[1;32mDEVICE           :\e[0m $([ -n "HOSTNAME" ] && printf $HOSTNAME || printf $NAME)"
+
+  # build system properties
+  printf "\e[1;34m$(id -un)\e[0m@\e[1;34m$([ -n "HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")\e[0m\n"
+  USER_HOST="$(id -un)@$([ -n "HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")"
+  printf '%0.s-' $(seq 1 ${#USER_HOST})
+  SYS_PROP="\n\e[1;32mOS         :\e[0m $NAME $([ -n "$BUILD_ID" ] && printf "$BUILD_ID" || [ -n "$VERSION" ] && printf "$VERSION" || printf "$VERSION_ID") $(uname -m)"
+  SYS_PROP+="\n\e[1;32mKernel     :\e[0m $(uname -r)"
+  SYS_PROP+="\n\e[1;32mUptime     :\e[0m $(uptime -p)"
+  [ -n "$WSL_DISTRO_NAME" ] && SYS_PROP+="\n\e[1;32mOS Host    :\e[0m Windows Subsystem for Linux" || true
+  [ -n "$WSL_DISTRO_NAME" ] && SYS_PROP+="\n\e[1;32mWSL Distro :\e[0m $WSL_DISTRO_NAME" || true
+  [ -n "$CONTAINER_ID" ] && SYS_PROP+="\n\e[1;32mDistroBox  :\e[0m $CONTAINER_ID" || true
+  [ -n "$TERM_PROGRAM" ] && SYS_PROP+="\n\e[1;32mTerminal   :\e[0m $TERM_PROGRAM" || true
+  type bash &>/dev/null && SYS_PROP+="\n\e[1;32mShell      :\e[0m $(bash --version | head -n1 | sed 's/ (.*//')" || true
+  SYS_PROP+="\n\e[1;32mCPU        :\e[0m $(sed -En '/^model name.+: (.+)/{s//\1/;p;q}' /proc/cpuinfo)"
+  [ -n "$LANG" ] && SYS_PROP+="\n\e[1;32mLocale     :\e[0m $LANG" || true
+
   printf "$SYS_PROP\n"
 }
 #endregion
