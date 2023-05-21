@@ -3,21 +3,32 @@ function gsi {
   # dot-source os-release file
   . /etc/os-release
 
-  # build system properties
-  printf "\e[1;34m$(id -un)\e[0m@\e[1;34m$([ -n "HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")\e[0m\n"
-  USER_HOST="$(id -un)@$([ -n "HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")"
-  printf '%0.s-' $(seq 1 ${#USER_HOST})
+  # calculate memory usage
+  mem_inf=($(awk -F ':|kB' '/MemTotal:|MemAvailable:/ {printf $2, " "}' /proc/meminfo))
+  mem_total=${mem_inf[0]}
+  mem_used=$((mem_total - mem_inf[1]))
+  mem_perc=$(awk '{printf "%.0f", $1 * $2 / $3}' <<<"$mem_used 100 $mem_total")
+  mem_used=$(awk '{printf "%.2f", $1 / $2 / $3}' <<<"$mem_used 1024 1024")
+  mem_total=$(awk '{printf "%.2f", $1 / $2 / $3}' <<<"$mem_total 1024 1024")
+
+  # build system properties string
   SYS_PROP="\n\e[1;32mOS         :\e[0m $NAME $([ -n "$BUILD_ID" ] && printf "$BUILD_ID" || [ -n "$VERSION" ] && printf "$VERSION" || printf "$VERSION_ID") $(uname -m)"
   SYS_PROP+="\n\e[1;32mKernel     :\e[0m $(uname -r)"
-  SYS_PROP+="\n\e[1;32mUptime     :\e[0m $(uptime -p)"
+  SYS_PROP+="\n\e[1;32mUptime     :\e[0m $(uptime -p | sed 's/^up //')"
   [ -n "$WSL_DISTRO_NAME" ] && SYS_PROP+="\n\e[1;32mOS Host    :\e[0m Windows Subsystem for Linux" || true
   [ -n "$WSL_DISTRO_NAME" ] && SYS_PROP+="\n\e[1;32mWSL Distro :\e[0m $WSL_DISTRO_NAME" || true
   [ -n "$CONTAINER_ID" ] && SYS_PROP+="\n\e[1;32mDistroBox  :\e[0m $CONTAINER_ID" || true
   [ -n "$TERM_PROGRAM" ] && SYS_PROP+="\n\e[1;32mTerminal   :\e[0m $TERM_PROGRAM" || true
   type bash &>/dev/null && SYS_PROP+="\n\e[1;32mShell      :\e[0m $(bash --version | head -n1 | sed 's/ (.*//')" || true
   SYS_PROP+="\n\e[1;32mCPU        :\e[0m $(sed -En '/^model name.+: (.+)/{s//\1/;p;q}' /proc/cpuinfo)"
+  SYS_PROP+="\n\e[1;32mMemory     :\e[0m ${mem_used} GiB / ${mem_total} GiB (${mem_perc} %%)"
   [ -n "$LANG" ] && SYS_PROP+="\n\e[1;32mLocale     :\e[0m $LANG" || true
 
+  # print user@host header
+  printf "\e[1;34m$(id -un)\e[0m@\e[1;34m$([ -n "HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")\e[0m\n"
+  USER_HOST="$(id -un)@$([ -n "HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")"
+  printf '%0.s-' $(seq 1 ${#USER_HOST})
+  # print system properties
   printf "$SYS_PROP\n"
 }
 #endregion
