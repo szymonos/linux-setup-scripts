@@ -1,8 +1,10 @@
 #region functions
-function gsi {
+function sysinfo {
   # dot-source os-release file
   . /etc/os-release
-
+  # get cpu info
+  cpu_name="$(sed -En '/^model name\s*: (.+)/{s//\1/;p;q}' /proc/cpuinfo)"
+  cpu_cores="$(sed -En '/^cpu cores\s*: ([0-9]+)/{s//\1/;p;q}' /proc/cpuinfo)"
   # calculate memory usage
   mem_inf=($(awk -F ':|kB' '/MemTotal:|MemAvailable:/ {printf $2, " "}' /proc/meminfo))
   mem_total=${mem_inf[0]}
@@ -20,7 +22,7 @@ function gsi {
   [ -n "$CONTAINER_ID" ] && SYS_PROP+="\n\e[1;32mDistroBox  :\e[0m $CONTAINER_ID" || true
   [ -n "$TERM_PROGRAM" ] && SYS_PROP+="\n\e[1;32mTerminal   :\e[0m $TERM_PROGRAM" || true
   type bash &>/dev/null && SYS_PROP+="\n\e[1;32mShell      :\e[0m $(bash --version | head -n1 | sed 's/ (.*//')" || true
-  SYS_PROP+="\n\e[1;32mCPU        :\e[0m $(sed -En '/^model name.+: (.+)/{s//\1/;p;q}' /proc/cpuinfo)"
+  SYS_PROP+="\n\e[1;32mCPU        :\e[0m $cpu_name ($cpu_cores)"
   SYS_PROP+="\n\e[1;32mMemory     :\e[0m ${mem_used} GiB / ${mem_total} GiB (${mem_perc} %%)"
   [ -n "$LANG" ] && SYS_PROP+="\n\e[1;32mLocale     :\e[0m $LANG" || true
 
@@ -65,6 +67,7 @@ alias cic='set completion-ignore-case On'
 alias cp='cp -iv'
 alias d='bm -d'
 alias exa='exa -g --color=auto --time-style=long-iso --group-directories-first'
+alias gsi='sysinfo'
 alias ll='exa -lah'
 alias ff='fastfetch'
 alias fix_stty='stty sane'
