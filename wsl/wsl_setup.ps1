@@ -251,7 +251,7 @@ process {
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
                 if ('az' -in $scopes) {
-                    $cmd = 'if (-not (Get-Module Az -ListAvailable)) { Install-PSResource Az }'
+                    $cmd = 'if (-not (Get-InstalledPSResource Az)) { Write-Host "installing Az..."; Install-PSResource Az }'
                     wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 }
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
