@@ -1,3 +1,5 @@
+#!/usr/bin/pwsh -nop
+#Requires -PSEdition Core
 <#
 .SYNOPSIS
 Script synopsis.
