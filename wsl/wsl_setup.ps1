@@ -6,6 +6,7 @@ Setting up WSL distro(s).
 You can use the script for:
 - installing base packages and setting up bash and pwsh shells,
 - installing docker-ce locally in WSL,
+- installing podman with distrobox,
 - installing tools for interacting with kubernetes,
 - setting gtk theme in WSLg,
 - installing Python environment management tools: venv and miniconda,
@@ -35,7 +36,7 @@ List of PowerShell modules from ps-modules repository to be installed.
 Default: @('do-common', 'do-linux')
 .PARAMETER GtkTheme
 Specify gtk theme for wslg. Available values: light, dark.
-Default: 'dark'
+Default: automatically detects based on the system theme.
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER AddCertificate
