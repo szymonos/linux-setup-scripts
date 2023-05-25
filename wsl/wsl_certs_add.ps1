@@ -72,42 +72,12 @@ begin {
 }
 
 process {
-    # get certificate chain
-    $tcpClient = [Net.Sockets.TcpClient]::new($Uri, 443)
-    $sslStream = [Net.Security.SslStream]::new($tcpClient.GetStream())
-
-    try {
-        $sslStream.AuthenticateAsClient($Uri)
-        $certificate = $sslStream.RemoteCertificate
-    } finally {
-        $sslStream.Close()
-    }
-
-    $chain = [Security.Cryptography.X509Certificates.X509Chain]::new()
-    $isChainValid = $chain.Build($certificate)
-
-    if ($isChainValid) {
-        $certs = $chain.ChainElements.Certificate
-        Write-Host 'Intercepted certificates' -ForegroundColor DarkGreen
-        for ($i = 1; $i -lt $certs.Count; $i++) {
-            # convert certificate to base64
-            $base64 = [Convert]::ToBase64String($certs[$i].RawData)
-            # build PEM encoded X.509 certificate
-            $builder = [Text.StringBuilder]::new()
-            $builder.AppendLine('-----BEGIN CERTIFICATE-----') | Out-Null
-            for ($j = 0; $j -lt $base64.Length; $j += 64) {
-                $length = [Math]::Min(64, $base64.Length - $j)
-                $builder.AppendLine($base64.Substring($j, $length)) | Out-Null
-            }
-            $builder.AppendLine('-----END CERTIFICATE-----') | Out-Null
-            # parse common name from the subject
-            $cn = [regex]::Match($certs[$i].Subject, '(?<=CN=)(.)+?(?=,|$)').Value.Replace(' ', '_').Trim('"')
-            # save PEM certificate
-            [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, "${cn}.crt"), $builder.ToString().Replace("`r`n", "`n"))
-            Write-Host "- ${cn}.crt"
-        }
-    } else {
-        Write-Error 'SSL certificate chain validation failed.'
+    $certs = .assets/tools/cert_chain_pem.ps1 $Uri
+    Write-Host 'Intercepted certificates' -ForegroundColor DarkGreen
+    foreach ($cert in $certs) {
+        $crtFile = "$($cert.CN.Replace(' ', '_')).crt"
+        Write-Host "- $crtFile"
+        [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $cert.PEM)
     }
 
     # copy certificates to specified distro and install them

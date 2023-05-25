@@ -6,6 +6,7 @@ Setting up WSL distro(s).
 You can use the script for:
 - installing base packages and setting up bash and pwsh shells,
 - installing docker-ce locally in WSL,
+- installing podman with distrobox,
 - installing tools for interacting with kubernetes,
 - setting gtk theme in WSLg,
 - installing Python environment management tools: venv and miniconda,
@@ -35,7 +36,7 @@ List of PowerShell modules from ps-modules repository to be installed.
 Default: @('do-common', 'do-linux')
 .PARAMETER GtkTheme
 Specify gtk theme for wslg. Available values: light, dark.
-Default: 'dark'
+Default: automatically detects based on the system theme.
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER AddCertificate
@@ -251,7 +252,7 @@ process {
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
                 if ('az' -in $scopes) {
-                    $cmd = 'if (-not (Get-Module Az -ListAvailable)) { Install-PSResource Az }'
+                    $cmd = 'if (-not (Get-InstalledPSResource Az)) { Write-Host "installing Az..."; Install-PSResource Az }'
                     wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 }
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh

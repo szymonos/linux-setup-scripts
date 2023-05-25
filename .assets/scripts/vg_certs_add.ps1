@@ -1,3 +1,5 @@
+#!/usr/bin/pwsh -nop
+#Requires -PSEdition Core
 <#
 .SYNOPSIS
 Script synopsis.
@@ -35,7 +37,7 @@ function Get-SshInstallScript ([string]$crt) {
         "esac`n",
         '# write certificate in CERT_PATH',
         'cat <<EOF >$CERT_PATH/root_ca.crt',
-        "$($crt.Trim())",
+        "$crt",
         "EOF`n",
         '# update certificates',
         'case $SYS_ID in',
@@ -51,7 +53,7 @@ function Get-SshInstallScript ([string]$crt) {
     return $script
 }
 
-$scriptInstallRootCA = [IO.Path]::Combine($PWD, '.tmp', 'script_install_root_ca.sh')
+$scriptInstallRootCA = [IO.Path]::Combine($PWD, '.tmp', 'script_install_crt_chain.sh')
 # *Content of specified Vagrantfile
 $Path = Resolve-Path $Path
 $content = [IO.File]::ReadAllLines($Path)
@@ -59,16 +61,15 @@ $content = [IO.File]::ReadAllLines($Path)
 # create installation script
 if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
     New-Item (Split-Path $scriptInstallRootCA) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-    $chain = (Out-Null | openssl s_client -showcerts -connect www.google.com:443 2>$null) -join "`n"
-    $crt = ($chain | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value[-1]
+    $crt = .assets/tools/cert_chain_pem.ps1
     # save certificate installation file
-    [IO.File]::WriteAllText($scriptInstallRootCA, (Get-SshInstallScript $crt))
+    [IO.File]::WriteAllText($scriptInstallRootCA, (Get-SshInstallScript ([string]::Join("`n", $crt.PEM.Trim()))))
 }
 
 # add cert installation shell command to Vagrantfile
 if (-not ($content | Select-String 'script_install_root_ca.sh')) {
     $idx = "$($content -match '# node provision')".IndexOf('#')
-    $content = $content -replace '(# node provision)', "`$1`n$(' ' * $idx)node.vm.provision 'shell', name: 'install Root CA...', path: '../../.tmp/script_install_root_ca.sh'"
+    $content = $content -replace '(# node provision)', "`$1`n$(' ' * $idx)node.vm.provision 'shell', name: 'install certificate chain...', path: '../../.tmp/script_install_crt_chain.sh'"
     # save updated Vagrantfile
     [IO.File]::WriteAllLines($Path, $content)
 }
