@@ -12,17 +12,11 @@ SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p
 # check if package installed already using package manager
 APP='kubectl'
 case $SYS_ID in
-alpine)
-  apk -e info $APP &>/dev/null && exit 0 || true
-  ;;
 arch)
   pacman -Qqe $APP &>/dev/null && exit 0 || true
   ;;
-fedora | opensuse)
+fedora)
   rpm -q $APP &>/dev/null && exit 0 || true
-  ;;
-debian | ubuntu)
-  dpkg -s $APP &>/dev/null && exit 0 || true
   ;;
 esac
 
@@ -64,16 +58,6 @@ gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
   dnf install -y kubectl >&2 2>/dev/null || binary=true
-  ;;
-debian | ubuntu)
-  export DEBIAN_FRONTEND=noninteractive
-  apt-get update >&2 && apt-get install -y apt-transport-https ca-certificates curl >&2 2>/dev/null
-  # download the Google Cloud public signing key
-  curl -fsSLk -o /usr/share/keyrings/kubernetes-archive-keyring.gpg 'https://packages.cloud.google.com/apt/doc/apt-key.gpg'
-  # add the Kubernetes apt repository
-  [ -f /etc/apt/sources.list.d/kubernetes.list ] || echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list >/dev/null
-  # update apt package index with the new repository and install kubectl
-  apt-get update >&2 && apt-get install -y kubectl >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true
