@@ -5,6 +5,15 @@
       "alignment": "left",
       "segments": [
         {
+          "foreground": "#23D18B",
+          "properties": {
+            "fetch_version": false
+          },
+          "style": "plain",
+          "template": "({{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }}{{ end }}{{ .Full }}{{ end }}) ",
+          "type": "python"
+        },
+        {
           "foreground": "#26C6DA",
           "foreground_templates": [
             "{{ if .WSL }}#ff0000{{ end }}"
@@ -18,15 +27,6 @@
           "style": "plain",
           "template": "# ",
           "type": "root"
-        },
-        {
-          "foreground": "#CCCCCC",
-          "properties": {
-            "fetch_version": false
-          },
-          "style": "plain",
-          "template": "({{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }}{{ end }}{{ .Full }}{{ end }}) ",
-          "type": "python"
         },
         {
           "foreground": "#F5F543",

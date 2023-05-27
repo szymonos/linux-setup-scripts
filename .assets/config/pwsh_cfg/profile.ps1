@@ -58,6 +58,8 @@ Remove-Variable path
 try {
     Get-Command oh-my-posh -CommandType Application -ErrorAction Stop | Out-Null
     oh-my-posh --init --shell pwsh --config "$(Resolve-Path $env:OMP_PATH/theme.omp.json -ErrorAction Stop)" | Invoke-Expression
+    # disable venv prompt as it is handled in oh-my-posh theme
+    [Environment]::SetEnvironmentVariable('VIRTUAL_ENV_DISABLE_PROMPT', $true)
 } catch {
     function Prompt {
         $split = $($PWD.Path.Replace($HOME, '~').Replace('Microsoft.PowerShell.Core\FileSystem::', '') -replace '\\$').Split([IO.Path]::DirectorySeparatorChar, [StringSplitOptions]::RemoveEmptyEntries)
