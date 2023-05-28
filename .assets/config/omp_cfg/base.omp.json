@@ -5,19 +5,19 @@
       "alignment": "left",
       "segments": [
         {
-          "foreground": "#FF6666",
-          "style": "plain",
-          "template": "# ",
-          "type": "root"
-        },
-        {
-          "foreground": "#CCCCCC",
+          "foreground": "#23D18B",
           "properties": {
             "fetch_version": false
           },
           "style": "plain",
           "template": "({{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }}{{ end }}{{ .Full }}{{ end }}) ",
           "type": "python"
+        },
+        {
+          "foreground": "#FF6666",
+          "style": "plain",
+          "template": "# ",
+          "type": "root"
         },
         {
           "foreground": "#F5F543",

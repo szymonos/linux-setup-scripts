@@ -16,5 +16,10 @@ while [[ ! -f miniconda.sh && $retry_count -lt 10 ]]; do
   ((retry_count++))
 done
 bash ./miniconda.sh -b -p "$HOME/miniconda3" >/dev/null && rm ./miniconda.sh
+
+# disable auto activation of the base conda environment
 "$HOME/miniconda3/bin/conda" config --set auto_activate_base false
-"$HOME/miniconda3/bin/conda" config --set changeps1 false
+# disable conda env prompt if oh-my-posh is installed
+if [ -f /usr/bin/oh-my-posh ]; then
+  "$HOME/miniconda3/bin/conda" config --set changeps1 false
+fi
