@@ -27,6 +27,8 @@ param (
 )
 
 begin {
+    $ErrorActionPreference = 'Stop'
+
     # check if distro exist
     [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
     | ForEach-Object { $_.GetValue('DistributionName') } `
@@ -39,18 +41,34 @@ begin {
 
 process {
     if ($wslConf = wsl.exe -d $Distro --exec bash -c 'cat /etc/wsl.conf 2>/dev/null') {
-        if ($wslConf | Select-String 'systemd' -Quiet) {
-            $wslConf = ($wslConf -replace 'systemd.+', "systemd=$Systemd") -join "`n"
+        # fix $wslConf string
+        $wslConf = [string]::Join("`n", $wslConf) -replace "`n{3,}", "`n`n"
+
+        if ($wslConf | Select-String '[boot]' -SimpleMatch -Quiet) {
+            if ($wslConf | Select-String 'systemd' -SimpleMatch -Quiet) {
+                $wslConf = $wslConf -replace 'systemd.+', "systemd=$Systemd"
+            } else {
+                $wslConf = $wslConf -replace '\[boot\]', "[boot]`nsystemd=$Systemd"
+            }
         } else {
-            $wslConf = "[boot]`nsystemd=$Systemd`n`n" + ($wslConf -join "`n")
+            $wslConf = [string]::Join("`n",
+                '[boot]',
+                "systemd=$Systemd`n",
+                $wslConf
+            )
         }
-        wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && echo '$wslConf' >/etc/wsl.conf"
     } else {
-        $wslConf = "[boot]`nsystemd=$Systemd"
-        wsl.exe -d $Distro --user root --exec bash -c "rm -f /etc/wsl.conf || true && echo '$wslConf' >/etc/wsl.conf"
+        $wslConf = [string]::Join("`n",
+            '[boot]',
+            "systemd=$Systemd"
+        )
     }
+    # save wsl.conf file
+    $cmd = "rm -f /etc/wsl.conf || true && echo '$wslConf' >/etc/wsl.conf"
+    wsl.exe -d $Distro --user root --exec bash -c $cmd
 }
 
 end {
+    Write-Host "`nwsl.conf" -ForegroundColor Magenta
     wsl.exe -d $Distro --exec cat /etc/wsl.conf | Write-Host
 }
