@@ -9,6 +9,12 @@ $ErrorActionPreference = 'SilentlyContinue'
 $WarningPreference = 'Ignore'
 
 # *PowerShell profile
+# create user profile powershell config directory
+$profileDir = [IO.Path]::GetDirectoryName($PROFILE)
+if (-not (Test-Path $profileDir -PathType Container)) {
+    New-Item $profileDir -ItemType Directory | Out-Null
+}
+# set up PowerShellGet and update installed modules
 if (Get-InstalledModule -Name PowerShellGet) {
     if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
         Write-Host 'setting PSGallery trusted...'
@@ -26,10 +32,6 @@ if (Get-InstalledModule -Name PowerShellGet) {
 $kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
 if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
     Write-Host 'adding kubectl auto-completion...'
-    $profileDir = [IO.Path]::GetDirectoryName($PROFILE)
-    if (-not (Test-Path $profileDir -PathType Container)) {
-        New-Item $profileDir -ItemType Directory | Out-Null
-    }
     (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
 }
 

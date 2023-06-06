@@ -127,12 +127,11 @@ if [ -f /usr/bin/pwsh ]; then
   if [[ -n "$modules" && -f /usr/bin/git ]]; then
     printf "\e[96minstalling ps-modules...\e[0m\n"
     # determine if ps-modules repository exist and clone if necessary
-    get_origin="git config --get remote.origin.url"
-    origin=$(eval $get_origin)
+    origin="$(git config --get remote.origin.url)"
     remote=${origin/linux-setup-scripts/ps-modules}
     if [ -d ../ps-modules ]; then
       pushd ../ps-modules >/dev/null
-      if [ "$(eval $get_origin)" = "$remote" ]; then
+      if echo $remote | grep -Fqw 'szymonos/ps-modules.git'; then
         git fetch -q && git reset --hard -q "origin/$(git branch --show-current)"
       else
         modules=()
