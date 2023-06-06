@@ -8,6 +8,10 @@ if [ $EUID -eq 0 ]; then
   exit 1
 fi
 
+# set script working directory to workspace folder
+SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
+pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
+
 # parse named parameters
 fix_certify=${fix_certify:-false}
 while [ $# -gt 0 ]; do
@@ -61,3 +65,6 @@ conda deactivate
 # make symbolic link to az cli
 mkdir -p "$HOME/.local/bin"
 ln -sf "$HOME/miniconda3/envs/azurecli/bin/az" "$HOME/.local/bin/"
+
+# restore working directory
+popd >/dev/null
