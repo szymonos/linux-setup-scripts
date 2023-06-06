@@ -13,11 +13,10 @@ try {
     Get-Command Invoke-ExampleScriptSave -CommandType Function | Out-Null
 } catch {
     # determine if ps-modules repository exist and clone if necessary
-    $getOrigin = { git config --get remote.origin.url }
-    $remote = (Invoke-Command $getOrigin).Replace('linux-setup-scripts', 'ps-modules')
+    $remote = (git config --get remote.origin.url).Replace('linux-setup-scripts', 'ps-modules')
     try {
         Push-Location '../ps-modules' -ErrorAction Stop
-        if ($(Invoke-Command $getOrigin) -eq $remote) {
+        if ($remote -match '\bszymonos/ps-modules\.git$') {
             # refresh ps-modules repository
             git fetch --quiet && git reset --hard --quiet "origin/$(git branch --show-current)"
         }
