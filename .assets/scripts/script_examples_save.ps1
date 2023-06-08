@@ -3,7 +3,7 @@
 .SYNOPSIS
 Generate example scripts from the wsl folder.
 .EXAMPLE
-wsl/script_examples_save.ps1
+.assets/scripts/script_examples_save.ps1
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -28,4 +28,10 @@ try {
     Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common/do-common.psm1')
 }
 
-Invoke-ExampleScriptSave 'wsl/*.ps1'
+# save example scripts
+Invoke-ExampleScriptSave 'wsl/*.ps1' -FolderFromBase
+Invoke-ExampleScriptSave '.assets/provision/*.ps1' -FolderFromBase
+Invoke-ExampleScriptSave '.assets/scripts/*.ps1' -FolderFromBase
+Invoke-ExampleScriptSave '.assets/tools/*.ps1' -FolderFromBase
+# remove this script example
+Remove-Item 'console/scripts/script_examples_save.ps1'

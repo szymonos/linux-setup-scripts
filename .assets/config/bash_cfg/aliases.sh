@@ -14,7 +14,7 @@ function sysinfo {
   mem_total=$(awk '{printf "%.2f", $1 / $2 / $3}' <<<"$mem_total 1024 1024")
 
   # build system properties string
-  SYS_PROP="\n\e[1;32mOS         :\e[0m $NAME $([ -n "$BUILD_ID" ] && printf "$BUILD_ID" || [ -n "$VERSION" ] && printf "$VERSION" || printf "$VERSION_ID") $(uname -m)"
+  SYS_PROP="\n\e[1;32mOS         :\e[1;37m $NAME $([ -n "$BUILD_ID" ] && printf "$BUILD_ID" || [ -n "$VERSION" ] && printf "$VERSION" || printf "$VERSION_ID") $(uname -m)\e[0m"
   SYS_PROP+="\n\e[1;32mKernel     :\e[0m $(uname -r)"
   SYS_PROP+="\n\e[1;32mUptime     :\e[0m $(uptime -p | sed 's/^up //')"
   [ -n "$WSL_DISTRO_NAME" ] && SYS_PROP+="\n\e[1;32mOS Host    :\e[0m Windows Subsystem for Linux" || true
@@ -36,6 +36,15 @@ function sysinfo {
 #endregion
 
 #region aliases
+if grep -qw '^ID.*\balpine' /etc/os-release 2>/dev/null; then
+  alias bsh='/usr/bin/env -i ash --noprofile --norc'
+  alias ls='ls -h --color=auto --group-directories-first'
+else
+  alias bsh='/usr/bin/env -i bash --noprofile --norc'
+  alias ip='ip --color=auto'
+  alias ls='ls -h --color=auto --group-directories-first --time-style=long-iso'
+fi
+
 export SWD=$(pwd)
 alias swd="echo $SWD"
 alias cds="cd $SWD"
@@ -60,7 +69,6 @@ alias 8='cd -8'
 alias 9='cd -9'
 alias afind='ack -il'
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-alias bsh='/usr/bin/env -i bash --noprofile --norc'
 alias c='clear'
 alias cd..='cd ../'
 alias cic='set completion-ignore-case On'
@@ -73,8 +81,6 @@ alias ff='fastfetch'
 alias fix_stty='stty sane'
 alias fix_term='printf "\ec"'
 alias grep='grep --color=auto'
-alias ip='ip --color=auto'
-alias ls='ls --color=auto --human-readable --time-style=long-iso --group-directories-first'
 alias l='ls -1'
 alias la='ls -lA'
 alias lsa='ls -la'

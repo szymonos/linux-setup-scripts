@@ -4,7 +4,7 @@ function .. { Set-Location ../ }
 function ... { Set-Location ../../ }
 function .... { Set-Location ../../../ }
 function la { Get-ChildItem @args -Force }
-function src { . $PROFILE.CurrentUserAllHosts }
+function src { . $PROFILE.AllUsersAllHosts }
 
 # *Aliases
 Set-Alias -Name c -Value Clear-Host
