@@ -28,6 +28,10 @@ if (Get-InstalledModule -Name PowerShellGet) {
         .assets/provision/update_psresources.ps1
     }
 }
+# disable oh-my-posh update notice
+if (Get-Command oh-my-posh -CommandType Application) {
+    oh-my-posh disable notice
+}
 
 $kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
 if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {

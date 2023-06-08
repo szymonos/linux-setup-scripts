@@ -28,9 +28,10 @@ RUN \
     && mkdir -p /usr/local/share/powershell/Scripts \
     && install -m 0644 /tmp/cfg/_aliases_common.ps1 /usr/local/share/powershell/Scripts \
     && install -m 0644 /tmp/cfg/_aliases_linux.ps1 /usr/local/share/powershell/Scripts \
-    # install oh-my-posh theme
+    # install and setup oh-my-posh theme
     && mkdir -p /usr/local/share/oh-my-posh \
     && install -m 0644 /tmp/cfg/base.omp.json /usr/local/share/oh-my-posh/theme.omp.json \
+    && oh-my-posh disable notice \
     # cleanup
     && rm -rf /tmp/*
 
