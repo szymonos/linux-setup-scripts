@@ -262,18 +262,18 @@ process {
         # *install PowerShell modules from ps-modules repository
         if ($chk.shell) {
             # instantiate psmodules generic lists
-            $modules = [Collections.Generic.List[String]]::new()
-            $PSModules.ForEach({ $modules.Add($_) })
+            $modules = [Collections.Generic.HashSet[String]]::new()
+            $PSModules.ForEach({ $modules.Add($_) | Out-Null })
 
             # determine modules to install
             if ('az' -in $scopes) {
-                $modules.Add('do-az')
+                $modules.Add('do-az') | Out-Null
                 Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
             }
             $modules.Add('aliases-git') # git is always installed
             Write-Verbose "Added `e[3maliases-git`e[23m to be installed from ps-modules."
             if ($chk.k8s_base) {
-                $modules.Add('aliases-kubectl')
+                $modules.Add('aliases-kubectl') | Out-Null
                 Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
             }
 
@@ -285,7 +285,7 @@ process {
                     # refresh ps-modules repository
                     git fetch --quiet && git reset --hard --quiet "origin/$(git branch --show-current)"
                 } else {
-                    $modules = [System.Collections.Generic.List[string]]::new()
+                    $modules = [Collections.Generic.HashSet[string]]::new()
                 }
                 Pop-Location
             } catch {
