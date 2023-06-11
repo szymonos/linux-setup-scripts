@@ -270,7 +270,7 @@ process {
                 $modules.Add('do-az') | Out-Null
                 Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
             }
-            $modules.Add('aliases-git') # git is always installed
+            $modules.Add('aliases-git') | Out-Null # git is always installed
             Write-Verbose "Added `e[3maliases-git`e[23m to be installed from ps-modules."
             if ($chk.k8s_base) {
                 $modules.Add('aliases-kubectl') | Out-Null
