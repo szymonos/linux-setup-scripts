@@ -147,27 +147,21 @@ process {
         )
         # check existing packages
         $chk = wsl.exe -d $Distro --exec sh -c $cmd | ConvertFrom-Json -AsHashtable
-        # instantiate scope generic lists
-        $scopes = [Collections.Generic.List[String]]::new()
-        $Scope.ForEach({ $scopes.Add($_) })
+        # instantiate scope generic sorted set
+        $scopes = [System.Collections.Generic.SortedSet[string]]::new()
+        $Scope.ForEach({ $scopes.Add($_) | Out-Null })
         # *determine scope if not provided
-        if (-not $scopes) {
+        if ($scopes.Count -eq 0) {
             switch ($chk) {
-                { $_.k8s_base } { $scopes.Add('k8s_base') }
-                { $_.k8s_ext } { $scopes.Add('k8s_ext') }
-                { $_.shell } { $scopes.Add('shell') }
+                { $_.k8s_base } { $scopes.Add('k8s_base') | Out-Null }
+                { $_.k8s_ext } { $scopes.Add('k8s_ext') | Out-Null }
+                { $_.shell } { $scopes.Add('shell') | Out-Null }
             }
         }
         # determine 'oh_my_posh' scope
         if ($chk.omp -or $OmpTheme) {
-            $scopes.Add('oh_my_posh')
-            if ('shell' -notin $scopes) {
-                Write-Verbose "Added `e[3mshell`e[23m to the setup scopes."
-                $scopes.Add('shell')
-            }
+            @('oh_my_posh', 'shell').ForEach({ $scopes.Add($_) | Out-Null })
         }
-        # remove duplicates and sort scopes
-        $scopes = $scopes | Select-Object -Unique | Sort-Object
         # separate log for multpiple distros update
         Write-Host "$($Distro -eq $distros[0] ? '': "`n")" -NoNewline
         # display distro name and installed scopes
@@ -285,7 +279,7 @@ process {
                     # refresh ps-modules repository
                     git fetch --quiet && git reset --hard --quiet "origin/$(git branch --show-current)"
                 } else {
-                    $modules = [Collections.Generic.HashSet[string]]::new()
+                    $modules = [System.Collections.Generic.HashSet[string]]::new()
                 }
                 Pop-Location
             } catch {
@@ -298,7 +292,7 @@ process {
                 wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
                 $modules.Remove('do-common') | Out-Null
             }
-            if ($modules) {
+            if ($modules.Count -gt 0) {
                 Write-Host "`e[3mCurrentUser`e[23m : $modules" -ForegroundColor DarkGreen
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
@@ -323,6 +317,8 @@ process {
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         # set git eol config
         wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
+        # install GitHub CLI
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
         # copy git user settings from the host
         $gitConfigCmd = (git config --list --global 2>$null | Select-String '^user\b').ForEach({
                 $split = $_.Line.Split('=')

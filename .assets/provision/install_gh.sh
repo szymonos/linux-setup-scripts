@@ -38,8 +38,6 @@ while [ -z "$REL" ]; do
   fi
   [ -n "$REL" ] || echo 'retrying...' >&2
 done
-# return latest release
-echo $REL
 
 if type $APP &>/dev/null; then
   VER=$(gh --version | sed -En 's/.*\s([0-9\.]+)\s.*/\1/p')
