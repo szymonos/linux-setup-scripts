@@ -136,14 +136,16 @@ begin {
 process {
     foreach ($Distro in $distros) {
         # *perform distro checks
-        $cmd = [string]::Join("`n",
-            '[ -f /usr/bin/pwsh ] && shell="true" || shell="false"',
-            '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false"',
-            '[ -f /usr/bin/kustomize ] && k8s_ext="true" || k8s_ext="false"',
-            '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false"',
-            '[ -d /mnt/wslg ] && wslg="true" || wslg="false"',
-            'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false"',
-            'echo "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,\"wslg\":$wslg,\"gtkd\":$gtkd}"'
+        $cmd = [string]::Join('',
+            '[ -f /usr/bin/pwsh ] && shell="true" || shell="false";',
+            '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false";',
+            '[ -f /usr/bin/kustomize ] && k8s_ext="true" || k8s_ext="false";',
+            '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
+            '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
+            'grep -qw "systemd.*true" /etc/wsl.conf 2>/dev/null && systemd="true" || systemd="false";',
+            'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false";',
+            'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,',
+            '\"omp\":$omp,\"wslg\":$wslg,\"systemd\":$systemd,\"gtkd\":$gtkd}"'
         )
         # check existing packages
         $chk = wsl.exe -d $Distro --exec sh -c $cmd | ConvertFrom-Json -AsHashtable
