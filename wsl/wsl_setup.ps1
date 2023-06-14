@@ -46,18 +46,18 @@ Set network settings from the selected network interface in Windows.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
-# ~set up WSL distro using default values
+# :set up WSL distro using default values
 wsl/wsl_setup.ps1 $Distro
 wsl/wsl_setup.ps1 $Distro -AddCertificate
 wsl/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
-# ~set up WSL distro using specified values
+# :set up WSL distro using specified values
 $Scope = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
 $OmpTheme = 'nerd'
 wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
-# ~set up WSL distro and clone specified GitHub repositories
+# :set up WSL distro and clone specified GitHub repositories
 $Repos = @('szymonos/linux-setup-scripts', 'szymonos/ps-modules')
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
-# ~update all existing WSL distros
+# :update all existing WSL distros
 wsl/wsl_setup.ps1
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]

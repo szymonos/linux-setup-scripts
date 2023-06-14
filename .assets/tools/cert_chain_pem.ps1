@@ -5,7 +5,7 @@
 Get root and intermediate certificates in PEM format from the certificate chain.
 .EXAMPLE
 .assets/tools/cert_chain_pem.ps1
-# ~specify custom Uri
+# :specify custom Uri
 $Uri = 'www.powershellgallery.com'
 .assets/tools/cert_chain_pem.ps1 $Uri
 #>
