@@ -13,9 +13,9 @@ Copy files as root.
 
 .EXAMPLE
 $Source = 'Debian:~/source'
-# ~ copy to the same path in destination distro
+# :copy to the same path in destination distro
 $Destination = 'Ubuntu'
-# ~ copy to other specified path in destination distro
+# :copy to other specified path in destination distro
 $Destination = 'Ubuntu:~/myfiles'
 
 wsl/wsl_files_copy.ps1 $Source $Destination

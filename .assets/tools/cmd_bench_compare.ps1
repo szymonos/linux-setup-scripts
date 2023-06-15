@@ -15,10 +15,10 @@ Do specified number of warmup iterations.
 Show iteration results during benchmark.
 
 .EXAMPLE
-# ~specify command
+# :specify command
 $Command1 = { pwsh -nop -c exit }
 $Command2 = { pwsh -c exit }
-# ~run benchmark
+# :run benchmark
 .assets/tools/cmd_bench_compare.ps1 $Command1 $Command2
 $Iterations = 5
 .assets/tools/cmd_bench_compare.ps1 $Command1 $Command2 -i $Iterations

@@ -12,7 +12,7 @@ The number of iterations the command should be performed.
 Do specified number of warmup iterations
 
 .EXAMPLE
-# ~specify command
+# :specify command
 $Command = { git status }
 $Command = { prompt }
 $Command = { python -V }
@@ -21,7 +21,7 @@ $Command = { pwsh -nop -noni -c exit }
 $Command = { powershell -nop -noni -c exit }
 $Command = { cmd /c exit }
 $Command = { bash -c exit }
-# ~run benchmark
+# :run benchmark
 .assets/tools/cmd_bench.ps1 $Command
 $Iterations = 100
 .assets/tools/cmd_bench.ps1 $Command -i $Iterations

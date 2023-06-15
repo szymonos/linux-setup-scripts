@@ -19,7 +19,7 @@ wsl/wsl_network_fix.ps1 $Distro
 wsl/wsl_network_fix.ps1 $Distro -Shutdown
 wsl/wsl_network_fix.ps1 $Distro -DisableSwap
 wsl/wsl_network_fix.ps1 $Distro -Shutdown -DisableSwap
-# ~revert changes
+# :revert changes
 wsl/wsl_network_fix.ps1 $Distro -Revert -Shutdown
 #>
 

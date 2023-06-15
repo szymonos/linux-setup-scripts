@@ -14,7 +14,7 @@ $Distro = 'Ubuntu'
 wsl/wsl_systemd.ps1 $Distro -Systemd 'true'
 wsl/wsl_systemd.ps1 $Distro -Systemd 'false'
 
-# ~check systemd services
+# :check systemd services
 systemctl list-units --type=service --no-pager
 #>
 [CmdletBinding()]
