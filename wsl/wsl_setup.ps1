@@ -196,6 +196,11 @@ process {
             }
             docker {
                 Write-Host 'installing docker...' -ForegroundColor Cyan
+                if (-not $chk.systemd) {
+                    # turn on systemd for docker autostart
+                    wsl/wsl_systemd.ps1 $Distro -Systemd 'true'
+                    wsl.exe --shutdown $Distro
+                }
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_docker.sh $chk.user
                 continue
             }
