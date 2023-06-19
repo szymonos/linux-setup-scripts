@@ -44,10 +44,18 @@ It will just update the distro, install developer tools, other base packages (e.
 To install other *features* you need to specify the list of **setup scopes** using `-Scope` parameter. Available scopes are:
 
 - `az`: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.
-- `docker`: docker, containerd, buildx docker-compose
+
+- `distrobox`: podman, distrobox
+
+- `docker`: docker, containerd, buildx, docker-compose
+  > enables systemd on distros where it is not enabled by default
+
 - `k8s_base`: kubectl, helm, minikube, k3d, k9s, yq
+
 - `k8s_ext`: flux, kubeseal, kustomize, argorollouts-cli
+
 - `python`: python-pip, python-venv, miniconda
+
 - `shell`: bat, exa, oh-my-posh, pwsh, ripgrep; bash and pwsh profiles, aliases and PS modules
 
 To set up distro using the specified scopes you need to run the command:
@@ -82,6 +90,21 @@ There are three themes included in the repository:
 
 You can also specify any other theme name from [Themes | Oh My Posh](https://ohmyposh.dev/docs/themes) - it will be downloaded and installed automatically during the provisioning.
 
+It is also possible to easily change the oh-my-posh theme using the `.assets/provision/setup_omp.sh` script:
+
+``` shell
+# setup oh-my-posh theme using default base fonts
+sudo .assets/provision/setup_omp.sh
+# setup oh-my-posh theme using powerline fonts
+sudo .assets/provision/setup_omp.sh --theme powerline
+# setup oh-my-posh theme using nerd fonts
+sudo .assets/provision/setup_omp.sh --theme nerd
+# specify any theme from https://ohmyposh.dev/docs/themes/ (e.g. atomic)
+sudo .assets/provision/setup_omp.sh --theme atomic
+```
+
+![omp_base.png](images/setup_omp.png)
+
 ### Fixing self-signed certificate in the chain
 
 Many companies are using corporate MITM proxies with self-signed certificates which causes a lot of connectivity issues.
@@ -99,19 +122,13 @@ Examples of the most common setup scopes:
 
 ``` powershell
 # generic setup with omp theme, 'az' scope for the Azure Cloud and Python virtual environments management.
-wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('az', 'python', 'shell')
+wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('az', 'python')
 
 # above setup with tools for interacting with externally hosted kubernetes clusters
-wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('az', 'k8s_base', 'python', 'shell')
+wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('az', 'k8s_base', 'python')
 
-<# Setup with docker and kubernetes stack to experiment with kubernetes clusters using minikube or k3d.
-   It requires additional steps to enable systemd in WSL for the docker to automatically start. #>
-# enable systemd on existing Ubuntu distro
-wsl/wsl_systemd.ps1 'Ubuntu' -Systemd 'true'
-# shutdown distro for the systemd to start on next WSL use
-wsl.exe --shutdown 'Ubuntu'
-# run wsl_setup with docker and kubernetes scopes
-wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('docker', 'k8s_base', 'k8s_ext', 'shell')
+# setup with docker and kubernetes stack to experiment with kubernetes clusters using minikube or k3d.
+wsl/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope @('docker', 'k8s_base', 'k8s_ext')
 ```
 
 ## Update all WSL distros
@@ -129,4 +146,4 @@ It will find all installed WSL distros, detect installed **setup scopes** and up
 By default, the command `wsl --install` installs the Ubuntu distro but there are many other WSL distributions available.  
 You can find many of them, like *Debian*, *OpenSUSE*, *AlmaLinux*, *OracleLinux*, *Kali*... in the **Microsoft Store**.  
 
-Others may be found on GitHub, e.g. my favorite [WhitewaterFoundry/Fedora-Remix-for-WSL](https://github.com/WhitewaterFoundry/Fedora-Remix-for-WSL) or [sileshn/ArchWSL2](https://github.com/sileshn/ArchWSL2) based on the very popular Arch distro.
+Other distros can be found on GitHub, e.g. my favorite [WhitewaterFoundry/Fedora-Remix-for-WSL](https://github.com/WhitewaterFoundry/Fedora-Remix-for-WSL) or [sileshn/ArchWSL2](https://github.com/sileshn/ArchWSL2).
