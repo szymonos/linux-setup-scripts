@@ -15,7 +15,7 @@ alpine)
   apk add --no-cache bash bind-tools build-base ca-certificates iputils curl git jq less lsb-release-minimal mandoc nmap openssh-client openssl sudo tar tree unzip vim
   ;;
 arch)
-  pacman -Sy --needed --noconfirm --color auto base-devel bash-completion dnsutils git jq lsb-release man-db nmap openssh openssl tar tree unzip vim 2>/dev/null
+  pacman -Sy --needed --noconfirm --color=auto base-devel bash-completion dnsutils git jq lsb-release man-db nmap openssh openssl tar tree unzip vim 2>/dev/null
   # install paru
   if ! pacman -Qqe paru &>/dev/null; then
     user=${1:-$(id -un 1000 2>/dev/null)}

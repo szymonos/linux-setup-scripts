@@ -35,7 +35,7 @@ alpine)
   apk add --no-cache py3-pip py3-virtualenv
   ;;
 arch)
-  pacman -Sy --needed --noconfirm --color auto python-pip python-virtualenv
+  pacman -Sy --needed --noconfirm --color=auto python-pip python-virtualenv
   ;;
 fedora)
   dnf install -y python3-pip python3-virtualenv
