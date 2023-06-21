@@ -31,7 +31,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
+printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
 while [[ ! -f "$TMP_DIR/k9s.tgz" && $retry_count -lt 10 ]]; do

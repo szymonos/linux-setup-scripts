@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_btop.sh >/dev/null
+sudo .assets/provision/install_btop.sh
 '
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n'
@@ -26,21 +26,21 @@ debian | ubuntu)
   ;;
 esac
 
-printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
+printf "\e[92minstalling \e[1m$APP\e[0m\n"
 case $SYS_ID in
 alpine)
-  apk add --no-cache $APP >&2 2>/dev/null
+  apk add --no-cache $APP
   ;;
 arch)
-  pacman -Sy --needed --noconfirm --color=auto $APP >&2 2>/dev/null
+  pacman -Sy --needed --noconfirm --color=auto $APP
   ;;
 fedora)
-  dnf install -y $APP >&2 2>/dev/null
+  dnf install -y $APP
   ;;
 debian | ubuntu)
-  apt-get update && apt-get install -y $APP >&2 2>/dev/null
+  apt-get update && apt-get install -y $APP
   ;;
 opensuse)
-  zypper in -y $APP >&2 2>/dev/null
+  zypper in -y $APP
   ;;
 esac

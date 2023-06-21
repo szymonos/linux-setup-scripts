@@ -31,7 +31,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
+printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 __install="curl -sk 'https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3' | bash"
 if type $APP &>/dev/null; then
   eval $__install

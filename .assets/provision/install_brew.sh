@@ -33,7 +33,7 @@ if type brew &>/dev/null; then
     brew update
   fi
 else
-  printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
+  printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
   # unattended installation
   export NONINTERACTIVE=1
   # skip tap cloning

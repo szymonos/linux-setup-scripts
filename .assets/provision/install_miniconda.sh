@@ -8,7 +8,7 @@ if [ -d $HOME/miniconda3 ]; then
   exit 0
 fi
 
-printf "\e[92minstalling $APP\e[0m\n"
+printf "\e[92minstalling \e[1m$APP\e[0m\n"
 
 retry_count=0
 while [[ ! -f miniconda.sh && $retry_count -lt 10 ]]; do
