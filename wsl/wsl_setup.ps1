@@ -246,7 +246,7 @@ process {
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_btop.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cmatrix.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cowsay.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fastfetch.sh
+                $rel_ff = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fastfetch.sh $Script:rel_ff
                 continue
             }
             shell {
