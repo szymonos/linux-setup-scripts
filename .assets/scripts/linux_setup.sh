@@ -5,7 +5,7 @@
 # :set up the system using specified values
 scope="shell"
 scope="k8s_base python shell"
-scope="az docker k8s_base k8s_ext python shell"
+scope="az docker k8s_base k8s_ext python rice shell"
 # :set up the system using the specified scope
 .assets/scripts/linux_setup.sh --scope "$scope"
 # :set up the system using the specified scope and omp theme
@@ -102,6 +102,13 @@ for sc in ${scope_arr[@]}; do
     .assets/provision/install_miniconda.sh
     sudo .assets/provision/setup_python.sh
     grep -qw 'az' <<<$scope && .assets/provision/install_azurecli.sh --fix_certify true || true
+    ;;
+  rice)
+    printf "\e[96mricing distro...\e[0m\n"
+    sudo .assets/provision/install_btop.sh
+    sudo .assets/provision/install_cmatrix.sh
+    sudo .assets/provision/install_cowsay.sh
+    sudo .assets/provision/install_fastfetch.sh
     ;;
   shell)
     printf "\e[96minstalling shell packages...\e[0m\n"

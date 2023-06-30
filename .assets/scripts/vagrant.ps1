@@ -19,6 +19,8 @@ $env:VAGRANT_HOME
 vagrant init hashicorp/bionic64
 vagrant up --provider=hyperv
 
+# fix self-signed certificate in certificate chain
+$env:SSL_CERT_FILE = 'C:\path\to\self-signed.crt'
 vagrant plugin install vagrant-reload
 vagrant init generic/fedora37
 # vagrant up --provider=hyperv

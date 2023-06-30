@@ -24,6 +24,7 @@ List of installation scopes. Valid values:
 - k8s_base: kubectl, helm, minikube, k3d, k9s, yq
 - k8s_ext: flux, kubeseal, kustomize, argorollouts-cli
 - python: pip, venv, miniconda
+- rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, exa, oh-my-posh, pwsh, ripgrep
 Default: @('shell').
 .PARAMETER OmpTheme
@@ -68,8 +69,8 @@ param (
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'python', 'shell') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az distrobox docker k8s_base k8s_ext python shell')]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'python', 'rice', 'shell') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: az distrobox docker k8s_base k8s_ext python rice shell')]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
@@ -238,6 +239,14 @@ process {
                 if ('az' -in $scopes) {
                     wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true
                 }
+                continue
+            }
+            rice {
+                Write-Host 'ricing distro ...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_btop.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cmatrix.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cowsay.sh
+                $rel_ff = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fastfetch.sh $Script:rel_ff
                 continue
             }
             shell {

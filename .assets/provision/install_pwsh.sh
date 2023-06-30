@@ -31,7 +31,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
+printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # determine system id
 SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 

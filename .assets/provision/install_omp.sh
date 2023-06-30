@@ -31,7 +31,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
+printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 retry_count=0
 while [[ ! -f posh-linux-amd64 && $retry_count -lt 10 ]]; do
   curl -LsOk "https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v${REL}/posh-linux-amd64"

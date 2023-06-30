@@ -43,7 +43,7 @@ if [ -f /usr/bin/kubectl ]; then
   fi
 fi
 
-printf "\e[92minstalling $APP $REL\e[0m\n" >&2
+printf "\e[92minstalling \e[1m$APP\e[22m $REL\e[0m\n" >&2
 case $SYS_ID in
 arch)
   pacman -Sy --needed --noconfirm kubectl >&2 2>/dev/null || binary=true

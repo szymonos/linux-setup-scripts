@@ -26,6 +26,7 @@ debian | ubuntu)
   ;;
 esac
 
+printf "\e[92minstalling \e[1m$APP\e[0m\n"
 case $SYS_ID in
 alpine)
   apk add --no-cache $APP

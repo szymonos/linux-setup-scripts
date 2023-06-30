@@ -27,7 +27,7 @@ REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/LinusDierheimer/fastfetch/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
+  REL=$(curl -sk https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
@@ -46,7 +46,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-printf "\e[92minstalling $APP v$REL\e[0m\n" >&2
+printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 case $SYS_ID in
 arch)
   if pacman -Qqe paru &>/dev/null; then
@@ -65,17 +65,17 @@ arch)
   fi
   ;;
 fedora)
-  dnf install -y $APP >&2 2>/dev/null || binary=true
+  dnf install -y $APP >&2 2>/dev/null
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f $APP.deb && $retry_count -lt 10 ]]; do
-    curl -Lsk -o $APP.deb "https://github.com/LinusDierheimer/fastfetch/releases/download/${REL}/fastfetch-${REL}-Linux.deb"
+    curl -Lsk -o $APP.deb "https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-${REL}-Linux.deb"
     ((retry_count++))
   done
-  dpkg -i $APP.deb >&2 2>/dev/null && rm -f $APP.deb || binary=true
+  dpkg -i $APP.deb >&2 2>/dev/null && rm -f $APP.deb
   ;;
 opensuse)
-  zypper in -y $APP >&2 2>/dev/null || binary=true
+  zypper in -y $APP >&2 2>/dev/null
   ;;
 esac
