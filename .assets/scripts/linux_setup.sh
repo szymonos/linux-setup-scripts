@@ -5,7 +5,7 @@
 # :set up the system using specified values
 scope="shell"
 scope="k8s_base python shell"
-scope="az docker k8s_base k8s_ext python rice shell"
+scope="az distrobox docker k8s_base k8s_ext python rice shell"
 # :set up the system using the specified scope
 .assets/scripts/linux_setup.sh --scope "$scope"
 # :set up the system using the specified scope and omp theme
@@ -69,6 +69,11 @@ sudo .assets/provision/install_base.sh $user
 
 for sc in ${scope_arr[@]}; do
   case $sc in
+  distrobox)
+    printf "\e[96minstalling distrobox...\e[0m\n"
+    sudo .assets/provision/install_podman.sh
+    sudo .assets/provision/install_distrobox.sh $user
+    ;;
   docker)
     printf "\e[96minstalling docker...\e[0m\n"
     sudo .assets/provision/install_docker.sh $user
