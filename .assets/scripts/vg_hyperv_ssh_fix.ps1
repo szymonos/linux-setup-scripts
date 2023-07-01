@@ -1,7 +1,11 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-Correct the ssh/config with new VM IP address and fingerprint in known_hosts
+Correct the .ssh/config with new VM IP address and fingerprint in known_hosts
+
+.PARAMETER VMName
+Name of the virtual machine to correct the the entry in .ssh/config for.
+
 .EXAMPLE
 $VMName = 'Vg-Fedora'
 .assets/scripts/vg_hyperv_ssh_fix.ps1 -v $VMName

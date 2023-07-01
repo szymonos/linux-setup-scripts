@@ -2,10 +2,12 @@
 <#
 .SYNOPSIS
 Clean up ssh config and remove entries from known_hosts on destroy.
+
 .PARAMETER IpAddress
 IP of the host in ssh config file.
 .PARAMETER HostName
 Name of the host in ssh config file.
+
 .EXAMPLE
 $IpAddress = '192.168.121.57'
 $HostName = 'vg-fedora-hv'

@@ -3,6 +3,10 @@
 <#
 .SYNOPSIS
 Get root and intermediate certificates in PEM format from the certificate chain.
+
+.PARAMETER Uri
+Uri to get the certificate chain from.
+
 .EXAMPLE
 .assets/tools/cert_chain_pem.ps1
 # :specify custom Uri

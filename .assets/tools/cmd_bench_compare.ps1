@@ -3,6 +3,7 @@
 <#
 .SYNOPSIS
 Compare performance of two scripts.
+
 .PARAMETER Command1
 First command string to be compared.
 .PARAMETER Command2

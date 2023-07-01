@@ -1,8 +1,10 @@
 <#
 .SYNOPSIS
 Script synopsis.
+
 .PARAMETER VMName
 Name of the virtual machine.
+
 .EXAMPLE
 $VMName = 'VG-Fedora'
 .assets/trigger/cleanup_vbox_vm.ps1 -v $VMName

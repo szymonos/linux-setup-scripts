@@ -2,8 +2,13 @@
 <#
 .SYNOPSIS
 Script synopsis.
+
 .PARAMETER NatNetwork
 NAT network CIDR range.
+
+.EXAMPLE
+$NatNetwork = '192.168.121.0/24'
+.assets/trigger/create_hyperv_natswitch.ps1 $NatNetwork
 #>
 
 [CmdletBinding()]
