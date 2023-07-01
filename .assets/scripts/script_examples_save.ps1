@@ -29,9 +29,14 @@ try {
 }
 
 # save example scripts
-Invoke-ExampleScriptSave 'wsl/*.ps1' -FolderFromBase
-Invoke-ExampleScriptSave '.assets/provision/*.ps1' -FolderFromBase
-Invoke-ExampleScriptSave '.assets/scripts/*.ps1' -FolderFromBase
-Invoke-ExampleScriptSave '.assets/tools/*.ps1' -FolderFromBase
+$folders = @(
+    'wsl'
+    '.assets/provision'
+    '.assets/scripts'
+    '.assets/tools'
+)
+foreach ($folder in $folders) {
+    Invoke-ExampleScriptSave $folder -FolderFromBase
+}
 # remove this script example
 Remove-Item 'console/scripts/script_examples_save.ps1'
