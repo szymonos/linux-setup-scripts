@@ -2,6 +2,10 @@
 <#
 .SYNOPSIS
 Setting up PowerShell for the all users.
+
+.PARAMETER UserName
+Default user name to run the script in context of.
+
 .EXAMPLE
 sudo .assets/provision/setup_profile_allusers.ps1 -UserName $(id -un)
 #>

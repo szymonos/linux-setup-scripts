@@ -2,10 +2,14 @@
 <#
 .SYNOPSIS
 Update ssh config and known_hosts files.
+
 .PARAMETER IpAddress
 IP of the host in ssh config file.
 .PARAMETER HostName
 Name of the host in ssh config file.
+.PARAMETER Path
+Path to file with ssh private key.
+
 .EXAMPLE
 $IpAddress = '192.168.121.57'
 $HostName = 'vg-fedora-hv'

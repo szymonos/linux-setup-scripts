@@ -2,8 +2,13 @@
 <#
 .SYNOPSIS
 Script synopsis.
+
 .PARAMETER VMName
 Name of the virtual machine.
+
+.EXAMPLE
+$VMName = 'Vg-Fedora'
+.assets/trigger/set_hyperv_switch.ps1 $VMName
 #>
 
 [CmdletBinding()]

@@ -2,6 +2,10 @@
 <#
 .SYNOPSIS
 Script synopsis.
+
+.PARAMETER Iterations
+Number of iterations to run the test.
+
 .EXAMPLE
 .assets/tools/term_bench.ps1 1000
 .assets/tools/term_bench.ps1 10000

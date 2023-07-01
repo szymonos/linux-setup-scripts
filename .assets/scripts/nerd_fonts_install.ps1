@@ -4,6 +4,12 @@
 Install specified nerd font from ryanoasis/nerd-fonts GitHub repo.
 .LINK
 https://github.com/ryanoasis/nerd-fonts
+
+.PARAMETER Font
+Name of the nerd font to be installed.
+.PARAMETER FontExt
+Specified font extension.
+
 .EXAMPLE
 $Font = 'RobotoMono'
 .assets/scripts/nerd_fonts_install.ps1 $Font
