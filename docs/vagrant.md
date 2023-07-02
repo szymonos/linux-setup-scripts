@@ -51,6 +51,8 @@ winget install --id Hashicorp.Vagrant
 
 To provision virtual machines Hypervisor needs to be present oh the host machine.
 
+#### Windows  
+  
 On Windows, you can install it depending on the provider of choice using the command:
 
 - **Hyper-V**
@@ -61,7 +63,7 @@ On Windows, you can install it depending on the provider of choice using the com
 
   > Hyper-V will offer better performance than VirtualBox as it is type 1 hypervisor and will offer best experience when using along with  the WSL.
 
-  - **VirtualBox**
+- **VirtualBox**
 
   ``` powershell
   winget install --id Oracle.VirtualBox
@@ -69,8 +71,9 @@ On Windows, you can install it depending on the provider of choice using the com
 
   > VirtualBox is Type 2 hypervisor and offers worse performance than Hyper-V, but is available cross platform and easier to use for desktop purposes.
 
-On Linux, hypervisor installation vary depending on distro. Personally I recommend the **Libvirt**, as it is also Type-1 hypervisor, has great Vagrant provider (which also has to be installed individually), and is insanely fast.
+#### Linux  
 
+On Linux, hypervisor installation vary depending on distro. Personally I recommend the **Libvirt**, as it is also Type-1 hypervisor, has great Vagrant provider (which also has to be installed individually), and is insanely fast.
 
 ### `vagrant-reload` plugin
 
