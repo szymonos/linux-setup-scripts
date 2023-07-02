@@ -74,3 +74,29 @@ To provision any box using provided Vagrantfiles you need to have:
 ## SSH configuration
 
 For convenience's sake, newly provisioned virtual machines are being added automatically to the SSH config and known_hosts file, so you don't need to use the `vagrant ssh` command which is much slower than the built-in `ssh` one, but also allows you to use the Remote SSH feature of the Visual Studio Code, for remote development. All the VMs should be instantly visible in the VSCode Remote SSH extension pane after provisioning.
+
+## MITM Proxy
+
+When using Vagrant in corporate environment you can face the issue with self-signed certificate in certificate chain error,
+caused by the MITM proxy injected certificates.
+
+### Fix Vagrant plugin install
+
+To install the `vagrant-reload` plugin you need to provide MITM proxy self-signed certificates into Hashicorp ruby installation folder.  
+To do it, simply run the script as Administrator:
+
+```powershell
+.assets/scripts/vg_cacert_fix.ps1
+```
+
+>It requires PowerShell Core, as it offers a reliable way to intercept the whole certificate chain up to the cert store.
+
+### Fix Vagrant boxes installation
+
+The MITM proxy prevents also correct installation of the packages in Vagrant boxes.  
+To fix the issue, you need to install self-signed certificates from chain at the box provisioning start by using the following script:
+
+```powershell
+$Path = 'vagrant/<hypervisor_provider>/<distro_name>/Vagrantfile'
+.assets/scripts/vg_certs_add.ps1 -p $Path
+```
