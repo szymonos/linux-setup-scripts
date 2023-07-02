@@ -25,17 +25,17 @@ try {
 }
 
 # intercept self signed certificates from chain
-$chain = .assets/tools/cert_chain_pem.ps1
+$chain = .assets/tools/cert_chain_pem.ps1 -Uri 'gems.hashicorp.com'
 
 # build cacert.pem with all intercepted certificates
 $builder = [System.Text.StringBuilder]::new()
-foreach ($crt in $chain) {
-    $builder.AppendLine("# Issuer: $($crt.Issuer)") | Out-Null
-    $builder.AppendLine("# Subject: $($crt.Subject)") | Out-Null
-    $builder.AppendLine("# Label: $($crt.CN)") | Out-Null
-    $builder.AppendLine("# Serial: $($crt.SerialNumber)") | Out-Null
-    $builder.AppendLine("# SHA1 Fingerprint: $($crt.Thumbprint)") | Out-Null
-    $builder.AppendLine($crt.PEM) | Out-Null
+foreach ($cert in $chain) {
+    $builder.AppendLine("# Issuer: $($cert.Issuer)") | Out-Null
+    $builder.AppendLine("# Subject: $($cert.Subject)") | Out-Null
+    $builder.AppendLine("# Label: $($cert.Label)") | Out-Null
+    $builder.AppendLine("# Serial: $($cert.SerialNumber)") | Out-Null
+    $builder.AppendLine("# SHA1 Fingerprint: $($cert.Thumbprint)") | Out-Null
+    $builder.AppendLine($cert.PEM) | Out-Null
 }
 
 # save cacert.pem to the Vagrant\embedded folder
