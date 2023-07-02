@@ -39,37 +39,53 @@ Linux distributions (vary depending on the provider):
 
 To provision any box using provided Vagrantfiles you need to have:
 
-- **Vagrant** application itself. On Windows, it can be installed using the command:  
-  
+### Vagrant application
+
+On Windows, it can be installed using the command:  
+
+``` powershell
+winget install --id Hashicorp.Vagrant
+```
+
+### Hypervisor
+
+To provision virtual machines Hypervisor needs to be present oh the host machine.
+
+On Windows, you can install it depending on the provider of choice using the command:
+
+- **Hyper-V**
+
   ``` powershell
-  winget install --id Hashicorp.Vagrant
+  Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
   ```
 
-- **Hypervisor** for hosting virtual machines. On Windows, you can install it depending on the provider of choice using the command:
-  - *Hyper-V*
+  > Hyper-V will offer better performance than VirtualBox as it is type 1 hypervisor and will offer best experience when using along with  the WSL.
 
-    ``` powershell
-    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
-    ```
+  - **VirtualBox**
 
-    > Hyper-V will offer better performance than VirtualBox as it is type 1 hypervisor and will offer best experience when using along with  the WSL.
-
-  - *VirtualBox*
-
-    ``` powershell
-    winget install --id Oracle.VirtualBox
-    ```
-
-    > VirtualBox is Type 2 hypervisor and offers worse performance than Hyper-V, but is available cross platform and easier to use for desktop purposes.
-
-  - *Libvirt* - can be installed only on Linux and the installation method depends on the used distro.
-    > Libvirt is also Type 1 hypervisor and is insanely fast on Linux. Highly recommend it.
-
-- **vagrant-reload** plugin. It can be installed after installing the Vagrant application, using the command:  
-
-  ``` sh
-  vagrant plugin install vagrant-reload
+  ``` powershell
+  winget install --id Oracle.VirtualBox
   ```
+
+  > VirtualBox is Type 2 hypervisor and offers worse performance than Hyper-V, but is available cross platform and easier to use for desktop purposes.
+
+On Linux, hypervisor installation vary depending on distro. Personally I recommend the **Libvirt**, as it is also Type-1 hypervisor, has great Vagrant provider (which also has to be installed individually), and is insanely fast.
+
+
+### `vagrant-reload` plugin
+
+I use the `vagrant-reload` plugin to reliably set static IP on any distro/provider combination.
+It can be installed after installing the Vagrant application, using the command:  
+
+``` sh
+vagrant plugin install vagrant-reload
+```
+
+> If you encounter the *"SSL verification error"* during plugin installation caused by missing `gems.hashicorp.com` certificates or mitm proxy, run the below script:
+
+``` powershell
+.assets/scripts/vg_cacert_fix.ps1
+```
 
 ## SSH configuration
 
@@ -78,23 +94,9 @@ For convenience's sake, newly provisioned virtual machines are being added autom
 ## MITM Proxy
 
 When using Vagrant in corporate environment you can face the issue with self-signed certificate in certificate chain error,
-caused by the MITM proxy injected certificates.
+caused by the *"man in the middle"* proxy injected certificates.
 
-### Fix Vagrant plugin install
-
-To install the `vagrant-reload` plugin you need to provide MITM proxy self-signed certificates into Hashicorp ruby installation folder.  
-To do it, simply run the script as Administrator:
-
-```powershell
-.assets/scripts/vg_cacert_fix.ps1
-```
-
->It requires PowerShell Core, as it offers a reliable way to intercept the whole certificate chain up to the cert store.
-
-### Fix Vagrant boxes installation
-
-The MITM proxy prevents also correct installation of the packages in Vagrant boxes.  
-To fix the issue, you need to install self-signed certificates from chain at the box provisioning start by using the following script:
+To fix the issue during virtual machines provisioning, you need to install self-signed certificates from chain at the box provisioning start by using the following script:
 
 ```powershell
 $Path = 'vagrant/<hypervisor_provider>/<distro_name>/Vagrantfile'
