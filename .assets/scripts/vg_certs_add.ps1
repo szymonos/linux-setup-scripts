@@ -71,7 +71,7 @@ if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
 # add cert installation shell command to Vagrantfile
 if (-not ($content | Select-String 'script_install_root_ca.sh')) {
     $idx = "$($content -match '# node provision')".IndexOf('#')
-    $content = $content -replace '(# node provision)', "`$1`n$(' ' * $idx)node.vm.provision 'shell', name: 'install certificate chain...', path: '../../../.tmp/script_install_crt_chain.sh'"
+    $content = $content -replace '(# node provision)', "`$1`n$(' ' * $idx)node.vm.provision `"shell`", name: `"install certificate chain...`", path: `"../../../.tmp/script_install_crt_chain.sh`""
     # save updated Vagrantfile
     [IO.File]::WriteAllLines($Path, $content)
 }
