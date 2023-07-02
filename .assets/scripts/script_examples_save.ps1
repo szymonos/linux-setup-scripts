@@ -38,5 +38,3 @@ $folders = @(
 foreach ($folder in $folders) {
     Invoke-ExampleScriptSave $folder -FolderFromBase
 }
-# remove this script example
-Remove-Item 'console/scripts/script_examples_save.ps1'

@@ -72,12 +72,12 @@ begin {
 }
 
 process {
-    $certs = .assets/tools/cert_chain_pem.ps1 $Uri
+    $chain = .assets/tools/cert_chain_pem.ps1 $Uri
     Write-Host 'Intercepted certificates' -ForegroundColor DarkGreen
-    foreach ($cert in $certs) {
-        $crtFile = "$($cert.CN.Replace(' ', '_')).crt"
-        Write-Host "- $crtFile"
-        [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $cert.PEM)
+    foreach ($cert in $chain) {
+        $crtFile = "$($cert.Thumbprint).crt"
+        Write-Host "- $crtFile : $($cert.Label)"
+        [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $cert.PEM.Trim())
     }
 
     # copy certificates to specified distro and install them

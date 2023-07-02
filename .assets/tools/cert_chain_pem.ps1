@@ -54,12 +54,22 @@ process {
                 $builder.AppendLine($base64.Substring($j, $length)) | Out-Null
             }
             $builder.AppendLine('-----END CERTIFICATE-----') | Out-Null
-            # create object with parsed common name and PEM encoded certificate
-            $pems.Add([PSCustomObject]@{
-                    CN  = [regex]::Match($certificate[$i].Subject, '(?<=CN=)(.)+?(?=,|$)').Value.Trim().Trim('"')
-                    PEM = $builder.ToString().Replace("`r`n", "`n")
-                }
-            )
+            # create pem object with parsed common information and PEM encoded certificate
+            $pem = @{
+                Issuer       = $certificate[$i].Issuer
+                Subject      = $certificate[$i].Subject
+                SerialNumber = $certificate[$i].SerialNumber
+                Thumbprint   = $certificate[$i].Thumbprint
+                PEM          = $builder.ToString().Replace("`r`n", "`n")
+            }
+            # check if CN available, otherwise add OU as label
+            $cn = [regex]::Match($pem.Subject, '(?<=CN=)(.)+?(?=,|$)').Value.Trim().Trim('"')
+            if ($cn) {
+                $pem.Label = $cn
+            } else {
+                $pem.Label = [regex]::Match($pem.Subject, '(?<=OU=)(.)+?(?=,|$)').Value.Trim().Trim('"')
+            }
+            $pems.Add([PSCustomObject]$pem)
         }
     } else {
         Write-Warning 'SSL certificate chain validation failed.'

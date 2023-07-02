@@ -20,7 +20,7 @@ param (
     [string]$Path
 )
 
-function Get-SshInstallScript ([string]$crt) {
+function Get-SshInstallScript ([string]$CertSaveStr) {
     $script = [string]::Join("`n",
         "#!/usr/bin/env bash`n",
         '# determine system id',
@@ -38,10 +38,8 @@ function Get-SshInstallScript ([string]$crt) {
         "  exit 0`n  ;;",
         "esac`n",
         '# write certificate in CERT_PATH',
-        'cat <<EOF >$CERT_PATH/root_ca.crt',
-        "$crt",
-        "EOF`n",
-        '# update certificates',
+        "$CertSaveStr",
+        "# update certificates",
         'case $SYS_ID in',
         'arch)',
         "  trust extract-compat`n  ;;",
@@ -61,17 +59,22 @@ $Path = Resolve-Path $Path
 $content = [IO.File]::ReadAllLines($Path)
 
 # create installation script
-if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
-    New-Item (Split-Path $scriptInstallRootCA) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-    $crt = .assets/tools/cert_chain_pem.ps1
-    # save certificate installation file
-    [IO.File]::WriteAllText($scriptInstallRootCA, (Get-SshInstallScript ([string]::Join("`n", $crt.PEM.Trim()))))
+New-Item (Split-Path $scriptInstallRootCA) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+$chain = .assets/tools/cert_chain_pem.ps1
+
+$builder = [System.Text.StringBuilder]::new()
+foreach ($cert in $chain) {
+    $builder.AppendLine("cat <<EOF >`"`$CERT_PATH/$($cert.Thumbprint).crt`"") | Out-Null
+    $builder.AppendLine($cert.PEM.Trim()) | Out-Null
+    $builder.AppendLine('EOF') | Out-Null
 }
+# save certificate installation file
+[IO.File]::WriteAllText($scriptInstallRootCA, (Get-SshInstallScript $builder.ToString()))
 
 # add cert installation shell command to Vagrantfile
-if (-not ($content | Select-String 'script_install_root_ca.sh')) {
+if (-not ($content | Select-String -SimpleMatch 'script_install_crt_chain.sh')) {
     $idx = "$($content -match '# node provision')".IndexOf('#')
-    $content = $content -replace '(# node provision)', "`$1`n$(' ' * $idx)node.vm.provision 'shell', name: 'install certificate chain...', path: '../../../.tmp/script_install_crt_chain.sh'"
+    $content = $content -replace '(# node provision)', "`$1`n$(' ' * $idx)node.vm.provision `"shell`", name: `"install certificate chain...`", path: `"../../../.tmp/script_install_crt_chain.sh`""
     # save updated Vagrantfile
     [IO.File]::WriteAllLines($Path, $content)
 }

@@ -16,15 +16,19 @@ https://github.com/secana/EnhancedSessionMode/blob/master/install_esm_fedora3x.s
 [System.Environment]::SetEnvironmentVariable('VAGRANT_HOME', "$HOME\.vagrant.d", 'Machine')
 $env:VAGRANT_HOME
 
-vagrant init hashicorp/bionic64
-vagrant up --provider=hyperv
-
-# fix self-signed certificate in certificate chain
-$env:SSL_CERT_FILE = 'C:\path\to\self-signed.crt'
+# *Install vagrant-reload plugin
 vagrant plugin install vagrant-reload
+# fix self-signed certificate in certificate chain
+.assets/scripts/vg_cacert_fix.ps1
+# You can also point to the existing certificate file
+$env:SSL_CERT_FILE = 'C:\path\to\self-signed.crt'
+
+# initialize vagrant box
 vagrant init generic/fedora37
-# vagrant up --provider=hyperv
+vagrant init hashicorp/bionic64
+# create virtual machine
 vagrant up
+vagrant up --provider=hyperv
 
 # Change switch in all existing VMs
 Get-VM | Get-VMNetworkAdapter | Connect-VMNetworkAdapter -SwitchName 'NatSwitch'
