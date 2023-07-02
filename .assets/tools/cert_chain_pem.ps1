@@ -56,8 +56,12 @@ process {
             $builder.AppendLine('-----END CERTIFICATE-----') | Out-Null
             # create object with parsed common name and PEM encoded certificate
             $pems.Add([PSCustomObject]@{
-                    CN  = [regex]::Match($certificate[$i].Subject, '(?<=CN=)(.)+?(?=,|$)').Value.Trim().Trim('"')
-                    PEM = $builder.ToString().Replace("`r`n", "`n")
+                    Issuer       = $certificate[$i].Issuer
+                    Subject      = $certificate[$i].Subject
+                    SerialNumber = $certificate[$i].SerialNumber
+                    Thumbprint   = $certificate[$i].Thumbprint
+                    CN           = [regex]::Match($certificate[$i].Subject, '(?<=CN=)(.)+?(?=,|$)').Value.Trim().Trim('"')
+                    PEM          = $builder.ToString().Replace("`r`n", "`n")
                 }
             )
         }
