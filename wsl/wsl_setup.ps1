@@ -52,12 +52,17 @@ wsl/wsl_setup.ps1 $Distro
 wsl/wsl_setup.ps1 $Distro -AddCertificate
 wsl/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
 # :set up WSL distro using specified values
+$Scope = @('az', 'python', 'shell')
 $Scope = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
+wsl/wsl_setup.ps1 $Distro -s $Scope
+wsl/wsl_setup.ps1 $Distro -s $Scope -AddCertificate
 $OmpTheme = 'nerd'
 wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
+wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme -AddCertificate
 # :set up WSL distro and clone specified GitHub repositories
 $Repos = @('szymonos/linux-setup-scripts', 'szymonos/ps-modules')
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
+wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
 # :update all existing WSL distros
 wsl/wsl_setup.ps1
 #>
