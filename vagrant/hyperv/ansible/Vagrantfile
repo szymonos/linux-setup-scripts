@@ -4,11 +4,14 @@
 # *Variables
 provider = "hyperv"
 # network configuration
-nat_net  = "192.168.121.0/24"
-dns      = "9.9.9.9,149.112.112.112"
+nat_net   = "192.168.121.0/24"
+dns       = "9.9.9.9,149.112.112.112"
+ip_rhel   = "192.168.121.11"
+ip_centos = "192.168.121.12"
+ip_ubuntu = "192.168.121.13"
 # vm configuration
-memory   = 2048
-cpu      = 2
+memory    = 2048
+cpu       = 2
 
 # calculate global variables
 gateway, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
@@ -17,20 +20,20 @@ gateway, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
 vm_boxes = {
   "rhel" => {
     :name => "Ansible-RHEL",
-    :ip => "192.168.121.31",
+    :ip => ip_rhel,
     :box => "generic/rhel8",
     :script => <<~SCRIPT
       # set static IP
       nmcli connection modify 'System eth0' \\
         ipv4.method manual \\
-        ipv4.addresses 192.168.121.11/#{prefix} \\
+        ipv4.addresses #{ip_rhel}/#{prefix} \\
         ipv4.gateway #{gateway} \\
         ipv4.dns #{dns}
     SCRIPT
   },
   "centos" => {
     :name => "Ansible-Centos",
-    :ip => "192.168.121.32",
+    :ip => ip_centos,
     :box => "generic/centos8s",
     :script => <<~SCRIPT
       # install packages
@@ -38,14 +41,14 @@ vm_boxes = {
       # set static IP
       nmcli connection modify 'System eth0' \\
         ipv4.method manual \\
-        ipv4.addresses 192.168.121.12/#{prefix} \\
+        ipv4.addresses #{ip_centos}/#{prefix} \\
         ipv4.gateway #{gateway} \\
         ipv4.dns #{dns}
     SCRIPT
   },
   "ubuntu" => {
     :name => "Ansible-Ubuntu",
-    :ip => "192.168.121.33",
+    :ip => ip_ubuntu,
     :box => "generic/ubuntu2204",
     :script => <<~SCRIPT
       # install packages
@@ -64,7 +67,7 @@ vm_boxes = {
             optional: true
             nameservers:
               addresses: [#{dns}]
-            addresses: [192.168.121.13/#{prefix}]
+            addresses: [#{ip_ubuntu}/#{prefix}]
             routes:
               - to: default
                 via: #{gateway}
