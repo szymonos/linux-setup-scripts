@@ -1,9 +1,9 @@
 #!/usr/bin/pwsh -nop
 <#
 .SYNOPSIS
-Generate example scripts from the wsl folder.
+Generate example scripts from the current repository.
 .EXAMPLE
-.assets/scripts/script_examples_save.ps1
+./scripts_egsave.ps1
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -18,14 +18,22 @@ try {
         Push-Location '../ps-modules' -ErrorAction Stop
         if ($remote -match '\bszymonos/ps-modules\.git$') {
             # refresh ps-modules repository
-            git fetch --quiet && git reset --hard --quiet "origin/$(git branch --show-current)"
+            git fetch --prune --quiet
+            $targetBranch = if ((git branch --show-current) -eq 'dev') {
+                'dev'
+            } else {
+                'main'
+            }
+            git switch $targetBranch --force --quiet 2>$null
+            git reset --hard --quiet "origin/$targetBranch"
+            git clean --force -d
         }
         Pop-Location
     } catch {
         # clone ps-modules repository
         git clone $remote ../ps-modules
     }
-    Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common/do-common.psm1')
+    Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common/do-common.psd1')
 }
 
 # save example scripts
