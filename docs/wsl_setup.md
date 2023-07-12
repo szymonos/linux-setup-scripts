@@ -11,16 +11,14 @@ Windows Subsystem for Linux is a very convenient technology to use Linux OS on W
 
 ## Prerequisites
 
-You can install all the required features/tools using the terminal:
+You can install all the required features/tools by running below commands in terminal:
 
 ``` powershell
 # Windows Subsystem for Linux - may require rebooting the system afterwards
 wsl --install
 
-# PowerShell Core - WSL provisioning scripts in the repository require the PowerShell Core to be executed
-winget install --id Microsoft.PowerShell
-# alternatively if winget is not present on your system
-Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI"
+# PowerShell Core - WSL provisioning scripts need to be executed in PowerShell Core
+wsl/pwsh_setup.ps1
 
 # Git distributed version control system
 winget install --id Git.Git
