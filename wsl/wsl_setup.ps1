@@ -341,22 +341,51 @@ process {
     }
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
-        # *setup GitHub repositories
-        Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
-        # set git eol config
-        wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
-        # install GitHub CLI
+        # *install GitHub CLI
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-        # copy git user settings from the host
-        $gitConfigCmd = (git config --list --global 2>$null | Select-String '^user\b').ForEach({
-                $split = $_.Line.Split('=')
-                "git config --global $($split[0]) '$($split[1])'"
+
+        # *setup git config
+        $builder = [System.Text.StringBuilder]::new()
+        # set up git author identity
+        $gitConfig = git config --list --global 2>$null | Select-String '^user\b' -Raw
+        if ($gitConfig) {
+            foreach ($cfg in $gitConfig) {
+                $setting, $value = $cfg.Split('=')
+                $builder.AppendLine("git config --global $setting '$value'") | Out-Null
             }
-        ) -join ' && '
-        if ($gitConfigCmd) {
-            wsl.exe --distribution $Distro --exec bash -c $gitConfigCmd
+        } else {
+            Write-Warning 'Git author identity unknown.'
+            do {
+                $user = Read-Host -Prompt 'provide git user name'
+            } until ($user)
+            $builder.AppendLine("git config --global user.name '$user'") | Out-Null
+            do {
+                $email = Read-Host -Prompt 'provide git email'
+            } until ($email -match '\S+@\S+')
+            $builder.AppendLine("git config --global user.email '$email'") | Out-Null
         }
-        # clone repos
+        # setup eol/crlf settings
+        $builder.AppendLine('git config --global core.eol lf') | Out-Null
+        $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
+        wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
+
+        # *check ssh keys and create if necessary
+        if (-not (Test-Path "$HOME/.ssh/id_*")) {
+            ssh-keygen -t ecdsa -b 521 -f "$HOME/.ssh/id_ecdsa" -q -N ''
+            $idPub = Get-ChildItem "$HOME/.ssh/id_ecdsa.pub" | Select-Object -First 1 | Get-Content
+            if ($idPub) {
+                Write-Host 'Copy below public key and add to SSH keys on "https://github.com/settings/keys".' -ForegroundColor White
+                Write-Host "`nTitle:" -ForegroundColor Cyan
+                Write-Host $idPub.Split()[-1]
+                Write-Host "`nKey:" -ForegroundColor Cyan
+                Write-Host $idPub
+                Write-Host "`nPress any key to continue"
+                [System.Console]::ReadKey() | Out-Null
+            }
+        }
+
+        # *clone GitHub repositories
+        Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos" --user $env:USERNAME
     }
 }
