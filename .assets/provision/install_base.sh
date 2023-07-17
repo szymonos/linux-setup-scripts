@@ -15,7 +15,7 @@ alpine)
   apk add --no-cache bash bind-tools build-base ca-certificates iputils curl git jq less lsb-release-minimal mandoc nmap openssh-client openssl sudo tar tree unzip vim
   ;;
 arch)
-  pacman -Sy --needed --noconfirm --color=auto base-devel bash-completion dnsutils git jq lsb-release man-db nmap openssh openssl tar tree unzip vim 2>/dev/null
+  pacman -Sy --needed --noconfirm --color=auto base-devel bash-completion dnsutils git jq lsb-release man-db nmap openssh openssl tar tree unzip vim wget 2>/dev/null
   # install paru
   if ! pacman -Qqe paru &>/dev/null; then
     user=${1:-$(id -un 1000 2>/dev/null)}
@@ -33,14 +33,14 @@ arch)
   ;;
 fedora)
   rpm -q patch &>/dev/null || dnf groupinstall -y 'Development Tools'
-  dnf install -qy bash-completion bind-utils curl dnf-plugins-core git iputils jq redhat-lsb-core man-db nmap openssl tar tree unzip vim
+  dnf install -qy bash-completion bind-utils curl dnf-plugins-core git iputils jq redhat-lsb-core man-db nmap openssl tar tree unzip vim wget
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y build-essential bash-completion ca-certificates gnupg dnsutils curl git iputils-tracepath jq lsb-release man-db nmap openssl tar tree unzip vim
+  apt-get update && apt-get install -y build-essential bash-completion ca-certificates gnupg dnsutils curl git iputils-tracepath jq lsb-release man-db nmap openssl tar tree unzip vim wget
   ;;
 opensuse)
   rpm -q patch &>/dev/null || zypper in -yt pattern devel_basis
-  zypper in -y bash-completion bind-utils git jq lsb-release nmap openssl tar tree unzip vim
+  zypper in -y bash-completion bind-utils git jq lsb-release nmap openssl tar tree unzip vim wget
   ;;
 esac
