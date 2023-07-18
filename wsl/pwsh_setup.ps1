@@ -4,6 +4,8 @@
 Install/update PowerShell Core.
 .EXAMPLE
 wsl/pwsh_setup.ps1
+# !Run below command on execution error.
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 #>
 
 # *set location to workspace folder
