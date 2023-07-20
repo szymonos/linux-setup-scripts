@@ -246,7 +246,7 @@ process {
             }
             python {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
+                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh --fix_certify true
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
                 if ('az' -in $scopes) {
                     wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true

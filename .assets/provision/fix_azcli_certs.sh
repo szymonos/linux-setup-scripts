@@ -28,7 +28,7 @@ esac
 # get list of installed certificates
 cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
 if [ -z "$cert_paths" ]; then
-  printf '\e[33mno self-signed certificates installed\e[0m\n' >&2
+  printf '\nThere are no self-signed certificate(s) to install.\n' >&2
   exit 0
 fi
 
