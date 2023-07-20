@@ -22,7 +22,23 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-if type conda >/dev/null; then
+# conda init function
+function conda_init {
+  __conda_setup="$("$HOME/miniconda3/bin/conda" 'shell.bash' 'hook' 2>/dev/null)"
+  if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+  else
+    if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+      . "$HOME/miniconda3/etc/profile.d/conda.sh"
+    else
+      export PATH="$HOME/miniconda3/bin:$PATH"
+    fi
+  fi
+  unset __conda_setup
+}
+
+if [ -d "$HOME/miniconda3" ]; then
+  conda_init
   conda update -n base -c defaults conda --yes
   conda clean --yes --all
 else
@@ -44,20 +60,9 @@ else
 fi
 
 #region fix conda certifi certs
-# initialize conda
-__conda_setup="$("$HOME/miniconda3/bin/conda" 'shell.bash' 'hook' 2>/dev/null)"
-if [ $? -eq 0 ]; then
-  eval "$__conda_setup"
-else
-  if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
-    . "$HOME/miniconda3/etc/profile.d/conda.sh"
-  else
-    export PATH="$HOME/miniconda3/bin:$PATH"
-  fi
-fi
-unset __conda_setup
 # add self-signed certificates to conda base certify
 if $fix_certify; then
+  conda_init
   conda activate base
   .assets/provision/fix_certifi_certs.sh
   conda deactivate
