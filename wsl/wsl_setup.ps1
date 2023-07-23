@@ -155,10 +155,11 @@ process {
             '[ -f /usr/bin/kustomize ] && k8s_ext="true" || k8s_ext="false";',
             '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
             '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
+            '[ -d "$HOME/miniconda3" ] && python="true" || python="false";',
             'grep -qw "systemd.*true" /etc/wsl.conf 2>/dev/null && systemd="true" || systemd="false";',
             'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false";',
             'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,',
-            '\"omp\":$omp,\"wslg\":$wslg,\"systemd\":$systemd,\"gtkd\":$gtkd}"'
+            '\"omp\":$omp,\"wslg\":$wslg,\"python\":$python,\"systemd\":$systemd,\"gtkd\":$gtkd}"'
         )
         # check existing packages
         $chk = wsl.exe -d $Distro --exec sh -c $cmd | ConvertFrom-Json -AsHashtable
@@ -170,6 +171,7 @@ process {
             switch ($chk) {
                 { $_.k8s_base } { $scopes.Add('k8s_base') | Out-Null }
                 { $_.k8s_ext } { $scopes.Add('k8s_ext') | Out-Null }
+                { $_.python } { $scopes.Add('python') | Out-Null }
                 { $_.shell } { $scopes.Add('shell') | Out-Null }
             }
         }
@@ -246,7 +248,7 @@ process {
             }
             python {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
+                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh --fix_certify true
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
                 if ('az' -in $scopes) {
                     wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true

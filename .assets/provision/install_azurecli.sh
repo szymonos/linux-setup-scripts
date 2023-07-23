@@ -39,13 +39,6 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-# add self-signed certificates to conda base certify
-if $fix_certify; then
-  conda activate base
-  .assets/provision/fix_certifi_certs.sh
-  conda deactivate
-fi
-
 # install azure-cli in dedicated environment
 if ! conda env list | grep -qw '^azurecli'; then
   conda create --name azurecli --yes python=3.10
