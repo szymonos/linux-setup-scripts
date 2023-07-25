@@ -47,6 +47,7 @@ if [ -z "$array" ]; then
   [ -f /usr/bin/kubectl ] && array+=(k8s_base) || true
   [ -f /usr/bin/kustomize ] && array+=(k8s_ext) || true
   [ -f /usr/bin/pwsh ] && array+=(shell) || true
+  [ -d "$HOME/miniconda3" ] && array+=(python) || true
 fi
 # add oh_my_posh scope if necessary
 if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
@@ -104,7 +105,7 @@ for sc in ${scope_arr[@]}; do
     ;;
   python)
     printf "\e[96minstalling python packages...\e[0m\n"
-    .assets/provision/install_miniconda.sh
+    .assets/provision/install_miniconda.sh --fix_certify true
     sudo .assets/provision/setup_python.sh
     grep -qw 'az' <<<$scope && .assets/provision/install_azurecli.sh --fix_certify true || true
     ;;
