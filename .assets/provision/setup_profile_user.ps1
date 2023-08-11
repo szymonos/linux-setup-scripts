@@ -15,11 +15,11 @@ $profileDir = [IO.Path]::GetDirectoryName($PROFILE)
 if (-not (Test-Path $profileDir -PathType Container)) {
     New-Item $profileDir -ItemType Directory | Out-Null
 }
-# set up PowerShellGet and update installed modules
-if (Get-InstalledModule -Name PowerShellGet) {
+# set up Microsoft.PowerShell.PSResourceGet and update installed modules
+if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet) {
     if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
         Write-Host 'setting PSGallery trusted...'
-        Set-PSResourceRepository -Name PSGallery -Trusted
+        Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion v2
         # update help, assuming this is the initial setup
         Write-Host 'updating help...'
         Update-Help

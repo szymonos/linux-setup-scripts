@@ -1,5 +1,5 @@
 #!/usr/bin/pwsh -nop
-#Requires -Module @{ ModuleName = 'PowerShellGet'; ModuleVersion = '3.0.0' }
+#Requires -Module Microsoft.PowerShell.PSResourceGet
 <#
 .SYNOPSIS
 Script for updating PowerShell modules and cleaning-up old versions.
