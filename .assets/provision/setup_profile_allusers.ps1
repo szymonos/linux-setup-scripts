@@ -76,18 +76,22 @@ process {
     }
 
     # *PowerShell profile
-    $psGetVer = (Find-Module PowerShellGet -AllowPrerelease).Version
-    for ($i = 0; $psGetVer -and ($psGetVer -notin (Get-InstalledModule -Name PowerShellGet -AllVersions).Version) -and $i -lt 10; $i++) {
-        Write-Host 'installing PowerShellGet...'
-        Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -SkipPublisherCheck
+    # TODO to be removed, uninstall PowerShellGet v3
+    if ($psGetv3 = (Get-Module PowerShellGet -ListAvailable).Where({ $_.Version.Major -eq 3 })) {
+        $psGetv3 | Uninstall-Module
+    }
+    # install Microsoft.PowerShell.PSResourceGet
+    for ($i = 0; -not (Get-Module Microsoft.PowerShell.PSResourceGet -ListAvailable) -and $i -lt 5; $i++) {
+        Write-Host 'installing PSResourceGet...'
+        Install-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -Force -SkipPublisherCheck
     }
     # install/update modules
-    if (Get-InstalledModule -Name PowerShellGet) {
+    if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet) {
         if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
             Write-Host 'setting PSGallery trusted...'
-            Set-PSResourceRepository -Name PSGallery -Trusted
+            Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion v2
         }
-        for ($i = 0; (Test-Path /usr/bin/git) -and -not (Get-Module posh-git -ListAvailable) -and $i -lt 10; $i++) {
+        for ($i = 0; (Test-Path /usr/bin/git) -and -not (Get-Module posh-git -ListAvailable) -and $i -lt 5; $i++) {
             Write-Host 'installing posh-git...'
             Install-PSResource -Name posh-git -Scope AllUsers
         }

@@ -14,7 +14,7 @@ RUN \
     && ln -s /usr/share/zoneinfo/UTC /etc/localtime \
     # setup PS modules
     && pwsh -nop -c \
-        'Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force \
+        'Install-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -Force \
         && Set-PSResourceRepository -Name PSGallery -Trusted \
         && Install-PSResource -Name posh-git -Scope AllUsers \
         && Update-Help -ErrorAction SilentlyContinue || $true' \
