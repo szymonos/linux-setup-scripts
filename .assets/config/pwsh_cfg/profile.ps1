@@ -25,6 +25,8 @@ Set-PSReadLineKeyHandler -Chord Alt+k -Function PreviousHistory
 Set-PSReadLineKeyHandler -Chord Ctrl+LeftArrow -Function BackwardWord
 Set-PSReadLineKeyHandler -Chord Ctrl+RightArrow -Function ForwardWord
 Set-PSReadLineKeyHandler -Chord Alt+Delete -Function DeleteLine
+Set-PSReadLineOption -MaximumHistoryCount 16384 -HistoryNoDuplicates
+Set-PSReadLineOption -AddToHistoryHandler { param([string]$line) return $line.Length -gt 3 }
 #endregion
 
 #region environment variables and aliases
