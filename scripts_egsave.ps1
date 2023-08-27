@@ -1,3 +1,4 @@
+#Requires -PSEdition Core
 #!/usr/bin/pwsh -nop
 <#
 .SYNOPSIS
@@ -6,43 +7,54 @@ Generate example scripts from the current repository.
 ./scripts_egsave.ps1
 #>
 
-$ErrorActionPreference = 'Stop'
+begin {
+    $ErrorActionPreference = 'Stop'
 
-# check if the Invoke-ExampleScriptSave function is available import it from the do-common module otherwise
-try {
-    Get-Command Invoke-ExampleScriptSave -CommandType Function | Out-Null
-} catch {
-    # determine if ps-modules repository exist and clone if necessary
-    $remote = (git config --get remote.origin.url).Replace('linux-setup-scripts', 'ps-modules')
+    # set location to workspace folder
+    Push-Location $PSScriptRoot
+
+    # check if the Invoke-ExampleScriptSave function is available, otherwise clone ps-modules repo
     try {
-        Push-Location '../ps-modules' -ErrorAction Stop
-        if ($remote -match '\bszymonos/ps-modules\.git$') {
-            # refresh ps-modules repository
-            git fetch --prune --quiet
-            $targetBranch = if ((git branch --show-current) -eq 'dev') {
-                'dev'
-            } else {
-                'main'
-            }
-            git switch $targetBranch --force --quiet 2>$null
-            git reset --hard --quiet "origin/$targetBranch"
-            git clean --force -d
-        }
-        Pop-Location
+        Get-Command Invoke-ExampleScriptSave -CommandType Function | Out-Null
     } catch {
-        # clone ps-modules repository
-        git clone $remote ../ps-modules
+        $targetRepo = 'ps-modules'
+        # determine if target repository exists and clone if necessary
+        $getOrigin = { git config --get remote.origin.url }
+        $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
+        try {
+            Push-Location "../$targetRepo"
+            if ((Invoke-Command $getOrigin) -eq $remote) {
+                # refresh target repository
+                git fetch --prune --quiet
+                git switch main --force --quiet
+                git reset --hard --quiet 'origin/main'
+            } else {
+                Write-Warning "Another `"$targetRepo`" repository exists."
+                exit 1
+            }
+            Pop-Location
+        } catch {
+            # clone target repository
+            git clone $remote "../$targetRepo"
+        }
+        Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common/do-common.psd1')
     }
-    Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common/do-common.psd1')
 }
 
-# save example scripts
-$folders = @(
-    'wsl'
-    '.assets/provision'
-    '.assets/scripts'
-    '.assets/tools'
-)
-foreach ($folder in $folders) {
-    Invoke-ExampleScriptSave $folder -FolderFromBase
+process {
+    # save example scripts
+    $folders = @(
+        'wsl'
+        '.assets/provision'
+        '.assets/scripts'
+        '.assets/tools'
+    )
+
+    foreach ($folder in $folders) {
+        Invoke-ExampleScriptSave $folder -FolderFromBase
+    }
+}
+
+end {
+    Pop-Location
 }

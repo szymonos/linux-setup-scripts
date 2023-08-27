@@ -8,35 +8,39 @@ wsl/pwsh_setup.ps1
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 #>
 
-# *set location to workspace folder
-Push-Location "$PSScriptRoot/.."
+begin {
+    $ErrorActionPreference = 'Stop'
 
-# *determine if powershell-scripts repository exist and clone if necessary
-$remote = (git config --get remote.origin.url).Replace('linux-setup-scripts', 'powershell-scripts')
-try {
-    Set-Location '../powershell-scripts' -ErrorAction Stop
-    if ((git config --get remote.origin.url) -match '\bszymonos/powershell-scripts\.git$') {
-        git fetch --prune --quiet
-        $targetBranch = if ((git branch --show-current) -eq 'dev') {
-            'dev'
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/.."
+
+    $targetRepo = 'powershell-scripts'
+    # determine if target repository exists and clone if necessary
+    $getOrigin = { git config --get remote.origin.url }
+    $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
+    try {
+        Set-Location "../$targetRepo"
+        if ((Invoke-Command $getOrigin) -eq $remote) {
+            # refresh target repository
+            git fetch --prune --quiet
+            git switch main --force --quiet
+            git reset --hard --quiet 'origin/main'
         } else {
-            'main'
+            Write-Warning "Another `"$targetRepo`" repository exists."
+            exit 1
         }
-        git switch $targetBranch --force --quiet 2>$null
-        git reset --hard --quiet "origin/$targetBranch"
-        git clean --force -d
-    } else {
-        Write-Warning 'Another "powershell-scripts" repository exist.'
-        break
+    } catch {
+        # clone target repository
+        git clone $remote "../$targetRepo"
+        Set-Location "../$targetRepo"
     }
-} catch {
-    # clone ps-modules repository
-    git clone $remote ../powershell-scripts
-    Set-Location '../powershell-scripts'
 }
 
-# *run powershell install/setup script
-../powershell-scripts/scripts/windows/setup_powershell.ps1
+process {
+    # run powershell install/setup script
+    scripts/windows/setup_powershell.ps1
+}
 
-# *restore startup location
-Pop-Location
+end {
+    Pop-Location
+}
