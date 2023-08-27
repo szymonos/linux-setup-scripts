@@ -6,19 +6,23 @@
 # set script working directory to workspace folder
 cd "$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../../")"
 
-# determine if ps-modules repository exist and clone if necessary
-origin="$(git config --get remote.origin.url)"
-remote=${origin/linux-setup-scripts/ps-modules}
-if [ -d ../ps-modules ]; then
-  pushd ../ps-modules >/dev/null
-  if echo $remote | grep -Fqw 'szymonos/ps-modules.git'; then
-    git fetch -q && git reset --hard -q "origin/$(git branch --show-current)"
+target_repo='ps-modules'
+# determine if target repository exists and clone if necessary
+get_origin='git config --get remote.origin.url'
+remote=$(eval $get_origin | sed "s/\([:/]szymonos\/\).*/\1$target_repo.git/")
+if [ -d "../$target_repo" ]; then
+  pushd "../$target_repo" >/dev/null
+  if [ "$(eval $get_origin)" = "$remote" ]; then
+    git fetch --prune --quiet
+    git switch main --force --quiet
+    git reset --hard --quiet 'origin/main'
   else
-    modules=()
+    printf "\e[93manother \"$target_repo\" repository exists\e[0m\n"
+    exit 1
   fi
   popd >/dev/null
 else
-  git clone $remote ../ps-modules
+  git clone $remote "../$target_repo"
 fi
 
 # build the image

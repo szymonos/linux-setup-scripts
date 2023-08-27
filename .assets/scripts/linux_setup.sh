@@ -139,24 +139,28 @@ if [ -f /usr/bin/pwsh ]; then
   [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true
   if [[ -n "$modules" && -f /usr/bin/git ]]; then
     printf "\e[96minstalling ps-modules...\e[0m\n"
-    # determine if ps-modules repository exist and clone if necessary
-    origin="$(git config --get remote.origin.url)"
-    remote=${origin/linux-setup-scripts/ps-modules}
-    if [ -d ../ps-modules ]; then
-      pushd ../ps-modules >/dev/null
-      if echo $remote | grep -Fqw 'szymonos/ps-modules.git'; then
-        git fetch -q && git reset --hard -q "origin/$(git branch --show-current)"
+    target_repo='ps-modules'
+    # determine if target repository exists and clone if necessary
+    get_origin='git config --get remote.origin.url'
+    remote=$(eval $get_origin | sed "s/\([:/]szymonos\/\).*/\1$target_repo.git/")
+    if [ -d "../$target_repo" ]; then
+      pushd "../$target_repo" >/dev/null
+      if [ "$(eval $get_origin)" = "$remote" ]; then
+        git fetch --prune --quiet
+        git switch main --force --quiet
+        git reset --hard --quiet 'origin/main'
       else
+        printf "\e[93manother \"$target_repo\" repository exists\e[0m\n"
         modules=()
       fi
       popd >/dev/null
     else
-      git clone $remote ../ps-modules
+      git clone $remote "../$target_repo"
     fi
     # install do-common module for all users
     if grep -qw 'do-common' <<<$ps_modules; then
       printf "\e[3;32mAllUsers\e[23m    : do-common\e[0m\n"
-      sudo ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+      sudo ../$target_repo/module_manage.ps1 'do-common' -CleanUp
     fi
     # install rest of the modules for the current user
     modules=(${modules[@]/do-common/})
@@ -167,7 +171,7 @@ if [ -f /usr/bin/pwsh ]; then
       for element in "${modules[@]}"; do
         mods="$mods'$element',"
       done
-      pwsh -nop -c "@(${mods%,}) | ../ps-modules/module_manage.ps1 -CleanUp"
+      pwsh -nop -c "@(${mods%,}) | ../$target_repo/module_manage.ps1 -CleanUp"
     fi
   fi
 fi
