@@ -17,6 +17,8 @@ $PSStyle.FileInfo.Directory = "$($PSStyle.Bold)$($PSStyle.Foreground.Blue)"
 # Configure PSReadLine setting.
 Set-PSReadLineOption -EditMode Emacs
 Set-PSReadLineOption -PredictionSource History -PredictionViewStyle ListView
+Set-PSReadLineOption -MaximumHistoryCount 16384 -HistoryNoDuplicates
+Set-PSReadLineOption -AddToHistoryHandler { param([string]$line) return $line.Length -gt 3 }
 Set-PSReadLineKeyHandler -Chord Tab -Function MenuComplete
 Set-PSReadLineKeyHandler -Chord F2 -Function SwitchPredictionView
 Set-PSReadLineKeyHandler -Chord Shift+Tab -Function AcceptSuggestion
@@ -25,8 +27,6 @@ Set-PSReadLineKeyHandler -Chord Alt+k -Function PreviousHistory
 Set-PSReadLineKeyHandler -Chord Ctrl+LeftArrow -Function BackwardWord
 Set-PSReadLineKeyHandler -Chord Ctrl+RightArrow -Function ForwardWord
 Set-PSReadLineKeyHandler -Chord Alt+Delete -Function DeleteLine
-Set-PSReadLineOption -MaximumHistoryCount 16384 -HistoryNoDuplicates
-Set-PSReadLineOption -AddToHistoryHandler { param([string]$line) return $line.Length -gt 3 }
 #endregion
 
 #region environment variables and aliases
