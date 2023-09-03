@@ -142,19 +142,19 @@ if [ -f /usr/bin/pwsh ]; then
     target_repo='ps-modules'
     # determine if target repository exists and clone if necessary
     get_origin='git config --get remote.origin.url'
-    remote=$(eval $get_origin | sed "s/\([:/]szymonos\/\).*/\1$target_repo.git/")
     if [ -d "../$target_repo" ]; then
       pushd "../$target_repo" >/dev/null
-      if [ "$(eval $get_origin)" = "$remote" ]; then
+      if eval $get_origin | grep -qw "github\.com[:/]szymonos/$target_repo"; then
         git fetch --prune --quiet
         git switch main --force --quiet
-        git reset --hard --quiet 'origin/main'
+        git reset --hard --quiet origin/main
       else
         printf "\e[93manother \"$target_repo\" repository exists\e[0m\n"
         modules=()
       fi
       popd >/dev/null
     else
+      remote=$(eval $get_origin | sed "s/\([:/]szymonos\/\).*/\1$target_repo.git/")
       git clone $remote "../$target_repo"
     fi
     # install do-common module for all users
