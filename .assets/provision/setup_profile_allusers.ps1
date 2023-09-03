@@ -77,16 +77,22 @@ process {
 
     # *PowerShell profile
     # TODO to be removed, uninstall PowerShellGet v3
-    if ($psGetv3 = (Get-Module PowerShellGet -ListAvailable).Where({ $_.Version.Major -eq 3 })) {
-        $psGetv3 | Uninstall-Module
-    }
+    Get-InstalledModule -Name PowerShellGet -AllVersions -ErrorAction SilentlyContinue | Uninstall-Module
     # install Microsoft.PowerShell.PSResourceGet
     for ($i = 0; -not (Get-Module Microsoft.PowerShell.PSResourceGet -ListAvailable) -and $i -lt 5; $i++) {
         Write-Host 'installing PSResourceGet...'
         Install-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -Force -SkipPublisherCheck
     }
     # install/update modules
-    if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet) {
+    if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue) {
+        # update Microsoft.PowerShell.PSResourceGet
+        Update-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -Force
+        # uninstall old versions
+        Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet -AllVersions `
+        | Sort-Object -Property PublishedDate -Descending `
+        | Select-Object -Skip 1 `
+        | Uninstall-Module
+
         if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
             Write-Host 'setting PSGallery trusted...'
             Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion v2
