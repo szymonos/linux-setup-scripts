@@ -309,15 +309,15 @@ process {
             $targetRepo = 'ps-modules'
             # determine if target repository exists and clone if necessary
             $getOrigin = { git config --get remote.origin.url }
-            $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
             try {
                 Push-Location "../$targetRepo"
-                if ((Invoke-Command $getOrigin) -eq $remote) {
+                if ((Invoke-Command $getOrigin) -match "github\.com[:/]szymonos/$targetRepo\b") {
                     # refresh target repository
                     git fetch --prune --quiet
                     git switch main --force --quiet 2>$null
-                    git reset --hard --quiet 'origin/main'
+                    git reset --hard --quiet origin/main
                 } else {
+                    $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
                     Write-Warning "Another `"$targetRepo`" repository exists."
                     $modules = [System.Collections.Generic.HashSet[string]]::new()
                 }
@@ -379,19 +379,22 @@ process {
         # setup eol/crlf settings
         $builder.AppendLine('git config --global core.eol lf') | Out-Null
         $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
+        $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
         wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
 
         # *check ssh keys and create if necessary
         if (-not (Test-Path "$HOME/.ssh/id_*")) {
             ssh-keygen -t ecdsa -b 521 -f "$HOME/.ssh/id_ecdsa" -q -N ''
-            $idPub = Get-ChildItem "$HOME/.ssh/id_ecdsa.pub" | Select-Object -First 1 | Get-Content
+            $idPub = Get-ChildItem "$HOME/.ssh/id_ecdsa.pub" | Get-Content
             if ($idPub) {
-                Write-Host 'Copy below public key and add to SSH keys on "https://github.com/settings/keys".' -ForegroundColor White
-                Write-Host "`nTitle:" -ForegroundColor Cyan
-                Write-Host $idPub.Split()[-1]
-                Write-Host "`nKey:" -ForegroundColor Cyan
-                Write-Host $idPub
-                Write-Host "`nPress any key to continue"
+                $msg = [string]::Join("`n",
+                    "`e[97mCopy below public key and add to SSH keys on https://github.com/settings/keys.",
+                    "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
+                    "`n`e[1;96mKey type`e[30m`n<Authentication Key>",
+                    "`n`e[1;96mKey`e[0m`n$idPub",
+                    "`npress any key to continue..."
+                )
+                Write-Host $msg
                 [System.Console]::ReadKey() | Out-Null
             }
         }
