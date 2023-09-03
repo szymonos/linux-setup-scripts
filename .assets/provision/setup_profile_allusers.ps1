@@ -86,7 +86,7 @@ process {
     # install/update modules
     if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue) {
         # update Microsoft.PowerShell.PSResourceGet
-        Update-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -Force
+        Install-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -Force -SkipPublisherCheck
         # uninstall old versions
         Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet -AllVersions `
         | Sort-Object -Property PublishedDate -Descending `
