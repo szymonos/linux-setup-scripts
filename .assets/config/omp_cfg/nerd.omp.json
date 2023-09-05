@@ -98,7 +98,7 @@
             "parse_kubeconfig": true
           },
           "style": "plain",
-          "template": "ﴱ {{ .Context }}{{ if and (.Namespace) (ne .Namespace \"default\") }}::<i>{{ .Namespace }}</i>{{ end }}",
+          "template": "⎈ {{ .Context }}{{ if and (.Namespace) (ne .Namespace \"default\") }}::<i>{{ .Namespace }}</i>{{ end }}",
           "type": "kubectl"
         }
       ],
