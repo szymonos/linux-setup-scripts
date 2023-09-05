@@ -11,8 +11,10 @@ Name of the nerd font to be installed.
 Specified font extension.
 
 .EXAMPLE
-$Font = 'RobotoMono'
+$Font = 'FiraCode'
 .assets/scripts/nerd_fonts_install.ps1 $Font
+# :check installed fonts
+[Drawing.Text.InstalledFontCollection]::new().Families | Select-String $Font
 #>
 [CmdletBinding()]
 param (
