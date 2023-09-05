@@ -291,7 +291,7 @@ process {
         # *install PowerShell modules from ps-modules repository
         if ($chk.shell) {
             # instantiate psmodules generic lists
-            $modules = [Collections.Generic.HashSet[String]]::new()
+            $modules = [System.Collections.Generic.HashSet[String]]::new()
             $PSModules.ForEach({ $modules.Add($_) | Out-Null })
 
             # determine modules to install
