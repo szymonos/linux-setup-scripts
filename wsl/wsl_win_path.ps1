@@ -15,6 +15,11 @@ param (
     [bool]$DisableWinPath = $true
 )
 $ErrorActionPreference = 'Stop'
+# check if the script is running on Windows
+if ($env:OS -notmatch 'windows') {
+    Write-Warning 'Run the script on Windows!'
+    exit 0
+}
 
 # command for removing Windows paths
 $REMOVE_CMD = @'
