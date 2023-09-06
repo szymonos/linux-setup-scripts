@@ -1,3 +1,4 @@
+#Requires -PSEdition Core
 <#
 .SYNOPSIS
 Copy files between WSL distributions.
@@ -32,6 +33,12 @@ param (
 
     [switch]$Root
 )
+
+# check if the script is running on Windows
+if (-not $IsWindows) {
+    Write-Warning 'Run the script on Windows!'
+    exit 0
+}
 
 # *calculate source and destination distros and paths
 $srcDistro, $srcPath = $Source.Split(':')
