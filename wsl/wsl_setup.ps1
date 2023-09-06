@@ -317,14 +317,18 @@ process {
                     git switch main --force --quiet 2>$null
                     git reset --hard --quiet origin/main
                 } else {
-                    $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
                     Write-Warning "Another `"$targetRepo`" repository exists."
                     $modules = [System.Collections.Generic.HashSet[string]]::new()
                 }
                 Pop-Location
             } catch {
+                $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
                 # clone target repository
                 git clone $remote "../$targetRepo"
+                if (-not $?) {
+                    Write-Warning "Cloning of the `"$targetRepo`" repository failed."
+                    $modules = [System.Collections.Generic.HashSet[string]]::new()
+                }
             }
             Write-Host 'installing ps-modules...' -ForegroundColor Cyan
             if ('do-common' -in $modules) {
