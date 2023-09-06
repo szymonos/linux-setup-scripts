@@ -17,6 +17,12 @@ param (
     [switch]$StopDockerDesktop
 )
 
+# check if the script is running on Windows
+if ($env:OS -notmatch 'windows') {
+    Write-Warning 'Run the script on Windows!'
+    exit 0
+}
+
 if ($StopDockerDesktop) {
     Get-Process docker* | Stop-Process -Force
 }

@@ -31,6 +31,12 @@ param (
 
 begin {
     $ErrorActionPreference = 'Stop'
+    # check if the script is running on Windows
+    if ($env:OS -notmatch 'windows') {
+        Write-Warning 'Run the script on Windows!'
+        exit 0
+    }
+
     if (-not $NewName) { $NewName = $Distro }
 
     # create destination path if it doesn't exist

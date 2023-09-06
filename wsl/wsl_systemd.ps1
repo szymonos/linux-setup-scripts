@@ -28,6 +28,11 @@ param (
 
 begin {
     $ErrorActionPreference = 'Stop'
+    # check if the script is running on Windows
+    if ($env:OS -notmatch 'windows') {
+        Write-Warning 'Run the script on Windows!'
+        exit 0
+    }
 
     # check if distro exist
     [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `

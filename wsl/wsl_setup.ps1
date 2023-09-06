@@ -114,6 +114,11 @@ param (
 
 begin {
     $ErrorActionPreference = 'Stop'
+    # check if the script is running on Windows
+    if (-not $IsWindows) {
+        Write-Warning 'Run the script on Windows!'
+        exit 0
+    }
 
     # *get list of distros
     $lxss = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
