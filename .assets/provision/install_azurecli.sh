@@ -47,7 +47,7 @@ conda activate azurecli
 pip install -U azure-cli
 conda clean --yes --all
 
-# add self-signed certificates to azurecli certify
+# add certificates to azurecli certify
 if $fix_certify; then
   .assets/provision/fix_azcli_certs.sh
 fi

@@ -24,7 +24,7 @@ try {
     Write-Error $_
 }
 
-# intercept self signed certificates from chain
+# intercept certificates from chain
 $chain = .assets/tools/cert_chain_pem.ps1 -Uri 'gems.hashicorp.com'
 
 # build cacert.pem with all intercepted certificates

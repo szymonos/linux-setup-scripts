@@ -60,7 +60,7 @@ else
 fi
 
 #region fix conda certifi certs
-# add self-signed certificates to conda base certify
+# add certificates to conda base certify
 if $fix_certify; then
   conda_init
   conda activate base
