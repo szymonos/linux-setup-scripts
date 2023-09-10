@@ -41,7 +41,7 @@ Default: automatically detects based on the system theme.
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER AddCertificate
-Intercept and add self-signed certificates from chain into selected distro.
+Intercept and add certificates from chain into selected distro.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
 
