@@ -18,7 +18,7 @@ $PSStyle.FileInfo.Directory = "$($PSStyle.Bold)$($PSStyle.Foreground.Blue)"
 Set-PSReadLineOption -EditMode Emacs
 Set-PSReadLineOption -PredictionSource History -PredictionViewStyle ListView
 Set-PSReadLineOption -MaximumHistoryCount 16384 -HistoryNoDuplicates
-Set-PSReadLineOption -AddToHistoryHandler { param([string]$line) return $line.Length -gt 3 }
+Set-PSReadLineOption -AddToHistoryHandler { param([string]$line) return $line.Length -gt 1 }
 Set-PSReadLineKeyHandler -Chord Tab -Function MenuComplete
 Set-PSReadLineKeyHandler -Chord F2 -Function SwitchPredictionView
 Set-PSReadLineKeyHandler -Chord Shift+Tab -Function AcceptSuggestion
