@@ -9,7 +9,7 @@ if ($env:DISTRO_FAMILY -eq 'alpine') {
 }
 function exa { & /usr/bin/env exa -g --color=auto --time-style=long-iso --group-directories-first @args }
 function ll { exa -lah @args }
-function grep { $input | & /usr/bin/env grep --color=auto @args }
+function grep { $input | & /usr/bin/env grep --ignore-case --color=auto @args }
 function less { $input | & /usr/bin/env less -FRXc @args }
 function l { ls -1 @args }
 function lsa { ls -la @args }
@@ -17,6 +17,7 @@ function mkdir { & /usr/bin/env mkdir -pv @args }
 function mv { & /usr/bin/env mv -iv @args }
 function nano { & /usr/bin/env nano -W @args }
 function p { & /usr/bin/env pwsh -NoProfileLoadTime @args }
+function rg { $input | & /usr/bin/env rg --ignore-case @args }
 function tree { & /usr/bin/env tree -C @args }
 function wget { & /usr/bin/env wget -c @args }
 
