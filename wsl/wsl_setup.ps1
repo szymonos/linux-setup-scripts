@@ -395,8 +395,8 @@ process {
 
         # *check ssh keys and create if necessary
         if (-not (Test-Path "$HOME/.ssh/id_*")) {
-            ssh-keygen -t ecdsa -b 521 -f "$HOME/.ssh/id_ecdsa" -q -N ''
-            $idPub = Get-ChildItem "$HOME/.ssh/id_ecdsa.pub" | Get-Content
+            ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -q -N ''
+            $idPub = Get-ChildItem "$HOME/.ssh/id_ed25519.pub" | Get-Content
             if ($idPub) {
                 $msg = [string]::Join("`n",
                     "`e[97mCopy below public key and add to SSH keys on https://github.com/settings/keys.",
