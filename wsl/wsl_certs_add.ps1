@@ -82,7 +82,15 @@ process {
     foreach ($cert in $chain) {
         $crtFile = "$($cert.Thumbprint).crt"
         Write-Host "- $crtFile : $($cert.Label)"
-        [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $cert.PEM.Trim())
+        $crtContent = [string]::Join("`n",
+            "# Issuer: $($cert.Issuer)",
+            "# Subject: $($cert.Subject)",
+            "# Label: $($cert.Label)",
+            "# Serial: $($cert.SerialNumber)",
+            "# SHA1 Fingerprint: $($cert.Thumbprint)",
+            $cert.PEM
+        ).Trim()
+        [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $crtContent)
     }
 
     # copy certificates to specified distro and install them
