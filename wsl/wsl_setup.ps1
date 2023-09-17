@@ -119,6 +119,14 @@ begin {
         Write-Warning 'Run the script on Windows!'
         exit 0
     }
+    # check if repository is up to date
+    git fetch
+    $remote = "$(git remote)/$(git branch --show-current)"
+    if ((git rev-parse HEAD) -ne (git rev-parse $remote)) {
+        Write-Warning "Current branch is behind remote, performing hard reset.`n`t Run the script again!`n"
+        git reset --hard $remote
+        exit 0
+    }
 
     # *get list of distros
     $lxss = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
@@ -370,24 +378,41 @@ process {
         # *setup git config
         $builder = [System.Text.StringBuilder]::new()
         # set up git author identity
-        $gitConfig = git config --list --global 2>$null | Select-String '^user\b' -Raw
-        if ($gitConfig) {
-            foreach ($cfg in $gitConfig) {
-                $setting, $value = $cfg.Split('=')
-                $builder.AppendLine("git config --global $setting '$value'") | Out-Null
+        if (-not ($user = git config --global --get user.name)) {
+            $user = try {
+                Get-LocalUser -Name $env:USERNAME | Select-Object -ExpandProperty FullName
+            } catch {
+                try {
+                    [string[]]$userArr = ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").displayName.Split(',').Trim()
+                    if ($userArr.Count -gt 1) { [array]::Reverse($userArr) }
+                    "$userArr"
+                } catch {
+                    ''
+                }
             }
-        } else {
-            Write-Warning 'Git author identity unknown.'
-            do {
+            while (-not $user) {
                 $user = Read-Host -Prompt 'provide git user name'
-            } until ($user)
-            $builder.AppendLine("git config --global user.name '$user'") | Out-Null
-            do {
-                $email = Read-Host -Prompt 'provide git email'
-            } until ($email -match '\S+@\S+')
-            $builder.AppendLine("git config --global user.email '$email'") | Out-Null
+            }
+            git config --global user.name "$user"
+        }
+        if (-not ($email = git config --global --get user.email)) {
+            $email = try {
+                (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
+            } catch {
+                try {
+                    ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
+                } catch {
+                    ''
+                }
+            }
+            while ($email -notmatch '.+@.+') {
+                $email = Read-Host -Prompt 'provide git user email'
+            }
+            git config --global user.email "$email"
         }
         # setup eol/crlf settings
+        $builder.AppendLine("git config --global user.name '$user'") | Out-Null
+        $builder.AppendLine("git config --global user.email '$email'") | Out-Null
         $builder.AppendLine('git config --global core.eol lf') | Out-Null
         $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
         $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
@@ -395,11 +420,11 @@ process {
 
         # *check ssh keys and create if necessary
         if (-not (Test-Path "$HOME/.ssh/id_*")) {
-            ssh-keygen -t ecdsa -b 521 -f "$HOME/.ssh/id_ecdsa" -q -N ''
-            $idPub = Get-ChildItem "$HOME/.ssh/id_ecdsa.pub" | Get-Content
+            ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -q -N ''
+            $idPub = Get-ChildItem "$HOME/.ssh/id_ed25519.pub" | Get-Content
             if ($idPub) {
                 $msg = [string]::Join("`n",
-                    "`e[97mCopy below public key and add to SSH keys on https://github.com/settings/keys.",
+                    "`e[97mUse the following values to add new SSH Key on https://github.com/settings/ssh/new.",
                     "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
                     "`n`e[1;96mKey type`e[30m`n<Authentication Key>",
                     "`n`e[1;96mKey`e[0m`n$idPub",
