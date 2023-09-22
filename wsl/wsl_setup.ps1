@@ -415,6 +415,7 @@ process {
         $builder.AppendLine("git config --global user.email '$email'") | Out-Null
         $builder.AppendLine('git config --global core.eol lf') | Out-Null
         $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
+        $builder.AppendLine('git config --global http.postBuffer 1048576000') | Out-Null
         $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
         wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
 
