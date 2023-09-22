@@ -45,6 +45,16 @@ begin {
         exit
     }
 
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/.."
+    # clone/refresh szymonos/ps-modules repository
+    if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
+        # import the do-common module for certificate functions
+        Import-Module '../ps-modules/modules/do-common'
+    } else {
+        Write-Error 'Cloning ps-modules repository failed.'
+    }
+
     # determine update ca parameters depending on distro
     $sysId = wsl.exe -d $Distro --exec sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release
     switch -Regex ($sysId) {
@@ -77,27 +87,31 @@ begin {
 }
 
 process {
-    $chain = .assets/tools/cert_chain_pem.ps1 $Uri
-    Write-Host 'Intercepted certificates' -ForegroundColor DarkGreen
-    foreach ($cert in $chain) {
-        $crtFile = "$($cert.Thumbprint).crt"
-        Write-Host "- $crtFile : $($cert.Label)"
-        $crtContent = [string]::Join("`n",
-            "# Issuer: $($cert.Issuer)",
-            "# Subject: $($cert.Subject)",
-            "# Label: $($cert.Label)",
-            "# Serial: $($cert.SerialNumber)",
-            "# SHA1 Fingerprint: $($cert.Thumbprint)",
-            $cert.PEM
-        ).Trim()
-        [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $crtContent)
-    }
+    $chain = Get-Certificate -Uri 'www.google.com' -BuildChain
+    # check if root certificate from chain is in the cert store
+    $rootCrts = Get-ChildItem Cert:\LocalMachine\Root
+    if ($chain[-1].Thumbprint -in $rootCrts.Thumbprint) {
+        Write-Host 'Intercepted certificates' -ForegroundColor DarkGreen
+        for ($i = $chain.Count - 1; $i -gt 0; $i--) {
+            $cert = $chain[$i]
 
-    # copy certificates to specified distro and install them
-    $cmd = "mkdir -p $($crt.path) && install -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmd)"
-    wsl -d $Distro -u root --exec bash -c $cmd
+            # calculate destination certificate file name
+            $crtFile = "$($cert.Thumbprint).crt"
+            Write-Host "- $crtFile : $([regex]::Match($cert.Subject, '(?<=CN=)(.)+?(?=,|$)').Value)"
+            # calculate certificate Common Name
+            $pem = $cert | ConvertTo-PEM -AddHeader
+            [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $pem)
+        }
+
+        # copy certificates to specified distro and install them
+        $cmd = "mkdir -p $($crt.path) && install -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmd)"
+        wsl -d $Distro -u root --exec bash -c $cmd
+    } else {
+        Write-Error "Root certificate from TLS chain is not trusted ($($certificate.Subject))."
+    }
 }
 
 end {
     Remove-Item $tmpFolder -Recurse
+    Pop-Location
 }

@@ -32,9 +32,6 @@ Specify to install oh-my-posh prompt theme engine and name of the theme to be us
 You can specify one of the three included profiles: base, powerline, nerd,
 or use any theme available on the page: https://ohmyposh.dev/docs/themes/
 Default: 'base'
-.PARAMETER PSModules
-List of PowerShell modules from ps-modules repository to be installed.
-Default: @('do-common', 'do-linux')
 .PARAMETER GtkTheme
 Specify gtk theme for wslg. Available values: light, dark.
 Default: automatically detects based on the system theme.
@@ -83,14 +80,6 @@ param (
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateNotNullOrEmpty()]
     [string]$OmpTheme,
-
-    [Alias('m')]
-    [Parameter(ParameterSetName = 'Update')]
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('do-az', 'do-common', 'do-linux') }) -notcontains $false },
-        ErrorMessage = 'Wrong modules provided. Valid values: do-az do-common do-linux')]
-    [string[]]$PSModules = @('do-common', 'do-linux'),
 
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
@@ -305,10 +294,15 @@ process {
         }
         # *install PowerShell modules from ps-modules repository
         if ($chk.shell) {
+            if (-not $AddCertificate) {
+                # clone/refresh szymonos/ps-modules repository
+                $cloned = .assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules'
+                if (-not $cloned) {
+                    Write-Error 'Cloning ps-modules repository failed.'
+                }
+            }
             # instantiate psmodules generic lists
-            $modules = [System.Collections.Generic.HashSet[String]]::new()
-            $PSModules.ForEach({ $modules.Add($_) | Out-Null })
-
+            $modules = [System.Collections.Generic.HashSet[String]]::new([string[]]@('do-common', 'do-linux'))
             # determine modules to install
             if ('az' -in $scopes) {
                 $modules.Add('do-az') | Out-Null
@@ -321,39 +315,15 @@ process {
                 Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
             }
 
-            $targetRepo = 'ps-modules'
-            # determine if target repository exists and clone if necessary
-            $getOrigin = { git config --get remote.origin.url }
-            try {
-                Push-Location "../$targetRepo"
-                if ((Invoke-Command $getOrigin) -match "github\.com[:/]szymonos/$targetRepo\b") {
-                    # refresh target repository
-                    git fetch --prune --quiet
-                    git switch main --force --quiet 2>$null
-                    git reset --hard --quiet origin/main
-                } else {
-                    Write-Warning "Another `"$targetRepo`" repository exists."
-                    $modules = [System.Collections.Generic.HashSet[string]]::new()
-                }
-                Pop-Location
-            } catch {
-                $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
-                # clone target repository
-                git clone $remote "../$targetRepo"
-                if (-not $?) {
-                    Write-Warning "Cloning of the `"$targetRepo`" repository failed."
-                    $modules = [System.Collections.Generic.HashSet[string]]::new()
-                }
-            }
             Write-Host 'installing ps-modules...' -ForegroundColor Cyan
             if ('do-common' -in $modules) {
                 Write-Host "`e[3mAllUsers`e[23m    : do-common" -ForegroundColor DarkGreen
-                wsl.exe --distribution $Distro --user root --exec ../$targetRepo/module_manage.ps1 'do-common' -CleanUp
+                wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
                 $modules.Remove('do-common') | Out-Null
             }
             if ($modules.Count -gt 0) {
                 Write-Host "`e[3mCurrentUser`e[23m : $modules" -ForegroundColor DarkGreen
-                $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../$targetRepo/module_manage.ps1 -CleanUp"
+                $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
             }
         }
