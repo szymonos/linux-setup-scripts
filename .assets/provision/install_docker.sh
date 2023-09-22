@@ -37,7 +37,7 @@ fedora)
   if [ ! -f /etc/yum.repos.d/docker-ce.repo ]; then
     dnf config-manager --add-repo 'https://download.docker.com/linux/fedora/docker-ce.repo'
   fi
-  dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
@@ -51,7 +51,7 @@ debian | ubuntu)
       "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$SYS_ID \
       "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
   fi
-  apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
   ;;
 opensuse)
   zypper in -y docker containerd docker-compose
