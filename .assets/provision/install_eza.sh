@@ -13,7 +13,7 @@ SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p
 APP='eza'
 case $SYS_ID in
 alpine)
-  [ -f /usr/bin/eza ] && exit 0 || true
+  true
   # TODO replace after eza will be added to Alpine repos
   # apk -e info $APP &>/dev/null && exit 0 || true
   ;;
@@ -21,7 +21,7 @@ arch)
   pacman -Qqe $APP &>/dev/null && exit 0 || true
   ;;
 fedora)
-  [ -f /usr/bin/eza ] && exit 0 || true
+  true
   # TODO replace after eza will be added to Fedora repos
   # rpm -q $APP &>/dev/null && exit 0 || true
   ;;
