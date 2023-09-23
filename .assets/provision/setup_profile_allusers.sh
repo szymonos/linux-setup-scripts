@@ -27,13 +27,13 @@ if [ -d .assets/config/bash_cfg ]; then
   sudo -u $user mkdir -p "$CFG_PATH"
   cp -f .assets/config/bash_cfg/* "$CFG_PATH"
 fi
-# *modify exa alias
+# *modify eza alias
 if [ -f "$CFG_PATH/aliases.sh" ]; then
   # *set nerd fonts if oh-my-posh uses them
   exa_param=''
-  exa --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
+  eza --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
   grep -Fqw '' ""$OMP_PATH/theme.omp.json"" 2>/dev/null && exa_param+='--icons ' || true
-  sed -i "s/exa -g /exa -g $exa_param/" "$CFG_PATH/aliases.sh"
+  sed -i "s/eza -g /eza -g $exa_param/" "$CFG_PATH/aliases.sh"
 fi
 
 # *Copy global profiles

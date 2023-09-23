@@ -15,20 +15,7 @@ alpine)
   exit 0
   ;;
 arch)
-  if pacman -Qqe paru &>/dev/null; then
-    user=${1:-$(id -un 1000 2>/dev/null)}
-    if ! sudo -u $user true 2>/dev/null; then
-      if [ -n "$user" ]; then
-        printf "\e[31;1mUser does not exist ($user).\e[0m\n"
-      else
-        printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
-      fi
-      exit 1
-    fi
-    sudo -u $user paru -Sy --needed --noconfirm docker
-  else
-    printf '\e[33;1mWarning: paru not installed.\e[0m\n'
-  fi
+  pacman -Sy --needed --noconfirm docker docker-compose
   ;;
 fedora)
   if rpm -q docker &>/dev/null; then
@@ -37,7 +24,7 @@ fedora)
   if [ ! -f /etc/yum.repos.d/docker-ce.repo ]; then
     dnf config-manager --add-repo 'https://download.docker.com/linux/fedora/docker-ce.repo'
   fi
-  dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
@@ -51,7 +38,7 @@ debian | ubuntu)
       "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$SYS_ID \
       "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
   fi
-  apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
   ;;
 opensuse)
   zypper in -y docker containerd docker-compose

@@ -14,25 +14,11 @@ begin {
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
 
-    $targetRepo = 'powershell-scripts'
-    # determine if target repository exists and clone if necessary
-    $getOrigin = { git config --get remote.origin.url }
-    try {
-        Set-Location "../$targetRepo"
-        if ((Invoke-Command $getOrigin) -match "github\.com[:/]szymonos/$targetRepo\b") {
-            # refresh target repository
-            git fetch --prune --quiet
-            git switch main --force --quiet
-            git reset --hard --quiet origin/main
-        } else {
-            Write-Warning "Another `"$targetRepo`" repository exists."
-            exit 1
-        }
-    } catch {
-        $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
-        # clone target repository
-        git clone $remote "../$targetRepo"
-        Set-Location "../$targetRepo"
+    # clone/refresh szymonos/powershell-scripts repository
+    if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/powershell-scripts') {
+        Set-Location ../powershell-scripts
+    } else {
+        Write-Error 'Cloning ps-modules repository failed.'
     }
 }
 

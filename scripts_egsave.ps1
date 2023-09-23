@@ -17,27 +17,12 @@ begin {
     try {
         Get-Command Invoke-ExampleScriptSave -CommandType Function | Out-Null
     } catch {
-        $targetRepo = 'ps-modules'
-        # determine if target repository exists and clone if necessary
-        $getOrigin = { git config --get remote.origin.url }
-        try {
-            Push-Location "../$targetRepo"
-            if ((Invoke-Command $getOrigin) -match "github\.com[:/]szymonos/$targetRepo\b") {
-                # refresh target repository
-                git fetch --prune --quiet
-                git switch main --force --quiet
-                git reset --hard --quiet origin/main
-            } else {
-                Write-Warning "Another `"$targetRepo`" repository exists."
-                exit 1
-            }
-            Pop-Location
-        } catch {
-            $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
-            # clone target repository
-            git clone $remote "../$targetRepo"
+        # clone/refresh szymonos/ps-modules repository
+        if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
+            Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common')
+        } else {
+            Write-Error 'Cloning ps-modules repository failed.'
         }
-        Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common/do-common.psd1')
     }
 }
 
