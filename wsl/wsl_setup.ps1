@@ -294,6 +294,7 @@ process {
         }
         # *install PowerShell modules from ps-modules repository
         if ($chk.shell) {
+            # ps-modules repo is being cloned on adding certificates
             if (-not $AddCertificate) {
                 # clone/refresh szymonos/ps-modules repository
                 $cloned = .assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules'
@@ -301,31 +302,24 @@ process {
                     Write-Error 'Cloning ps-modules repository failed.'
                 }
             }
+            Write-Host 'installing ps-modules...' -ForegroundColor Cyan
+            Write-Host "`e[3mAllUsers`e[23m    : do-common" -ForegroundColor DarkGreen
+            wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+
             # instantiate psmodules generic lists
-            $modules = [System.Collections.Generic.HashSet[String]]::new([string[]]@('do-common', 'do-linux'))
+            $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
             # determine modules to install
             if ('az' -in $scopes) {
                 $modules.Add('do-az') | Out-Null
                 Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
             }
-            $modules.Add('aliases-git') | Out-Null # git is always installed
-            Write-Verbose "Added `e[3maliases-git`e[23m to be installed from ps-modules."
             if ($chk.k8s_base) {
                 $modules.Add('aliases-kubectl') | Out-Null
                 Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
             }
-
-            Write-Host 'installing ps-modules...' -ForegroundColor Cyan
-            if ('do-common' -in $modules) {
-                Write-Host "`e[3mAllUsers`e[23m    : do-common" -ForegroundColor DarkGreen
-                wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
-                $modules.Remove('do-common') | Out-Null
-            }
-            if ($modules.Count -gt 0) {
-                Write-Host "`e[3mCurrentUser`e[23m : $modules" -ForegroundColor DarkGreen
-                $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
-                wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
-            }
+            Write-Host "`e[3mCurrentUser`e[23m : $modules" -ForegroundColor DarkGreen
+            $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
+            wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
         }
         # *set gtk theme for wslg
         if ($chk.wslg) {
@@ -385,8 +379,11 @@ process {
         $builder.AppendLine("git config --global user.email '$email'") | Out-Null
         $builder.AppendLine('git config --global core.eol lf') | Out-Null
         $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
-        $builder.AppendLine('git config --global http.postBuffer 1048576000') | Out-Null
         $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
+        if ($AddCertificate) {
+            # a guess, that if certs are being installed, you're behind MITM proxy without chunked transfer encoding
+            $builder.AppendLine('git config --global http.postBuffer 1048576000') | Out-Null
+        }
         wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
 
         # *check ssh keys and create if necessary

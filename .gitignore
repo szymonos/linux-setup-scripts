@@ -12,6 +12,7 @@
 /.private/
 /.tmp/
 /console/
+/tmp.*/
 
 # vagrant
 **/.vagrant/

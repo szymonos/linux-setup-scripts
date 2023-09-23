@@ -15,8 +15,7 @@ $result = .assets/tools/gh_repo_clone.ps1 -r $OrgRepo
 param (
     [Alias('r')]
     [Parameter(Mandatory, Position = 0, ValueFromPipeline)]
-    [ValidateScript({ $_ -match '^[\w-\.]+/[\w-\.]+$' },
-        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
+    [ValidateScript({ $_ -match '^[\w-\.]+/[\w-\.]+$' })]
     [string]$OrgRepo
 )
 
@@ -49,7 +48,7 @@ process {
         # determine GitHub protocol used (https/ssl)
         $gitProtocol = $(Invoke-Command $getOrigin) -replace '(^.+github\.com[:/]).*', '$1'
         # clone target repository
-        git clone "${gitProtocol}$org/$repo" "../$repo"
+        git clone "${gitProtocol}$org/$repo" "../$repo" --quiet
         # determine state of cloning the repository
         $cloned = if ($?) {
             $true
@@ -61,6 +60,6 @@ process {
 }
 
 end {
-    # return status if repository cloned successfully
+    # return status if repository has been cloned successfully
     return $cloned
 }
