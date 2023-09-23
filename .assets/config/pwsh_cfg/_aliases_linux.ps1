@@ -7,8 +7,8 @@ if ($env:DISTRO_FAMILY -eq 'alpine') {
     function ip { $input | & /usr/bin/env ip --color=auto @args }
     function ls { & /usr/bin/env ls -h --color=auto --group-directories-first --time-style=long-iso @args }
 }
-function exa { & /usr/bin/env exa -g --color=auto --time-style=long-iso --group-directories-first @args }
-function ll { exa -lah @args }
+function eza { & /usr/bin/env eza -g --color=auto --time-style=long-iso --group-directories-first @args }
+function ll { eza -lah @args }
 function grep { $input | & /usr/bin/env grep --ignore-case --color=auto @args }
 function less { $input | & /usr/bin/env less -FRXc @args }
 function l { ls -1 @args }

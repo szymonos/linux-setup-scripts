@@ -118,7 +118,7 @@ for sc in ${scope_arr[@]}; do
   shell)
     printf "\e[96minstalling shell packages...\e[0m\n"
     sudo .assets/provision/install_pwsh.sh >/dev/null
-    sudo .assets/provision/install_exa.sh >/dev/null
+    sudo .assets/provision/install_eza.sh >/dev/null
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     printf "\e[96msetting up profile for all users...\e[0m\n"

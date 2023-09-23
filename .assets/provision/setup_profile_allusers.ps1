@@ -47,12 +47,12 @@ begin {
 }
 
 process {
-    # *modify exa alias
+    # *modify eza alias
     if (Test-Path $CFG_PATH/_aliases_linux.ps1) {
-        $exa_git = exa --version | Select-String '+git' -SimpleMatch -Quiet
+        $exa_git = eza --version | Select-String '+git' -SimpleMatch -Quiet
         $exa_nerd = Select-String '' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet
         $exa_param = ($exa_git ? '--git ' : '') + ($exa_nerd ? '--icons ' : '')
-        $content = [IO.File]::ReadAllLines("$CFG_PATH/_aliases_linux.ps1").Replace('exa -g ', "exa -g $exa_param")
+        $content = [IO.File]::ReadAllLines("$CFG_PATH/_aliases_linux.ps1").Replace('eza -g ', "eza -g $exa_param")
         [IO.File]::WriteAllLines("$CFG_PATH/_aliases_linux.ps1", $content)
     }
 
