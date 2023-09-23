@@ -15,20 +15,7 @@ alpine)
   exit 0
   ;;
 arch)
-  if pacman -Qqe paru &>/dev/null; then
-    user=${1:-$(id -un 1000 2>/dev/null)}
-    if ! sudo -u $user true 2>/dev/null; then
-      if [ -n "$user" ]; then
-        printf "\e[31;1mUser does not exist ($user).\e[0m\n"
-      else
-        printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
-      fi
-      exit 1
-    fi
-    sudo -u $user paru -Sy --needed --noconfirm docker
-  else
-    printf '\e[33;1mWarning: paru not installed.\e[0m\n'
-  fi
+  pacman -Sy --needed --noconfirm docker docker-compose
   ;;
 fedora)
   if rpm -q docker &>/dev/null; then
