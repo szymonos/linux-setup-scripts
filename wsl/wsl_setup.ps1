@@ -120,7 +120,7 @@ begin {
     # *get list of distros
     $lxss = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
     | ForEach-Object { $_ | Get-ItemProperty } `
-    | Where-Object { $_.DistributionName -notmatch '^docker-desktop' } `
+    | Where-Object { $_.DistributionName -notmatch '^docker-desktop' -and $_.Flags -ge 8 } `
     | Select-Object DistributionName, DefaultUid, @{ N = 'Version'; E = { $_.Flags -lt 8 ? 1 : 2 } }
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
         if ($Distro -in $lxss.DistributionName) {
