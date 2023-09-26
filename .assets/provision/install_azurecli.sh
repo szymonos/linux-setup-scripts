@@ -44,10 +44,9 @@ if ! conda env list | grep -qw '^azurecli'; then
   if uname -r 2>&1 | grep -qw 'WSL2'; then
     conda create --name azurecli --yes python=3.10 pip
   else
-    # https://github.com/microsoft/WSL/issues/4020
+    # https://github.com/conda/conda/issues/12051
     conda create --name azurecli --yes python=3.10 pip numpy-base
   fi
-
 fi
 conda activate azurecli
 pip install -U azure-cli
