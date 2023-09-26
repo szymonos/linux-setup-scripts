@@ -48,11 +48,15 @@ begin {
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
     # clone/refresh szymonos/ps-modules repository
-    if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
-        # import the do-common module for certificate functions
-        Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common')
-    } else {
-        Write-Error 'Cloning ps-modules repository failed.'
+    try {
+        Import-Module do-common -MinimumVersion 0.27
+    } catch {
+        if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
+            # import the do-common module for certificate functions
+            Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common')
+        } else {
+            Write-Error 'Cloning ps-modules repository failed.'
+        }
     }
 
     # determine update ca parameters depending on distro
