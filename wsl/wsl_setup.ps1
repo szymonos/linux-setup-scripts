@@ -294,13 +294,11 @@ process {
         }
         # *install PowerShell modules from ps-modules repository
         if ($chk.shell) {
-            # ps-modules repo is being cloned/refreshed on adding certificates
-            if (-not $AddCertificate) {
-                if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
-                    Write-Verbose 'ps-modules repository cloned successfully.'
-                } else {
-                    Write-Error 'Cloning ps-modules repository failed.'
-                }
+            # clone/refresh szymonos/ps-modules repository
+            if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
+                Write-Verbose 'ps-modules repository cloned successfully.'
+            } else {
+                Write-Error 'Cloning ps-modules repository failed.'
             }
             Write-Host 'installing ps-modules...' -ForegroundColor Cyan
             Write-Host "`e[3mAllUsers`e[23m    : do-common" -ForegroundColor DarkGreen
