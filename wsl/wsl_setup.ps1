@@ -5,10 +5,10 @@ Setting up WSL distro(s).
 .DESCRIPTION
 You can use the script for:
 - installing base packages and setting up bash and pwsh shells,
-- installing docker-ce locally in WSL,
-- installing podman with distrobox,
+- installing docker-ce locally inside WSL distro (WSL2 only),
+- installing podman with distrobox (WSL2 only),
 - installing tools for interacting with kubernetes,
-- setting gtk theme in WSLg,
+- setting gtk theme in WSLg (WSL2 only),
 - installing Python environment management tools: venv and miniconda,
 - cloning GH repositories and setting up VSCode workspace,
 - updating packages in all existing WSL distros.
@@ -19,19 +19,17 @@ Name of the WSL distro to set up. If not specified, script will update all exist
 .PARAMETER Scope
 List of installation scopes. Valid values:
 - az: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.
-- distrobox: podman and distrobox
-- docker: docker, containerd buildx docker-compose
-- k8s_base: kubectl, helm, minikube, k3d, k9s, yq
-- k8s_ext: flux, kubeseal, kustomize, argorollouts-cli
+- distrobox: podman and distrobox (WSL2 only)
+- docker: docker, containerd buildx docker-compose (WSL2 only)
+- k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize
+- k8s_ext: minikube, k3d, argorollouts-cli (WSL2 only)
 - python: pip, venv, miniconda
 - rice: btop, cmatrix, cowsay, fastfetch
-- shell: bat, exa, oh-my-posh, pwsh, ripgrep
-Default: @('shell').
+- shell: bat, exa, oh-my-posh, pwsh, ripgrep, yq
 .PARAMETER OmpTheme
 Specify to install oh-my-posh prompt theme engine and name of the theme to be used.
 You can specify one of the three included profiles: base, powerline, nerd,
 or use any theme available on the page: https://ohmyposh.dev/docs/themes/
-Default: 'base'
 .PARAMETER GtkTheme
 Specify gtk theme for wslg. Available values: light, dark.
 Default: automatically detects based on the system theme.
@@ -120,8 +118,8 @@ begin {
     # *get list of distros
     $lxss = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
     | ForEach-Object { $_ | Get-ItemProperty } `
-    | Where-Object { $_.DistributionName -notmatch '^docker-desktop' -and $_.Flags -ge 8 } `
-    | Select-Object DistributionName, DefaultUid, @{ N = 'Version'; E = { $_.Flags -lt 8 ? 1 : 2 } }
+    | Where-Object { $_.DistributionName -notmatch '^docker-desktop' } `
+    | Select-Object DistributionName, DefaultUid, @{ Name = 'Version'; Expression = { $_.Flags -lt 8 ? 1 : 2 } }
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
         if ($Distro -in $lxss.DistributionName) {
             $lxss = $lxss.Where({ $_.DistributionName -eq $Distro })
@@ -183,6 +181,12 @@ process {
         if ($chk.omp -or $OmpTheme) {
             @('oh_my_posh', 'shell').ForEach({ $scopes.Add($_) | Out-Null })
         }
+        # remove scopes unavailable in WSL1
+        if ($lx.Version -eq 1) {
+            $scopes.Remove('distrobox') | Out-Null
+            $scopes.Remove('docker') | Out-Null
+            $scopes.Remove('k8s_ext') | Out-Null
+        }
         # separate log for multpiple distros update
         Write-Host "$($Distro -eq $lxss.DistributionName[0] ? '': "`n")" -NoNewline
         # display distro name and installed scopes
@@ -228,17 +232,16 @@ process {
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl && $($chk.k8s_base = $true)
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
                 $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
-                $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
-                $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
-                $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
+                $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
                 continue
             }
             k8s_ext {
                 Write-Host 'installing kubernetes additional packages...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh
-                $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
+                $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
+                $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
                 $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
                 continue
             }
@@ -273,6 +276,7 @@ process {
                 $rel_eza = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_eza.sh $Script:rel_eza
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
+                $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
@@ -320,7 +324,7 @@ process {
             wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
         }
         # *set gtk theme for wslg
-        if ($chk.wslg) {
+        if ($lx.Version -eq 2 -and $chk.wslg) {
             $GTK_THEME = if ($GtkTheme -eq 'light') {
                 $chk.gtkd ? '"Adwaita"' : $null
             } else {
