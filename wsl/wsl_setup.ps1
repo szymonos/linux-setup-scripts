@@ -116,15 +116,41 @@ begin {
     }
 
     # *get list of distros
-    $lxss = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
-    | ForEach-Object { $_ | Get-ItemProperty } `
-    | Where-Object { $_.DistributionName -notmatch '^docker-desktop' } `
-    | Select-Object DistributionName, DefaultUid, @{ Name = 'Version'; Expression = { $_.Flags -lt 8 ? 1 : 2 } }
+    $getWslDistros = {
+        Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
+        | ForEach-Object { $_ | Get-ItemProperty } `
+        | Where-Object { $_.DistributionName -notmatch '^docker-desktop' } `
+        | Select-Object DistributionName, DefaultUid, @{ Name = 'Version'; Expression = { $_.Flags -lt 8 ? 1 : 2 } }
+    }
+    $lxss = Invoke-Command $getWslDistros
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
         if ($Distro -in $lxss.DistributionName) {
             $lxss = $lxss.Where({ $_.DistributionName -eq $Distro })
         } else {
-            Write-Warning "The specified distro does not exist ($Distro)."
+            # get list of online WSL distros
+            $outputEncoding = [Console]::OutputEncoding
+            [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
+            [string[]]$distroList = wsl.exe --list --online | ForEach-Object {
+                if ($startIdx -ge 0) {
+                    $_.Substring($startIdx, $endIdx).TrimEnd()
+                }
+                if ($_ -match 'FRIENDLY NAME$') {
+                    $startIdx = $_.IndexOf('NAME')
+                    $endIdx = $_.IndexOf('FRIENDLY') - 2
+                }
+            }
+            [Console]::OutputEncoding = $outputEncoding
+            # install online distro
+            if ($Distro -in $distroList) {
+                wsl.exe --install --distribution $Distro
+                $lxss = Invoke-Command $getWslDistros | Where-Object $_.DistributionName -EQ $Distro
+                if (-not $lxss) {
+                    Write-Warning 'Script execution halted.'
+                    exit 0
+                }
+            } else {
+                Write-Warning "The specified distro does not exist ($Distro)."
+            }
             exit
         }
     } else {
