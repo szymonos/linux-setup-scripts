@@ -120,20 +120,30 @@ begin {
     }
 
     # *get list of distros
-    $lxss = wsl/wsl_get_distros.ps1
+    $lxss = wsl/wsl_distro_get.ps1 | Where-Object Name -NotMatch '^docker-desktop'
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
         if ($Distro -in $lxss.Name) {
-            $lxss = $lxss.Where({ $_.Name -eq $Distro })
+            $lxss = $lxss | Where-Object Name -EQ $Distro
         } else {
-            $onlineDistros = wsl/wsl_get_distros.ps1 -Online
+            $onlineDistros = wsl/wsl_distro_get.ps1 -Online
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
-                Write-Warning "Specified distribution not found ($Distro). Proceeding to install."
-                Write-Host "Type 'exit' after setting up the user inside WSL distro!" -ForegroundColor Red
-                wsl.exe --install --distribution $Distro
-                $lxss = wsl/wsl_get_distros.ps1 | Where-Object Name -EQ $Distro
-                if (-not $lxss) {
-                    Write-Warning 'Script execution halted.'
+                Write-Host "Specified distribution not found ($Distro). Proceeding to install." -ForegroundColor Cyan
+                $cmd = "wsl.exe --install --distribution $Distro"
+                try {
+                    Get-Service LxssManagerUser*, WSLService | Out-Null
+                    Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
+                    Invoke-Expression $cmd
+                    $lxss = wsl/wsl_distro_get.ps1 -FromRegistry | Where-Object Name -EQ $Distro
+                } catch {
+                    if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
+                        Invoke-Expression $cmd
+                        Write-Host 'WSL service installation finished.'
+                        Write-Host "`nRestart the system and run the script again to install the specified WSL distro!" -ForegroundColor Yellow
+                    } else {
+                        Start-Process pwsh.exe "-NoProfile -Command `"$cmd`"" -Verb RunAs
+                        Write-Host "`nWSL service installing. Wait for the process to finish and restart the system!" -ForegroundColor Yellow
+                    }
                     exit 0
                 }
             } else {

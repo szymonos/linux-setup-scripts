@@ -1,3 +1,4 @@
+#Requires -PSEdition Core
 <#
 .SYNOPSIS
 Fix WSL network configuration for use with VPN interface.
@@ -38,7 +39,7 @@ param (
 begin {
     $ErrorActionPreference = 'Stop'
     # check if the script is running on Windows
-    if ($env:OS -notmatch 'windows') {
+    if (-not $IsWindows) {
         Write-Warning 'Run the script on Windows!'
         exit 0
     }
@@ -47,10 +48,22 @@ begin {
     Push-Location "$PSScriptRoot/.."
 
     # check if distro exist
-    $distros = wsl/wsl_get_distros.ps1 -FromRegistry
+    $distros = wsl/wsl_distro_get.ps1 -FromRegistry
     if ($Distro -notin $distros.Name) {
         Write-Warning "The specified distro does not exist ($Distro)."
         exit 1
+    }
+
+    # clone/refresh szymonos/ps-modules repository
+    try {
+        Import-Module do-common -MinimumVersion 0.28.2
+    } catch {
+        if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
+            # import the do-common module for certificate functions
+            Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common')
+        } else {
+            Write-Error 'Cloning ps-modules repository failed.'
+        }
     }
 
     # determine if resolv.conf should be automatically generated
@@ -82,7 +95,7 @@ process {
             }
         }
     }
-    $wslConfStr = ConvertTo-Cfg $wslConf
+    $wslConfStr = ConvertTo-Cfg -OrderedDict $wslConf -LineFeed
     # save wsl.conf file
     $cmd = "rm -f /etc/wsl.conf || true && echo '$wslConfStr' >/etc/wsl.conf"
     wsl.exe -d $Distro --user root --exec bash -c $cmd
