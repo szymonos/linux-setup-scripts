@@ -106,6 +106,10 @@ begin {
         Write-Warning 'Run the script on Windows!'
         exit 0
     }
+
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/.."
+
     # check if repository is up to date
     git fetch
     $remote = "$(git remote)/$(git branch --show-current)"
@@ -116,47 +120,34 @@ begin {
     }
 
     # *get list of distros
-    $getWslDistros = {
-        Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
-        | ForEach-Object { $_ | Get-ItemProperty } `
-        | Where-Object { $_.DistributionName -notmatch '^docker-desktop' } `
-        | Select-Object DistributionName, DefaultUid, @{ Name = 'Version'; Expression = { $_.Flags -lt 8 ? 1 : 2 } }
-    }
-    $lxss = Invoke-Command $getWslDistros
+    $lxss = wsl/wsl_get_distros.ps1
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
-        if ($Distro -in $lxss.DistributionName) {
-            $lxss = $lxss.Where({ $_.DistributionName -eq $Distro })
+        if ($Distro -in $lxss.Name) {
+            $lxss = $lxss.Where({ $_.Name -eq $Distro })
         } else {
-            # get list of online WSL distros
-            $outputEncoding = [Console]::OutputEncoding
-            [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-            [string[]]$distroList = wsl.exe --list --online | ForEach-Object {
-                if ($startIdx -ge 0) {
-                    $_.Substring($startIdx, $endIdx).TrimEnd()
-                }
-                if ($_ -match 'FRIENDLY NAME$') {
-                    $startIdx = $_.IndexOf('NAME')
-                    $endIdx = $_.IndexOf('FRIENDLY') - 2
-                }
-            }
-            [Console]::OutputEncoding = $outputEncoding
+            $onlineDistros = wsl/wsl_get_distros.ps1 -Online
             # install online distro
-            if ($Distro -in $distroList) {
+            if ($Distro -in $onlineDistros.Name) {
+                Write-Warning "Specified distribution not found ($Distro). Proceeding to install."
+                Write-Host "Type 'exit' after setting up the user inside WSL distro!" -ForegroundColor Red
                 wsl.exe --install --distribution $Distro
-                $lxss = Invoke-Command $getWslDistros | Where-Object $_.DistributionName -EQ $Distro
+                $lxss = wsl/wsl_get_distros.ps1 | Where-Object Name -EQ $Distro
                 if (-not $lxss) {
                     Write-Warning 'Script execution halted.'
                     exit 0
                 }
             } else {
                 Write-Warning "The specified distro does not exist ($Distro)."
+                exit 1
             }
-            exit
         }
-    } else {
+    } elseif ($lxss) {
         Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update." -ForegroundColor White
-        $lxss.DistributionName.ForEach({ Write-Host "- $_" })
+        $lxss.Name.ForEach({ Write-Host "- $_" })
         $lxss.Count ? '' : $null
+    } else {
+        Write-Warning 'No installed WSL distributions found.'
+        exit 1
     }
 
     # determine GTK theme if not provided, based on system theme
@@ -166,14 +157,11 @@ begin {
             -Name 'SystemUsesLightTheme'
         $GtkTheme = $systemUsesLightTheme ? 'light' : 'dark'
     }
-
-    # set location to workspace folder
-    Push-Location "$PSScriptRoot/.."
 }
 
 process {
     foreach ($lx in $lxss) {
-        $Distro = $lx.DistributionName
+        $Distro = $lx.Name
         # *perform distro checks
         $cmd = [string]::Join('',
             '[ -f /usr/bin/pwsh ] && shell="true" || shell="false";',
@@ -214,7 +202,7 @@ process {
             $scopes.Remove('k8s_ext') | Out-Null
         }
         # separate log for multpiple distros update
-        Write-Host "$($Distro -eq $lxss.DistributionName[0] ? '': "`n")" -NoNewline
+        Write-Host "$($Distro -eq $lxss.Name[0] ? '': "`n")" -NoNewline
         # display distro name and installed scopes
         Write-Host "$Distro$($scopes ? " : `e[3m$scopes`e[23m" : '')" -ForegroundColor Magenta
         # *fix WSL networking

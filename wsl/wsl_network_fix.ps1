@@ -43,13 +43,14 @@ begin {
         exit 0
     }
 
-    # *get list of distros
-    [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
-    | ForEach-Object { $_.GetValue('DistributionName') } `
-    | Where-Object { $_ -notmatch '^docker-desktop' }
-    if ($Distro -notin $distros) {
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/.."
+
+    # check if distro exist
+    $distros = wsl/wsl_get_distros.ps1 -FromRegistry
+    if ($Distro -notin $distros.Name) {
         Write-Warning "The specified distro does not exist ($Distro)."
-        exit
+        exit 1
     }
 
     # determine if resolv.conf should be automatically generated
@@ -66,35 +67,24 @@ begin {
 process {
     # *replace wsl.conf
     Write-Host 'replacing wsl.conf' -ForegroundColor DarkGreen
-    if ($wslConf = wsl.exe -d $Distro --exec sh -c 'cat /etc/wsl.conf 2>/dev/null') {
-        # fix $wslConf string
-        $wslConf = [string]::Join("`n", $wslConf).Trim() -replace "`n{3,}", "`n`n"
-
-        if ($wslConf | Select-String '[network]' -SimpleMatch -Quiet) {
-            if ($wslConf | Select-String 'generateResolvConf' -SimpleMatch -Quiet) {
-                $wslConf = $wslConf -replace 'generateResolvConf.+', "generateResolvConf = $genResolv"
-            } else {
-                $wslConf = $wslConf -replace '\[network\]', "[network]`ngenerateResolvConf = $genResolv"
-            }
-        } else {
-            $wslConf = [string]::Join("`n",
-                $wslConf,
-                "`n[network]",
-                "generateResolvConf = $genResolv"
-            )
-        }
+    $wslConf = wsl.exe -d $Distro --exec cat /etc/wsl.conf 2>$null | ConvertFrom-Cfg
+    if ($wslConf) {
+        $wslConf.network = [ordered]@{ generateResolvConf = $genResolv }
     } else {
-        $wslConf = [string]::Join("`n",
-            '[automount]',
-            'enabled = true',
-            'options = "metadata"',
-            'mountFsTab = true',
-            "`n[network]",
-            "generateResolvConf = $genResolv"
-        )
+        $wslConf = [ordered]@{
+            automount = [ordered]@{
+                enabled    = 'true'
+                options    = '"metadata"'
+                mountFsTab = 'true'
+            }
+            network   = [ordered]@{
+                generateResolvConf = $genResolv
+            }
+        }
     }
+    $wslConfStr = ConvertTo-Cfg $wslConf
     # save wsl.conf file
-    $cmd = "rm -f /etc/wsl.conf || true && echo '$wslConf' >/etc/wsl.conf"
+    $cmd = "rm -f /etc/wsl.conf || true && echo '$wslConfStr' >/etc/wsl.conf"
     wsl.exe -d $Distro --user root --exec bash -c $cmd
 
     # *recreate resolv.conf
@@ -154,7 +144,7 @@ process {
 
     # *shutdown specified distro
     if ($Shutdown -or $Revert) {
-        wsl.exe -d $Distro --user root --exec bash -c "chattr -fi /etc/resolv.conf 2>/dev/null"
+        wsl.exe -d $Distro --user root --exec bash -c 'chattr -fi /etc/resolv.conf 2>/dev/null'
         Write-Host "shutting down '$Distro' distro" -ForegroundColor DarkGreen
         wsl.exe --shutdown $Distro
     }

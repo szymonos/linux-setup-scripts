@@ -34,46 +34,47 @@ begin {
         exit 0
     }
 
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/.."
+
     # check if distro exist
-    [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
-    | ForEach-Object { $_.GetValue('DistributionName') } `
-    | Where-Object { $_ -notmatch '^docker-desktop' }
-    if ($Distro -notin $distros) {
+    $distros = wsl/wsl_get_distros.ps1 -FromRegistry
+    if ($Distro -notin $distros.Name) {
         Write-Warning "The specified distro does not exist ($Distro)."
-        exit
+        exit 1
+    }
+
+    # clone/refresh szymonos/ps-modules repository
+    try {
+        Import-Module do-common -MinimumVersion 0.28.1
+    } catch {
+        if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
+            # import the do-common module for certificate functions
+            Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common')
+        } else {
+            Write-Error 'Cloning ps-modules repository failed.'
+        }
     }
 }
 
 process {
-    if ($wslConf = wsl.exe -d $Distro --exec bash -c 'cat /etc/wsl.conf 2>/dev/null') {
-        # fix $wslConf string
-        $wslConf = [string]::Join("`n", $wslConf) -replace "`n{3,}", "`n`n"
-
-        if ($wslConf | Select-String '[boot]' -SimpleMatch -Quiet) {
-            if ($wslConf | Select-String 'systemd' -SimpleMatch -Quiet) {
-                $wslConf = $wslConf -replace 'systemd.+', "systemd=$Systemd"
-            } else {
-                $wslConf = $wslConf -replace '\[boot\]', "[boot]`nsystemd=$Systemd"
-            }
-        } else {
-            $wslConf = [string]::Join("`n",
-                '[boot]',
-                "systemd=$Systemd`n",
-                $wslConf
-            )
-        }
+    $wslConf = wsl.exe -d $Distro --exec cat /etc/wsl.conf 2>$null | ConvertFrom-Cfg
+    if ($wslConf) {
+        $wslConf.boot = [ordered]@{ systemd = $Systemd }
     } else {
-        $wslConf = [string]::Join("`n",
-            '[boot]',
-            "systemd=$Systemd"
-        )
+        $wslConf = [ordered]@{
+            boot = [ordered]@{
+                systemd = $Systemd
+            }
+        }
     }
+    $wslConfStr = ConvertTo-Cfg $wslConf
     # save wsl.conf file
-    $cmd = "rm -f /etc/wsl.conf || true && echo '$wslConf' >/etc/wsl.conf"
+    $cmd = "rm -f /etc/wsl.conf || true && echo '$wslConfStr' >/etc/wsl.conf"
     wsl.exe -d $Distro --user root --exec bash -c $cmd
 }
 
 end {
-    Write-Host "`nwsl.conf" -ForegroundColor Magenta
+    Write-Host "wsl.conf" -ForegroundColor Magenta
     wsl.exe -d $Distro --exec cat /etc/wsl.conf | Write-Host
 }
