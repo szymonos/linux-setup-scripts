@@ -106,6 +106,10 @@ begin {
         Write-Warning 'Run the script on Windows!'
         exit 0
     }
+
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/.."
+
     # check if repository is up to date
     git fetch
     $remote = "$(git remote)/$(git branch --show-current)"
@@ -116,21 +120,44 @@ begin {
     }
 
     # *get list of distros
-    $lxss = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
-    | ForEach-Object { $_ | Get-ItemProperty } `
-    | Where-Object { $_.DistributionName -notmatch '^docker-desktop' } `
-    | Select-Object DistributionName, DefaultUid, @{ Name = 'Version'; Expression = { $_.Flags -lt 8 ? 1 : 2 } }
+    $lxss = wsl/wsl_distro_get.ps1 | Where-Object Name -NotMatch '^docker-desktop'
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
-        if ($Distro -in $lxss.DistributionName) {
-            $lxss = $lxss.Where({ $_.DistributionName -eq $Distro })
+        if ($Distro -in $lxss.Name) {
+            $lxss = $lxss | Where-Object Name -EQ $Distro
         } else {
-            Write-Warning "The specified distro does not exist ($Distro)."
-            exit
+            $onlineDistros = wsl/wsl_distro_get.ps1 -Online
+            # install online distro
+            if ($Distro -in $onlineDistros.Name) {
+                Write-Host "Specified distribution not found ($Distro). Proceeding to install." -ForegroundColor Cyan
+                $cmd = "wsl.exe --install --distribution $Distro"
+                try {
+                    Get-Service LxssManagerUser*, WSLService | Out-Null
+                    Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
+                    Invoke-Expression $cmd
+                    $lxss = wsl/wsl_distro_get.ps1 -FromRegistry | Where-Object Name -EQ $Distro
+                } catch {
+                    if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
+                        Invoke-Expression $cmd
+                        Write-Host 'WSL service installation finished.'
+                        Write-Host "`nRestart the system and run the script again to install the specified WSL distro!" -ForegroundColor Yellow
+                    } else {
+                        Start-Process pwsh.exe "-NoProfile -Command `"$cmd`"" -Verb RunAs
+                        Write-Host "`nWSL service installing. Wait for the process to finish and restart the system!" -ForegroundColor Yellow
+                    }
+                    exit 0
+                }
+            } else {
+                Write-Warning "The specified distro does not exist ($Distro)."
+                exit 1
+            }
         }
-    } else {
+    } elseif ($lxss) {
         Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update." -ForegroundColor White
-        $lxss.DistributionName.ForEach({ Write-Host "- $_" })
+        $lxss.Name.ForEach({ Write-Host "- $_" })
         $lxss.Count ? '' : $null
+    } else {
+        Write-Warning 'No installed WSL distributions found.'
+        exit 1
     }
 
     # determine GTK theme if not provided, based on system theme
@@ -140,14 +167,11 @@ begin {
             -Name 'SystemUsesLightTheme'
         $GtkTheme = $systemUsesLightTheme ? 'light' : 'dark'
     }
-
-    # set location to workspace folder
-    Push-Location "$PSScriptRoot/.."
 }
 
 process {
     foreach ($lx in $lxss) {
-        $Distro = $lx.DistributionName
+        $Distro = $lx.Name
         # *perform distro checks
         $cmd = [string]::Join('',
             '[ -f /usr/bin/pwsh ] && shell="true" || shell="false";',
@@ -188,7 +212,7 @@ process {
             $scopes.Remove('k8s_ext') | Out-Null
         }
         # separate log for multpiple distros update
-        Write-Host "$($Distro -eq $lxss.DistributionName[0] ? '': "`n")" -NoNewline
+        Write-Host "$($Distro -eq $lxss.Name[0] ? '': "`n")" -NoNewline
         # display distro name and installed scopes
         Write-Host "$Distro$($scopes ? " : `e[3m$scopes`e[23m" : '')" -ForegroundColor Magenta
         # *fix WSL networking
