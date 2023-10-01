@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules" --user "szymo"
-.assets/provision/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules" --user "szymo" --ws_suffix "scripts"
+.assets/provision/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules"
+.assets/provision/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules" --ws_suffix "scripts"
 '
 # parse named parameters
 repos=${repos}
-user=${user}
 ws_suffix=${ws_suffix:-devops}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then

@@ -3,8 +3,8 @@
 # :set up the system using default values
 .assets/scripts/linux_setup.sh
 # :set up the system using specified values
-scope="shell"
-scope="k8s_base python shell"
+scope="pwsh"
+scope="k8s_base python pwsh"
 scope="az distrobox docker k8s_base k8s_ext python rice shell"
 # :set up the system using the specified scope
 .assets/scripts/linux_setup.sh --scope "$scope"
@@ -41,20 +41,24 @@ pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
 # *Calculate and show installation scopes
 # convert scope string to array
 array=($scope)
-# determine scope for update if not provided
-if [ -z "$array" ]; then
-  [ -f /usr/bin/kubectl ] && array+=(k8s_base) || true
-  [ -f /usr/bin/kustomize ] && array+=(k8s_ext) || true
-  [ -f /usr/bin/pwsh ] && array+=(shell) || true
-  [ -d "$HOME/miniconda3" ] && array+=(python) || true
-fi
+# determine additional scopes
+[ -d "$HOME/.local/share/powershell/Modules/Az" ] && array+=(az) || true
+[ -f /usr/bin/kubectl ] && array+=(k8s_base) || true
+[ -f /usr/local/bin/k3d ] && array+=(k8s_ext) || true
+[ -f /usr/bin/pwsh ] && array+=(pwsh) || true
+[ -d "$HOME/miniconda3" ] && array+=(python) || true
+[ -f /usr/bin/rg ] && array+=(shell) || true
+# add corresponding scopes
+grep -qw 'az' <<<${array[@]} && array+=(python) || true
+grep -qw 'k8s_ext' <<<${array[@]} && array+=(docker) && array+=(k8s_base) || true
+grep -qw 'pwsh' <<<${array[@]} && array+=(shell) || true
 # add oh_my_posh scope if necessary
 if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
   array+=(oh_my_posh)
-  grep -qw 'shell' <<<${array[@]} || array+=(shell)
+  array+=(shell)
 fi
 # sort array
-IFS=$'\n' scope_arr=($(sort <<<${array[*]})) && unset IFS
+IFS=$'\n' scope_arr=($(sort --unique <<<${array[*]})) && unset IFS
 # get distro name from os-release
 . /etc/os-release
 # display distro name and scopes to install
@@ -86,7 +90,6 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_minikube.sh >/dev/null
     sudo .assets/provision/install_k3d.sh >/dev/null
     sudo .assets/provision/install_k9s.sh >/dev/null
-    sudo .assets/provision/install_yq.sh >/dev/null
     ;;
   k8s_ext)
     printf "\e[96minstalling kubernetes additional packages...\e[0m\n"
@@ -101,6 +104,14 @@ for sc in ${scope_arr[@]}; do
     if [ -n "$omp_theme" ]; then
       sudo .assets/provision/setup_omp.sh --theme $omp_theme --user $user
     fi
+    ;;
+  pwsh)
+    printf "\e[96minstalling pwsh...\e[0m\n"
+    sudo .assets/provision/install_pwsh.sh >/dev/null
+    printf "\e[96msetting up profile for all users...\e[0m\n"
+    sudo .assets/provision/setup_profile_allusers.ps1 -UserName $user
+    printf "\e[96msetting up profile for current user...\e[0m\n"
+    .assets/provision/setup_profile_user.ps1
     ;;
   python)
     printf "\e[96minstalling python packages...\e[0m\n"
@@ -117,23 +128,22 @@ for sc in ${scope_arr[@]}; do
     ;;
   shell)
     printf "\e[96minstalling shell packages...\e[0m\n"
-    sudo .assets/provision/install_pwsh.sh >/dev/null
     sudo .assets/provision/install_eza.sh >/dev/null
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
+    sudo .assets/provision/install_yq.sh >/dev/null
     printf "\e[96msetting up profile for all users...\e[0m\n"
     sudo .assets/provision/setup_profile_allusers.sh $user
-    sudo .assets/provision/setup_profile_allusers.ps1 -UserName $user
     printf "\e[96msetting up profile for current user...\e[0m\n"
     .assets/provision/setup_profile_user.sh
-    .assets/provision/setup_profile_user.ps1
     ;;
   esac
 done
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
-  cloned=$(.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules')
-  if [ "$cloned" = "True" ]; then
+  cmd="Import-Module (Resolve-Path './modules/InstallUtils'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules'"
+  cloned=$(pwsh -nop -c $cmd)
+  if [ $cloned -gt 0 ]; then
     printf "\e[96minstalling ps-modules...\e[0m\n"
     # install do-common module for all users
     printf "\e[3;32mAllUsers\e[23m    : do-common\e[0m\n"

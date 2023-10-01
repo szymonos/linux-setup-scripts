@@ -17,12 +17,7 @@ begin {
     try {
         Get-Command Invoke-ExampleScriptSave -CommandType Function | Out-Null
     } catch {
-        # clone/refresh szymonos/ps-modules repository
-        if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
-            Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common')
-        } else {
-            Write-Error 'Cloning ps-modules repository failed.'
-        }
+        Import-Module (Resolve-Path './modules/SetupUtils')
     }
 }
 

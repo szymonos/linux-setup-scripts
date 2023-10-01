@@ -47,16 +47,12 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # clone/refresh szymonos/ps-modules repository
+    # check if the required functions are available, otherwise import SetupUtils module
     try {
-        Import-Module do-common -MinimumVersion 0.27
+        Get-Command Get-Certificate -CommandType Function | Out-Null
+        Get-Command ConvertTo-PEM -CommandType Function | Out-Null
     } catch {
-        if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
-            # import the do-common module for certificate functions
-            Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common')
-        } else {
-            Write-Error 'Cloning ps-modules repository failed.'
-        }
+        Import-Module (Resolve-Path './modules/SetupUtils')
     }
 
     # determine update ca parameters depending on distro
@@ -95,25 +91,20 @@ process {
         Get-Certificate -Uri $Uri -BuildChain | Select-Object -Skip 1
     }
     # check if root certificate from chain is in the cert store
-    $rootCrts = Get-RootCertificates
-    if ($chain[-1].Thumbprint -in $rootCrts.Thumbprint) {
-        Write-Host "`e[1mIntercepted certificates from TLS chain`e[0m"
-        for ($i = $chain.Count - 1; $i -ge 0; $i--) {
-            $cert = $chain[$i]
+    Write-Host "`e[1mIntercepted certificates from TLS chain`e[0m"
+    for ($i = $chain.Count - 1; $i -ge 0; $i--) {
+        $cert = $chain[$i]
 
-            # calculate certificate file name
-            $crtFile = "$($cert.Thumbprint).crt"
-            Write-Host "`e[32m$crtFile :`e[0m $([regex]::Match($cert.Subject, '(?<=CN=)(.)+?(?=,|$)').Value)"
-            $pem = $cert | ConvertTo-PEM -AddHeader
-            [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $pem)
-        }
-
-        # copy certificates to the distro specific cert directory and install them
-        $cmd = "mkdir -p $($crt.path) && install -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmd)"
-        wsl -d $Distro -u root --exec bash -c $cmd
-    } else {
-        Write-Error "Root certificate from TLS chain is not trusted ($($chain[-1].Subject))."
+        # calculate certificate file name
+        $crtFile = "$($cert.Thumbprint).crt"
+        Write-Host "`e[32m$crtFile :`e[0m $([regex]::Match($cert.Subject, '(?<=CN=)(.)+?(?=,|$)').Value)"
+        $pem = $cert | ConvertTo-PEM -AddHeader
+        [IO.File]::WriteAllText([IO.Path]::Combine($tmpFolder, $crtFile), $pem)
     }
+
+    # copy certificates to the distro specific cert directory and install them
+    $cmd = "mkdir -p $($crt.path) && install -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmd)"
+    wsl -d $Distro -u root --exec bash -c $cmd
 }
 
 end {
