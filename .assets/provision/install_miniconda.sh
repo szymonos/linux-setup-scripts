@@ -8,10 +8,6 @@ if [ $EUID -eq 0 ]; then
   exit 1
 fi
 
-# set script working directory to workspace folder
-SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
-pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
-
 # parse named parameters
 fix_certify=${fix_certify:-false}
 while [ $# -gt 0 ]; do
@@ -22,7 +18,11 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# conda init function
+# set script working directory to workspace folder
+SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
+pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
+
+# *conda init function.
 function conda_init {
   __conda_setup="$("$HOME/miniconda3/bin/conda" 'shell.bash' 'hook' 2>/dev/null)"
   if [ $? -eq 0 ]; then
@@ -37,34 +37,33 @@ function conda_init {
   unset __conda_setup
 }
 
+# *Install conda.
 if [ -d "$HOME/miniconda3" ]; then
   conda_init
-  conda update -n base -c defaults conda --yes
-  conda clean --yes --all
 else
   printf "\e[92minstalling \e[1mminiconda\e[0m\n"
-
   retry_count=0
   while [[ ! -f miniconda.sh && $retry_count -lt 10 ]]; do
     curl -fsSLk -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     ((retry_count++))
   done
   bash ./miniconda.sh -b -p "$HOME/miniconda3" >/dev/null && rm ./miniconda.sh
-
   # disable auto activation of the base conda environment
-  "$HOME/miniconda3/bin/conda" config --set auto_activate_base false
-  # disable conda env prompt if oh-my-posh is installed
-  if [ -f /usr/bin/oh-my-posh ]; then
-    "$HOME/miniconda3/bin/conda" config --set changeps1 false
-  fi
+  conda_init
+  conda config --set auto_activate_base false
+fi
+# disable conda env prompt if oh-my-posh is installed
+if [ -f /usr/bin/oh-my-posh ]; then
+  conda config --set changeps1 false
 fi
 
-#region fix conda certifi certs
-# add certificates to conda base certify
+# *Add certificates to conda base certifi.
 if $fix_certify; then
-  conda_init
   conda activate base
   .assets/provision/fix_certifi_certs.sh
   conda deactivate
 fi
-#endregion
+
+# *Update conda.
+conda update -n base -c defaults conda --yes
+conda clean --yes --all
