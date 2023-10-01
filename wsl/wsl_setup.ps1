@@ -18,14 +18,15 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.
+- az: azure-cli, do-az from ps-modules if pwsh scope specified; autoselects python scope
 - distrobox: podman and distrobox (WSL2 only)
 - docker: docker, containerd buildx docker-compose (WSL2 only)
 - k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize
-- k8s_ext: minikube, k3d, argorollouts-cli (WSL2 only)
+- k8s_ext: minikube, k3d, argorollouts-cli (WSL2 only); autoselects docker and k8s_base scopes
+- pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - python: pip, venv, miniconda
 - rice: btop, cmatrix, cowsay, fastfetch
-- shell: bat, exa, oh-my-posh, pwsh, ripgrep, yq
+- shell: bat, eza, oh-my-posh, ripgrep, yq
 .PARAMETER OmpTheme
 Specify to install oh-my-posh prompt theme engine and name of the theme to be used.
 You can specify one of the three included profiles: base, powerline, nerd,
@@ -46,11 +47,15 @@ $Distro = 'Ubuntu'
 wsl/wsl_setup.ps1 $Distro
 wsl/wsl_setup.ps1 $Distro -AddCertificate
 wsl/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
-# :set up WSL distro using specified values
-$Scope = @('az', 'python', 'shell')
-$Scope = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
+# :set up WSL distro with specified installation scopes
+$Scope = @('pwsh', 'python')
+$Scope = @('k8s_ext', 'pwsh', 'python', 'rice')
+$Scope = @('az', 'docker', 'shell')
+$Scope = @('az', 'k8s_base', 'pwsh')
+$Scope = @('az', 'k8s_ext', 'pwsh')
 wsl/wsl_setup.ps1 $Distro -s $Scope
 wsl/wsl_setup.ps1 $Distro -s $Scope -AddCertificate
+# :set up shell with the specified oh-my-posh theme
 $OmpTheme = 'nerd'
 wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
 wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme -AddCertificate
@@ -69,7 +74,7 @@ param (
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'python', 'rice', 'shell') }) -notcontains $false },
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell') }) -notcontains $false },
         ErrorMessage = 'Wrong scope provided. Valid values: az distrobox docker k8s_base k8s_ext python rice shell')]
     [string[]]$Scope,
 
@@ -174,19 +179,26 @@ process {
         $Distro = $lx.Name
         # *perform distro checks
         $cmd = [string]::Join('',
-            '[ -f /usr/bin/pwsh ] && shell="true" || shell="false";',
+            '[ -f /usr/bin/rg ] && shell="true" || shell="false";',
+            '[ -f /usr/bin/pwsh ] && pwsh="true" || pwsh="false";',
             '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false";',
-            '[ -f /usr/bin/kustomize ] && k8s_ext="true" || k8s_ext="false";',
+            '[ -f /usr/local/bin/k3d ] && k8s_ext="true" || k8s_ext="false";',
             '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
             '[ -d ~/.local/share/powershell/Modules/Az ] && az="true" || az="false";',
             '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
             '[ -d "$HOME/miniconda3" ] && python="true" || python="false";',
+            '[ -f "$HOME/.ssh/id_ed25519" ] && ssh_key="true" || ssh_key="false";',
+            'git_user_name="$(git config --global --get user.name 2>/dev/null)";',
+            '[ -n "$git_user_name" ] && git_user="true" || git_user="false";',
+            'git_user_email="$(git config --global --get user.email 2>/dev/null)";',
+            '[ -n "$git_user_email" ] && git_email="true" || git_email="false";',
             'grep -qw "systemd.*true" /etc/wsl.conf 2>/dev/null && systemd="true" || systemd="false";',
             'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false";',
             'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,',
-            '\"az\":$az,\"omp\":$omp,\"wslg\":$wslg,\"python\":$python,\"systemd\":$systemd,\"gtkd\":$gtkd}"'
+            '\"omp\":$omp,\"az\":$az,\"wslg\":$wslg,\"python\":$python,\"systemd\":$systemd,\"gtkd\":$gtkd,',
+            '\"pwsh\":$pwsh,\"git_user\":$git_user,\"git_email\":$git_email,\"ssh_key\":$ssh_key}"'
         )
-        # check existing packages
+        # check existing distro setup
         $chk = wsl.exe -d $Distro --exec sh -c $cmd | ConvertFrom-Json -AsHashtable
         # instantiate scope generic sorted set
         $scopes = [System.Collections.Generic.SortedSet[string]]::new()
@@ -194,11 +206,12 @@ process {
         # *determine scope if not provided
         if ($scopes.Count -eq 0) {
             switch ($chk) {
+                { $_.az } { @('az', 'python').ForEach({ $scopes.Add($_) | Out-Null }) }
                 { $_.k8s_base } { $scopes.Add('k8s_base') | Out-Null }
-                { $_.k8s_ext } { $scopes.Add('k8s_ext') | Out-Null }
+                { $_.k8s_ext } { @('docker', 'k8s_base', 'k8s_ext').ForEach({ $scopes.Add($_) | Out-Null }) }
+                { $_.pwsh } { @('pwsh', 'shell').ForEach({ $scopes.Add($_) | Out-Null }) }
                 { $_.python } { $scopes.Add('python') | Out-Null }
                 { $_.shell } { $scopes.Add('shell') | Out-Null }
-                { $_.az } { $scopes.Add('az') | Out-Null }
             }
         }
         # determine 'oh_my_posh' scope
@@ -211,10 +224,9 @@ process {
             $scopes.Remove('docker') | Out-Null
             $scopes.Remove('k8s_ext') | Out-Null
         }
-        # separate log for multpiple distros update
-        Write-Host "$($Distro -eq $lxss.Name[0] ? '': "`n")" -NoNewline
         # display distro name and installed scopes
-        Write-Host "$Distro$($scopes ? " : `e[3m$scopes`e[23m" : '')" -ForegroundColor Magenta
+        $follow = $Distro -eq $lxss[0].Name ? '' : "`n"
+        Write-Host "$follow`e[95;1m${Distro}$($scopes ? " :`e[0m $($scopes -join ', ')" : '')"
         # *fix WSL networking
         if ($FixNetwork) {
             Write-Host 'fixing network...' -ForegroundColor Cyan
@@ -277,6 +289,50 @@ process {
                 }
                 continue
             }
+            pwsh {
+                Write-Host 'installing pwsh...' -ForegroundColor Cyan
+                $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
+                # *setup profiles
+                Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
+                Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
+                # *install PowerShell Az modules
+                if ('az' -in $scopes) {
+                    $cmd = [string]::Join("`n",
+                        'if (-not (Get-Module -ListAvailable Az))',
+                        '{ Write-Host "installing Az..."; Install-PSResource Az }',
+                        'if (-not (Get-Module -ListAvailable Az.ResourceGraph))',
+                        '{ Write-Host "installing Az.ResourceGraph..."; Install-PSResource Az.ResourceGraph }'
+                    )
+                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
+                }
+                # *install PowerShell modules from ps-modules repository
+                # clone/refresh szymonos/ps-modules repository
+                if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
+                    Write-Verbose 'ps-modules repository cloned/refreshed successfully.'
+                } else {
+                    Write-Error 'Cloning ps-modules repository failed.'
+                }
+                Write-Host 'installing ps-modules...' -ForegroundColor Cyan
+                Write-Host "`e[32mAllUsers    :`e[0m do-common"
+                wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+                # instantiate psmodules generic lists
+                $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
+                # determine modules to install
+                if ('az' -in $scopes) {
+                    $modules.Add('do-az') | Out-Null
+                    Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
+                }
+                if ($chk.k8s_base) {
+                    $modules.Add('aliases-kubectl') | Out-Null
+                    Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
+                }
+                Write-Host "`e[32mCurrentUser :`e[0m $($modules -join ', ')"
+                $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
+                wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+                continue
+            }
             python {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh --fix_certify true
@@ -296,56 +352,91 @@ process {
             }
             shell {
                 Write-Host 'installing shell packages...' -ForegroundColor Cyan
-                $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.shell = $true)
                 $rel_eza = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_eza.sh $Script:rel_eza
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
-                if ('az' -in $scopes) {
-                    $cmd = [string]::Join("`n",
-                        'if (-not (Get-Module -ListAvailable Az))',
-                        '{ Write-Host "installing Az..."; Install-PSResource Az }',
-                        'if (-not (Get-Module -ListAvailable Az.ResourceGraph))',
-                        '{ Write-Host "installing Az.ResourceGraph..."; Install-PSResource Az.ResourceGraph }'
-                    )
-                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
-                }
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
                 continue
             }
         }
-        # *install PowerShell modules from ps-modules repository
-        if ($chk.shell) {
-            # clone/refresh szymonos/ps-modules repository
-            if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
-                Write-Verbose 'ps-modules repository cloned successfully.'
-            } else {
-                Write-Error 'Cloning ps-modules repository failed.'
+        # *setup git config
+        $builder = [System.Text.StringBuilder]::new()
+        # set up git author identity
+        if (-not $chk.git_user) {
+            if (-not ($user = git config --global --get user.name)) {
+                $user = try {
+                    Get-LocalUser -Name $env:USERNAME | Select-Object -ExpandProperty FullName
+                } catch {
+                    try {
+                        [string[]]$userArr = ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").displayName.Split(',').Trim()
+                        if ($userArr.Count -gt 1) { [array]::Reverse($userArr) }
+                        "$userArr"
+                    } catch {
+                        ''
+                    }
+                }
+                while (-not $user) {
+                    $user = Read-Host -Prompt 'provide git user name'
+                }
+                git config --global user.name "$user"
             }
-            Write-Host 'installing ps-modules...' -ForegroundColor Cyan
-            Write-Host "`e[3mAllUsers`e[23m    : do-common" -ForegroundColor DarkGreen
-            wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
-
-            # instantiate psmodules generic lists
-            $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
-            # determine modules to install
-            if ('az' -in $scopes) {
-                $modules.Add('do-az') | Out-Null
-                Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
+            $builder.AppendLine("git config --global user.name '$user'") | Out-Null
+        }
+        if (-not $chk.git_email) {
+            if (-not ($email = git config --global --get user.email)) {
+                $email = try {
+                (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
+                } catch {
+                    try {
+                    ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
+                    } catch {
+                        ''
+                    }
+                }
+                while ($email -notmatch '.+@.+') {
+                    $email = Read-Host -Prompt 'provide git user email'
+                }
+                git config --global user.email "$email"
             }
-            if ($chk.k8s_base) {
-                $modules.Add('aliases-kubectl') | Out-Null
-                Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
+            $builder.AppendLine("git config --global user.email '$email'") | Out-Null
+        }
+        if (-not ($chk.git_user -and $chk.git_email)) {
+            # additional git settings
+            $builder.AppendLine('git config --global core.eol lf') | Out-Null
+            $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
+            $builder.AppendLine('git config --global core.longpaths true') | Out-Null
+            $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
+            if ($AddCertificate) {
+                # a guess, that if certs are being installed, you're behind MITM proxy without chunked transfer encoding
+                $builder.AppendLine('git config --global http.postBuffer 512M') | Out-Null
+                $builder.AppendLine('git config --global http.maxRequestBuffer 128M') | Out-Null
             }
-            Write-Host "`e[3mCurrentUser`e[23m : $modules" -ForegroundColor DarkGreen
-            $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
-            wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+            Write-Host 'configuring git...' -ForegroundColor Cyan
+            wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
+        }
+        # *check ssh keys and create if necessary
+        if (-not $chk.ssh_key) {
+            if (-not ((Test-Path $HOME/.ssh/id_ed25519) -and (Test-Path $HOME/.ssh/id_ed25519.pub))) {
+                ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -q -N ''
+                $idPub = [System.IO.File]::ReadAllLines("$HOME/.ssh/id_ed25519.pub")
+                $msg = [string]::Join("`n",
+                    "`e[97mUse the following values to add new SSH Key on https://github.com/settings/ssh/new.",
+                    "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
+                    "`n`e[1;96mKey type`e[30m`n<Authentication Key>",
+                    "`n`e[1;96mKey`e[0m`n$idPub",
+                    "`npress any key to continue..."
+                )
+                Write-Host $msg
+                [System.Console]::ReadKey() | Out-Null
+            }
+            Write-Host 'copying ssh keys...' -ForegroundColor Cyan
+            $cmd = "mkdir -p `"`$HOME/.ssh`" && install -m 0400 /mnt/c/Users/$env:USERNAME/.ssh/id_ed25519* `"`$HOME/.ssh`""
+            wsl.exe --distribution $Distro --exec bash -c $cmd
         }
         # *set gtk theme for wslg
         if ($lx.Version -eq 2 -and $chk.wslg) {
@@ -364,71 +455,6 @@ process {
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
         # *install GitHub CLI
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-
-        # *setup git config
-        $builder = [System.Text.StringBuilder]::new()
-        # set up git author identity
-        if (-not ($user = git config --global --get user.name)) {
-            $user = try {
-                Get-LocalUser -Name $env:USERNAME | Select-Object -ExpandProperty FullName
-            } catch {
-                try {
-                    [string[]]$userArr = ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").displayName.Split(',').Trim()
-                    if ($userArr.Count -gt 1) { [array]::Reverse($userArr) }
-                    "$userArr"
-                } catch {
-                    ''
-                }
-            }
-            while (-not $user) {
-                $user = Read-Host -Prompt 'provide git user name'
-            }
-            git config --global user.name "$user"
-        }
-        if (-not ($email = git config --global --get user.email)) {
-            $email = try {
-                (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
-            } catch {
-                try {
-                    ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
-                } catch {
-                    ''
-                }
-            }
-            while ($email -notmatch '.+@.+') {
-                $email = Read-Host -Prompt 'provide git user email'
-            }
-            git config --global user.email "$email"
-        }
-        # setup eol/crlf settings
-        $builder.AppendLine("git config --global user.name '$user'") | Out-Null
-        $builder.AppendLine("git config --global user.email '$email'") | Out-Null
-        $builder.AppendLine('git config --global core.eol lf') | Out-Null
-        $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
-        $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
-        if ($AddCertificate) {
-            # a guess, that if certs are being installed, you're behind MITM proxy without chunked transfer encoding
-            $builder.AppendLine('git config --global http.postBuffer 1048576000') | Out-Null
-        }
-        wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
-
-        # *check ssh keys and create if necessary
-        if (-not (Test-Path "$HOME/.ssh/id_*")) {
-            ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -q -N ''
-            $idPub = Get-ChildItem "$HOME/.ssh/id_ed25519.pub" | Get-Content
-            if ($idPub) {
-                $msg = [string]::Join("`n",
-                    "`e[97mUse the following values to add new SSH Key on https://github.com/settings/ssh/new.",
-                    "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
-                    "`n`e[1;96mKey type`e[30m`n<Authentication Key>",
-                    "`n`e[1;96mKey`e[0m`n$idPub",
-                    "`npress any key to continue..."
-                )
-                Write-Host $msg
-                [System.Console]::ReadKey() | Out-Null
-            }
-        }
-
         # *clone GitHub repositories
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos" --user $env:USERNAME
