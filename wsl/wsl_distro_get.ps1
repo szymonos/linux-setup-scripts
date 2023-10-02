@@ -29,6 +29,9 @@ begin {
             @{ Name = 'Name'; Expression = { $_.DistributionName } }
             'DefaultUid'
             @{ Name = 'Version'; Expression = { $_.Flags -lt 8 ? 1 : 2 } }
+            'Flags'
+            @{ Name = 'BasePath'; Expression = { $_.BasePath -replace '^\\\\\?\\' } }
+            'PSPath'
         )
     } else {
         $distros = [Collections.Generic.List[PSCustomObject]]::new()
