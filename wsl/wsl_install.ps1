@@ -62,12 +62,20 @@ process {
     }
 
     # *Set up WSL
-    $cmd = "wsl/wsl_setup.ps1 -Distro '$Distro'"
-    if ($Scope) { $cmd += " -Scope @($($Scope.ForEach({ "'$_'" }) -join ','),'shell')" }
-    if ($Repos) { $cmd += " -Repos @($($Repos.ForEach({ "'$_'" }) -join ','))" }
-    if ($FixNetwork) { $cmd += ' -FixNetwork' }
-    $cmd += ' -OmpTheme base -AddCertificate'
-    pwsh.exe -NoProfile -Command $cmd
+    # build command string
+    $sb = [System.Text.StringBuilder]::new("wsl/wsl_setup.ps1 -Distro '$Distro'")
+    if ($Scope) {
+        $scopeStr = $Scope | Join-Str -Separator ',' -SingleQuote
+        $sb.Append(" -Scope @($scopeStr,'shell')") | Out-Null
+    }
+    if ($Repos) {
+        $reposStr = $Repos | Join-Str -Separator ',' -SingleQuote
+        $sb.Append(" -Repos @($reposStr)") | Out-Null
+    }
+    $sb.Append(" -OmpTheme 'base'") | Out-Null
+    $sb.Append(' -AddCertificate') | Out-Null
+    # run the wsl_setup script
+    pwsh.exe -NoProfile -Command $sb.ToString()
 }
 
 end {
