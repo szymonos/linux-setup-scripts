@@ -66,7 +66,7 @@ process {
     if ($Scope) { $cmd += " -Scope @($($Scope.ForEach({ "'$_'" }) -join ','),'shell')" }
     if ($Repos) { $cmd += " -Repos @($($Repos.ForEach({ "'$_'" }) -join ','))" }
     if ($FixNetwork) { $cmd += ' -FixNetwork' }
-    $cmd += '-OmpTheme base -AddCertificate'
+    $cmd += ' -OmpTheme base -AddCertificate'
     pwsh.exe -NoProfile -Command $cmd
 }
 
