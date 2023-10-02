@@ -5,21 +5,26 @@ Update repository modules from ps-modules.
 
 .EXAMPLE
 .assets/scripts/modules_update.ps1
+.assets/scripts/modules_update.ps1 -Refresh
 #>
 [CmdletBinding()]
-param ()
+param (
+    [switch]$Refresh
+)
 
 begin {
     $ErrorActionPreference = 'Stop'
 
-    # check if repository is up to date
-    Write-Host 'refreshing current repository...' -ForegroundColor Cyan
-    git fetch
-    $remote = "$(git remote)/$(git branch --show-current)"
-    if ((git rev-parse HEAD) -ne (git rev-parse $remote)) {
-        Write-Warning "Current branch is behind remote, performing hard reset.`n`t Run the script again!`n"
-        git reset --hard $remote
-        exit 0
+    if ($Refresh) {
+        # check if repository is up to date
+        Write-Host 'refreshing current repository...' -ForegroundColor Cyan
+        git fetch
+        $remote = "$(git remote)/$(git branch --show-current)"
+        if ((git rev-parse HEAD) -ne (git rev-parse $remote)) {
+            Write-Warning "Current branch is behind remote, performing hard reset.`n`t Run the script again!`n"
+            git reset --hard $remote
+            exit 0
+        }
     }
 
     # set location to workspace folder
@@ -46,6 +51,7 @@ begin {
             InstallUtils = @{
                 common = @(
                     'Invoke-CommandRetry'
+                    'Join-Str'
                     'Test-IsAdmin'
                     'Update-SessionEnvironmentPath'
                 )
