@@ -44,6 +44,46 @@ function Invoke-CommandRetry {
     } until ($exit)
 }
 
+function Join-Str {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param (
+        [Parameter(Mandatory, ValueFromPipeline = $true)]
+        [string[]]$InputObject,
+
+        [string]$Separator = ' ',
+
+        [Parameter(ParameterSetName = 'Single')]
+        [switch]$SingleQuote,
+
+        [Parameter(ParameterSetName = 'Double')]
+        [switch]$DoubleQuote
+    )
+
+    begin {
+        # instantiate list to store quoted elements
+        $lst = [System.Collections.Generic.List[string]]::new()
+        # calculate quote char
+        $quote = if ($SingleQuote) {
+            "'"
+        } elseif ($DoubleQuote) {
+            '"'
+        } else {
+            ''
+        }
+    }
+
+    process {
+        # quote input elements
+        $lst.Add("${quote}$_${quote}")
+    }
+
+    end {
+        # return joined elements
+        return [string]::Join($Separator, $lst)
+    }
+}
+
 function Test-IsAdmin {
     $currentIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [System.Security.Principal.WindowsPrincipal]$currentIdentity

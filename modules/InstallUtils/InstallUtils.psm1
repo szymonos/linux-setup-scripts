@@ -7,6 +7,7 @@ $exportModuleMemberParams = @{
     Function = @(
         # common
         'Invoke-CommandRetry'
+        'Join-Str'
         'Test-IsAdmin'
         'Update-SessionEnvironmentPath'
         # git
