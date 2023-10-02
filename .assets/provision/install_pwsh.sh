@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_pwsh.sh $(id -un) >/dev/null
+sudo .assets/provision/install_pwsh.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n'

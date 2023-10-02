@@ -114,6 +114,8 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
+    # import InstallUtils for the Invoke-GhRepoClone function
+    Import-Module (Resolve-Path './modules/InstallUtils')
 
     # check if repository is up to date
     git fetch
@@ -141,13 +143,13 @@ begin {
                     Invoke-Expression $cmd
                     $lxss = wsl/wsl_distro_get.ps1 -FromRegistry | Where-Object Name -EQ $Distro
                 } catch {
-                    if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
+                    if (Test-IsAdmin) {
                         Invoke-Expression $cmd
                         Write-Host 'WSL service installation finished.'
-                        Write-Host "`nRestart the system and run the script again to install the specified WSL distro!" -ForegroundColor Yellow
+                        Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
                     } else {
                         Start-Process pwsh.exe "-NoProfile -Command `"$cmd`"" -Verb RunAs
-                        Write-Host "`nWSL service installing. Wait for the process to finish and restart the system!" -ForegroundColor Yellow
+                        Write-Host "`nWSL service installing. Wait for the process to finish and restart the system!`n" -ForegroundColor Yellow
                     }
                     exit 0
                 }
@@ -184,10 +186,10 @@ process {
             '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false";',
             '[ -f /usr/local/bin/k3d ] && k8s_ext="true" || k8s_ext="false";',
             '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
-            '[ -d ~/.local/share/powershell/Modules/Az ] && az="true" || az="false";',
-            '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
+            '[ -d "$HOME/.local/share/powershell/Modules/Az" ] && az="true" || az="false";',
             '[ -d "$HOME/miniconda3" ] && python="true" || python="false";',
             '[ -f "$HOME/.ssh/id_ed25519" ] && ssh_key="true" || ssh_key="false";',
+            '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
             'git_user_name="$(git config --global --get user.name 2>/dev/null)";',
             '[ -n "$git_user_name" ] && git_user="true" || git_user="false";',
             'git_user_email="$(git config --global --get user.email 2>/dev/null)";',
@@ -203,16 +205,20 @@ process {
         # instantiate scope generic sorted set
         $scopes = [System.Collections.Generic.SortedSet[string]]::new()
         $Scope.ForEach({ $scopes.Add($_) | Out-Null })
-        # *determine scope if not provided
-        if ($scopes.Count -eq 0) {
-            switch ($chk) {
-                { $_.az } { @('az', 'python').ForEach({ $scopes.Add($_) | Out-Null }) }
-                { $_.k8s_base } { $scopes.Add('k8s_base') | Out-Null }
-                { $_.k8s_ext } { @('docker', 'k8s_base', 'k8s_ext').ForEach({ $scopes.Add($_) | Out-Null }) }
-                { $_.pwsh } { @('pwsh', 'shell').ForEach({ $scopes.Add($_) | Out-Null }) }
-                { $_.python } { $scopes.Add('python') | Out-Null }
-                { $_.shell } { $scopes.Add('shell') | Out-Null }
-            }
+        # *determine additional scopes from distro check
+        switch ($chk) {
+            { $_.az } { $scopes.Add('az') | Out-Null }
+            { $_.k8s_base } { $scopes.Add('k8s_base') | Out-Null }
+            { $_.k8s_ext } { $scopes.Add('k8s_ext') | Out-Null }
+            { $_.pwsh } { $scopes.Add('pwsh') | Out-Null }
+            { $_.python } { $scopes.Add('python') | Out-Null }
+            { $_.shell } { $scopes.Add('shell') | Out-Null }
+        }
+        # add corresponding scopes
+        switch (@($scopes)) {
+            az { $scopes.Add('python') | Out-Null }
+            k8s_ext { @('docker', 'k8s_base').ForEach({ $scopes.Add($_) | Out-Null }) }
+            pwsh { $scopes.Add('shell') | Out-Null }
         }
         # determine 'oh_my_posh' scope
         if ($chk.omp -or $OmpTheme) {
@@ -226,7 +232,7 @@ process {
         }
         # display distro name and installed scopes
         $follow = $Distro -eq $lxss[0].Name ? '' : "`n"
-        Write-Host "$follow`e[95;1m${Distro}$($scopes ? " :`e[0m $($scopes -join ', ')" : '')"
+        Write-Host "$follow`e[95;1m${Distro}$($scopes.Count ? " :`e[0;90m $($scopes -join ', ')`e[0m" : "`e[0m")"
         # *fix WSL networking
         if ($FixNetwork) {
             Write-Host 'fixing network...' -ForegroundColor Cyan
@@ -309,13 +315,14 @@ process {
                 }
                 # *install PowerShell modules from ps-modules repository
                 # clone/refresh szymonos/ps-modules repository
-                if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
-                    Write-Verbose 'ps-modules repository cloned/refreshed successfully.'
+                $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'
+                if ($repoClone) {
+                    Write-Verbose "Repository `"ps-modules`" $($repoClone -eq 1 ? 'cloned': 'refreshed') successfully."
                 } else {
                     Write-Error 'Cloning ps-modules repository failed.'
                 }
                 Write-Host 'installing ps-modules...' -ForegroundColor Cyan
-                Write-Host "`e[32mAllUsers    :`e[0m do-common"
+                Write-Host "`e[32mAllUsers    :`e[0;90m do-common`e[0m"
                 wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
                 # instantiate psmodules generic lists
                 $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
@@ -328,7 +335,7 @@ process {
                     $modules.Add('aliases-kubectl') | Out-Null
                     Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
                 }
-                Write-Host "`e[32mCurrentUser :`e[0m $($modules -join ', ')"
+                Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
                 continue
@@ -362,6 +369,18 @@ process {
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
                 continue
+            }
+        }
+        # *set gtk theme for wslg
+        if ($lx.Version -eq 2 -and $chk.wslg) {
+            $GTK_THEME = if ($GtkTheme -eq 'light') {
+                $chk.gtkd ? '"Adwaita"' : $null
+            } else {
+                $chk.gtkd ? $null : '"Adwaita:dark"'
+            }
+            if ($GTK_THEME) {
+                Write-Host "setting `e[3m$GtkTheme`e[23m gtk theme..." -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root -- bash -c "echo 'export GTK_THEME=$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
             }
         }
         # *setup git config
@@ -438,18 +457,6 @@ process {
             $cmd = "mkdir -p `"`$HOME/.ssh`" && install -m 0400 /mnt/c/Users/$env:USERNAME/.ssh/id_ed25519* `"`$HOME/.ssh`""
             wsl.exe --distribution $Distro --exec bash -c $cmd
         }
-        # *set gtk theme for wslg
-        if ($lx.Version -eq 2 -and $chk.wslg) {
-            $GTK_THEME = if ($GtkTheme -eq 'light') {
-                $chk.gtkd ? '"Adwaita"' : $null
-            } else {
-                $chk.gtkd ? $null : '"Adwaita:dark"'
-            }
-            if ($GTK_THEME) {
-                Write-Host "setting `e[3m$GtkTheme`e[23m gtk theme..." -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root -- bash -c "echo 'export GTK_THEME=$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
-            }
-        }
     }
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
@@ -457,7 +464,7 @@ process {
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
         # *clone GitHub repositories
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
-        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos" --user $env:USERNAME
+        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"
     }
 }
 

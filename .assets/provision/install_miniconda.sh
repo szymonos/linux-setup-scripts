@@ -67,3 +67,10 @@ fi
 # *Update conda.
 conda update -n base -c defaults conda --yes
 conda clean --yes --all
+
+# *Fix certificates after update.
+if $fix_certify; then
+  conda activate base
+  .assets/provision/fix_certifi_certs.sh
+  conda deactivate
+fi

@@ -37,24 +37,19 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
+    # check if the required functions are available, otherwise import SetupUtils module
+    try {
+        Get-Command ConvertFrom-Cfg -CommandType Function | Out-Null
+        Get-Command ConvertTo-Cfg -CommandType Function | Out-Null
+    } catch {
+        Import-Module (Resolve-Path './modules/SetupUtils')
+    }
 
     # check if distro exist
     $distros = wsl/wsl_distro_get.ps1 -FromRegistry
     if ($Distro -notin $distros.Name) {
         Write-Warning "The specified distro does not exist ($Distro)."
         exit 1
-    }
-
-    # clone/refresh szymonos/ps-modules repository
-    try {
-        Import-Module do-common -MinimumVersion 0.28.2
-    } catch {
-        if (.assets/tools/gh_repo_clone.ps1 -OrgRepo 'szymonos/ps-modules') {
-            # import the do-common module for certificate functions
-            Import-Module -Name (Resolve-Path '../ps-modules/modules/do-common')
-        } else {
-            Write-Error 'Cloning ps-modules repository failed.'
-        }
     }
 }
 

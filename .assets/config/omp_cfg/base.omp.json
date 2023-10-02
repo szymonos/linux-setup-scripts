@@ -72,7 +72,7 @@
             "tag_icon": ""
           },
           "style": "plain",
-          "template": "<#E8CC97>(</>{{ .HEAD }}<#E8CC97>) </>",
+          "template": "<#E8CC97>(</><b>{{ .HEAD }}</b><#E8CC97>)</> ",
           "type": "git"
         },
         {

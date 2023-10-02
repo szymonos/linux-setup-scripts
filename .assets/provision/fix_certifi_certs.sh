@@ -29,7 +29,6 @@ esac
 # get list of installed certificates
 cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
 if [ -z "$cert_paths" ]; then
-  printf '\nThere are no certificate(s) to install.\n' >&2
   exit 0
 fi
 
