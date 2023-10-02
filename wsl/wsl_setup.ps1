@@ -158,6 +158,12 @@ begin {
                 exit 1
             }
         }
+        # disable appending Windows path inside distro to fix mounting issues
+        $lxss = wsl/wsl_distro_get.ps1 -FromRegistry | Where-Object Name -EQ $Distro
+        if ($lxss -and $lxss.Flags -ne 13) {
+            Set-ItemProperty -Path $lxss.PSPath -Name 'Flags' -Value 13
+            wsl.exe --shutdown $Distro
+        }
     } elseif ($lxss) {
         Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update." -ForegroundColor White
         $lxss.Name.ForEach({ Write-Host "- $_" })
