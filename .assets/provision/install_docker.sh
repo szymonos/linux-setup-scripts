@@ -9,11 +9,27 @@ fi
 
 # determine system id
 SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
-
+# check if package installed already using package manager
 case $SYS_ID in
 alpine)
   exit 0
   ;;
+arch)
+  pacman -Qqe docker &>/dev/null && exit 0 || true
+  ;;
+fedora)
+  rpm -q docker-ce &>/dev/null && exit 0 || true
+  ;;
+debian | ubuntu)
+  dpkg -s docker-ce &>/dev/null && exit 0 || true
+  ;;
+opensuse)
+  rpm -q docker &>/dev/null && exit 0 || true
+  ;;
+esac
+
+# install docker
+case $SYS_ID in
 arch)
   pacman -Sy --needed --noconfirm docker docker-compose
   ;;
