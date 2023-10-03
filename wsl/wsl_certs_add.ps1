@@ -8,16 +8,16 @@ and installs them in the specified WSL distro.
 
 .PARAMETER Distro
 Name of the WSL distro to install the certificate to.
-.PARAMETER Uri
-Uri used for intercepting certificate chain.
+.PARAMETER Uris
+List of uris used for intercepting certificate chain.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
 # :install certificates into specified distro
 wsl/wsl_certs_add.ps1 $Distro
 # :specify custom Uri
-$Uri = 'www.powershellgallery.com'
-wsl/wsl_certs_add.ps1 $Distro -u $Uri
+$Uris = @('pypi.org', 'www.python.org')
+wsl/wsl_certs_add.ps1 $Distro -u $Uris
 #>
 [CmdletBinding()]
 param (
@@ -25,7 +25,7 @@ param (
     [string]$Distro,
 
     [ValidateNotNullOrEmpty()]
-    [string]$Uri = 'www.google.com'
+    [string[]]$Uris = @('www.google.com', 'www.powershellgallery.com')
 )
 
 begin {
@@ -84,17 +84,23 @@ begin {
     # create temp folder for saving certificates
     $tmpName = "tmp.$( -join ((0..9 + 'a'..'z') * 10 | Get-Random -Count 10))"
     $tmpFolder = New-Item -Path . -Name $tmpName -ItemType Directory
+
+    # instantiate set for storing intercepted certificates
+    $certSet = [System.Collections.Generic.HashSet[System.Security.Cryptography.X509Certificates.X509Certificate2]]::new()
 }
 
 process {
-    $chain = Invoke-CommandRetry {
-        Get-Certificate -Uri $Uri -BuildChain | Select-Object -Skip 1
+    # intercept certificates from all uris
+    foreach ($uri in $Uris) {
+        Get-Certificate -Uri $Uri -BuildChain `
+        | Select-Object -Skip 1 `
+        | ForEach-Object {
+            $certSet.Add($_) | Out-Null
+        }
     }
     # check if root certificate from chain is in the cert store
     Write-Host "`e[1mIntercepted certificates from TLS chain`e[0m"
-    for ($i = $chain.Count - 1; $i -ge 0; $i--) {
-        $cert = $chain[$i]
-
+    foreach ($cert in $certSet) {
         # calculate certificate file name
         $crtFile = "$($cert.Thumbprint).crt"
         Write-Host "`e[32m$crtFile :`e[0m $([regex]::Match($cert.Subject, '(?<=CN=)(.)+?(?=,|$)').Value)"
