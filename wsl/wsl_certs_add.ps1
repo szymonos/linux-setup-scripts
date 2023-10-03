@@ -92,10 +92,21 @@ begin {
 process {
     # intercept certificates from all uris
     foreach ($uri in $Uris) {
-        Get-Certificate -Uri $Uri -BuildChain `
-        | Select-Object -Skip 1 `
-        | ForEach-Object {
-            $certSet.Add($_) | Out-Null
+        try {
+            Get-Certificate -Uri $Uri -BuildChain `
+            | Select-Object -Skip 1 `
+            | ForEach-Object {
+                $certSet.Add($_) | Out-Null
+            }
+        } catch [System.Management.Automation.MethodInvocationException] {
+            if ($_.Exception.Message -match 'No such host is known') {
+                Write-Warning "No such host is known ($uri)."
+            } else {
+                $_.Exception.Message
+            }
+        } catch {
+            $_.Exception.GetType().FullName
+            $_
         }
     }
     # check if root certificate from chain is in the cert store
