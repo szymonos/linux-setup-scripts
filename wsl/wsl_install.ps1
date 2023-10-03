@@ -1,6 +1,28 @@
 <#
 .SYNOPSIS
-Script synopsis.
+Install and set up the specified WSL distro.
+
+.DESCRIPTION
+The script will perform the following:
+- install PowerShell Core if not present to intercept TLS certificates in chain,
+- enable WSL feature on Windows if not yet enabled,
+- install specified WSL distro from available online distros,
+- set up the specified WSL distro with sane defaults,
+- can fix networkin issues on VPN by rewriting DNS settings from selected Windows network interface,
+- can fix self-signed certificate in chain error, if the host is behind MITM proxy.
+
+.PARAMETER Distro
+Name of the WSL distro to install and set up.
+.PARAMETER Scope
+List of installation scopes. Valid values:
+- az: azure-cli, do-az from ps-modules if pwsh scope specified; autoselects python scope
+- docker: docker, containerd buildx docker-compose (WSL2 only)
+- python: pip, venv, miniconda
+.PARAMETER Repos
+List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
+.PARAMETER FixNetwork
+Set network settings from the selected network interface in Windows.
+
 .EXAMPLE
 # :perform basic Ubuntu WSL setup
 wsl/wsl_install.ps1 -Distro 'Ubuntu'
@@ -12,24 +34,21 @@ $Scope = @('az', 'docker')
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -s $Scope
 # :set up WSL distro and clone specified GitHub repositories
 $Repos = @('szymonos/linux-setup-scripts')
-wsl/wsl_install.ps1 -Distro 'Ubuntu' -s $Scope -r $Repos
+wsl/wsl_install.ps1 -Distro 'Ubuntu' -r $Repos -s $Scope
 #>
-[CmdletBinding(DefaultParameterSetName = 'Setup')]
+[CmdletBinding()]
 param (
     [Parameter(Mandatory, Position = 0)]
     [string]$Distro,
 
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -in @('az', 'docker', 'python') }) -notcontains $false })]
     [string[]]$Scope,
 
-    [Parameter(Mandatory, ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false })]
     [string[]]$Repos,
 
-    [Parameter(ParameterSetName = 'Setup')]
-    [Parameter(ParameterSetName = 'GitHub')]
+    [switch]$AddCertificate,
+
     [switch]$FixNetwork
 )
 
@@ -72,8 +91,8 @@ process {
         $reposStr = $Repos | Join-Str -Separator ',' -SingleQuote
         $sb.Append(" -Repos @($reposStr)") | Out-Null
     }
+    if ($AddCertificate) { $sb.Append(" -AddCertificate") | Out-Null }
     $sb.Append(" -OmpTheme 'base'") | Out-Null
-    $sb.Append(' -AddCertificate') | Out-Null
     # run the wsl_setup script
     pwsh.exe -NoProfile -Command $sb.ToString()
 }
