@@ -9,11 +9,15 @@ https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-w
 Name of the WSL distro to install the certificate to.
 .PARAMETER Systemd
 Specify the value to true or false to enable/disable systemd accordingly in the distro.
+.PARAMETER ShowConf
+Print current configuration after changes.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
 wsl/wsl_systemd.ps1 $Distro -Systemd 'true'
+wsl/wsl_systemd.ps1 $Distro -Systemd 'true' -ShowConf
 wsl/wsl_systemd.ps1 $Distro -Systemd 'false'
+wsl/wsl_systemd.ps1 $Distro -Systemd 'false' -ShowConf
 
 # :check systemd services
 systemctl list-units --type=service --no-pager
@@ -24,7 +28,9 @@ param (
     [string]$Distro,
 
     [ValidateSet('true', 'false')]
-    [string]$Systemd
+    [string]$Systemd,
+
+    [switch]$ShowConf
 )
 
 begin {
@@ -71,6 +77,10 @@ process {
 }
 
 end {
-    Write-Host "wsl.conf" -ForegroundColor Magenta
-    wsl.exe -d $Distro --exec cat /etc/wsl.conf | Write-Host
+    if ($ShowConf) {
+        Write-Host 'wsl.conf' -ForegroundColor Magenta
+        wsl.exe -d $Distro --exec cat /etc/wsl.conf | Write-Host
+    } else {
+        Write-Host "systemd $($Systemd -eq 'true' ? 'enabled' : 'disabled')"
+    }
 }
