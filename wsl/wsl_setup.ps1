@@ -27,6 +27,7 @@ List of installation scopes. Valid values:
 - python: pip, venv, miniconda
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
+- zsh: zsh shell with plugins
 .PARAMETER OmpTheme
 Specify to install oh-my-posh prompt theme engine and name of the theme to be used.
 You can specify one of the three included profiles: base, powerline, nerd,
@@ -74,7 +75,7 @@ param (
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell') }) -notcontains $false },
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'zsh') }) -notcontains $false },
         ErrorMessage = 'Wrong scope provided. Valid values: az distrobox docker k8s_base k8s_ext python rice shell')]
     [string[]]$Scope,
 
@@ -189,6 +190,7 @@ process {
         $cmd = [string]::Join('',
             '[ -f /usr/bin/rg ] && shell="true" || shell="false";',
             '[ -f /usr/bin/pwsh ] && pwsh="true" || pwsh="false";',
+            '[ -f /usr/bin/zsh ] && zsh="true" || zsh="false";',
             '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false";',
             '[ -f /usr/local/bin/k3d ] && k8s_ext="true" || k8s_ext="false";',
             '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
@@ -204,7 +206,7 @@ process {
             'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false";',
             'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,',
             '\"omp\":$omp,\"az\":$az,\"wslg\":$wslg,\"python\":$python,\"systemd\":$systemd,\"gtkd\":$gtkd,',
-            '\"pwsh\":$pwsh,\"git_user\":$git_user,\"git_email\":$git_email,\"ssh_key\":$ssh_key}"'
+            '\"pwsh\":$pwsh,\"zsh\":$zsh,\"git_user\":$git_user,\"git_email\":$git_email,\"ssh_key\":$ssh_key}"'
         )
         # check existing distro setup
         $chk = wsl.exe -d $Distro --exec sh -c $cmd | ConvertFrom-Json -AsHashtable
@@ -225,6 +227,7 @@ process {
             az { $scopes.Add('python') | Out-Null }
             k8s_ext { @('docker', 'k8s_base').ForEach({ $scopes.Add($_) | Out-Null }) }
             pwsh { $scopes.Add('shell') | Out-Null }
+            zsh { $scopes.Add('shell') | Out-Null }
         }
         # determine 'oh_my_posh' scope
         if ($chk.omp -or $OmpTheme) {
@@ -374,6 +377,14 @@ process {
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
+                continue
+            }
+            zsh {
+                Write-Host 'installing zsh...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_zsh.sh
+                # *setup profiles
+                Write-Host 'setting up zsh profile for current user...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user_zsh.sh
                 continue
             }
         }
