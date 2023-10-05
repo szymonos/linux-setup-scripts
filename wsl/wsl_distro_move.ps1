@@ -1,11 +1,13 @@
 <#
 .SYNOPSIS
-Move (and optionally rename) existing WSL2 distro.
+Move/Copy (and optionally rename) existing WSL2 distro.
 
 .PARAMETER Distro
 Name of the existing WSL distro.
 .PARAMETER Destination
 Destination path, where distro folder will be created.
+.PARAMETER Copy
+Switch whether to copy distro instead of moving.
 .PARAMETER NewName
 Optional new name of the WSL distro.
 
@@ -14,6 +16,7 @@ $Distro = 'Ubuntu'
 $Destination = 'C:\VM\WSL'
 $NewName = 'jammy'
 wsl/wsl_distro_move.ps1 $Distro -d $Destination -n $NewName
+wsl/wsl_distro_move.ps1 $Distro -d $Destination -n $NewName -Copy
 wsl/wsl_distro_move.ps1 $Distro -d $Destination -n $NewName -WhatIf
 #>
 [CmdletBinding(SupportsShouldProcess)]
@@ -24,6 +27,8 @@ param (
     [Alias('d')]
     [Parameter(Mandatory)]
     [string]$Destination,
+
+    [switch]$Copy,
 
     [Alias('n')]
     [string]$NewName
@@ -74,15 +79,21 @@ process {
         # shutting down distro before copying vhdx
         wsl.exe --shutdown $Distro
         # copy distro disk image to new location
-        if ([IO.Path]::GetPathRoot($srcPath) -eq [IO.Path]::GetPathRoot($destPath)) {
+        if ([IO.Path]::GetPathRoot($srcPath) -eq [IO.Path]::GetPathRoot($destPath) -and -not $Copy) {
             New-Item -ItemType HardLink ([IO.Path]::Combine($destPath, 'ext4.vhdx')) -Target ([IO.Path]::Combine($srcPath, 'ext4.vhdx')) | Out-Null
         } else {
             Copy-Item ([IO.Path]::Combine($srcPath, 'ext4.vhdx')) -Destination $destPath -ErrorAction Stop
         }
         # unregister existing distro
-        wsl.exe --unregister $Distro
+        if (-not $Copy) {
+            wsl.exe --unregister $Distro
+        }
         # recreate WSL entry in registry
-        $destKey = New-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -Name $distroKey.PSChildName
+        $destKey = if ($Copy) {
+            New-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -Name "{$([guid]::NewGuid())}"
+        } else {
+            New-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -Name $distroKey.PSChildName
+        }
         New-ItemProperty -Path $destKey.PSPath -Name 'BasePath' -PropertyType String -Value "\\?\$destPath" | Out-Null
         New-ItemProperty -Path $destKey.PSPath -Name 'DistributionName' -PropertyType String -Value $NewName | Out-Null
         New-ItemProperty -Path $destKey.PSPath -Name 'DefaultUid' -PropertyType DWORD -Value $distroKey.DefaultUid | Out-Null
@@ -93,5 +104,5 @@ process {
 }
 
 end {
-    Write-Host "Distro ($Distro) has been moved to '$destPath'."
+    Write-Host "Distro ($Distro) has been $($Copy ? 'copied' : 'moved') to '$destPath'."
 }
