@@ -35,7 +35,7 @@ fi
 # *check gh authentication status and login to GitHub if necessary
 retry_count=0
 while [[ true && $retry_count -lt 5 ]]; do
-  gh auth status 2>&1 | grep -qw 'Token: gho_' && github='https://github.com/' && break || true
+  gh auth status 2>&1 | grep -qw 'Token:' && github='https://github.com/' && break || true
   gh auth login
   ((retry_count++))
 done
