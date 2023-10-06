@@ -471,7 +471,7 @@ process {
                 [System.Console]::ReadKey() | Out-Null
             }
             Write-Host 'copying ssh keys...' -ForegroundColor Cyan
-            $cmd = "mkdir -p `"`$HOME/.ssh`" && install -m 0400 /mnt/c/Users/$env:USERNAME/.ssh/id_ed25519* `"`$HOME/.ssh`""
+            $cmd = "mkdir -p `"`$HOME/.ssh`" && install -m 0400 /mnt/c/Users/$($HOME.Split('\')[-1])/.ssh/id_ed25519* `"`$HOME/.ssh`""
             wsl.exe --distribution $Distro --exec bash -c $cmd
         }
     }
