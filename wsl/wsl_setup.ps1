@@ -194,9 +194,9 @@ process {
             '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false";',
             '[ -f /usr/local/bin/k3d ] && k8s_ext="true" || k8s_ext="false";',
             '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
-            '[ -d "$HOME/.local/share/powershell/Modules/Az" ] && az="true" || az="false";',
-            '[ -d "$HOME/miniconda3" ] && python="true" || python="false";',
-            '[ -f "$HOME/.ssh/id_ed25519" ] && ssh_key="true" || ssh_key="false";',
+            '[ -d $HOME/.local/share/powershell/Modules/Az ] && az="true" || az="false";',
+            '[ -d $HOME/miniconda3 ] && python="true" || python="false";',
+            '[ -f $HOME/.ssh/id_ed25519 ] && ssh_key="true" || ssh_key="false";',
             '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
             'git_user_name="$(git config --global --get user.name 2>/dev/null)";',
             '[ -n "$git_user_name" ] && git_user="true" || git_user="false";',
@@ -457,9 +457,10 @@ process {
         }
         # *check ssh keys and create if necessary
         if (-not $chk.ssh_key) {
-            if (-not ((Test-Path $HOME/.ssh/id_ed25519) -and (Test-Path $HOME/.ssh/id_ed25519.pub))) {
-                ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -q -N ''
-                $idPub = [System.IO.File]::ReadAllLines("$HOME/.ssh/id_ed25519.pub")
+            $sshKey = '.ssh/id_ed25519'
+            if (-not ((Test-Path "$HOME/$sshKey") -and (Test-Path "$HOME/$sshKey.pub"))) {
+                ssh-keygen -t ed25519 -f "$HOME/$sshKey" -q -N ''
+                $idPub = [System.IO.File]::ReadAllLines("$HOME/$sshKey.pub")
                 $msg = [string]::Join("`n",
                     "`e[97mUse the following values to add new SSH Key on https://github.com/settings/ssh/new.",
                     "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
@@ -471,8 +472,13 @@ process {
                 [System.Console]::ReadKey() | Out-Null
             }
             Write-Host 'copying ssh keys...' -ForegroundColor Cyan
-            $cmd = "mkdir -p `"`$HOME/.ssh`" && install -m 0400 /mnt/c/Users/$($HOME.Split('\')[-1])/.ssh/id_ed25519* `"`$HOME/.ssh`""
-            wsl.exe --distribution $Distro --exec bash -c $cmd
+            $mntHome = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))"
+            $cmd = [string]::Join("`n",
+                'mkdir -p $HOME/.ssh',
+                "install -m 0400 '$mntHome/$sshKey' `$HOME/.ssh",
+                "install -m 0400 '$mntHome/$sshKey.pub' `$HOME/.ssh"
+            )
+            wsl.exe --distribution $Distro --exec sh -c $cmd
         }
     }
 
