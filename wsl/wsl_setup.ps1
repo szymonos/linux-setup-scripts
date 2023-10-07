@@ -462,7 +462,7 @@ process {
                 ssh-keygen -t ed25519 -f "$HOME/$sshKey" -q -N ''
                 $idPub = [System.IO.File]::ReadAllLines("$HOME/$sshKey.pub")
                 $msg = [string]::Join("`n",
-                    "`e[97mUse the following values to add new SSH Key on https://github.com/settings/ssh/new.",
+                    "`e[97mUse the following values to add new SSH Key on `e[34;4mhttps://github.com/settings/ssh/new`e[97;24m",
                     "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
                     "`n`e[1;96mKey type`e[30m`n<Authentication Key>",
                     "`n`e[1;96mKey`e[0m`n$idPub",
