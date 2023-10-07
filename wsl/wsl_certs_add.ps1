@@ -16,7 +16,7 @@ $Distro = 'Ubuntu'
 # :install certificates into specified distro
 wsl/wsl_certs_add.ps1 $Distro
 # :specify custom Uri
-$Uris = @('pypi.org', 'www.python.org')
+$Uris = @('pypi.org', 'login.microsoftonline.com')
 wsl/wsl_certs_add.ps1 $Distro -u $Uris
 #>
 [CmdletBinding()]
@@ -25,7 +25,7 @@ param (
     [string]$Distro,
 
     [ValidateNotNullOrEmpty()]
-    [string[]]$Uris = @('github.com', 'login.microsoftonline.com')
+    [string[]]$Uris = @('github.com', 'www.powershellgallery.com')
 )
 
 begin {
