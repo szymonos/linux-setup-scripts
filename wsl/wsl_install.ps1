@@ -94,6 +94,7 @@ process {
     if ($AddCertificate) { $sb.Append(" -AddCertificate") | Out-Null }
     $sb.Append(" -OmpTheme 'base'") | Out-Null
     # run the wsl_setup script
+    Write-Host '*** WSL Setup ***' -ForegroundColor White
     pwsh.exe -NoProfile -Command $sb.ToString()
 }
 

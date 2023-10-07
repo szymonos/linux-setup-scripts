@@ -119,6 +119,7 @@ begin {
     Import-Module (Resolve-Path './modules/InstallUtils')
 
     # check if repository is up to date
+    Write-Host "`nchecking if the repository is up to date..." -ForegroundColor Cyan
     git fetch
     $remote = "$(git remote)/$(git branch --show-current)"
     if ((git rev-parse HEAD) -ne (git rev-parse $remote)) {
@@ -136,7 +137,7 @@ begin {
             $onlineDistros = wsl/wsl_distro_get.ps1 -Online
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
-                Write-Host "Specified distribution not found ($Distro). Proceeding to install." -ForegroundColor Cyan
+                Write-Host "`nspecified distribution not found ($Distro), proceeding to install..." -ForegroundColor Cyan
                 $cmd = "wsl.exe --install --distribution $Distro"
                 try {
                     Get-Service LxssManagerUser*, WSLService | Out-Null
@@ -163,6 +164,7 @@ begin {
         $lxss = wsl/wsl_distro_get.ps1 -FromRegistry | Where-Object Name -EQ $Distro
         if ($lxss -and $lxss.Flags -ne 13) {
             Set-ItemProperty -Path $lxss.PSPath -Name 'Flags' -Value 13
+            Write-Host "`nrestarting WSL to apply changes..." -ForegroundColor Cyan
             wsl.exe --shutdown $Distro
         }
     } elseif ($lxss) {
@@ -171,7 +173,7 @@ begin {
         $lxss.Count ? '' : $null
     } else {
         Write-Warning 'No installed WSL distributions found.'
-        exit 1
+        exit 0
     }
 
     # determine GTK theme if not provided, based on system theme
@@ -240,8 +242,7 @@ process {
             $scopes.Remove('k8s_ext') | Out-Null
         }
         # display distro name and installed scopes
-        $follow = $Distro -eq $lxss[0].Name ? '' : "`n"
-        Write-Host "$follow`e[95;1m${Distro}$($scopes.Count ? " :`e[0;90m $($scopes -join ', ')`e[0m" : "`e[0m")"
+        Write-Host "`n`e[95;1m${Distro}$($scopes.Count ? " :`e[0;90m $($scopes -join ', ')`e[0m" : "`e[0m")"
         # *fix WSL networking
         if ($FixNetwork) {
             Write-Host 'fixing network...' -ForegroundColor Cyan
