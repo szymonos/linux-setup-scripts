@@ -43,16 +43,11 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # check if the required functions are available, otherwise import SetupUtils module
-    try {
-        Get-Command ConvertFrom-Cfg -CommandType Function | Out-Null
-        Get-Command ConvertTo-Cfg -CommandType Function | Out-Null
-    } catch {
-        Import-Module (Resolve-Path './modules/SetupUtils')
-    }
+    # import SetupUtils module
+    Import-Module (Resolve-Path './modules/SetupUtils')
 
     # check if distro exist
-    $distros = wsl/wsl_distro_get.ps1 -FromRegistry
+    $distros = Get-WslDistro -FromRegistry
     if ($Distro -notin $distros.Name) {
         Write-Warning "The specified distro does not exist ($Distro)."
         exit 1
@@ -60,27 +55,22 @@ begin {
 }
 
 process {
-    $wslConf = wsl.exe -d $Distro --exec cat /etc/wsl.conf 2>$null | ConvertFrom-Cfg
-    if ($wslConf) {
-        $wslConf.boot = [ordered]@{ systemd = $Systemd }
-    } else {
-        $wslConf = [ordered]@{
+    # *set wsl.conf
+    Write-Host 'replacing wsl.conf' -ForegroundColor DarkGreen
+    $param = @{
+        Distro   = $Distro
+        ConfDict = [ordered]@{
             boot = [ordered]@{
                 systemd = $Systemd
             }
         }
+        ShowConf = $ShowConf ? $true : $false
     }
-    $wslConfStr = ConvertTo-Cfg -OrderedDict $wslConf -LineFeed
-    # save wsl.conf file
-    $cmd = "rm -f /etc/wsl.conf || true && echo '$wslConfStr' >/etc/wsl.conf"
-    wsl.exe -d $Distro --user root --exec bash -c $cmd
+    Set-WslConf @param
 }
 
 end {
-    if ($ShowConf) {
-        Write-Host 'wsl.conf' -ForegroundColor Magenta
-        wsl.exe -d $Distro --exec cat /etc/wsl.conf | Write-Host
-    } else {
+    if (-not $ShowConf) {
         Write-Host "systemd $($Systemd -eq 'true' ? 'enabled' : 'disabled')"
     }
 }

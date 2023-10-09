@@ -117,6 +117,8 @@ begin {
     Push-Location "$PSScriptRoot/.."
     # import InstallUtils for the Invoke-GhRepoClone function
     Import-Module (Resolve-Path './modules/InstallUtils')
+    # import SetupUtils for the Set-WslConf function
+    Import-Module (Resolve-Path './modules/SetupUtils')
 
     # check if repository is up to date
     Write-Host "`nchecking if the repository is up to date..." -ForegroundColor Cyan
@@ -129,12 +131,10 @@ begin {
     }
 
     # *get list of distros
-    $lxss = wsl/wsl_distro_get.ps1 | Where-Object Name -NotMatch '^docker-desktop'
+    $lxss = Get-WslDistro | Where-Object Name -NotMatch '^docker-desktop'
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
-        if ($Distro -in $lxss.Name) {
-            $lxss = $lxss | Where-Object Name -EQ $Distro
-        } else {
-            $onlineDistros = wsl/wsl_distro_get.ps1 -Online
+        if ($Distro -notin $lxss.Name) {
+            $onlineDistros = Get-WslDistro -Online
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
                 Write-Host "`nspecified distribution not found ($Distro), proceeding to install..." -ForegroundColor Cyan
@@ -143,7 +143,6 @@ begin {
                     Get-Service LxssManagerUser*, WSLService | Out-Null
                     Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
                     Invoke-Expression $cmd
-                    $lxss = wsl/wsl_distro_get.ps1 -FromRegistry | Where-Object Name -EQ $Distro
                 } catch {
                     if (Test-IsAdmin) {
                         Invoke-Expression $cmd
@@ -160,8 +159,20 @@ begin {
                 exit 1
             }
         }
+        # *perform initial distro setup
+        # enable automount in wsl.conf
+        $param = @{
+            Distro   = $Distro
+            ConfDict = [ordered]@{
+                automount = [ordered]@{
+                    enabled    = 'true'
+                    mountFsTab = 'true'
+                }
+            }
+        }
+        Set-WslConf @param
         # disable appending Windows path inside distro to fix mounting issues
-        $lxss = wsl/wsl_distro_get.ps1 -FromRegistry | Where-Object Name -EQ $Distro
+        $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
         if ($lxss -and $lxss.Flags -ne 13) {
             Set-ItemProperty -Path $lxss.PSPath -Name 'Flags' -Value 13
             Write-Host "`nrestarting WSL to apply changes..." -ForegroundColor Cyan
@@ -450,8 +461,7 @@ process {
             $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
             if ($AddCertificate) {
                 # a guess, that if certs are being installed, you're behind MITM proxy without chunked transfer encoding
-                $builder.AppendLine('git config --global http.postBuffer 512M') | Out-Null
-                $builder.AppendLine('git config --global http.maxRequestBuffer 128M') | Out-Null
+                $builder.AppendLine('git config --global http.postBuffer 524288000') | Out-Null
             }
             Write-Host 'configuring git...' -ForegroundColor Cyan
             wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
