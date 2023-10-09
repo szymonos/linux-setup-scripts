@@ -2,6 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 . $PSScriptRoot/Functions/certs.ps1
 . $PSScriptRoot/Functions/common.ps1
+. $PSScriptRoot/Functions/wsl.ps1
 
 $exportModuleMemberParams = @{
     Function = @(
@@ -12,6 +13,9 @@ $exportModuleMemberParams = @{
         'ConvertFrom-Cfg'
         'ConvertTo-Cfg'
         'Invoke-ExampleScriptSave'
+        # wsl
+        'Get-WslDistro'
+        'Set-WslConf'
     )
     Variable = @()
     Alias    = @()
