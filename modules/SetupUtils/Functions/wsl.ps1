@@ -139,7 +139,7 @@ function Set-WslConf {
     begin {
         Write-Verbose 'setting wsl.conf'
         $wslConf = wsl.exe -d $Distro --exec cat /etc/wsl.conf 2>$null | ConvertFrom-Cfg
-        if (-not $?) {
+        if (-not ($? -or $ConfDict)) {
             break
         }
     }
