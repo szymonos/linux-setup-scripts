@@ -134,7 +134,9 @@ begin {
     $lxss = Get-WslDistro | Where-Object Name -NotMatch '^docker-desktop'
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
         if ($Distro -notin $lxss.Name) {
-            $onlineDistros = Get-WslDistro -Online
+            for ($i = 0; $i -lt 5; $i++) {
+                if ($onlineDistros = Get-WslDistro -Online) { break }
+            }
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
                 Write-Host "`nspecified distribution not found ($Distro), proceeding to install..." -ForegroundColor Cyan
