@@ -134,7 +134,9 @@ begin {
     $lxss = Get-WslDistro | Where-Object Name -NotMatch '^docker-desktop'
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
         if ($Distro -notin $lxss.Name) {
-            $onlineDistros = Get-WslDistro -Online
+            for ($i = 0; $i -lt 5; $i++) {
+                if ($onlineDistros = Get-WslDistro -Online) { break }
+            }
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
                 Write-Host "`nspecified distribution not found ($Distro), proceeding to install..." -ForegroundColor Cyan
@@ -160,6 +162,19 @@ begin {
             }
         }
         # *perform initial distro setup
+        # disable appending Windows path inside distro to fix mounting issues
+        $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
+        # check if current version is V2
+        if ($lxss.Version -eq 1) {
+            Write-Warning "The distribution `"$Distro`" is currently using version 1."
+            if ((Read-Host -Prompt 'Would you like to convert it to version 2 (recommended)? [Y/n]') -ne 'n') {
+                Write-Host 'Converting the distro to version 2.'
+                wsl --set-version $Distro 2
+                $lxss.Version = 2
+            } else {
+                Write-Host 'Keeping the version 1 for the distribution.'
+            }
+        }
         # enable automount in wsl.conf
         $param = @{
             Distro   = $Distro
@@ -171,10 +186,9 @@ begin {
             }
         }
         Set-WslConf @param
-        # disable appending Windows path inside distro to fix mounting issues
-        $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
-        if ($lxss -and $lxss.Flags -ne 13) {
-            Set-ItemProperty -Path $lxss.PSPath -Name 'Flags' -Value 13
+        if ($lxss -and $lxss.Flags -notin @(5, 13)) {
+            $flag = $lxss.Version -eq 1 ? 5 : 13
+            Set-ItemProperty -Path $lxss.PSPath -Name 'Flags' -Value $flag
             Write-Host "`nrestarting WSL to apply changes..." -ForegroundColor Cyan
             wsl.exe --shutdown $Distro
         }
