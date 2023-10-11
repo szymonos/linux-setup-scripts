@@ -176,7 +176,8 @@ begin {
         # disable appending Windows path inside distro to fix mounting issues
         $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
         if ($lxss -and $lxss.Flags -ne 13) {
-            Set-ItemProperty -Path $lxss.PSPath -Name 'Flags' -Value 13
+            $flag = $lxss.Version -eq 1 ? 5 : 13
+            Set-ItemProperty -Path $lxss.PSPath -Name 'Flags' -Value $flag
             Write-Host "`nrestarting WSL to apply changes..." -ForegroundColor Cyan
             wsl.exe --shutdown $Distro
         }
