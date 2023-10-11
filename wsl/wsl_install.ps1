@@ -1,3 +1,4 @@
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
 Install and set up the specified WSL distro.
@@ -64,20 +65,28 @@ begin {
 }
 
 process {
+    # *Check if WSL is updated
+    wsl.exe --update
+
+    # *Check the current default version
+    $wslDefaultVersion = Get-ItemPropertyValue -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -Name 'DefaultVersion' -ErrorAction SilentlyContinue
+    if ($wslDefaultVersion -ne 2) {
+        Write-Warning 'You are currently using WSL version 1 as default.'
+        if ((Read-Host -Prompt 'Would you like to switch to WSL 2 (recommended)? [Y/n]') -ne 'n') {
+            Write-Host 'Setting the default version to WSL 2.'
+            wsl.exe --set-default-version 2
+        } else {
+            Write-Host 'Keeping the default WSL 1 version.'
+        }
+    }
+
     # *Install PowerShell
     try {
         Get-Command pwsh.exe -CommandType Application | Out-Null
     } catch {
-        $scriptPath = Resolve-Path wsl/pwsh_setup.ps1
-        if (Test-IsAdmin) {
-            & $scriptPath
-            # update environment paths
-            Update-SessionEnvironmentPath
-        } else {
-            Start-Process powershell.exe "-NoProfile -File `"$scriptPath`"" -Verb RunAs
-            Write-Host "`nInstalling PowerShell Core. Complete the installation and run the script again!`n" -ForegroundColor Yellow
-            exit 0
-        }
+        wsl/pwsh_setup.ps1
+        # update environment paths
+        Update-SessionEnvironmentPath
     }
 
     # *Set up WSL
@@ -91,10 +100,9 @@ process {
         $reposStr = $Repos | Join-Str -Separator ',' -SingleQuote
         $sb.Append(" -Repos @($reposStr)") | Out-Null
     }
-    if ($AddCertificate) { $sb.Append(" -AddCertificate") | Out-Null }
+    if ($AddCertificate) { $sb.Append(' -AddCertificate') | Out-Null }
     $sb.Append(" -OmpTheme 'base'") | Out-Null
     # run the wsl_setup script
-    Write-Host '*** WSL Setup ***' -ForegroundColor White
     pwsh.exe -NoProfile -Command $sb.ToString()
 }
 
