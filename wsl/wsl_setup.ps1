@@ -225,14 +225,15 @@ process {
             '[ -d $HOME/miniconda3 ] && python="true" || python="false";',
             '[ -f $HOME/.ssh/id_ed25519 ] && ssh_key="true" || ssh_key="false";',
             '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
+            '[ -x /etc/autoexec.sh ] && wsl_boot="true" || wsl_boot="false";',
             'git_user_name="$(git config --global --get user.name 2>/dev/null)";',
             '[ -n "$git_user_name" ] && git_user="true" || git_user="false";',
             'git_user_email="$(git config --global --get user.email 2>/dev/null)";',
             '[ -n "$git_user_email" ] && git_email="true" || git_email="false";',
             'grep -qw "systemd.*true" /etc/wsl.conf 2>/dev/null && systemd="true" || systemd="false";',
             'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false";',
-            'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,',
-            '\"omp\":$omp,\"az\":$az,\"wslg\":$wslg,\"python\":$python,\"systemd\":$systemd,\"gtkd\":$gtkd,',
+            'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,',
+            '\"az\":$az,\"wslg\":$wslg,\"wsl_boot\":$wsl_boot,\"python\":$python,\"systemd\":$systemd,\"gtkd\":$gtkd,',
             '\"pwsh\":$pwsh,\"zsh\":$zsh,\"git_user\":$git_user,\"git_email\":$git_email,\"ssh_key\":$ssh_key}"'
         )
         # check existing distro setup
@@ -286,6 +287,11 @@ process {
         if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
             Write-Warning 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.'
             exit
+        }
+        # *boot setup
+        if (-not $chk.wsl_boot) {
+            wsl.exe --distribution $Distro --user root install -m 0755 .assets/provision/autoexec.sh /etc
+            Set-WslConf -Distro $Distro -ConfDict ([ordered]@{ boot = @{ command = '"[ -x /etc/autoexec.sh ] && /etc/autoexec.sh || true"' } })
         }
         switch ($scopes) {
             distrobox {
