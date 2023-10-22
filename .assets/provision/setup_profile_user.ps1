@@ -33,6 +33,11 @@ if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet) {
 if (Get-Command oh-my-posh -CommandType Application) {
     oh-my-posh disable notice
 }
+# install PSReadLine
+for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5; $i++) {
+    Write-Host 'installing PSReadLine...'
+    Install-PSResource -Name PSReadLine
+}
 
 $kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
 if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
