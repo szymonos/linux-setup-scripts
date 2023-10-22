@@ -85,15 +85,15 @@ process {
     # install Microsoft.PowerShell.PSResourceGet
     for ($i = 0; -not (Get-Module Microsoft.PowerShell.PSResourceGet -ListAvailable) -and $i -lt 5; $i++) {
         Write-Host 'installing PSResourceGet...'
-        Install-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers
+        Install-Module Microsoft.PowerShell.PSResourceGet -Scope AllUsers
     }
     # install/update modules
     if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue) {
         # update Microsoft.PowerShell.PSResourceGet
         try {
-            Update-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -ErrorAction Stop
+            Update-Module Microsoft.PowerShell.PSResourceGet -Scope AllUsers -ErrorAction Stop
         } catch {
-            Install-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -Force -SkipPublisherCheck
+            Install-Module Microsoft.PowerShell.PSResourceGet -Scope AllUsers -Force -SkipPublisherCheck
         }
         # uninstall old versions
         Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet -AllVersions `
