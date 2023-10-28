@@ -3,6 +3,9 @@
 .SYNOPSIS
 Update repository modules from ps-modules.
 
+.PARAMETER Refresh
+Check if repository is up to date and reset to origin if necessary.
+
 .EXAMPLE
 .assets/scripts/modules_update.ps1
 .assets/scripts/modules_update.ps1 -Refresh
@@ -43,6 +46,7 @@ begin {
                 common = @(
                     'ConvertFrom-Cfg'
                     'ConvertTo-Cfg'
+                    'Get-ArrayIndexMenu'
                     'Invoke-ExampleScriptSave'
                 )
             }

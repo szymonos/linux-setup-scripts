@@ -12,6 +12,7 @@ $exportModuleMemberParams = @{
         # common
         'ConvertFrom-Cfg'
         'ConvertTo-Cfg'
+        'Get-ArrayIndexMenu'
         'Invoke-ExampleScriptSave'
         # wsl
         'Get-WslDistro'

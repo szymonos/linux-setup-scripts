@@ -22,7 +22,7 @@ RUN \
     && apt-get update && apt-get install --no-install-recommends -y eza \
     # setup PS modules
     && pwsh -nop -c \
-        'Install-Module Microsoft.PowerShell.PSResourceGet -AllowPrerelease -Scope AllUsers -Force \
+        'Install-Module Microsoft.PowerShell.PSResourceGet -Scope AllUsers -Force \
         && Set-PSResourceRepository -Name PSGallery -Trusted \
         && Install-PSResource -Name posh-git -Scope AllUsers \
         && Update-Help -ErrorAction SilentlyContinue || $true' \
