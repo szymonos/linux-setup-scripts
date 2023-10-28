@@ -100,6 +100,95 @@ function ConvertTo-Cfg {
     }
 }
 
+function Get-ArrayIndexMenu {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline)]
+        [object[]]$Array,
+
+        [Parameter(Position = 1)]
+        [string]$Message,
+
+        [switch]$Value,
+
+        [switch]$List,
+
+        [switch]$AllowNoSelection
+    )
+    begin {
+        # instantiate generic list to store the input array
+        $lst = [System.Collections.Generic.List[object]]::new()
+    }
+
+    process {
+        # determine if the input array has multiple properties
+        if (-not $arrayType) {
+            $arrayType = ($Array | Select-Object * | Get-Member -MemberType NoteProperty).Count -gt 1 ? 'object' : 'string'
+        }
+        # add input array items to the generic list
+        $Array.ForEach({ $lst.Add($_) })
+    }
+
+    end {
+        # return if the input array has less then 2 items
+        if ($lst.Count -eq 0) {
+            return
+        } elseif ($lst.Count -eq 1) {
+            $indexes = [System.Collections.Generic.HashSet[int]]::new([int[]]0)
+        } else {
+            # create selection menu
+            $menu = switch ($arrayType) {
+                object {
+                    $i = 0
+                    $lst `
+                    | Select-Object @{ N = '#'; E = { $lst.IndexOf($_) } }, @{ N = ' '; E = { '-' } }, * `
+                    | Format-Table -AutoSize `
+                    | Out-String -Stream `
+                    | ForEach-Object { $i -lt 3 ? "`e[1;92m$_`e[0m" : $_; $i++ } `
+                    | Out-String
+                    continue
+                }
+                string {
+                    $lst.ToArray().ForEach({ [PSCustomObject]@{ '#' = $lst.IndexOf($_); ' ' = '-'; 'V' = $_ } }) `
+                    | Format-Table -AutoSize -HideTableHeaders `
+                    | Out-String
+                    continue
+                }
+            }
+
+            # create prompt message
+            if (-not $Message) {
+                $Message = $List ? 'Enter comma/space separated selection list' : 'Enter selection'
+            }
+            $msg = "`n`e[4m$Message`e[0m:`n$menu"
+
+            # read and validate input
+            do {
+                # instantiate indexes collection
+                $indexes = [System.Collections.Generic.HashSet[int]]::new()
+                # prompt for a selection from the input array
+                (Read-Host -Prompt $msg).Split([char[]]@(' ', ','), [StringSplitOptions]::RemoveEmptyEntries).ForEach({
+                        try { $indexes.Add($_) | Out-Null } catch { }
+                    }
+                )
+                # calculate stats for returned indexes
+                $stat = $indexes | Measure-Object -Minimum -Maximum
+                # evaluate if the Read-Host input is valid
+                $continue = if ($stat.Count -eq 0) {
+                    $AllowNoSelection
+                } elseif ($stat.Count -eq 1 -or ($List -and $stat.Count -gt 0)) {
+                    $stat.Minimum -ge 0 -and $stat.Maximum -lt $lst.Count
+                } else {
+                    $false
+                }
+            } until ($continue)
+        }
+
+        # return result
+        return $Value ? $indexes.ForEach({ $lst[$_] }) : [int[]]$indexes.ForEach({ $_ })
+    }
+}
+
 function Invoke-ExampleScriptSave {
     [CmdletBinding()]
     param (
