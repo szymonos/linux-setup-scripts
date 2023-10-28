@@ -67,6 +67,8 @@ wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
 # :update all existing WSL distros
 wsl/wsl_setup.ps1
 #>
+using namespace System.Management.Automation.Host
+
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'Setup')]
@@ -116,9 +118,9 @@ begin {
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
     # import InstallUtils for the Invoke-GhRepoClone function
-    Import-Module (Resolve-Path './modules/InstallUtils')
+    Import-Module (Convert-Path './modules/InstallUtils')
     # import SetupUtils for the Set-WslConf function
-    Import-Module (Resolve-Path './modules/SetupUtils')
+    Import-Module (Convert-Path './modules/SetupUtils')
 
     # check if repository is up to date
     Write-Host "`nchecking if the repository is up to date..." -ForegroundColor Cyan
@@ -140,7 +142,7 @@ begin {
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
                 Write-Host "`nspecified distribution not found ($Distro), proceeding to install..." -ForegroundColor Cyan
-                $cmd = "wsl.exe --install --distribution $Distro"
+                $cmd = "wsl.exe --install --distribution $Distro --web-download"
                 try {
                     Get-Service LxssManagerUser*, WSLService | Out-Null
                     Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
@@ -160,21 +162,50 @@ begin {
                 Write-Warning "The specified distro does not exist ($Distro)."
                 exit 1
             }
+        } elseif ($lxss.Where({ $_.Name -eq $Distro }).Version -eq 1) {
+            Write-Host ''
+            Write-Warning "The distribution `"$Distro`" is currently using WSL1!"
+            $caption = 'It is strongly recommended to use WSL2.'
+            $message = 'Select your choice:'
+            $choices = @(
+                @{ choice = '&Replace the current distro'; desc = "Delete current '$Distro' distro and install it as WSL2." }
+                @{ choice = '&Select another distro to install'; desc = 'Select from other online distros to install as WSL2.' }
+                @{ choice = '&Continue setup of the current distro'; desc = "Continue setup of the current WSL1 '$Distro' distro." }
+            )
+            [ChoiceDescription[]]$options = $choices.ForEach({ [ChoiceDescription]::new($_.choice, $_.desc) })
+            $choice = $Host.UI.PromptForChoice($caption, $message, $options, -1)
+            if ($choice -ne 2) {
+                # check the default WSL version and change to 2 if necessary
+                if ((Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss').DefaultVersion -ne 2) {
+                    wsl.exe --set-default-version 2
+                }
+                switch ($choice) {
+                    0 {
+                        Write-Host "`nunregistering current distro..." -ForegroundColor Cyan
+                        wsl.exe --unregister $Distro
+                        continue
+                    }
+                    1 {
+                        for ($i = 0; $i -lt 5; $i++) {
+                            if ($onlineDistros = Get-WslDistro -Online) {
+                                $onlineDistros = $onlineDistros.Name | Where-Object {
+                                    $_ -ne $Distro -and $_ -match 'ubuntu|debian'
+                                }
+                                break
+                            }
+                        }
+                        $Distro = Get-ArrayIndexMenu $onlineDistros -Message 'Choose distro to install' -Value
+                        Write-Host "`ninstalling selected distro ($Distro)..." -ForegroundColor Cyan
+                        continue
+                    }
+                }
+                Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
+                wsl.exe --install --distribution $Distro --web-download
+            }
         }
         # *perform initial distro setup
         # disable appending Windows path inside distro to fix mounting issues
         $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
-        # check if current version is V2
-        if ($lxss.Version -eq 1) {
-            Write-Warning "The distribution `"$Distro`" is currently using version 1."
-            if ((Read-Host -Prompt 'Would you like to convert it to version 2 (recommended)? [Y/n]') -ne 'n') {
-                Write-Host 'Converting the distro to version 2.'
-                wsl --set-version $Distro 2
-                $lxss.Version = 2
-            } else {
-                Write-Host 'Keeping the version 1 for the distribution.'
-            }
-        }
         # enable automount in wsl.conf
         $param = @{
             Distro   = $Distro

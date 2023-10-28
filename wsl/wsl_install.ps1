@@ -69,7 +69,7 @@ process {
     wsl.exe --update
 
     # *Check the current default version
-    $wslDefaultVersion = Get-ItemPropertyValue -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -Name 'DefaultVersion' -ErrorAction SilentlyContinue
+    $wslDefaultVersion = (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss').DefaultVersion
     if ($wslDefaultVersion -ne 2) {
         Write-Warning 'You are currently using WSL version 1 as default.'
         if ((Read-Host -Prompt 'Would you like to switch to WSL 2 (recommended)? [Y/n]') -ne 'n') {
