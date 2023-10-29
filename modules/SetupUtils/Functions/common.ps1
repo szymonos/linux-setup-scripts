@@ -1,3 +1,31 @@
+function Get-LogMessage {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Message,
+
+        [ValidateSet('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')]
+        [string]$Level = 'INFO'
+    )
+
+    # calculate message color
+    $msgColor = switch ($Level) {
+        DEBUG { "`e[36m" }
+        INFO { "`e[34m" }
+        WARNING { "`e[33m" }
+        ERROR { "`e[31m" }
+        CRITICAL { "`e[91m" }
+    }
+    # calculate message information
+    $position = "$(Split-Path $MyInvocation.ScriptName -Leaf):$($MyInvocation.ScriptLineNumber)"
+    $ts = (Get-Date).ToString('s').Replace('T', ' ')
+
+    # print log message
+    $msg = "`e[32m{0}`e[0m|`e[30m{1}`e[0m|{2} - $msgColor{3}`e[0m" -f $ts, $Level.ToUpper(), $position, $Message
+    Write-Host $msg
+}
+
 function ConvertFrom-Cfg {
     [CmdletBinding()]
     [OutputType([System.Collections.Specialized.OrderedDictionary])]

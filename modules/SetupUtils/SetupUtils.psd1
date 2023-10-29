@@ -12,7 +12,7 @@
     RootModule           = 'SetupUtils.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.2.2'
+    ModuleVersion        = '0.3.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -74,6 +74,7 @@
         'ConvertTo-PEM'
         'Get-Certificate'
         # common
+        'Get-LogMessage'
         'ConvertFrom-Cfg'
         'ConvertTo-Cfg'
         'Get-ArrayIndexMenu'
