@@ -10,6 +10,7 @@ $exportModuleMemberParams = @{
         'ConvertTo-PEM'
         'Get-Certificate'
         # common
+        'Get-LogMessage'
         'ConvertFrom-Cfg'
         'ConvertTo-Cfg'
         'Get-ArrayIndexMenu'

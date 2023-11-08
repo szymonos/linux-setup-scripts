@@ -136,6 +136,9 @@ process {
             "echo '$resolvConf' >/etc/resolv.conf",
             'chattr -f +i /etc/resolv.conf 2>/dev/null || true'
         )
+        # shutdown distro for the wsl.conf changes to make effect
+        wsl.exe --shutdown $Distro
+        # save new resolv.conf settings
         wsl.exe -d $Distro --user root --exec bash -c $cmd
     }
 
