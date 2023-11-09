@@ -9,8 +9,6 @@ Name of the WSL distro to set up. If not specified, script will update all exist
 Description of the VPN interface.
 .PARAMETER DisableSwap
 Flag whether to disable swap in WSL.
-.PARAMETER Shutdown
-Flag whether to shutdown specified distro.
 .PARAMETER Revert
 Revert changes and set generateResolvConf to 'true'.
 .PARAMETER ShowConf
@@ -20,9 +18,7 @@ Print current configuration after changes.
 $Distro = 'Ubuntu'
 wsl/wsl_network_fix.ps1 $Distro
 wsl/wsl_network_fix.ps1 $Distro -ShowConf
-wsl/wsl_network_fix.ps1 $Distro -Shutdown
 wsl/wsl_network_fix.ps1 $Distro -DisableSwap
-wsl/wsl_network_fix.ps1 $Distro -Shutdown -DisableSwap
 # :revert changes
 wsl/wsl_network_fix.ps1 $Distro -Revert
 wsl/wsl_network_fix.ps1 $Distro -Revert -ShowConf
@@ -34,8 +30,6 @@ param (
     [string]$Distro,
 
     [switch]$DisableSwap,
-
-    [switch]$Shutdown,
 
     [switch]$Revert,
 
@@ -117,11 +111,6 @@ process {
             $dnsServers = $ipConfig[$idx].DNSServer
             $dnsServers.ForEach({ $builder.AppendLine("nameserver $_") | Out-Null })
         }
-        # get distro default gateway
-        $def_gtw = (wsl.exe -d $Distro -u root --exec sh -c 'ip route show default' | Select-String '(?<=via )[\d\.]+(?= dev)').Matches.Value
-        if ($def_gtw) {
-            $builder.AppendLine("nameserver $def_gtw") | Out-Null
-        }
         # get DNS suffix search list
         $searchSuffix = (Get-DnsClientGlobalSetting).SuffixSearchList -join ','
         if ($searchSuffix) {
@@ -160,7 +149,7 @@ process {
     }
 
     # *shutdown specified distro
-    if ($Shutdown -or $Revert) {
+    if ($Revert) {
         wsl.exe -d $Distro --user root --exec bash -c 'chattr -fi /etc/resolv.conf 2>/dev/null || true'
         Write-Host "shutting down '$Distro' distro" -ForegroundColor DarkGreen
         wsl.exe --shutdown $Distro
