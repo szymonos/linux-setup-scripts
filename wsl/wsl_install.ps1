@@ -70,7 +70,7 @@ process {
 
     # *Check the current default version
     $wslDefaultVersion = (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss').DefaultVersion
-    if ($wslDefaultVersion -ne 2) {
+    if ($wslDefaultVersion -eq 1) {
         Write-Warning 'You are currently using WSL version 1 as default.'
         if ((Read-Host -Prompt 'Would you like to switch to WSL 2 (recommended)? [Y/n]') -ne 'n') {
             Write-Host 'Setting the default version to WSL 2.'
@@ -78,6 +78,8 @@ process {
         } else {
             Write-Host 'Keeping the default WSL 1 version.'
         }
+    } elseif ($null -eq $wslDefaultVersion) {
+        wsl.exe --set-default-version 2 | Out-Null
     }
 
     # *Install PowerShell
