@@ -375,16 +375,6 @@ process {
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
-                # *install PowerShell Az modules
-                if ('az' -in $scopes) {
-                    $cmd = [string]::Join("`n",
-                        'if (-not (Get-Module -ListAvailable Az))',
-                        '{ Write-Host "installing Az..."; Install-PSResource Az }',
-                        'if (-not (Get-Module -ListAvailable Az.ResourceGraph))',
-                        '{ Write-Host "installing Az.ResourceGraph..."; Install-PSResource Az.ResourceGraph }'
-                    )
-                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
-                }
                 # *install PowerShell modules from ps-modules repository
                 # clone/refresh szymonos/ps-modules repository
                 $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'
@@ -410,6 +400,18 @@ process {
                 Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+                # *install PowerShell Az modules
+                if ('az' -in $scopes) {
+                    $cmd = [string]::Join("`n",
+                        'if (-not (Get-Module -ListAvailable "Az")) {',
+                        "`tWrite-Host 'installing Az...'",
+                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue }`n}",
+                        'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
+                        "`tWrite-Host 'installing Az.ResourceGraph...'",
+                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph }`n}"
+                    )
+                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
+                }
                 continue
             }
             python {

@@ -39,12 +39,14 @@ for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5;
     Install-PSResource -Name PSReadLine
 }
 
+# install kubectl autocompletion
 $kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
 if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
     Write-Host 'adding kubectl auto-completion...'
     (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
 }
 
+# add conda init to the user profile
 $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
 if ((Test-Path $HOME/miniconda3/bin/conda) -and -not $condaSet) {
     Write-Verbose 'adding miniconda initialization...'
