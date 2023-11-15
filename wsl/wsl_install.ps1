@@ -62,15 +62,27 @@ begin {
     Import-Module (Resolve-Path './modules/InstallUtils')
     # update environment paths
     Update-SessionEnvironmentPath
+    # WSL feature name
+    $wslFeat = @('VirtualMachinePlatform', 'Microsoft-Windows-Subsystem-Linux')
 }
 
 process {
+    # *Check if WSL Feature is enabled
+    if ((Test-IsAdmin) -and (Get-WindowsOptionalFeature -FeatureName $wslFeat[0] -Online).State -ne 'Enabled') {
+        $enabled = Enable-WindowsOptionalFeature -FeatureName $wslFeat -Online
+        if ($enabled.RestartNeeded) {
+            Write-Host 'Microsoft-Windows-Subsystem-Linux feature enabled.'
+            Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
+            exit 0
+        }
+    }
+
     # *Check if WSL is updated
     wsl.exe --update
 
     # *Check the current default version
     $wslDefaultVersion = (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss').DefaultVersion
-    if ($wslDefaultVersion -ne 2) {
+    if ($wslDefaultVersion -eq 1) {
         Write-Warning 'You are currently using WSL version 1 as default.'
         if ((Read-Host -Prompt 'Would you like to switch to WSL 2 (recommended)? [Y/n]') -ne 'n') {
             Write-Host 'Setting the default version to WSL 2.'
@@ -78,6 +90,8 @@ process {
         } else {
             Write-Host 'Keeping the default WSL 1 version.'
         }
+    } elseif ($null -eq $wslDefaultVersion) {
+        wsl.exe --set-default-version 2 | Out-Null
     }
 
     # *Install PowerShell

@@ -48,6 +48,8 @@ if [ -d "$CFG_PATH" ]; then
   if type -f kubectl &>/dev/null; then
     install -m 0644 "$CFG_PATH/aliases_kubectl.sh" "$PROFILE_PATH"
   fi
+  # custom functions
+  install -m 0644 "$CFG_PATH/functions.sh" "$PROFILE_PATH"
   # clean config folder
   rm -fr "$CFG_PATH"
   # TODO to be removed, cleanup legacy aliases
