@@ -24,6 +24,14 @@ fi
 EOF
 fi
 
+# add custom functions
+grep -qw 'd/functions.sh' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
+# custom functions
+if [ -f "$PROFILE_PATH/functions.sh" ]; then
+  source "$PROFILE_PATH/functions.sh"
+fi
+EOF
+
 # add kubectl autocompletion and aliases
 if ! grep -qw 'kubectl' ~/.bashrc 2>/dev/null && type -f kubectl &>/dev/null; then
   cat <<EOF >>~/.bashrc
