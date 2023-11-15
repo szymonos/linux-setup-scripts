@@ -62,9 +62,21 @@ begin {
     Import-Module (Resolve-Path './modules/InstallUtils')
     # update environment paths
     Update-SessionEnvironmentPath
+    # WSL feature name
+    $wslFeat = @('VirtualMachinePlatform', 'Microsoft-Windows-Subsystem-Linux')
 }
 
 process {
+    # *Check if WSL Feature is enabled
+    if ((Test-IsAdmin) -and (Get-WindowsOptionalFeature -FeatureName $wslFeat[0] -Online).State -ne 'Enabled') {
+        $enabled = Enable-WindowsOptionalFeature -FeatureName $wslFeat -Online
+        if ($enabled.RestartNeeded) {
+            Write-Host 'Microsoft-Windows-Subsystem-Linux feature enabled.'
+            Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
+            exit 0
+        }
+    }
+
     # *Check if WSL is updated
     wsl.exe --update
 
