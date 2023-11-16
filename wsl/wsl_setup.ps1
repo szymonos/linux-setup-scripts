@@ -204,7 +204,6 @@ begin {
             }
         }
         # *perform initial distro setup
-        # disable appending Windows path inside distro to fix mounting issues
         $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
         # enable automount in wsl.conf
         $param = @{
@@ -217,12 +216,6 @@ begin {
             }
         }
         Set-WslConf @param
-        if ($lxss -and $lxss.Flags -notin @(5, 13)) {
-            $flag = $lxss.Version -eq 1 ? 5 : 13
-            Set-ItemProperty -Path $lxss.PSPath -Name 'Flags' -Value $flag
-            Write-Host "`nrestarting WSL to apply changes..." -ForegroundColor Cyan
-            wsl.exe --shutdown $Distro
-        }
     } elseif ($lxss) {
         Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update." -ForegroundColor White
         $lxss.Name.ForEach({ Write-Host "- $_" })

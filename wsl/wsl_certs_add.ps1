@@ -25,7 +25,7 @@ param (
     [string]$Distro,
 
     [ValidateNotNullOrEmpty()]
-    [string[]]$Uris = @('github.com', 'www.powershellgallery.com')
+    [string[]]$Uris = @('www.google.com', 'www.powershellgallery.com')
 )
 
 begin {
