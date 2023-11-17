@@ -505,10 +505,6 @@ process {
             $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
             $builder.AppendLine('git config --global core.longpaths true') | Out-Null
             $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
-            if ($AddCertificate) {
-                # a guess, that if certs are being installed, you're behind MITM proxy without chunked transfer encoding
-                $builder.AppendLine('git config --global http.postBuffer 524288000') | Out-Null
-            }
             Write-Host 'configuring git...' -ForegroundColor Cyan
             wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
         }
