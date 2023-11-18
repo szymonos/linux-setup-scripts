@@ -16,13 +16,13 @@ if (-not (Test-Path $profileDir -PathType Container)) {
     New-Item $profileDir -ItemType Directory | Out-Null
 }
 # set up Microsoft.PowerShell.PSResourceGet and update installed modules
-if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet) {
+if (Get-Module -Name Microsoft.PowerShell.PSResourceGet -ListAvailable) {
     if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
         Write-Host 'setting PSGallery trusted...'
         Set-PSResourceRepository -Name PSGallery -Trusted
         # update help, assuming this is the initial setup
         Write-Host 'updating help...'
-        Update-Help
+        Update-Help -UICulture en-US
     }
     # update existing modules
     if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
