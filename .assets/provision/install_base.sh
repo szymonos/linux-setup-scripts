@@ -27,7 +27,7 @@ arch)
       fi
       exit 1
     fi
-    sudo -u $user bash -c 'git clone https://aur.archlinux.org/paru-bin.git && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
+    sudo -u $user bash -c 'git clone https://aur.archlinux.org/paru-bin.git && cd paru-bin && makepkg -si --noconfirm && cd ..; rm -fr paru-bin'
     grep -qw '^BottomUp' /etc/paru.conf || sed -i 's/^#BottomUp/BottomUp/' /etc/paru.conf
   fi
   ;;

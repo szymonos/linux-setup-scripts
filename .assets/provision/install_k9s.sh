@@ -34,11 +34,11 @@ fi
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
-while [[ ! -f "$TMP_DIR/k9s.tgz" && $retry_count -lt 10 ]]; do
-  curl -Lsk -o "$TMP_DIR/k9s.tgz" "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_amd64.tar.gz"
+while [[ ! -f "$TMP_DIR/k9s.tar.gz" && $retry_count -lt 10 ]]; do
+  curl -sLko "$TMP_DIR/k9s.tar.gz" "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_amd64.tar.gz"
   ((retry_count++))
 done
-tar -zxvf "$TMP_DIR/k9s.tgz" -C "$TMP_DIR"
+tar -zxvf "$TMP_DIR/k9s.tar.gz" -C "$TMP_DIR"
 mkdir -p /opt/k9s
 install -m 0755 "$TMP_DIR/k9s" /opt/k9s/
 [ -f /usr/bin/k9s ] || ln -s /opt/k9s/k9s /usr/bin/k9s

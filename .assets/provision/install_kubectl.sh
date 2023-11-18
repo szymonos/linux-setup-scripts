@@ -24,7 +24,7 @@ REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
-  REL=$(curl -Lsk https://dl.k8s.io/release/stable.txt)
+  REL=$(curl -sLk https://dl.k8s.io/release/stable.txt)
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
@@ -66,11 +66,13 @@ esac
 
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
+  TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f kubectl && $retry_count -lt 10 ]]; do
-    curl -LOsk "https://dl.k8s.io/release/$(curl -Lsk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
+    curl -sLko "$TMP_DIR/$APP" "https://dl.k8s.io/release/$(curl -sLk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
     ((retry_count++))
   done
   # install
-  install -m 0755 kubectl /usr/bin/ && rm -f kubectl
+  install -m 0755 "$TMP_DIR/$APP" /usr/bin/
+  rm -fr "$TMP_DIR"
 fi

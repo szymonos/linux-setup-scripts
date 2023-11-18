@@ -90,11 +90,11 @@ if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f "$TMP_DIR/eza-linux-x86_64.tar.gz" && $retry_count -lt 10 ]]; do
-    curl -Lsk -o "$TMP_DIR/eza-linux-x86_64.tar.gz" "https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
+  while [[ ! -f "$TMP_DIR/$APP.tar.gz" && $retry_count -lt 10 ]]; do
+    curl -sLko "$TMP_DIR/$APP.tar.gz" "https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
     ((retry_count++))
   done
-  tar -zxf "$TMP_DIR/eza-linux-x86_64.tar.gz" -C "$TMP_DIR"
+  tar -zxf "$TMP_DIR/$APP.tar.gz" -C "$TMP_DIR"
   install -m 0755 "$TMP_DIR/eza" /usr/bin/
   rm -fr "$TMP_DIR"
 fi

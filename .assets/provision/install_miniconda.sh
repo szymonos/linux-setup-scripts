@@ -42,12 +42,14 @@ if [ -d "$HOME/miniconda3" ]; then
   conda_init
 else
   printf "\e[92minstalling \e[1mminiconda\e[0m\n"
+  TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f miniconda.sh && $retry_count -lt 10 ]]; do
-    curl -fsSLk -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  while [[ ! -f "$TMP_DIR/miniconda.sh" && $retry_count -lt 10 ]]; do
+    curl -sLko "$TMP_DIR/miniconda.sh" https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     ((retry_count++))
   done
-  bash ./miniconda.sh -b -p "$HOME/miniconda3" >/dev/null && rm ./miniconda.sh
+  bash $TMP_DIR/miniconda.sh -b -p "$HOME/miniconda3" >/dev/null
+  rm -fr "$TMP_DIR"
   # disable auto activation of the base conda environment
   conda_init
   conda config --set auto_activate_base false

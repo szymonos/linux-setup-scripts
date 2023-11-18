@@ -40,7 +40,7 @@ debian | ubuntu)
   [ -f /etc/apt/trusted.gpg.d/microsoft.gpg ] || curl -fsSLk https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor >microsoft.gpg
   install -m 644 microsoft.gpg /usr/share/keyrings/
   sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge.list'
-  rm microsoft.gpg
+  rm -f microsoft.gpg
   apt-get update && apt-get install -y microsoft-edge-stable
   ;;
 opensuse)

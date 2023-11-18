@@ -85,12 +85,12 @@ if [ -n "$1" ]; then
     fc-cache -f /usr/share/fonts
   else
     echo "installing '$font' font..." >&2
-    TMP_DIR=$(mktemp -dp "$PWD")
     http_code=$(curl -Lo /dev/null --silent -Iw '%{http_code}' "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip")
     if [ $http_code -eq 200 ]; then
+      TMP_DIR=$(mktemp -dp "$PWD")
       retry_count=0
       while [[ ! -f "$TMP_DIR/$font.zip" && $retry_count -lt 10 ]]; do
-        curl -Lsk -o "$TMP_DIR/$font.zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
+        curl -sLko "$TMP_DIR/$font.zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
         ((retry_count++))
       done
       unzip -q "$TMP_DIR/$font.zip" -d "$TMP_DIR"

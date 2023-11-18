@@ -39,12 +39,14 @@ case $SYS_ID in
 alpine)
   apk add --no-cache ncurses-terminfo-base krb5-libs libgcc libintl libssl1.1 libstdc++ tzdata userspace-rcu zlib icu-libs >&2 2>/dev/null
   apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache lttng-ust >&2 2>/dev/null
+  TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f powershell.tar.gz && $retry_count -lt 10 ]]; do
-    curl -Lsk -o powershell.tar.gz "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
+  while [[ ! -f "$TMP_DIR/$APP.tar.gz" && $retry_count -lt 10 ]]; do
+    curl -sLko "$TMP_DIR/$APP.tar.gz" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
     ((retry_count++))
   done
-  mkdir -p /opt/microsoft/powershell/7 && tar -zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm powershell.tar.gz
+  mkdir -p /opt/microsoft/powershell/7 && tar -zxf "$TMP_DIR/$APP.tar.gz" -C /opt/microsoft/powershell/7
+  rm -fr "$TMP_DIR"
   chmod +x /opt/microsoft/powershell/7/pwsh && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
   ;;
 arch)
@@ -69,12 +71,14 @@ fedora)
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu67 >&2 2>/dev/null || true
+  TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f powershell.deb && $retry_count -lt 10 ]]; do
-    curl -Lsk -o powershell.deb "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
+  while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
+    curl -sLko "$TMP_DIR/$APP.deb" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
     ((retry_count++))
   done
-  dpkg -i powershell.deb && rm -f powershell.deb >&2 2>/dev/null || binary=true
+  dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null || binary=true
+  rm -fr "$TMP_DIR"
   ;;
 *)
   binary=true
@@ -84,13 +88,15 @@ esac
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
   [ "$SYS_ID" = 'opensuse' ] && zypper in -y libicu >&2 2>/dev/null || true
+  TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f powershell.tar.gz && $retry_count -lt 10 ]]; do
-    curl -Lsk -o powershell.tar.gz "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-x64.tar.gz"
+  while [[ ! -f "$TMP_DIR/$APP.tar.gz" && $retry_count -lt 10 ]]; do
+    curl -sLko "$TMP_DIR/$APP.tar.gz" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-x64.tar.gz"
     ((retry_count++))
   done
   mkdir -p /opt/microsoft/powershell/7
-  tar -zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm -f powershell.tar.gz
+  tar -zxf "$TMP_DIR/$APP.tar.gz" -C /opt/microsoft/powershell/7
+  rm -fr "$TMP_DIR"
   chmod +x /opt/microsoft/powershell/7/pwsh
   [ -f /usr/bin/pwsh ] || ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
 fi

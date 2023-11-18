@@ -9,10 +9,12 @@ fi
 
 APP='kubectl-convert'
 
+TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
-while [[ ! -f kubectl-convert && $retry_count -lt 10 ]]; do
-  curl -LOsk "https://dl.k8s.io/release/$(curl -Lsk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl-convert"
+while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
+  curl -sLko "$TMP_DIR/$APP" "https://dl.k8s.io/release/$(curl -sLk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl-convert"
   ((retry_count++))
 done
 # install
-install -m 0755 kubectl-convert /usr/bin/ && rm -f kubectl-convert
+install -m 0755 "$TMP_DIR/$APP" /usr/bin/
+rm -fr "$TMP_DIR"

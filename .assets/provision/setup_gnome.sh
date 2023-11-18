@@ -30,7 +30,8 @@ esac
 # install dash-to-dock
 if $INSTALL_DASH; then
   GIT_SSL_NO_VERIFY=true git clone https://github.com/micheleg/dash-to-dock.git
-  make -C dash-to-dock install && rm -fr dash-to-dock
+  make -C dash-to-dock install
+  rm -fr dash-to-dock
 fi
 # button-layout
 gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
