@@ -103,7 +103,7 @@ process {
 
         if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
             Write-Host 'setting PSGallery trusted...'
-            Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion v2
+            Set-PSResourceRepository -Name PSGallery -Trusted
         }
         for ($i = 0; (Test-Path /usr/bin/git) -and -not (Get-Module posh-git -ListAvailable) -and $i -lt 5; $i++) {
             Write-Host 'installing posh-git...'

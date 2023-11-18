@@ -19,7 +19,7 @@ if (-not (Test-Path $profileDir -PathType Container)) {
 if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet) {
     if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
         Write-Host 'setting PSGallery trusted...'
-        Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion v2
+        Set-PSResourceRepository -Name PSGallery -Trusted
         # update help, assuming this is the initial setup
         Write-Host 'updating help...'
         Update-Help
