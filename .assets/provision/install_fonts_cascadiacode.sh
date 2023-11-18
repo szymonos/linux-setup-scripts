@@ -28,7 +28,7 @@ echo "Install CascadiaCode v$REL" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
 while [[ ! -f "$TMP_DIR/CascadiaCode.zip" && $retry_count -lt 10 ]]; do
-  curl -sLko "$TMP_DIR/CascadiaCode.zip" "https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
+  curl -#Lko "$TMP_DIR/CascadiaCode.zip" "https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
   ((retry_count++))
 done
 unzip -q "$TMP_DIR/CascadiaCode.zip" -d "$TMP_DIR"

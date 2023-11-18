@@ -56,7 +56,7 @@ debian | ubuntu)
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/$APP.deb" "https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
+    curl -#Lko "$TMP_DIR/$APP.deb" "https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
     ((retry_count++))
   done
   dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null || binary=true
@@ -75,7 +75,7 @@ if [ "$binary" = true ]; then
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/$APP" "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+    curl -#Lko "$TMP_DIR/$APP" "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
     ((retry_count++))
   done
   install -m 0755 "$TMP_DIR/$APP" /usr/local/bin/minikube

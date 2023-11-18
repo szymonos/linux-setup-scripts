@@ -69,7 +69,7 @@ if [ "$binary" = true ]; then
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/$APP" "https://dl.k8s.io/release/$(curl -sLk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    curl -#Lko "$TMP_DIR/$APP" "https://dl.k8s.io/release/$(curl -sLk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
     ((retry_count++))
   done
   # install

@@ -35,7 +35,7 @@ printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
 while [[ ! -f "$TMP_DIR/yq_linux_amd64" && $retry_count -lt 10 ]]; do
-  curl -sLk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx -C "$TMP_DIR"
+  curl -#Lk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx -C "$TMP_DIR"
   ((retry_count++))
 done
 install -m 0755 "$TMP_DIR/yq_linux_amd64" /usr/local/bin/yq

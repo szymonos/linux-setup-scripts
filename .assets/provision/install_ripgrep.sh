@@ -77,7 +77,7 @@ if [ "$binary" = true ]; then
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/rg" && $retry_count -lt 10 ]]; do
-    curl -sLk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx --strip-components=1 -C "$TMP_DIR"
+    curl -#Lk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx --strip-components=1 -C "$TMP_DIR"
     ((retry_count++))
   done
   install -m 0755 "$TMP_DIR/rg" /usr/bin/

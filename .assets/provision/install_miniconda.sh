@@ -45,7 +45,7 @@ else
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/miniconda.sh" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/miniconda.sh" https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    curl -#Lko "$TMP_DIR/miniconda.sh" https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     ((retry_count++))
   done
   bash $TMP_DIR/miniconda.sh -b -p "$HOME/miniconda3" >/dev/null

@@ -90,7 +90,7 @@ if [ -n "$1" ]; then
       TMP_DIR=$(mktemp -dp "$PWD")
       retry_count=0
       while [[ ! -f "$TMP_DIR/$font.zip" && $retry_count -lt 10 ]]; do
-        curl -sLko "$TMP_DIR/$font.zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
+        curl -#Lko "$TMP_DIR/$font.zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
         ((retry_count++))
       done
       unzip -q "$TMP_DIR/$font.zip" -d "$TMP_DIR"

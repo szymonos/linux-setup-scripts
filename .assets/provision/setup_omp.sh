@@ -44,7 +44,7 @@ sudo -u $user mkdir -p $CFG_PATH
 if [ -f ".assets/config/omp_cfg/${theme}.omp.json" ]; then
   cp -f ".assets/config/omp_cfg/${theme}.omp.json" "$CFG_PATH"
 else
-  curl -sSk -o "$CFG_PATH/${theme}.omp.json" "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
+  curl -fsSk -o "$CFG_PATH/${theme}.omp.json" "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" 2>/dev/null
 fi
 
 # *Copy oh-my-posh theme

@@ -35,7 +35,7 @@ printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
 while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
-  curl -sLko "$TMP_DIR/$APP" "https://github.com/argoproj/argo-rollouts/releases/download/v${REL}/kubectl-argo-rollouts-linux-amd64"
+  curl -#Lko "$TMP_DIR/$APP" "https://github.com/argoproj/argo-rollouts/releases/download/v${REL}/kubectl-argo-rollouts-linux-amd64"
   ((retry_count++))
 done
 install -m 0755 "$TMP_DIR/$APP" /usr/local/bin/kubectl-argo-rollouts

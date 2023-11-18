@@ -91,7 +91,7 @@ if [ "$binary" = true ]; then
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP.tar.gz" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/$APP.tar.gz" "https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
+    curl -#Lko "$TMP_DIR/$APP.tar.gz" "https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
     ((retry_count++))
   done
   tar -zxf "$TMP_DIR/$APP.tar.gz" -C "$TMP_DIR"

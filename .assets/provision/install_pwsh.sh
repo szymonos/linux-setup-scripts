@@ -42,7 +42,7 @@ alpine)
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP.tar.gz" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/$APP.tar.gz" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
+    curl -#Lko "$TMP_DIR/$APP.tar.gz" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
     ((retry_count++))
   done
   mkdir -p /opt/microsoft/powershell/7 && tar -zxf "$TMP_DIR/$APP.tar.gz" -C /opt/microsoft/powershell/7
@@ -74,7 +74,7 @@ debian | ubuntu)
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/$APP.deb" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
+    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
     ((retry_count++))
   done
   dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null || binary=true
@@ -91,7 +91,7 @@ if [ "$binary" = true ]; then
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP.tar.gz" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/$APP.tar.gz" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-x64.tar.gz"
+    curl -#Lko "$TMP_DIR/$APP.tar.gz" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-x64.tar.gz"
     ((retry_count++))
   done
   mkdir -p /opt/microsoft/powershell/7

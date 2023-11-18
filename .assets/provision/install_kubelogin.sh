@@ -35,7 +35,7 @@ printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
 while [[ ! -f "$TMP_DIR/$APP.zip" && $retry_count -lt 10 ]]; do
-  curl -sLko "$TMP_DIR/$APP.zip" "https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"
+  curl -#Lko "$TMP_DIR/$APP.zip" "https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"
   ((retry_count++))
 done
 unzip -q "$TMP_DIR/$APP.zip" -d "$TMP_DIR"

@@ -77,7 +77,7 @@ if [ "$binary" = true ]; then
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP.zip" && $retry_count -lt 10 ]]; do
-    curl -sLko "$TMP_DIR/$APP.zip" "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
+    curl -#Lko "$TMP_DIR/$APP.zip" "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
     ((retry_count++))
   done
   unzip -q "$TMP_DIR/$APP.zip" -d "$TMP_DIR"
