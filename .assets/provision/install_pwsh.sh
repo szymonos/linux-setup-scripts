@@ -18,7 +18,7 @@ while [ -z "$REL" ]; do
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
   fi
-  [ -n "$REL" ] || echo 'retrying...' >&2
+  [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
 done
 # return latest release
 echo $REL
