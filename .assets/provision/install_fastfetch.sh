@@ -69,11 +69,14 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  while [[ ! -f $APP.deb && $retry_count -lt 10 ]]; do
-    curl -Lsk -o $APP.deb "https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-${REL}-Linux.deb"
+  TMP_DIR=$(mktemp -dp "$PWD")
+  retry_count=0
+  while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
+    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-${REL}-Linux.deb"
     ((retry_count++))
   done
-  dpkg -i $APP.deb >&2 2>/dev/null && rm -f $APP.deb
+  dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null
+  rm -fr "$TMP_DIR"
   ;;
 opensuse)
   zypper in -y $APP >&2 2>/dev/null

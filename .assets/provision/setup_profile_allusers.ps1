@@ -80,30 +80,11 @@ process {
     if ((Get-PSRepository -Name PSGallery).InstallationPolicy -eq 'Untrusted') {
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     }
-    # TODO to be removed, uninstall PowerShellGet v3
-    Get-InstalledModule -Name PowerShellGet -AllVersions -ErrorAction SilentlyContinue | Uninstall-Module
-    # install Microsoft.PowerShell.PSResourceGet
-    for ($i = 0; -not (Get-Module Microsoft.PowerShell.PSResourceGet -ListAvailable) -and $i -lt 5; $i++) {
-        Write-Host 'installing PSResourceGet...'
-        Install-Module Microsoft.PowerShell.PSResourceGet -Scope AllUsers
-    }
     # install/update modules
-    if (Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue) {
-        # update Microsoft.PowerShell.PSResourceGet
-        try {
-            Update-Module Microsoft.PowerShell.PSResourceGet -Scope AllUsers -ErrorAction Stop
-        } catch {
-            Install-Module Microsoft.PowerShell.PSResourceGet -Scope AllUsers -Force -SkipPublisherCheck
-        }
-        # uninstall old versions
-        Get-InstalledModule -Name Microsoft.PowerShell.PSResourceGet -AllVersions `
-        | Sort-Object -Property PublishedDate -Descending `
-        | Select-Object -Skip 1 `
-        | Uninstall-Module
-
+    if (Get-Module -Name Microsoft.PowerShell.PSResourceGet -ListAvailable) {
         if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
             Write-Host 'setting PSGallery trusted...'
-            Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion v2
+            Set-PSResourceRepository -Name PSGallery -Trusted
         }
         for ($i = 0; (Test-Path /usr/bin/git) -and -not (Get-Module posh-git -ListAvailable) -and $i -lt 5; $i++) {
             Write-Host 'installing posh-git...'

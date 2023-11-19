@@ -30,7 +30,7 @@ while [ -z "$REL" ]; do
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
   fi
-  [ -n "$REL" ] || echo 'retrying...' >&2
+  [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
 done
 # return latest release
 echo $REL
@@ -53,12 +53,14 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
+  TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f minikube_latest_amd64.deb && $retry_count -lt 10 ]]; do
-    curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
+  while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
+    curl -#Lko "$TMP_DIR/$APP.deb" "https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
     ((retry_count++))
   done
-  dpkg -i minikube_latest_amd64.deb >&2 2>/dev/null && rm -f minikube_latest_amd64.deb || binary=true
+  dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null || binary=true
+  rm -fr "$TMP_DIR"
   ;;
 opensuse)
   zypper in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null || binary=true
@@ -70,10 +72,12 @@ esac
 
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
+  TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f minikube-linux-amd64 && $retry_count -lt 10 ]]; do
-    curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+  while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
+    curl -#Lko "$TMP_DIR/$APP" "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
     ((retry_count++))
   done
-  install -m 0755 minikube-linux-amd64 /usr/local/bin/minikube
+  install -m 0755 "$TMP_DIR/$APP" /usr/local/bin/minikube
+  rm -fr "$TMP_DIR"
 fi

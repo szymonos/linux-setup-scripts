@@ -36,7 +36,7 @@ while [ -z "$REL" ]; do
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
   fi
-  [ -n "$REL" ] || echo 'retrying...' >&2
+  [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
 done
 # return latest release
 echo $REL
@@ -62,12 +62,14 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
+  TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
-  while [[ ! -f $APP.deb && $retry_count -lt 10 ]]; do
-    curl -Lsk -o $APP.deb "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
+  while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
+    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
     ((retry_count++))
   done
-  dpkg -i $APP.deb >&2 2>/dev/null && rm -f $APP.deb || binary=true
+  dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null || binary=true
+  rm -fr "$TMP_DIR"
   ;;
 opensuse)
   zypper in -y $APP >&2 2>/dev/null || binary=true
@@ -82,7 +84,7 @@ if [ "$binary" = true ]; then
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/bat" && $retry_count -lt 10 ]]; do
-    curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx --strip-components=1 -C "$TMP_DIR"
+    curl -Lk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx --strip-components=1 -C "$TMP_DIR"
     ((retry_count++))
   done
   install -m 0755 "$TMP_DIR/bat" /usr/bin/

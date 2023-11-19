@@ -7,7 +7,7 @@ if ($env:DISTRO_FAMILY -eq 'alpine') {
     function ip { $input | & /usr/bin/env ip --color=auto @args }
     function ls { & /usr/bin/env ls -h --color=auto --group-directories-first --time-style=long-iso @args }
 }
-function eza { & /usr/bin/env eza -g --color=auto --time-style=long-iso --group-directories-first @args }
+function eza { & /usr/bin/env eza -g --color=auto --time-style=long-iso --group-directories-first --color-scale=all --git-repos @args }
 function l { eza -1 @args }
 function lsa { eza -a @args }
 function ll { eza -lah @args }
