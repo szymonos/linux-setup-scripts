@@ -42,10 +42,10 @@ unset __conda_setup
 # install azure-cli in dedicated environment
 if ! conda env list | grep -qw '^azurecli'; then
   if uname -r 2>&1 | grep -qw 'WSL2'; then
-    conda create --name azurecli --yes python=3.10 pip
+    conda create --name azurecli --yes python=3.11 pip
   else
     # https://github.com/conda/conda/issues/12051
-    conda create --name azurecli --yes python=3.10 pip numpy-base
+    conda create --name azurecli --yes python=3.11 pip numpy-base
   fi
 fi
 conda activate azurecli
