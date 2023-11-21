@@ -203,19 +203,8 @@ begin {
                 wsl.exe --install --distribution $Distro --web-download
             }
         }
-        # *perform initial distro setup
+        # get installed distro details
         $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
-        # enable automount in wsl.conf
-        $param = @{
-            Distro   = $Distro
-            ConfDict = [ordered]@{
-                automount = [ordered]@{
-                    enabled    = 'true'
-                    mountFsTab = 'true'
-                }
-            }
-        }
-        Set-WslConf @param
     } elseif ($lxss) {
         Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update." -ForegroundColor White
         $lxss.Name.ForEach({ Write-Host "- $_" })
