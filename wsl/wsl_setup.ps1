@@ -238,7 +238,7 @@ process {
             '[ -d $HOME/miniconda3 ] && python="true" || python="false";',
             '[ -f $HOME/.ssh/id_ed25519 ] && ssh_key="true" || ssh_key="false";',
             '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
-            '[ -x /etc/autoexec.sh ] && wsl_boot="true" || wsl_boot="false";',
+            'grep -qw "autoexec\.sh" /etc/wsl.conf 2>/dev/null && wsl_boot="true" || wsl_boot="false";',
             'git_user_name="$(git config --global --get user.name 2>/dev/null)";',
             '[ -n "$git_user_name" ] && git_user="true" || git_user="false";',
             'git_user_email="$(git config --global --get user.email 2>/dev/null)";',
@@ -302,10 +302,11 @@ process {
             exit
         }
         # *boot setup
+        wsl.exe --distribution $Distro --user root install -m 0755 .assets/provision/autoexec.sh /etc
         if (-not $chk.wsl_boot) {
-            wsl.exe --distribution $Distro --user root install -m 0755 .assets/provision/autoexec.sh /etc
             Set-WslConf -Distro $Distro -ConfDict ([ordered]@{ boot = @{ command = '"[ -x /etc/autoexec.sh ] && /etc/autoexec.sh || true"' } })
         }
+        # *install scopes
         switch ($scopes) {
             distrobox {
                 Write-Host 'installing distrobox...' -ForegroundColor Cyan
