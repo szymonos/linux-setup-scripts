@@ -67,7 +67,7 @@ if $fix_certify; then
 fi
 
 # *Update conda.
-conda update -n base -c defaults conda --yes
+conda update --name base --channel defaults conda --yes --update-all
 conda clean --yes --all
 
 # *Fix certificates after update.
