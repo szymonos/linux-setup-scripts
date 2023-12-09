@@ -30,10 +30,10 @@ fi
 # *modify eza alias
 if [ -f "$CFG_PATH/aliases.sh" ]; then
   # *set nerd fonts if oh-my-posh uses them
-  exa_param=''
-  eza --version 2>/dev/null | grep -Fqw '+git' && exa_param+='--git ' || true
-  grep -Fqw '' ""$OMP_PATH/theme.omp.json"" 2>/dev/null && exa_param+='--icons ' || true
-  sed -i "s/eza -g /eza -g $exa_param/" "$CFG_PATH/aliases.sh"
+  eza_param=''
+  eza --version 2>/dev/null | grep -Fqw '+git' && eza_param+='--git ' || true
+  grep -Fqw '' ""$OMP_PATH/theme.omp.json"" 2>/dev/null && eza_param+='--icons ' || true
+  sed -i "s/eza -g /eza -g $eza_param/" "$CFG_PATH/aliases.sh"
 fi
 
 # *Copy global profiles
