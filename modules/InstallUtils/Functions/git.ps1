@@ -81,7 +81,7 @@ function Update-GitRepository {
     $remote = git remote 2>$null
     if ($remote) {
         # fetch updates from remote
-        Write-Host "fetching updates from the $remote..."
+        Write-Host "fetching $remote..."
         git fetch --tags --prune --prune-tags --force $remote
         # check if current branch is behind remote
         $branch = git branch --show-current
@@ -90,7 +90,7 @@ function Update-GitRepository {
             git reset --hard "$remote/$branch"
             return 2
         } else {
-            Write-Host "$branch branch up to date"
+            Write-Host "$branch branch is up to date"
             return 1
         }
     } else {
