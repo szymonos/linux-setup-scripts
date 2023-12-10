@@ -12,6 +12,7 @@ $exportModuleMemberParams = @{
         'Update-SessionEnvironmentPath'
         # git
         'Invoke-GhRepoClone'
+        'Update-GitRepository'
     )
     Variable = @()
     Alias    = @()
