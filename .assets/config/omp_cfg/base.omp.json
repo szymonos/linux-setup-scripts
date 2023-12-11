@@ -38,7 +38,7 @@
           },
           "style": "plain",
           "template": "<b>→</b> ",
-          "type": "exit"
+          "type": "status"
         },
         {
           "foreground": "#FFE082",
