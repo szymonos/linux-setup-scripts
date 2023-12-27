@@ -75,6 +75,7 @@ param (
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'GitHub')]
     [string]$Distro,
 
+    [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'zsh') }) -notcontains $false },
