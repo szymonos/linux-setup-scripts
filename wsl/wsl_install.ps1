@@ -60,6 +60,13 @@ begin {
     Push-Location "$PSScriptRoot/.."
     # import InstallUtils for the Update-SessionEnvironmentPath function
     Import-Module (Resolve-Path './modules/InstallUtils')
+
+    Write-Host "checking if the repository is up to date..." -ForegroundColor Cyan
+    if ((Update-GitRepository) -eq 2) {
+        Write-Host "`nRun the script again!" -ForegroundColor Yellow
+        exit 0
+    }
+
     # update environment paths
     Update-SessionEnvironmentPath
     # WSL feature name
@@ -81,7 +88,11 @@ process {
     wsl.exe --update
 
     # *Check the current default version
-    $wslDefaultVersion = (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss').DefaultVersion
+    $gpParam = @{
+        Path        = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
+        ErrorAction = 'SilentlyContinue'
+    }
+    $wslDefaultVersion = (Get-ItemProperty @gpParam).DefaultVersion
     if ($wslDefaultVersion -eq 1) {
         Write-Warning 'You are currently using WSL version 1 as default.'
         if ((Read-Host -Prompt 'Would you like to switch to WSL 2 (recommended)? [Y/n]') -ne 'n') {
@@ -116,6 +127,7 @@ process {
     }
     if ($AddCertificate) { $sb.Append(' -AddCertificate') | Out-Null }
     $sb.Append(" -OmpTheme 'base'") | Out-Null
+    $sb.Append(' -SkipRepoUpdate') | Out-Null
     # run the wsl_setup script
     pwsh.exe -NoProfile -Command $sb.ToString()
 }

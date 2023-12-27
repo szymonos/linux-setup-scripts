@@ -49,7 +49,7 @@ if ! conda env list | grep -qw '^azurecli'; then
   fi
 fi
 conda activate azurecli
-pip install -U azure-cli
+pip install --upgrade azure-cli pip
 conda clean --yes --all
 
 # add certificates to azurecli certify

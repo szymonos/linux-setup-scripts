@@ -75,6 +75,7 @@ param (
     [Parameter(Mandatory, Position = 0, ParameterSetName = 'GitHub')]
     [string]$Distro,
 
+    [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'zsh') }) -notcontains $false },
@@ -104,7 +105,9 @@ param (
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [switch]$FixNetwork
+    [switch]$FixNetwork,
+
+    [switch]$SkipRepoUpdate
 )
 
 begin {
@@ -122,14 +125,12 @@ begin {
     # import SetupUtils for the Set-WslConf function
     Import-Module (Convert-Path './modules/SetupUtils')
 
-    # check if repository is up to date
-    Write-Host "`nchecking if the repository is up to date..." -ForegroundColor Cyan
-    git fetch
-    $remote = "$(git remote)/$(git branch --show-current)"
-    if ((git rev-parse HEAD) -ne (git rev-parse $remote)) {
-        Write-Warning "Current branch is behind remote, performing hard reset.`n`t Run the script again!`n"
-        git reset --hard $remote
-        exit 0
+    if (-not $SkipRepoUpdate) {
+        Write-Host "`nchecking if the repository is up to date..." -ForegroundColor Cyan
+        if ((Update-GitRepository) -eq 2) {
+            Write-Host "`nRun the script again!" -ForegroundColor Yellow
+            exit 0
+        }
     }
 
     # *get list of distros

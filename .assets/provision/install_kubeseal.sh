@@ -12,7 +12,7 @@ REL=$1
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
+  REL=$(curl -s https://api.github.com/repos/bitnami-labs/sealed-secrets/tags | jq -r '.[0].name' | cut -c 2-)
   ((retry_count++))
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
@@ -35,7 +35,7 @@ printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 TMP_DIR=$(mktemp -dp "$PWD")
 retry_count=0
 while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
-  curl -#Lk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -zx -C "$TMP_DIR"
+  curl -#Lk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL:?}/kubeseal-${REL:?}-linux-amd64.tar.gz" | tar -zx -C "$TMP_DIR"
   ((retry_count++))
 done
 install -m 0755 "$TMP_DIR/$APP" /usr/local/bin/
