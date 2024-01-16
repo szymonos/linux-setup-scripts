@@ -32,6 +32,8 @@ wsl/wsl_install.ps1 -Distro 'Ubuntu' -FixNetwork
 # :set up WSL distro with specified installation scopes
 $Scope = @('python')
 $Scope = @('az', 'docker')
+$Scope = @('az', 'docker', 'pwsh')
+$Scope = @('az', 'docker', 'k8s_base', 'pwsh')
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -s $Scope
 # :set up WSL distro and clone specified GitHub repositories
 $Repos = @('szymonos/linux-setup-scripts')
@@ -42,7 +44,7 @@ param (
     [Parameter(Mandatory, Position = 0)]
     [string]$Distro,
 
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'docker', 'python') }) -notcontains $false })]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'shell', 'zsh') }) -notcontains $false })]
     [string[]]$Scope,
 
     [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false })]
