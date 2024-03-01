@@ -63,7 +63,7 @@ begin {
     # import InstallUtils for the Update-SessionEnvironmentPath function
     Import-Module (Resolve-Path './modules/InstallUtils')
 
-    Write-Host "checking if the repository is up to date..." -ForegroundColor Cyan
+    Write-Host 'checking if the repository is up to date...' -ForegroundColor Cyan
     if ((Update-GitRepository) -eq 2) {
         Write-Host "`nRun the script again!" -ForegroundColor Yellow
         exit 0
@@ -87,6 +87,9 @@ process {
     }
 
     # *Check if WSL is updated
+    wsl --version | Out-Null
+    # perform initial update
+    if (-not $?) { wsl.exe --update }
     wsl.exe --update
 
     # *Check the current default version

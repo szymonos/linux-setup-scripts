@@ -64,6 +64,8 @@ wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme -AddCertificate
 $Repos = @('szymonos/linux-setup-scripts', 'szymonos/ps-modules')
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
+# :show SSH key during setup
+wsl/wsl_setup.ps1 $Distro -ShowSSHKey
 # :update all existing WSL distros
 wsl/wsl_setup.ps1
 #>
@@ -107,7 +109,9 @@ param (
     [Parameter(ParameterSetName = 'GitHub')]
     [switch]$FixNetwork,
 
-    [switch]$SkipRepoUpdate
+    [switch]$SkipRepoUpdate,
+
+    [switch]$ShowSSHKey
 )
 
 begin {
@@ -500,29 +504,32 @@ process {
             wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
         }
         # *check ssh keys and create if necessary
-        if (-not $chk.ssh_key) {
+        if (-not $chk.ssh_key -or $ShowSSHKey) {
             $sshKey = '.ssh/id_ed25519'
             if (-not ((Test-Path "$HOME/$sshKey") -and (Test-Path "$HOME/$sshKey.pub"))) {
+                if (Test-Path "$HOME/$sshKey") { Remove-Item "$HOME/$sshKey" }
                 ssh-keygen -t ed25519 -f "$HOME/$sshKey" -q -N ''
-                $idPub = [System.IO.File]::ReadAllLines("$HOME/$sshKey.pub")
-                $msg = [string]::Join("`n",
-                    "`e[97mUse the following values to add new SSH Key on `e[34;4mhttps://github.com/settings/ssh/new`e[97;24m",
-                    "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
-                    "`n`e[1;96mKey type`e[30m`n<Authentication Key>",
-                    "`n`e[1;96mKey`e[0m`n$idPub",
-                    "`npress any key to continue..."
-                )
-                Write-Host $msg
-                [System.Console]::ReadKey() | Out-Null
             }
-            Write-Host 'copying ssh keys...' -ForegroundColor Cyan
-            $mntHome = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))"
-            $cmd = [string]::Join("`n",
-                'mkdir -p $HOME/.ssh',
-                "install -m 0400 '$mntHome/$sshKey' `$HOME/.ssh",
-                "install -m 0400 '$mntHome/$sshKey.pub' `$HOME/.ssh"
+            $idPub = [System.IO.File]::ReadAllLines("$HOME/$sshKey.pub")
+            $msg = [string]::Join("`n",
+                "`e[97mUse the following values to add new SSH Key on `e[34;4mhttps://github.com/settings/ssh/new`e[97;24m",
+                "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
+                "`n`e[1;96mKey type`e[30m`n<Authentication Key>",
+                "`n`e[1;96mKey`e[0m`n$idPub",
+                "`npress any key to continue..."
             )
-            wsl.exe --distribution $Distro --exec sh -c $cmd
+            Write-Host $msg
+            [System.Console]::ReadKey() | Out-Null
+            if (-not $chk.ssh_key) {
+                Write-Host 'copying ssh keys...' -ForegroundColor Cyan
+                $mntHome = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))"
+                $cmd = [string]::Join("`n",
+                    'mkdir -p $HOME/.ssh',
+                    "install -m 0400 '$mntHome/$sshKey' `$HOME/.ssh",
+                    "install -m 0400 '$mntHome/$sshKey.pub' `$HOME/.ssh"
+                )
+                wsl.exe --distribution $Distro --exec sh -c $cmd
+            }
         }
     }
 
