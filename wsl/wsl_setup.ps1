@@ -27,6 +27,7 @@ List of installation scopes. Valid values:
 - python: pip, venv, miniconda
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
+- terraform: terraform, terrascan, tfswitch
 - zsh: zsh shell with plugins
 .PARAMETER OmpTheme
 Specify to install oh-my-posh prompt theme engine and name of the theme to be used.
@@ -52,7 +53,7 @@ wsl/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
 $Scope = @('pwsh', 'python')
 $Scope = @('k8s_ext', 'pwsh', 'python', 'rice')
 $Scope = @('az', 'docker', 'shell')
-$Scope = @('az', 'k8s_base', 'pwsh')
+$Scope = @('az', 'k8s_base', 'pwsh', 'terraform')
 $Scope = @('az', 'k8s_ext', 'pwsh')
 wsl/wsl_setup.ps1 $Distro -s $Scope
 wsl/wsl_setup.ps1 $Distro -s $Scope -AddCertificate
@@ -80,7 +81,7 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'zsh') }) -notcontains $false },
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
         ErrorMessage = 'Wrong scope provided. Valid values: az distrobox docker k8s_base k8s_ext python rice shell')]
     [string[]]$Scope,
 
@@ -239,6 +240,7 @@ process {
             '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false";',
             '[ -f /usr/local/bin/k3d ] && k8s_ext="true" || k8s_ext="false";',
             '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
+            '[ -f /usr/bin/terraform ] && tf="true" || tf="false";',
             '[ -d $HOME/.local/share/powershell/Modules/Az ] && az="true" || az="false";',
             '[ -d $HOME/miniconda3 ] && python="true" || python="false";',
             '[ -f $HOME/.ssh/id_ed25519 ] && ssh_key="true" || ssh_key="false";',
@@ -252,7 +254,7 @@ process {
             'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false";',
             'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,',
             '\"az\":$az,\"wslg\":$wslg,\"wsl_boot\":$wsl_boot,\"python\":$python,\"systemd\":$systemd,\"gtkd\":$gtkd,',
-            '\"pwsh\":$pwsh,\"zsh\":$zsh,\"git_user\":$git_user,\"git_email\":$git_email,\"ssh_key\":$ssh_key}"'
+            '\"pwsh\":$pwsh,\"tf\":$tf,\"zsh\":$zsh,\"git_user\":$git_user,\"git_email\":$git_email,\"ssh_key\":$ssh_key}"'
         )
         # check existing distro setup
         $chk = wsl.exe -d $Distro --exec sh -c $cmd | ConvertFrom-Json -AsHashtable
@@ -267,6 +269,7 @@ process {
             { $_.pwsh } { $scopes.Add('pwsh') | Out-Null }
             { $_.python } { $scopes.Add('python') | Out-Null }
             { $_.shell } { $scopes.Add('shell') | Out-Null }
+            { $_.tf } { $scopes.Add('terraform') | Out-Null }
         }
         # add corresponding scopes
         switch (@($scopes)) {
@@ -430,6 +433,13 @@ process {
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
+                continue
+            }
+            terraform {
+                Write-Host 'installing terraform utils...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh
                 continue
             }
             zsh {
