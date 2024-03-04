@@ -18,7 +18,13 @@ Name of the WSL distro to install and set up.
 List of installation scopes. Valid values:
 - az: azure-cli, do-az from ps-modules if pwsh scope specified; autoselects python scope
 - docker: docker, containerd buildx docker-compose (WSL2 only)
+- k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize
+- k8s_ext: minikube, k3d, argorollouts-cli (WSL2 only); autoselects docker and k8s_base scopes
+- pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - python: pip, venv, miniconda
+- shell: bat, eza, oh-my-posh, ripgrep, yq
+- terraform: terraform, terrascan, tfswitch
+- zsh: zsh shell with plugins
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER FixNetwork
@@ -31,12 +37,14 @@ wsl/wsl_install.ps1 -Distro 'Ubuntu'
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -FixNetwork
 # :set up WSL distro with specified installation scopes
 $Scope = @('python')
-$Scope = @('az', 'docker')
+$Scope = @('az', 'docker', 'shell')
 $Scope = @('az', 'docker', 'pwsh')
-$Scope = @('az', 'docker', 'k8s_base', 'pwsh')
+$Scope = @('az', 'docker', 'k8s_base', 'pwsh', 'terraform')
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -s $Scope
 # :set up WSL distro and clone specified GitHub repositories
-$Repos = @('szymonos/linux-setup-scripts')
+$Repos = @('procter-gamble/de-cf-wsl-setup-scripts')
+wsl/wsl_install.ps1 -Distro 'Ubuntu' -r $Repos
+# with the specified scope
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -r $Repos -s $Scope
 #>
 [CmdletBinding()]
@@ -44,7 +52,7 @@ param (
     [Parameter(Mandatory, Position = 0)]
     [string]$Distro,
 
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'shell', 'zsh') }) -notcontains $false })]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'shell', 'terraform', 'zsh') }) -notcontains $false })]
     [string[]]$Scope,
 
     [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false })]
