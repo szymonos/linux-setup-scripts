@@ -73,7 +73,9 @@ fedora)
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   mkdir -p /etc/apt/keyrings
-  wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+  if [ ! -f /etc/apt/keyrings/gierens.gpg ]; then
+    wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+  fi
   echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list
   chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
   apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true
