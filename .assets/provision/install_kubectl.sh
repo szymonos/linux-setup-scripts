@@ -15,9 +15,6 @@ case $SYS_ID in
 arch)
   pacman -Qqe $APP &>/dev/null && exit 0 || true
   ;;
-fedora)
-  rpm -q $APP &>/dev/null && exit 0 || true
-  ;;
 esac
 
 REL=$1
@@ -47,17 +44,6 @@ printf "\e[92minstalling \e[1m$APP\e[22m $REL\e[0m\n" >&2
 case $SYS_ID in
 arch)
   pacman -Sy --needed --noconfirm kubectl >&2 2>/dev/null || binary=true
-  ;;
-fedora)
-  [ -f /etc/yum.repos.d/kubernetes.repo ] || cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
-[kubernetes]
-name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-EOF
-  dnf install -y kubectl >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true
