@@ -94,10 +94,7 @@ process {
         }
     }
 
-    # *Check if WSL is updated
-    wsl --version | Out-Null
-    # perform initial update
-    if (-not $?) { wsl.exe --update }
+    # *Perform WSL update
     wsl.exe --update
 
     # *Check the current default version
