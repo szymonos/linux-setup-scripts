@@ -9,7 +9,7 @@ You can use the script for:
 - installing podman with distrobox (WSL2 only),
 - installing tools for interacting with kubernetes,
 - setting gtk theme in WSLg (WSL2 only),
-- installing Python environment management tools: venv and miniconda,
+- installing Python environment management tools: venv and conda,
 - cloning GH repositories and setting up VSCode workspace,
 - updating packages in all existing WSL distros.
 When GH repositories cloning is used, you need to generate and add an SSH key to your GH account.
@@ -18,13 +18,13 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli, do-az from ps-modules if pwsh scope specified; autoselects python scope
+- az: azure-cli, do-az from ps-modules if pwsh scope specified; autoselects conda scope
+- conda: pip, venv, miniconda
 - distrobox: podman and distrobox (WSL2 only)
 - docker: docker, containerd buildx docker-compose (WSL2 only)
 - k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize
 - k8s_ext: minikube, k3d, argorollouts-cli (WSL2 only); autoselects docker and k8s_base scopes
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
-- python: pip, venv, miniconda
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
 - terraform: terraform, terrascan, tfswitch
@@ -50,8 +50,8 @@ wsl/wsl_setup.ps1 $Distro
 wsl/wsl_setup.ps1 $Distro -AddCertificate
 wsl/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
 # :set up WSL distro with specified installation scopes
-$Scope = @('pwsh', 'python')
-$Scope = @('k8s_ext', 'pwsh', 'python', 'rice')
+$Scope = @('conda', 'pwsh')
+$Scope = @('conda', 'k8s_ext', 'pwsh', 'rice')
 $Scope = @('az', 'docker', 'shell')
 $Scope = @('az', 'k8s_base', 'pwsh', 'terraform')
 $Scope = @('az', 'k8s_ext', 'pwsh')
@@ -81,8 +81,8 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az distrobox docker k8s_base k8s_ext python rice shell')]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_ext rice shell')]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
@@ -242,7 +242,7 @@ process {
             '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
             '[ -f /usr/bin/terraform ] && tf="true" || tf="false";',
             '[ -d $HOME/.local/share/powershell/Modules/Az ] && az="true" || az="false";',
-            '[ -d $HOME/miniconda3 ] && python="true" || python="false";',
+            '[ -d $HOME/miniconda3 ] && conda="true" || conda="false";',
             '[ -f $HOME/.ssh/id_ed25519 ] && ssh_key="true" || ssh_key="false";',
             '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
             'grep -qw "autoexec\.sh" /etc/wsl.conf 2>/dev/null && wsl_boot="true" || wsl_boot="false";',
@@ -253,7 +253,7 @@ process {
             'grep -qw "systemd.*true" /etc/wsl.conf 2>/dev/null && systemd="true" || systemd="false";',
             'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false";',
             'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,',
-            '\"az\":$az,\"wslg\":$wslg,\"wsl_boot\":$wsl_boot,\"python\":$python,\"systemd\":$systemd,\"gtkd\":$gtkd,',
+            '\"az\":$az,\"wslg\":$wslg,\"wsl_boot\":$wsl_boot,\"conda\":$conda,\"systemd\":$systemd,\"gtkd\":$gtkd,',
             '\"pwsh\":$pwsh,\"tf\":$tf,\"zsh\":$zsh,\"git_user\":$git_user,\"git_email\":$git_email,\"ssh_key\":$ssh_key}"'
         )
         # check existing distro setup
@@ -267,13 +267,13 @@ process {
             { $_.k8s_base } { $scopes.Add('k8s_base') | Out-Null }
             { $_.k8s_ext } { $scopes.Add('k8s_ext') | Out-Null }
             { $_.pwsh } { $scopes.Add('pwsh') | Out-Null }
-            { $_.python } { $scopes.Add('python') | Out-Null }
+            { $_.conda } { $scopes.Add('conda') | Out-Null }
             { $_.shell } { $scopes.Add('shell') | Out-Null }
             { $_.tf } { $scopes.Add('terraform') | Out-Null }
         }
         # add corresponding scopes
         switch (@($scopes)) {
-            az { $scopes.Add('python') | Out-Null }
+            az { $scopes.Add('conda') | Out-Null }
             k8s_ext { @('docker', 'k8s_base').ForEach({ $scopes.Add($_) | Out-Null }) }
             pwsh { $scopes.Add('shell') | Out-Null }
             zsh { $scopes.Add('shell') | Out-Null }
@@ -316,6 +316,15 @@ process {
         }
         # *install scopes
         switch ($scopes) {
+            conda {
+                Write-Host 'installing python packages...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh --fix_certify true
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
+                if ('az' -in $scopes) {
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true
+                }
+                continue
+            }
             distrobox {
                 Write-Host 'installing distrobox...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_podman.sh
@@ -402,15 +411,6 @@ process {
                         "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph }`n}"
                     )
                     wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
-                }
-                continue
-            }
-            python {
-                Write-Host 'installing python packages...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh --fix_certify true
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
-                if ('az' -in $scopes) {
-                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true
                 }
                 continue
             }
