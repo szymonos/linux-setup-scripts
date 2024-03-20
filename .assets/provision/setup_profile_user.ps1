@@ -46,13 +46,24 @@ if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
     (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
 }
 
-# add conda init to the user profile
-$condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
-if ((Test-Path $HOME/miniconda3/bin/conda) -and -not $condaSet) {
-    Write-Verbose 'adding miniconda initialization...'
-    [string]::Join("`n",
-        '#region conda initialize',
-        'try { (& "$HOME/miniconda3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression } catch { Out-Null }',
-        '#endregion'
-    ) | Add-Content $PROFILE.CurrentUserAllHosts
+# setup conda initialization
+if (Test-Path $HOME/miniconda3/bin/conda -PathType Leaf) {
+    $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
+    # add conda init to the user profile
+    if (-not $condaSet) {
+        Write-Verbose 'adding miniconda initialization...'
+        $content = [string]::Join("`n",
+            '#region conda initialize',
+            'try { (& "$HOME/miniconda3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression } catch { Out-Null }',
+            '#endregion'
+        )
+        [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
+    }
+    # disable conda env prompt if oh-my-posh is installed
+    if (Test-Path /usr/bin/oh-my-posh -PathType Leaf) {
+        $changeps1 = & "$HOME/miniconda3/bin/conda" config --show changeps1 | Select-String 'False' -Quiet
+        if (-not $changeps1) {
+            & "$HOME/miniconda3/bin/conda" config --set changeps1 false
+        }
+    }
 }

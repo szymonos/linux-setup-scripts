@@ -54,10 +54,6 @@ else
   conda_init
   conda config --set auto_activate_base false
 fi
-# disable conda env prompt if oh-my-posh is installed
-if [ -f /usr/bin/oh-my-posh ]; then
-  conda config --set changeps1 false
-fi
 
 # *Add certificates to conda base certifi.
 if $fix_certify; then
@@ -67,7 +63,7 @@ if $fix_certify; then
 fi
 
 # *Update conda.
-conda update --name base --channel defaults conda --yes --update-all
+conda update --name base --channel conda-forge conda --yes --update-all
 conda clean --yes --all
 
 # *Fix certificates after update.
