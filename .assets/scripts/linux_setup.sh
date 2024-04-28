@@ -141,8 +141,8 @@ for sc in ${scope_arr[@]}; do
 done
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
-  cmd="Import-Module (Resolve-Path './modules/InstallUtils'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules'"
-  cloned=$(pwsh -nop -c $cmd)
+  cmnd="Import-Module (Resolve-Path './modules/InstallUtils'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules'"
+  cloned=$(pwsh -nop -c $cmnd)
   if [ $cloned -gt 0 ]; then
     printf "\e[96minstalling ps-modules...\e[0m\n"
     # install do-common module for all users
