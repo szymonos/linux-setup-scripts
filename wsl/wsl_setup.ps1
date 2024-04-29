@@ -279,7 +279,7 @@ process {
             zsh { $scopes.Add('shell') | Out-Null }
         }
         # determine 'oh_my_posh' scope
-        if ($chk.omp -or $OmpTheme) {
+        if ($lx.Version -eq 2 -and ($chk.omp -or $OmpTheme)) {
             @('oh_my_posh', 'shell').ForEach({ $scopes.Add($_) | Out-Null })
         }
         # remove scopes unavailable in WSL1
@@ -287,6 +287,7 @@ process {
             $scopes.Remove('distrobox') | Out-Null
             $scopes.Remove('docker') | Out-Null
             $scopes.Remove('k8s_ext') | Out-Null
+            $scopes.Remove('oh_my_posh') | Out-Null
         }
         # display distro name and installed scopes
         Write-Host "`n`e[95;1m${Distro}$($scopes.Count ? " :`e[0;90m $($scopes -join ', ')`e[0m" : "`e[0m")"

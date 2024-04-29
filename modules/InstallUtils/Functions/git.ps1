@@ -77,24 +77,26 @@ function Invoke-GhRepoClone {
 Function for updating current git branch from remote.
 #>
 function Update-GitRepository {
+    [CmdletBinding()]
+    param ()
     # perform check if the repository has remote
     $remote = git remote 2>$null
     if ($remote) {
         # fetch updates from remote
-        Write-Host "fetching $remote..."
+        Write-Verbose "fetching $remote..."
         git fetch --tags --prune --prune-tags --force $remote
         # check if current branch is behind remote
         $branch = git branch --show-current
         if ((git rev-parse HEAD) -ne (git rev-parse "$remote/$branch")) {
-            Write-Host "$branch branch is behind the $remote, performing hard reset"
+            Write-Verbose "$branch branch is behind the $remote, performing hard reset"
             git reset --hard "$remote/$branch"
             return 2
         } else {
-            Write-Host "$branch branch is up to date"
+            Write-Verbose "$branch branch is up to date"
             return 1
         }
     } else {
-        Write-Host 'Not a git repository.'
+        Write-Warning 'Not a git repository.'
         return 0
     }
 }
