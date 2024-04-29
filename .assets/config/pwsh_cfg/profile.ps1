@@ -70,13 +70,46 @@ try {
     [Environment]::SetEnvironmentVariable('VIRTUAL_ENV_DISABLE_PROMPT', $true)
 } catch {
     function Prompt {
-        $split = $($PWD.Path.Replace($HOME, '~').Replace('Microsoft.PowerShell.Core\FileSystem::', '') -replace '\\$').Split([IO.Path]::DirectorySeparatorChar, [StringSplitOptions]::RemoveEmptyEntries)
+        $execStatus = $?
+        # get execution time of the last command
+        if (Get-Command Format-Duration -CommandType Function -ErrorAction SilentlyContinue) {
+            $executionTime = (Get-History).Count -gt 0 ? (Format-Duration -TimeSpan (Get-History)[-1].Duration) : $null
+        }
+        # build current prompt path
+        $pathString = $PWD.Path.Replace($HOME, '~').Replace('Microsoft.PowerShell.Core\FileSystem::', '') -replace '\\$'
+        $split = $pathString.Split([IO.Path]::DirectorySeparatorChar, [StringSplitOptions]::RemoveEmptyEntries)
         $promptPath = if ($split.Count -gt 3) {
             [string]::Join('/', $split[0], '..', $split[-1])
         } else {
             [string]::Join('/', $split)
         }
-        return "`e[1;32m{0}@{1}`e[0m: `e[1;34m$promptPath`e[0m> " -f $env:USER, ($env:HOSTNAME ?? $env:WSL_DISTRO_NAME)
+        # run elevated indicator
+        if ((id -u) -eq 0) {
+            [Console]::Write("`e[91m#`e[0m ")
+        }
+        # write last execution time
+        if ($executionTime) {
+            [Console]::Write("[`e[93m$executionTime`e[0m] ")
+        }
+        # write last execution status
+        [Console]::Write("$($PSStyle.Bold){0}`u{2192} ", $execStatus ? $PSStyle.Foreground.BrightGreen : $PSStyle.Foreground.BrightRed)
+        # write prompt path
+        [Console]::Write("`e[1;94m$promptPath`e[0m ")
+        # write git branch/status
+        if ($GitPromptSettings) {
+            # get git status
+            $gitStatus = @(git status -b --porcelain=v2 2>$null)[1..4]
+            if ($gitStatus) {
+                # get branch name and upstream status
+                $branch = $gitStatus[0].Split(' ')[2] + ($gitStatus[1] -match 'branch.upstream' ? $null : " `u{21E1}")
+                # format branch name color depending on working tree status
+                [Console]::Write(
+                    "`e[38;2;232;204;151m({0}$branch`e[38;2;232;204;151m) ",
+                    ($gitStatus | Select-String -Pattern '^(?!#)' -Quiet) ? "`e[38;2;255;146;72m" : "`e[38;2;212;170;252m"
+                )
+            }
+        }
+        return '{0}{1} ' -f ($PSStyle.Reset, '>' * ($nestedPromptLevel + 1))
     }
 }
 #endregion
