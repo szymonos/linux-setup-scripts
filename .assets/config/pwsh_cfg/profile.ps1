@@ -51,7 +51,12 @@ if (Test-Path $env:SCRIPTS_PATH) {
 }
 #endregion
 
-# region brew
+#region initializations
+# do-az module to preload classes
+if (Get-Module -Name 'do-az' -ListAvailable) {
+    Get-Command Get-AzGraphResource -CommandType Function -ErrorAction SilentlyContinue | Out-Null
+}
+# brew
 foreach ($path in @('/home/linuxbrew/.linuxbrew', "$HOME/.linuxbrew")) {
     if (Test-Path $path/bin/brew -PathType Leaf) {
         (& $path/bin/brew 'shellenv') | Out-String | Invoke-Expression
