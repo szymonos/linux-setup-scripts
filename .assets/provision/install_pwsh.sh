@@ -69,16 +69,22 @@ fedora)
   dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-1.rh.x86_64.rpm" >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
-  export DEBIAN_FRONTEND=noninteractive
-  [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu67 >&2 2>/dev/null || true
-  TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
-    ((retry_count++))
-  done
-  dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null || binary=true
-  rm -fr "$TMP_DIR"
+  if grep -qGw '"24.04"' /etc/os-release; then
+    # install pwsh from binary
+    # TODO remove after the issue on the Ubuntu 24.04 will be fixed
+    binary=true
+  else
+    export DEBIAN_FRONTEND=noninteractive
+    [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu67 >&2 2>/dev/null || true
+    TMP_DIR=$(mktemp -dp "$PWD")
+    retry_count=0
+    while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
+      curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
+      ((retry_count++))
+    done
+    dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null || binary=true
+    rm -fr "$TMP_DIR"
+  fi
   ;;
 *)
   binary=true
