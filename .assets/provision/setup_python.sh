@@ -42,7 +42,7 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get install -y python3-pip python3-virtualenv
+  apt-get update && apt-get install -y python3-pip python3-virtualenv python3-venv
   ;;
 opensuse)
   zypper in -y python3-pip python3-virtualenv
