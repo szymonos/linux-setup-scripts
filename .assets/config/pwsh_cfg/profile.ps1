@@ -12,12 +12,12 @@ try {
 $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
 # set culture to English Sweden for ISO-8601 datetime settings
 [Threading.Thread]::CurrentThread.CurrentCulture = 'en-SE'
-# Change PSStyle for directory coloring.
+# change PSStyle for directory coloring.
 $PSStyle.FileInfo.Directory = "$($PSStyle.Bold)$($PSStyle.Foreground.Blue)"
-# Configure PSReadLine setting.
+# determine WSL version
+$isWSL1 = (Test-Path /usr/bin/uname) ? (uname -r | Select-String '\bMicrosoft$' -Quiet) : $null
+# configure PSReadLine setting.
 Set-PSReadLineOption -EditMode Emacs
-Set-PSReadLineOption -PredictionSource History -PredictionViewStyle ListView
-Set-PSReadLineOption -MaximumHistoryCount 16384 -HistoryNoDuplicates
 Set-PSReadLineOption -AddToHistoryHandler { param([string]$line) return $line.Length -gt 1 }
 Set-PSReadLineKeyHandler -Chord Tab -Function MenuComplete
 Set-PSReadLineKeyHandler -Chord F2 -Function SwitchPredictionView
@@ -27,6 +27,10 @@ Set-PSReadLineKeyHandler -Chord Alt+k -Function PreviousHistory
 Set-PSReadLineKeyHandler -Chord Ctrl+LeftArrow -Function BackwardWord
 Set-PSReadLineKeyHandler -Chord Ctrl+RightArrow -Function ForwardWord
 Set-PSReadLineKeyHandler -Chord Alt+Delete -Function DeleteLine
+if (-not $isWSL1) {
+    Set-PSReadLineOption -PredictionSource History -PredictionViewStyle ListView
+    Set-PSReadLineOption -MaximumHistoryCount 16384 -HistoryNoDuplicates
+}
 #endregion
 
 #region environment variables and aliases
@@ -51,7 +55,12 @@ if (Test-Path $env:SCRIPTS_PATH) {
 }
 #endregion
 
-# region brew
+#region initializations
+# do-az module to preload classes
+if (-not $isWSL1 -and (Get-Module -Name 'do-az' -ListAvailable)) {
+    Get-Command Get-AzGraphResource -CommandType Function -ErrorAction SilentlyContinue | Out-Null
+}
+# brew
 foreach ($path in @('/home/linuxbrew/.linuxbrew', "$HOME/.linuxbrew")) {
     if (Test-Path $path/bin/brew -PathType Leaf) {
         (& $path/bin/brew 'shellenv') | Out-String | Invoke-Expression
@@ -63,12 +72,11 @@ Remove-Variable path
 #endregion
 
 #region prompt
-try {
-    Get-Command oh-my-posh -CommandType Application -ErrorAction Stop | Out-Null
+if (-not $isWSL1 -and (Test-Path '/usr/bin/oh-my-posh')) {
     oh-my-posh --init --shell pwsh --config "$(Resolve-Path $env:OMP_PATH/theme.omp.json -ErrorAction Stop)" | Invoke-Expression
     # disable venv prompt as it is handled in oh-my-posh theme
     [Environment]::SetEnvironmentVariable('VIRTUAL_ENV_DISABLE_PROMPT', $true)
-} catch {
+} else {
     function Prompt {
         $execStatus = $?
         # get execution time of the last command
