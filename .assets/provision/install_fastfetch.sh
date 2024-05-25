@@ -72,7 +72,7 @@ debian | ubuntu)
   TMP_DIR=$(mktemp -dp "$PWD")
   retry_count=0
   while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-${REL}-Linux.deb"
+    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-linux-amd64.deb"
     ((retry_count++))
   done
   dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null
