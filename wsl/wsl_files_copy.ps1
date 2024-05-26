@@ -34,60 +34,78 @@ param (
     [switch]$Root
 )
 
-# check if the script is running on Windows
-if (-not $IsWindows) {
-    Write-Warning 'Run the script on Windows!'
-    exit 0
+begin {
+    # check if the script is running on Windows
+    if (-not $IsWindows) {
+        Write-Warning 'Run the script on Windows!'
+        exit 0
+    }
+
+    # import SetupUtils for the Get-WslDistro function
+    Import-Module (Convert-Path './modules/SetupUtils')
+
+    # calculate source and destination distros and paths
+    $srcDistro, $srcPath = $Source.Split(':')
+    $dstDistro, $dstPath = $Destination.Split(':')
+    if (-not $dstPath) {
+        $dstPath = $srcPath
+    }
+
+    # check if specified distros exist
+    $distros = Get-WslDistro -FromRegistry
+    if ($srcDistro -notin $distros.Name) {
+        Write-Warning "Specified source distro does not exist ($srcDistro)."
+        exit
+    } elseif ($dstDistro -notin $distros.Name) {
+        Write-Warning "Specified destination distro does not exist ($dstDistro)."
+        exit
+    }
+
+    # calculate source mount path
+    $mntDir = "/mnt/wsl/$srcDistro"
+
+    # determine if distros using different user ids
+    $srcDefUid = $distros.Where({ $_.Name -eq $srcDistro }).DefaultUid
+    $dstDefUid = $distros.Where({ $_.Name -eq $dstDistro }).DefaultUid
+    $useTmp = $srcDefUid -ne $dstDefUid ? $true : $false
 }
 
-# *calculate source and destination distros and paths
-$srcDistro, $srcPath = $Source.Split(':')
-$dstDistro, $dstPath = $Destination.Split(':')
-if (-not $dstPath) {
-    $dstPath = $srcPath
+process {
+    # get information from the source distro
+    $cmnd = "wsl.exe -d $srcDistro $($Root ? '--user root ' : '')--exec bash -c 'readlink -e $srcPath'"
+    $rlPath = Invoke-Expression $cmnd
+    if ($rlPath) {
+        $srcPath = $mntDir + $rlPath
+    } else {
+        Write-Warning "Source path is incorrect ($srcPath)."
+        exit
+    }
+
+    # bind mount root filesystem of the source distro
+    $cmnd = "findmnt $mntDir >/dev/null || mkdir -p $mntDir && mount --bind / $mntDir"
+    wsl.exe -d $srcDistro --user root --exec bash -c $cmnd
+
+    # move source files to tmp dir if distros are using different user ids
+    if ($useTmp) {
+        $cmnd = "mkdir -p /tmp/cpf && mv `"$($rlPath)`" /tmp/cpf"
+        Invoke-Expression "wsl.exe -d $srcDistro $($Root ? '--user root ' : '')--exec bash -c '$cmnd'"
+        $srcPath = "$mntDir/tmp/cpf/$(Split-Path $rlPath -Leaf)"
+    }
+
+    # copy files
+    $cmnd = [string]::Join("`n",
+        "if [ `"`$(basename $srcPath)`" = `"`$(basename $dstPath)`" ]; then",
+        "`tdst=`"`$(readlink -m `$(dirname $dstPath))`"`nelse",
+        "`tdst=`"`$(readlink -m $dstPath)`"`nfi",
+        "mkdir -p `"`$dst`" && cp -rf `"$srcPath`" `"`$dst`""
+    )
+    Invoke-Expression "wsl.exe -d $dstDistro $($Root ? '--user root ' : '')--exec bash -c '$cmnd'"
 }
 
-# *check if specified distros exist
-[string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
-| ForEach-Object { $_.GetValue('DistributionName') } `
-| Where-Object { $_ -notmatch '^docker-desktop' }
-if ($srcDistro -notin $distros) {
-    Write-Warning "The specified distro does not exist ($srcDistro)."
-    exit
-} elseif ($dstDistro -notin $distros) {
-    Write-Warning "The specified distro does not exist ($dstDistro)."
-    exit
-}
-
-# *resolve source path
-$rlPath = if ($Root) {
-    wsl.exe -d $srcDistro --user root --exec bash -c "readlink -e $srcPath"
-} else {
-    wsl.exe -d $srcDistro --exec bash -c "readlink -e $srcPath"
-}
-if (-not $rlPath) {
-    Write-Warning "Source path is incorrect ($srcPath)."
-    exit
-}
-# calculate source path
-$mntDir = "/mnt/wsl/$srcDistro"
-$srcPath = $mntDir + $rlPath
-
-# *bind mount root filesystem of the source distro
-$cmd = "findmnt $mntDir >/dev/null || mkdir -p $mntDir && mount --bind / $mntDir"
-wsl.exe -d $srcDistro --user root --exec bash -c $cmd
-
-# *copy files
-$cmd = @"
-if [ "`$(basename '$srcPath')" = "`$(basename $dstPath)" ]; then
-    dst="`$(readlink -m `$(dirname $dstPath))"
-else
-    dst="`$(readlink -m $dstPath)"
-fi
-mkdir -p "`$dst" && cp -rf "$srcPath" "`$dst"
-"@
-if ($Root) {
-    wsl.exe -d $dstDistro --user root --exec bash -c $cmd
-} else {
-    wsl.exe -d $dstDistro --exec bash -c $cmd
+end {
+    # move source to original location
+    if ($useTmp) {
+        $cmnd = "mv `"/tmp/cpf/$(Split-Path $srcPath -Leaf)`" `"$($rlPath)`" && rm -fr /tmp/cpf"
+        Invoke-Expression "wsl.exe -d $srcDistro $($Root ? '--user root ' : '')--exec bash -c '$cmnd'"
+    }
 }
