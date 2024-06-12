@@ -56,10 +56,6 @@ if (Test-Path $env:SCRIPTS_PATH) {
 #endregion
 
 #region initializations
-# do-az module to preload classes
-if (-not $isWSL1 -and (Get-Module -Name 'do-az' -ListAvailable)) {
-    Get-Command Get-AzGraphResource -CommandType Function -ErrorAction SilentlyContinue | Out-Null
-}
 # brew
 foreach ($path in @('/home/linuxbrew/.linuxbrew', "$HOME/.linuxbrew")) {
     if (Test-Path $path/bin/brew -PathType Leaf) {
