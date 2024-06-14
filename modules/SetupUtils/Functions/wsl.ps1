@@ -53,6 +53,9 @@ function Get-WslDistro {
             if ($Online) {
                 # get list of online WSL distros
                 [string[]]$result = wsl.exe --list --online | Where-Object { $_ }
+                if (-not $?) {
+                    Write-Error -Message 'Cannot get list of valid distributions.' -Category ConnectionError
+                }
                 # get distros header
                 [string]$head = $result | Select-String 'NAME\s+FRIENDLY' -CaseSensitive | Select-Object -ExpandProperty Line
                 # calculate header line index
