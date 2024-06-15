@@ -62,13 +62,17 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
+  # dotsource file with common functions
+  . .assets/provision/source.sh
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
-    ((retry_count++))
-  done
-  dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null || binary=true
+  # calculate download uri
+  URL="https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null || binary=true
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
   ;;
 opensuse)
@@ -81,14 +85,19 @@ esac
 
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
+  # dotsource file with common functions
+  . .assets/provision/source.sh
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/bat" && $retry_count -lt 10 ]]; do
-    curl -Lk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx --strip-components=1 -C "$TMP_DIR"
-    ((retry_count++))
-  done
-  install -m 0755 "$TMP_DIR/bat" /usr/bin/
-  install -m 0644 "$TMP_DIR/bat.1" "$(manpath | cut -d : -f 1)/man1/"
-  install -m 0644 "$TMP_DIR/autocomplete/bat.bash" /etc/bash_completion.d/
+  # calculate download uri
+  URL="https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    tar -zxf "$TMP_DIR/$(basename $URL)" --strip-components=1 -C "$TMP_DIR"
+    install -m 0755 "$TMP_DIR/bat" /usr/bin/
+    install -m 0644 "$TMP_DIR/bat.1" "$(manpath | cut -d : -f 1)/man1/"
+    install -m 0644 "$TMP_DIR/autocomplete/bat.bash" /etc/bash_completion.d/
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
 fi

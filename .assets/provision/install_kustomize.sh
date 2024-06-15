@@ -31,12 +31,16 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-retry_count=0
-while [[ ! -f kustomize && $retry_count -lt 10 ]]; do
-  curl -sk 'https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh' | bash
-  ((retry_count++))
-done
-install -m 0755 kustomize /usr/local/bin/
-rm -f kustomize
-
-exit 0
+# dotsource file with common functions
+. .assets/provision/source.sh
+# create temporary dir for the downloaded binary
+TMP_DIR=$(mktemp -dp "$PWD")
+# calculate download uri
+URL='https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh'
+# download and install file
+if download_file --uri $URL --target_dir $TMP_DIR; then
+  bash -C "$TMP_DIR/$(basename $URL)"
+  install -m 0755 kustomize /usr/bin/
+fi
+# remove temporary dir
+rm -fr kustomizell "$TMP_DIR"

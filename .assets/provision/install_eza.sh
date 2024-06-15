@@ -3,7 +3,7 @@
 sudo .assets/provision/install_eza.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  printf '\e[31;1mRun the script as root.\e[0m\n'
+  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -76,7 +76,7 @@ debian | ubuntu)
   if [ ! -f /etc/apt/keyrings/gierens.gpg ]; then
     wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
   fi
-  echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list
+  echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" >/etc/apt/sources.list.d/gierens.list
   chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
   apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true
   ;;
@@ -90,13 +90,17 @@ esac
 
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
+  # dotsource file with common functions
+  . .assets/provision/source.sh
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP.tar.gz" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.tar.gz" "https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
-    ((retry_count++))
-  done
-  tar -zxf "$TMP_DIR/$APP.tar.gz" -C "$TMP_DIR"
-  install -m 0755 "$TMP_DIR/eza" /usr/bin/
+  # calculate download uri
+  URL="https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
+    install -m 0755 "$TMP_DIR/eza" /usr/bin/
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
 fi

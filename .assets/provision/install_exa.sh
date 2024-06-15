@@ -74,16 +74,20 @@ esac
 
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
+  # dotsource file with common functions
+  . .assets/provision/source.sh
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP.zip" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.zip" "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
-    ((retry_count++))
-  done
-  unzip -q "$TMP_DIR/$APP.zip" -d "$TMP_DIR"
-  install -m 0755 "$TMP_DIR/bin/exa" /usr/bin/
-  install -m 0644 "$TMP_DIR/man/exa.1" "$(manpath | cut -d : -f 1)/man1/"
-  install -m 0644 "$TMP_DIR/man/exa_colors.5" "$(manpath | cut -d : -f 1)/man5/"
-  install -m 0644 "$TMP_DIR/completions/exa.bash" /etc/bash_completion.d/
+  # calculate download uri
+  URL="https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    unzip -q "$TMP_DIR/$(basename $URL)" -d "$TMP_DIR"
+    install -m 0755 "$TMP_DIR/bin/exa" /usr/bin/
+    install -m 0644 "$TMP_DIR/man/exa.1" "$(manpath | cut -d : -f 1)/man1/"
+    install -m 0644 "$TMP_DIR/man/exa_colors.5" "$(manpath | cut -d : -f 1)/man5/"
+    install -m 0644 "$TMP_DIR/completions/exa.bash" /etc/bash_completion.d/
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
 fi

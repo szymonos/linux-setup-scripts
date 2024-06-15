@@ -32,14 +32,18 @@ if type $APP &>/dev/null; then
 fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
+# dotsource file with common functions
+. .assets/provision/source.sh
+# create temporary dir for the downloaded binary
 TMP_DIR=$(mktemp -dp "$PWD")
-retry_count=0
-while [[ ! -f "$TMP_DIR/k9s.tar.gz" && $retry_count -lt 10 ]]; do
-  curl -#Lko "$TMP_DIR/k9s.tar.gz" "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_amd64.tar.gz"
-  ((retry_count++))
-done
-tar -zxvf "$TMP_DIR/k9s.tar.gz" -C "$TMP_DIR"
-mkdir -p /opt/k9s
-install -m 0755 "$TMP_DIR/k9s" /opt/k9s/
-[ -f /usr/bin/k9s ] || ln -s /opt/k9s/k9s /usr/bin/k9s
+# calculate download uri
+URL="https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_amd64.tar.gz"
+# download and install file
+if download_file --uri $URL --target_dir $TMP_DIR; then
+  tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
+  mkdir -p /opt/k9s
+  install -m 0755 "$TMP_DIR/k9s" /opt/k9s/
+  [ -f /usr/bin/k9s ] || ln -s /opt/k9s/k9s /usr/bin/k9s
+fi
+# remove temporary dir
 rm -fr "$TMP_DIR"

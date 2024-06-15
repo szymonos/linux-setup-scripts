@@ -32,11 +32,16 @@ if type $APP &>/dev/null; then
 fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
+# dotsource file with common functions
+. .assets/provision/source.sh
+# create temporary dir for the downloaded binary
 TMP_DIR=$(mktemp -dp "$PWD")
-retry_count=0
-while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
-  curl -#Lk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL:?}/kubeseal-${REL:?}-linux-amd64.tar.gz" | tar -zx -C "$TMP_DIR"
-  ((retry_count++))
-done
-install -m 0755 "$TMP_DIR/$APP" /usr/local/bin/
+# calculate download uri
+URL="https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL:?}/kubeseal-${REL:?}-linux-amd64.tar.gz"
+# download and install file
+if download_file --uri $URL --target_dir $TMP_DIR; then
+  tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
+  install -m 0755 "$TMP_DIR/$APP" /usr/local/bin/
+fi
+# remove temporary dir
 rm -fr "$TMP_DIR"

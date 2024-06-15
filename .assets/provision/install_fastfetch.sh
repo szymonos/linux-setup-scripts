@@ -69,15 +69,18 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
+  # dotsource file with common functions
+  . .assets/provision/source.sh
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-linux-amd64.deb"
-    ((retry_count++))
-  done
-  dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null
+  # calculate download uri
+  URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-linux-amd64.deb"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
-  ;;
 opensuse)
   zypper in -y $APP >&2 2>/dev/null
   ;;

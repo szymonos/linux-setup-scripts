@@ -25,18 +25,23 @@ echo $REL
 
 if type $APP &>/dev/null; then
   VER=$(etcdctl version | sed -En 's/etcdctl version: ([0-9\.]+).*/\1/p')
-if [ "$REL" = "$VER" ]; then
+  if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
   fi
 fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
+# dotsource file with common functions
+. .assets/provision/source.sh
+# create temporary dir for the downloaded binary
 TMP_DIR=$(mktemp -dp "$PWD")
-retry_count=0
-while [[ ! -f "$TMP_DIR/etcdctl" && $retry_count -lt 10 ]]; do
-  curl -#Lk "https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz" | tar -zx --strip-components=1 --no-same-owner -C "$TMP_DIR"
-  ((retry_count++))
-done
-install -m 0755 "$TMP_DIR/etcdctl" /usr/local/bin/
+# calculate download uri
+URL="https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz"
+# download and install file
+if download_file --uri $URL --target_dir $TMP_DIR; then
+  tar -zxf "$TMP_DIR/$(basename $URL)" --strip-components=1 --no-same-owner -C "$TMP_DIR"
+  install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/local/bin/
+fi
+# remove temporary dir
 rm -fr "$TMP_DIR"

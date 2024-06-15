@@ -74,14 +74,19 @@ esac
 
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
+  # dotsource file with common functions
+  . .assets/provision/source.sh
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/rg" && $retry_count -lt 10 ]]; do
-    curl -#Lk "https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-x86_64-unknown-linux-musl.tar.gz" | tar -zx --strip-components=1 -C "$TMP_DIR"
-    ((retry_count++))
-  done
-  install -m 0755 "$TMP_DIR/rg" /usr/bin/
-  install -m 0644 "$TMP_DIR/doc/rg.1" "$(manpath | cut -d : -f 1)/man1/"
-  install -m 0644 "$TMP_DIR/complete/rg.bash" /etc/bash_completion.d/
+  # calculate download uri
+  URL="https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-aarch64-unknown-linux-gnu.tar.gz"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    tar -zxf "$TMP_DIR/$(basename $URL)" --strip-components=1 -C "$TMP_DIR"
+    install -m 0755 "$TMP_DIR/rg" /usr/bin/
+    install -m 0644 "$TMP_DIR/doc/rg.1" "$(manpath | cut -d : -f 1)/man1/"
+    install -m 0644 "$TMP_DIR/complete/rg.bash" /etc/bash_completion.d/
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
 fi

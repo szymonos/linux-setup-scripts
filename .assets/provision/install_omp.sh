@@ -32,11 +32,15 @@ if type $APP &>/dev/null; then
 fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
+# dotsource file with common functions
+. .assets/provision/source.sh
+# create temporary dir for the downloaded binary
 TMP_DIR=$(mktemp -dp "$PWD")
-retry_count=0
-while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
-  curl -#Lko "$TMP_DIR/$APP" "https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v${REL}/posh-linux-amd64"
-  ((retry_count++))
-done
-install -m 0755 "$TMP_DIR/$APP" /usr/bin/oh-my-posh
+# calculate download uri
+URL="https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v${REL}/posh-linux-amd64"
+# download and install file
+if download_file --uri $URL --target_dir $TMP_DIR; then
+  install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/bin/oh-my-posh
+fi
+# remove temporary dir
 rm -fr "$TMP_DIR"
