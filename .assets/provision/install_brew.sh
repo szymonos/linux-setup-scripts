@@ -4,7 +4,7 @@
 .assets/provision/install_brew.sh >/dev/null
 '
 if [ $EUID -eq 0 ]; then
-  printf '\e[31;1mDo not run the script as root.\e[0m\n'
+  printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
 fi
 
