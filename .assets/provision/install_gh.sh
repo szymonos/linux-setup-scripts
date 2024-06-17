@@ -26,18 +26,16 @@ debian | ubuntu)
   ;;
 esac
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 REL=$1
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/cli/cli/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'cli' --repo 'cli')"
+# return latest release
+echo $REL
 
 if type $APP &>/dev/null; then
   VER=$(gh --version | sed -En 's/.*\s([0-9\.]+)\s.*/\1/p')
@@ -63,7 +61,7 @@ debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   curl -fsSLk https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
   chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" >/etc/apt/sources.list.d/github-cli.list
   apt-get update && apt-get install -y gh >&2 2>/dev/null
   ;;
 opensuse)

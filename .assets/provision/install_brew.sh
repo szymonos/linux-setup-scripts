@@ -8,19 +8,15 @@ if [ $EUID -eq 0 ]; then
   exit 1
 fi
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 APP='brew'
 REL=$1
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/Homebrew/brew/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'Homebrew' --repo 'brew')"
 # return latest release
 echo $REL
 
@@ -38,8 +34,6 @@ else
   export NONINTERACTIVE=1
   # skip tap cloning
   export HOMEBREW_INSTALL_FROM_API=1
-  # dotsource file with common functions
-  . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
   # calculate download uri

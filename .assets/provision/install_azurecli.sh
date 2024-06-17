@@ -45,7 +45,7 @@ if ! conda env list | grep -qw '^azurecli'; then
     conda create --name azurecli --yes python=3.11 pip
   else
     # https://github.com/conda/conda/issues/12051
-    conda create --name azurecli --yes python=3.11 pip numpy-base
+    conda create --name azurecli --yes python=3.11 pip numpy==1.26.4 fonttools==4.53.0
   fi
 fi
 conda activate azurecli

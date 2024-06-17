@@ -7,19 +7,15 @@ if [ $EUID -ne 0 ]; then
   exit 1
 fi
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 APP='pwsh'
 REL=$1
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'PowerShell' --repo 'PowerShell')"
 # return latest release
 echo $REL
 
@@ -39,8 +35,6 @@ case $SYS_ID in
 alpine)
   apk add --no-cache ncurses-terminfo-base krb5-libs libgcc libintl libssl1.1 libstdc++ tzdata userspace-rcu zlib icu-libs >&2 2>/dev/null
   apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache lttng-ust >&2 2>/dev/null
-  # dotsource file with common functions
-  . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
   # calculate download uri
@@ -82,8 +76,6 @@ debian | ubuntu)
   else
     export DEBIAN_FRONTEND=noninteractive
     [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu67 >&2 2>/dev/null || true
-    # dotsource file with common functions
-    . .assets/provision/source.sh
     # create temporary dir for the downloaded binary
     TMP_DIR=$(mktemp -dp "$PWD")
     # calculate download uri
@@ -101,11 +93,9 @@ debian | ubuntu)
   ;;
 esac
 
-if [ "$binary" = true ]; then
+if [ "$binary" = true ] && [ -n "$REL" ]; then
   echo 'Installing from binary.' >&2
   [ "$SYS_ID" = 'opensuse' ] && zypper in -y libicu >&2 2>/dev/null || true
-  # dotsource file with common functions
-  . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
   # calculate download uri

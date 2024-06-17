@@ -7,18 +7,16 @@ if [ $EUID -ne 0 ]; then
   exit 1
 fi
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 APP='tfswitch'
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/warrensbox/terraform-switcher/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ -n "$REL" || $i -eq 10 ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'warrensbox' --repo 'terraform-switcher')"
+# return latest release
+echo $REL
 
 if type $APP &>/dev/null; then
   VER=$($APP --version | sed -En 's/.*\s([0-9\.]+)/\1/p')

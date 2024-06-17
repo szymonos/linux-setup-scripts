@@ -7,32 +7,26 @@ if [ $EUID -ne 0 ]; then
   exit 1
 fi
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 APP='kustomize'
 REL=$1
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | sed -En 's/.*"tag_name": "kustomize\/([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ -n "$REL" || $i -eq 10 ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'kubernetes-sigs' --repo 'kustomize')"
 # return latest release
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER="$(kustomize version)"
+  VER="$(kustomize version | sed -En 's/.*v([0-9\.]+)$/\1/p')"
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP $VER is already latest\e[0m\n" >&2
     exit 0
   fi
 fi
 
-# dotsource file with common functions
-. .assets/provision/source.sh
 # create temporary dir for the downloaded binary
 TMP_DIR=$(mktemp -dp "$PWD")
 # calculate download uri
@@ -43,4 +37,4 @@ if download_file --uri $URL --target_dir $TMP_DIR; then
   install -m 0755 kustomize /usr/bin/
 fi
 # remove temporary dir
-rm -fr kustomizell "$TMP_DIR"
+rm -fr kustomize "$TMP_DIR"
