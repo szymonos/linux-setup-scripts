@@ -406,10 +406,10 @@ process {
                     $cmd = [string]::Join("`n",
                         'if (-not (Get-Module -ListAvailable "Az")) {',
                         "`tWrite-Host 'installing Az...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue }`n}",
+                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
                         'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
                         "`tWrite-Host 'installing Az.ResourceGraph...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph }`n}"
+                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
                     )
                     wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 }
@@ -555,4 +555,5 @@ process {
 
 end {
     Pop-Location
+    Write-Host "`n<< WSL setup completed >>`n" -ForegroundColor Green
 }
