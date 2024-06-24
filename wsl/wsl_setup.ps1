@@ -438,9 +438,9 @@ process {
             }
             terraform {
                 Write-Host 'installing terraform utils...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh
+                $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
+                $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
+                $rel_tfs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh $Script:rel_tfs
                 continue
             }
             zsh {
@@ -546,7 +546,7 @@ process {
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
         # *install GitHub CLI
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh | Out-Null
         # *clone GitHub repositories
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"

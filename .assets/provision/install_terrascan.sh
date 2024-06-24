@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_terrascan.sh
+sudo .assets/provision/install_terrascan.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
@@ -12,6 +12,7 @@ fi
 
 # define variables
 APP='terrascan'
+REL=$1
 retry_count=0
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
