@@ -25,12 +25,12 @@ download_file() {
 
   # define local variables
   local file_name="$(basename $uri)"
-  local max_retries=10
+  local max_retries=8
   local retry_count=0
 
-  while [[ $retry_count -lt $max_retries ]]; do
+  while [[ $retry_count -le $max_retries ]]; do
     # download file
-    status_code=$(curl -w %{http_code} -#Lko "$target_dir/$file_name" "$uri")
+    status_code=$(curl -w %{http_code} -#Lko "$target_dir/$file_name" "$uri" 2>/dev/null)
 
     # check the HTTP status code
     case $status_code in
@@ -44,6 +44,7 @@ download_file() {
       ;;
     *)
       ((retry_count++))
+      echo "retrying... $retry_count/$max_retries" >&2
       ;;
     esac
   done
@@ -66,7 +67,7 @@ get_gh_release_latest() {
   done
 
   # define local variables
-  local max_retries=1
+  local max_retries=8
   local retry_count=0
   local api_response
   local rate_limit_message="API rate limit exceeded"
@@ -83,7 +84,7 @@ get_gh_release_latest() {
   fi
 
   # send API request to GitHub
-  while [ $retry_count -lt $max_retries ]; do
+  while [ $retry_count -le $max_retries ]; do
     api_response=$(curl -sk https://api.github.com/repos/$owner/$repo/releases/latest)
     # check for API rate limit exceeded
     if echo "$api_response" | jq -e '.message' | grep -q "API rate limit exceeded"; then
@@ -104,7 +105,7 @@ get_gh_release_latest() {
     # get the tag_name from the API response
     tag_name=$(echo "$api_response" | jq -r '.tag_name')
     if [ -n "$tag_name" ]; then
-      rel="$(echo $tag_name | sed -E 's/.*[^0-9]?([0-9]+\.[0-9]+\.[0-9]+).*/\1/')"
+      rel="$(echo $tag_name | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
       if [ -n "$rel" ]; then
         echo "$rel"
         return 0
@@ -115,7 +116,7 @@ get_gh_release_latest() {
     else
       # increment the retry count
       ((retry_count++))
-      echo "retrying... $(($retry_count + 1))/$max_retries" >&2
+      echo "retrying... $retry_count/$max_retries" >&2
     fi
   done
 
