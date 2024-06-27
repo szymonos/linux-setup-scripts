@@ -3,7 +3,7 @@
 sudo .assets/provision/install_exa.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  printf '\e[31;1mRun the script as root.\e[0m\n'
+  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -26,18 +26,14 @@ debian | ubuntu)
   ;;
 esac
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 REL=$1
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/ogham/exa/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ -n "$REL" || $i -eq 10 ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'ogham' --repo 'exa')"
 # return latest release
 echo $REL
 
@@ -72,18 +68,20 @@ opensuse)
   ;;
 esac
 
-if [ "$binary" = true ]; then
+if [ "$binary" = true ] && [ -n "$REL" ]; then
   echo 'Installing from binary.' >&2
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP.zip" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.zip" "https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
-    ((retry_count++))
-  done
-  unzip -q "$TMP_DIR/$APP.zip" -d "$TMP_DIR"
-  install -m 0755 "$TMP_DIR/bin/exa" /usr/bin/
-  install -m 0644 "$TMP_DIR/man/exa.1" "$(manpath | cut -d : -f 1)/man1/"
-  install -m 0644 "$TMP_DIR/man/exa_colors.5" "$(manpath | cut -d : -f 1)/man5/"
-  install -m 0644 "$TMP_DIR/completions/exa.bash" /etc/bash_completion.d/
+  # calculate download uri
+  URL="https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    unzip -q "$TMP_DIR/$(basename $URL)" -d "$TMP_DIR"
+    install -m 0755 "$TMP_DIR/bin/exa" /usr/bin/
+    install -m 0644 "$TMP_DIR/man/exa.1" "$(manpath | cut -d : -f 1)/man1/"
+    install -m 0644 "$TMP_DIR/man/exa_colors.5" "$(manpath | cut -d : -f 1)/man5/"
+    install -m 0644 "$TMP_DIR/completions/exa.bash" /etc/bash_completion.d/
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
 fi

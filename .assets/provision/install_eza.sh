@@ -3,7 +3,7 @@
 sudo .assets/provision/install_eza.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  printf '\e[31;1mRun the script as root.\e[0m\n'
+  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -13,17 +13,13 @@ SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p
 APP='eza'
 case $SYS_ID in
 alpine)
-  true
-  # TODO replace after eza will be added to Alpine repos
-  # apk -e info $APP &>/dev/null && exit 0 || true
+  apk -e info $APP &>/dev/null && exit 0 || true
   ;;
 arch)
   pacman -Qqe $APP &>/dev/null && exit 0 || true
   ;;
 fedora)
-  true
-  # TODO replace after eza will be added to Fedora repos
-  # rpm -q $APP &>/dev/null && exit 0 || true
+  rpm -q $APP &>/dev/null && exit 0 || true
   ;;
 debian | ubuntu)
   dpkg -s $APP &>/dev/null && exit 0 || true
@@ -33,18 +29,14 @@ opensuse)
   ;;
 esac
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 REL=$1
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/eza-community/eza/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ -n "$REL" || $i -eq 10 ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'eza-community' --repo 'eza')"
 # return latest release
 echo $REL
 
@@ -56,19 +48,16 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
+printf "\e[92minstalling \e[1m$APP\e[0m\n" >&2
 case $SYS_ID in
 alpine)
-  binary=true
-  lib='musl'
-  # apk add --no-cache eza >&2 2>/dev/null
+  apk add --no-cache $APP >&2 2>/dev/null
   ;;
 arch)
   pacman -Sy --needed --noconfirm $APP >&2 2>/dev/null || binary=true
   ;;
 fedora)
-  binary=true
-  lib='gnu'
+  dnf install -y $APP >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
@@ -76,27 +65,29 @@ debian | ubuntu)
   if [ ! -f /etc/apt/keyrings/gierens.gpg ]; then
     wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
   fi
-  echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list
+  echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" >/etc/apt/sources.list.d/gierens.list
   chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
   apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true
   ;;
 opensuse)
-  zypper in -y eza >&2 2>/dev/null || binary=true
+  zypper in -y $APP >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true
   ;;
 esac
 
-if [ "$binary" = true ]; then
-  echo 'Installing from binary.' >&2
+if [ "$binary" = true ] && [ -n "$REL" ]; then
+  printf "Installing $APP \e[1mv$REL\e[22m from binary.\n" >&2
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP.tar.gz" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.tar.gz" "https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
-    ((retry_count++))
-  done
-  tar -zxf "$TMP_DIR/$APP.tar.gz" -C "$TMP_DIR"
-  install -m 0755 "$TMP_DIR/eza" /usr/bin/
+  # calculate download uri
+  URL="https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
+    install -m 0755 "$TMP_DIR/eza" /usr/bin/
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
 fi

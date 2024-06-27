@@ -4,7 +4,7 @@
 .assets/provision/install_miniforge.sh --fix_certify true
 '
 if [ $EUID -eq 0 ]; then
-  printf '\e[31;1mDo not run the script as root.\e[0m\n'
+  printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -42,13 +42,17 @@ if [ -d "$HOME/miniforge3" ]; then
   conda_init
 else
   printf "\e[92minstalling \e[1mminiforge\e[0m\n"
+  # dotsource file with common functions
+  . .assets/provision/source.sh
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/miniforge.sh" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/miniforge.sh" "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-    ((retry_count++))
-  done
-  bash $TMP_DIR/miniforge.sh -b -p "$HOME/miniforge3" >/dev/null
+  # calculate download uri
+  URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    bash -C "$TMP_DIR/$(basename $URL)" -b -p "$HOME/miniforge3" >/dev/null
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
   # disable auto activation of the base conda environment
   conda_init

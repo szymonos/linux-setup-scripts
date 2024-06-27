@@ -84,7 +84,18 @@ function Update-GitRepository {
     if ($remote) {
         # fetch updates from remote
         Write-Verbose "fetching $remote..."
-        git fetch --tags --prune --prune-tags --force $remote
+        for ($i = 1; $i -le 10; $i++) {
+            Write-Verbose "attempt No. $i..."
+            git fetch --tags --prune --prune-tags --force $remote 2>$null
+            if ($?) {
+                $fetched = $true
+                break
+            }
+        }
+        if (-not $fetched) {
+            Write-Warning 'Fetching from remote failed.'
+            return 0
+        }
         # check if current branch is behind remote
         $branch = git branch --show-current
         if ((git rev-parse HEAD) -ne (git rev-parse "$remote/$branch")) {

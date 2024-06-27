@@ -3,7 +3,7 @@
 sudo .assets/provision/install_kubectl.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  printf '\e[31;1mRun the script as root.\e[0m\n'
+  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -52,13 +52,16 @@ esac
 
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
+  # dotsource file with common functions
+  . .assets/provision/source.sh
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP" "https://dl.k8s.io/release/$(curl -sLk https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    ((retry_count++))
-  done
-  # install
-  install -m 0755 "$TMP_DIR/$APP" /usr/bin/
+  # calculate download uri
+  URL="https://dl.k8s.io/release/${REL}/bin/linux/amd64/kubectl"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/bin/
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
 fi

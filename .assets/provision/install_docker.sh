@@ -3,7 +3,7 @@
 sudo .assets/provision/install_docker.sh $(id -un)
 '
 if [ $EUID -ne 0 ]; then
-  printf '\e[31;1mRun the script as root.\e[0m\n'
+  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -52,7 +52,7 @@ debian | ubuntu)
     curl -fsSLk "https://download.docker.com/linux/$SYS_ID/gpg" | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     echo \
       "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$SYS_ID \
-      "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
+      "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" >/etc/apt/sources.list.d/docker.list
   fi
   apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
   ;;

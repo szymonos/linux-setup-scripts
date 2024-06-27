@@ -3,23 +3,19 @@
 sudo .assets/provision/install_helm.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  printf '\e[31;1mRun the script as root.\e[0m\n'
+  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 APP='helm'
 REL=$1
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/helm/helm/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'helm' --repo 'helm')"
 # return latest release
 echo $REL
 

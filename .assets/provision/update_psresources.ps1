@@ -32,7 +32,7 @@ foreach ($mod in $dupedModules) {
     Write-Host "`n`e[4m$($mod)`e[24m - $($allVersions.Count) versions of the module found, latest: `e[1mv$latestVersion`e[22m" -ForegroundColor DarkYellow
     Write-Host 'uninstalling...'
     foreach ($v in $allVersions.Where({ $_.Version -ne $latestVersion })) {
-        Write-Host "- `e[95mv$($v.Version)`e[0m"
+        Write-Host "- `e[0;90mv$($v.Version)`e[0m"
         Uninstall-PSResource @param -Name $v.Name -Version ($v.Prerelease ? "$($v.Version)-$($v.Prerelease)" : "$($v.Version)") -SkipDependencyCheck
     }
 }

@@ -406,10 +406,10 @@ process {
                     $cmd = [string]::Join("`n",
                         'if (-not (Get-Module -ListAvailable "Az")) {',
                         "`tWrite-Host 'installing Az...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue }`n}",
+                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
                         'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
                         "`tWrite-Host 'installing Az.ResourceGraph...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph }`n}"
+                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
                     )
                     wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 }
@@ -438,9 +438,9 @@ process {
             }
             terraform {
                 Write-Host 'installing terraform utils...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh
+                $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
+                $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
+                $rel_tfs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh $Script:rel_tfs
                 continue
             }
             zsh {
@@ -546,7 +546,7 @@ process {
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
         # *install GitHub CLI
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh | Out-Null
         # *clone GitHub repositories
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"
@@ -555,4 +555,5 @@ process {
 
 end {
     Pop-Location
+    Write-Host "`n`e[1;95m<< WSL setup completed >>`e[0m`n"
 }

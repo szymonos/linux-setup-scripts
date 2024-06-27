@@ -85,25 +85,23 @@ if [ -n "$1" ]; then
     fc-cache -f /usr/share/fonts
   else
     echo "installing '$font' font..." >&2
-    http_code=$(curl -Lo /dev/null --silent -Iw '%{http_code}' "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip")
-    if [ $http_code -eq 200 ]; then
-      TMP_DIR=$(mktemp -dp "$PWD")
-      retry_count=0
-      while [[ ! -f "$TMP_DIR/$font.zip" && $retry_count -lt 10 ]]; do
-        curl -#Lko "$TMP_DIR/$font.zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
-        ((retry_count++))
-      done
-      unzip -q "$TMP_DIR/$font.zip" -d "$TMP_DIR"
+    # dotsource file with common functions
+    . .assets/provision/source.sh
+    # create temporary dir for the downloaded binary
+    TMP_DIR=$(mktemp -dp "$PWD")
+    # calculate download uri
+    URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
+    # download and install file
+    if download_file --uri $URL --target_dir $TMP_DIR; then
+      unzip -q "$TMP_DIR/$(basename $URL)" -d "$TMP_DIR"
       rm -f "$TMP_DIR/*Compatible.ttf"
       mkdir -p /usr/share/fonts/${font,,}-nf
       find "$TMP_DIR" -type f -name "*.ttf" -exec cp {} /usr/share/fonts/${font,,}-nf/ \;
-      rm -fr "$TMP_DIR"
       # build font information caches
       fc-cache -f /usr/share/fonts/${font,,}-nf
-    else
-      printf '\e[31;1mFont "'$font'" not found on GitHub.\e[0m\n' >&2
-      exit 1
     fi
+    # remove temporary dir
+    rm -fr "$TMP_DIR"
   fi
 else
   printf '\e[31;1mProvide font name.\e[0m\n' >&2

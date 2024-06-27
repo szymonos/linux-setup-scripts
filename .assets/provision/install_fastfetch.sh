@@ -3,7 +3,7 @@
 sudo .assets/provision/install_fastfetch.sh >/dev/null
 '
 if [ $EUID -ne 0 ]; then
-  printf '\e[31;1mRun the script as root.\e[0m\n'
+  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -23,18 +23,14 @@ fedora | opensuse)
   ;;
 esac
 
+# dotsource file with common functions
+. .assets/provision/source.sh
+
+# define variables
 REL=$1
 retry_count=0
-# try 10 times to get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -sk https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
-  fi
-  [[ -n "$REL" || $i -eq 10 ]] || echo 'retrying...' >&2
-done
+# get latest release if not provided as a parameter
+[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'fastfetch-cli' --repo 'fastfetch')"
 # return latest release
 echo $REL
 
@@ -69,13 +65,15 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
+  # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
-  retry_count=0
-  while [[ ! -f "$TMP_DIR/$APP.deb" && $retry_count -lt 10 ]]; do
-    curl -#Lko "$TMP_DIR/$APP.deb" "https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-linux-amd64.deb"
-    ((retry_count++))
-  done
-  dpkg -i "$TMP_DIR/$APP.deb" >&2 2>/dev/null
+  # calculate download uri
+  URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-linux-amd64.deb"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null
+  fi
+  # remove temporary dir
   rm -fr "$TMP_DIR"
   ;;
 opensuse)

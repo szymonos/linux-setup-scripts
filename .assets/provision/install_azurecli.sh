@@ -4,7 +4,7 @@
 .assets/provision/install_azurecli.sh --fix_certify true
 '
 if [ $EUID -eq 0 ]; then
-  printf '\e[31;1mDo not run the script as root.\e[0m\n'
+  printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
 fi
 
@@ -45,7 +45,7 @@ if ! conda env list | grep -qw '^azurecli'; then
     conda create --name azurecli --yes python=3.11 pip
   else
     # https://github.com/conda/conda/issues/12051
-    conda create --name azurecli --yes python=3.11 pip numpy-base
+    conda create --name azurecli --yes python=3.11 pip numpy==1.26.4 fonttools==4.53.0
   fi
 fi
 conda activate azurecli
