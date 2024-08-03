@@ -24,6 +24,7 @@ List of installation scopes. Valid values:
 - docker: docker, containerd buildx docker-compose (WSL2 only)
 - k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize
 - k8s_ext: minikube, k3d, argorollouts-cli (WSL2 only); autoselects docker and k8s_base scopes
+- nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
@@ -53,7 +54,7 @@ wsl/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
 $Scope = @('conda', 'pwsh')
 $Scope = @('conda', 'k8s_ext', 'pwsh', 'rice')
 $Scope = @('az', 'docker', 'shell')
-$Scope = @('az', 'k8s_base', 'pwsh', 'terraform')
+$Scope = @('az', 'k8s_base', 'pwsh', 'nodejs', 'terraform')
 $Scope = @('az', 'k8s_ext', 'pwsh')
 wsl/wsl_setup.ps1 $Distro -s $Scope
 wsl/wsl_setup.ps1 $Distro -s $Scope -AddCertificate
@@ -81,7 +82,7 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'oh_my_posh', 'pwsh', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
         ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_ext rice shell')]
     [string[]]$Scope,
 
@@ -358,6 +359,14 @@ process {
                 $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
                 $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
                 $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
+                continue
+            }
+            nodejs {
+                Write-Host 'installing Node.js...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_nodejs.sh
+                if ($AddCertificate) {
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_nodejs_certs.sh
+                }
                 continue
             }
             oh_my_posh {
