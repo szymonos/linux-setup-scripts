@@ -234,31 +234,7 @@ process {
     foreach ($lx in $lxss) {
         $Distro = $lx.Name
         # *perform distro checks
-        $cmd = [string]::Join('',
-            '[ -f /usr/bin/rg ] && shell="true" || shell="false";',
-            '[ -f /usr/bin/pwsh ] && pwsh="true" || pwsh="false";',
-            '[ -f /usr/bin/zsh ] && zsh="true" || zsh="false";',
-            '[ -f /usr/bin/kubectl ] && k8s_base="true" || k8s_base="false";',
-            '[ -f /usr/local/bin/k3d ] && k8s_ext="true" || k8s_ext="false";',
-            '[ -f /usr/bin/oh-my-posh ] && omp="true" || omp="false";',
-            '[ -f /usr/bin/terraform ] && tf="true" || tf="false";',
-            '[ -d $HOME/.local/share/powershell/Modules/Az ] && az="true" || az="false";',
-            '[ -d $HOME/miniconda3 ] && conda="true" || conda="false";',
-            '[ -f $HOME/.ssh/id_ed25519 ] && ssh_key="true" || ssh_key="false";',
-            '[ -d /mnt/wslg ] && wslg="true" || wslg="false";',
-            'grep -qw "autoexec\.sh" /etc/wsl.conf 2>/dev/null && wsl_boot="true" || wsl_boot="false";',
-            'git_user_name="$(git config --global --get user.name 2>/dev/null)";',
-            '[ -n "$git_user_name" ] && git_user="true" || git_user="false";',
-            'git_user_email="$(git config --global --get user.email 2>/dev/null)";',
-            '[ -n "$git_user_email" ] && git_email="true" || git_email="false";',
-            'grep -qw "systemd.*true" /etc/wsl.conf 2>/dev/null && systemd="true" || systemd="false";',
-            'grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && gtkd="true" || gtkd="false";',
-            'printf "{\"user\":\"$(id -un)\",\"shell\":$shell,\"k8s_base\":$k8s_base,\"k8s_ext\":$k8s_ext,\"omp\":$omp,',
-            '\"az\":$az,\"wslg\":$wslg,\"wsl_boot\":$wsl_boot,\"conda\":$conda,\"systemd\":$systemd,\"gtkd\":$gtkd,',
-            '\"pwsh\":$pwsh,\"tf\":$tf,\"zsh\":$zsh,\"git_user\":$git_user,\"git_email\":$git_email,\"ssh_key\":$ssh_key}"'
-        )
-        # check existing distro setup
-        $chk = wsl.exe -d $Distro --exec sh -c $cmd | ConvertFrom-Json -AsHashtable
+        $chk = wsl.exe -d $Distro --exec .assets/provision/wsl_check.sh | ConvertFrom-Json -AsHashtable
         # instantiate scope generic sorted set
         $scopes = [System.Collections.Generic.SortedSet[string]]::new()
         $Scope.ForEach({ $scopes.Add($_) | Out-Null })
