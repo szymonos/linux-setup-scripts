@@ -13,6 +13,7 @@ Flag whether to disable swap in WSL.
 Revert changes and set generateResolvConf to 'true'.
 .PARAMETER ShowConf
 Print current configuration after changes.
+This parameter shuts down WSL to make the changes take effect immediately.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
@@ -69,7 +70,7 @@ begin {
 
 process {
     # *replace wsl.conf
-    Write-Host 'replacing wsl.conf' -ForegroundColor DarkGreen
+    Write-Host 'replacing wsl.conf...' -ForegroundColor DarkGreen -NoNewline
     $param = @{
         Distro   = $Distro
         ConfDict = [ordered]@{
@@ -79,56 +80,50 @@ process {
         }
     }
     Set-WslConf @param
+    Write-Host 'done' -ForegroundColor DarkGreen
 
     # *recreate resolv.conf
     if (-not $Revert) {
-        Write-Host 'replacing resolv.conf' -ForegroundColor DarkGreen
         # get DNS servers for specified interface
         $props = @(
-            @{ Name = 'Name'; Expression = { $_.InterfaceAlias } }
-            @{ Name = 'InterfaceDescription'; Expression = { $_.InterfaceDescription } }
-            @{ Name = 'IPv4Address'; Expression = { $_.IPv4Address.IPAddress } }
-            @{ Name = 'DNSServer'; Expression = { $_.DNSServer.Where({ $_.AddressFamily -eq 2 }).Address } }
+            @{ Name = 'Interface'; Expression = { $_.Description } }
+            @{ Name = 'IPv4Address'; Expression = { $_.IPAddress } }
+            @{ Name = 'DNSServer'; Expression = { $_.DNSServerSearchOrder } }
         )
-        $ipConfig = Get-NetIPConfiguration `
-        | Where-Object { $_.NetAdapter.Status -eq 'Up' } `
+        $ipConfig = Get-CimInstance Win32_NetworkAdapterConfiguration `
+        | Where-Object -Property IPEnabled `
         | Select-Object $props
+
         if ($ipConfig) {
-            $list = for ($i = 0; $i -lt $ipConfig.Count; $i++) {
-                [PSCustomObject]@{
-                    No                   = "[$i]"
-                    Name                 = $ipConfig[$i].Name
-                    InterfaceDescription = $ipConfig[$i].InterfaceDescription
-                    IPv4Address          = $ipConfig[$i].IPv4Address
-                    DNSServer            = $ipConfig[$i].DNSServer
-                }
-            }
-            do {
-                $idx = -1
-                $selection = Read-Host -Prompt "Please select the interface for propagating DNS Servers:`n$($list | Format-Table | Out-String)"
-                [bool]$returnedInt = [int]::TryParse($selection, [ref]$idx)
-            } until ($returnedInt -and $idx -ge 0 -and $idx -lt $ipConfig.Count)
-            $dnsServers = $ipConfig[$idx].DNSServer
-            $dnsServers.ForEach({ $builder.AppendLine("nameserver $_") | Out-Null })
+            $selCfg = $ipConfig | Get-ArrayIndexMenu -Value -Message 'Select network adapter:'
+            $selCfg.DNSServer.ForEach({ $builder.AppendLine("nameserver $_") | Out-Null })
+        } else {
+            Write-Warning 'No active network adapter found!'
+            return
         }
         # get DNS suffix search list
-        $searchSuffix = (Get-DnsClientGlobalSetting).SuffixSearchList -join ','
+        $searchSuffix = (Get-DnsClientGlobalSetting).SuffixSearchList | Join-String -Separator ','
         if ($searchSuffix) {
             $builder.AppendLine("search $searchSuffix") | Out-Null
         }
         $builder.AppendLine('options timeout:1 retries:1') | Out-Null
         $resolvConf = $builder.ToString().Replace("`r`n", "`n")
-        # save resolv.conf file
+        # shutdown distro for the wsl.conf changes to make effect
+        if ($ShowConf) {
+            Write-Host 'shutting down WSL...' -ForegroundColor DarkCyan
+            wsl.exe --shutdown
+        }
+        Write-Host 'replacing resolv.conf...' -ForegroundColor DarkGreen -NoNewline
+        # calculate command to update resolv.conf
         $cmd = [string]::Join("`n",
             'chattr -fi /etc/resolv.conf 2>/dev/null || true',
             'rm -f /etc/resolv.conf 2>/dev/null || true',
             "echo '$resolvConf' >/etc/resolv.conf",
             'chattr -f +i /etc/resolv.conf 2>/dev/null || true'
         )
-        # shutdown distro for the wsl.conf changes to make effect
-        wsl.exe --shutdown $Distro
         # save new resolv.conf settings
         wsl.exe -d $Distro --user root --exec bash -c $cmd
+        Write-Host 'done' -ForegroundColor DarkGreen
     }
 
     # *disable wsl swap
@@ -148,21 +143,27 @@ process {
         }
     }
 
-    # *shutdown specified distro
+    # *shutdown WSL
     if ($Revert) {
         wsl.exe -d $Distro --user root --exec bash -c 'chattr -fi /etc/resolv.conf 2>/dev/null || true'
-        Write-Host "shutting down '$Distro' distro" -ForegroundColor DarkGreen
-        wsl.exe --shutdown $Distro
+        if ($ShowConf) {
+            Write-Host 'shutting down WSL...' -ForegroundColor DarkCyan
+            wsl.exe --shutdown
+        }
     }
 }
 
 end {
-    if ($ShowConf) {
-        Write-Host "`nwsl.conf" -ForegroundColor Magenta
-        wsl.exe -d $Distro --exec cat /etc/wsl.conf | Write-Host
-        Write-Host "`nresolv.conf" -ForegroundColor Magenta
-        wsl.exe -d $Distro --exec cat /etc/resolv.conf | Write-Host
-    } else {
-        $Revert ? 'resolv.conf configuration reverted' : 'resolv.conf configuration updated'
+    if ($Revert) {
+        Write-Output 'resolv.conf configuration reverted'
+    } elseif ($ipConfig) {
+        if ($ShowConf) {
+            Write-Host "`nwsl.conf" -ForegroundColor Magenta
+            wsl.exe -d $Distro --exec cat /etc/wsl.conf | Write-Host
+            Write-Host "`nresolv.conf" -ForegroundColor Magenta
+            wsl.exe -d $Distro --exec cat /etc/resolv.conf | Write-Host
+        } else {
+            'resolv.conf configuration updated'
+        }
     }
 }
