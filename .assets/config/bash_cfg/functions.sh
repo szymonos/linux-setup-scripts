@@ -58,14 +58,19 @@ function fxcertpy {
     exit 0
   fi
 
-  for path in ${cert_paths[@]}; do
-    serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
-    for certify in ${certify_paths[@]}; do
+  # iterate over certify files
+  for certify in ${certify_paths[@]}; do
+    echo "${certify//$HOME/\~}"
+    # iterate over installed certificates
+    for path in ${cert_paths[@]}; do
+      serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
       if ! grep -qw "$serial" "$certify"; then
-        echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253)"
+        # add certificate to array
+        echo " - $(openssl x509 -in $path -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2
         CERT="
-$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | xargs -I {} echo "# {}")
-$(cat $path)"
+$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
+$(openssl x509 -in $path -outform PEM)"
+        # append new certificates to certify cacert.pem
         if [ -w "$certify" ]; then
           echo "$CERT" >>"$certify"
         else
