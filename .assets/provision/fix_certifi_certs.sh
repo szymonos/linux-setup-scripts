@@ -66,10 +66,10 @@ for path in ${cert_paths[@]}; do
   serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
   for certify in ${certify_paths[@]}; do
     if ! grep -qw "$serial" "$certify"; then
-      echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253)"
+      echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253 | sed 's/\\//g')"
       CERT="
-$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | xargs -I {} echo "# {}")
-$(cat $path)"
+$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
+$(openssl x509 -in $path -outform PEM)"
       if [ -w "$certify" ]; then
         echo "$CERT" >>"$certify"
       else
