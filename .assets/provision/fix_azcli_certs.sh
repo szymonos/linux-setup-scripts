@@ -44,10 +44,10 @@ fi
 for path in ${cert_paths[@]}; do
   serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
   if ! grep -qw "$serial" "$CERTIFY_CRT"; then
-    echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253)"
+    echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2
     CERT="
-$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | xargs -I {} echo "# {}")
-$(cat $path)"
+$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
+$(openssl x509 -in $path -outform PEM)"
     if [ -w "$CERTIFY_CRT" ]; then
       echo "$CERT" >>"$CERTIFY_CRT"
     else
