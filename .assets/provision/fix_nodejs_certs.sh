@@ -10,7 +10,6 @@ fi
 # determine system id
 SYS_ID="$(sed -En '/^ID.*(alpine|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 
-CERT_PATH='/etc/ssl/certs/ca-certificates.crt'
 # specify path for installed custom certificates
 case $SYS_ID in
 arch | alpine | fedora | opensuse)
