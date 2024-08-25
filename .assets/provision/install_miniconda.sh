@@ -51,7 +51,6 @@ else
   # download and install file
   if download_file --uri $URL --target_dir $TMP_DIR; then
     bash -C "$TMP_DIR/$(basename $URL)" -b -p "$HOME/miniconda3" >/dev/null
-    install -m 0755 "$TMP_DIR/eza" /usr/bin/
   fi
   # remove temporary dir
   rm -fr "$TMP_DIR"
