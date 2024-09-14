@@ -23,6 +23,8 @@ if [ -n "$WSL_DISTRO_NAME" ]; then
   github='git@github.com:'
 else
   . /etc/os-release
+  ws_suffix='vm'
+  github='https://github.com/'
 fi
 ws_path="$HOME/source/workspaces/${ID,,}-${ws_suffix,,}.code-workspace"
 
