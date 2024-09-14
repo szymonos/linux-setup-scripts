@@ -14,10 +14,12 @@ cpu      = 2
 install_packages   = true
 install_kubernetes = false
 install_gnome      = false
+install_kde        = false
 install_edge       = false
 setup_bash         = true
 setup_pwsh         = true
 upgrade_system     = true
+copy_ssh_key       = false
 
 # calculate global variables
 vmname   = "Vg-#{boxname}"
@@ -104,9 +106,11 @@ Vagrant.configure("2") do |config|
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
     node.vm.provision "shell", name: "install base...", path: "../../../.assets/provision/install_base.sh"
-    if install_packages
+    # copy source file with bash helper functions
+    node.vm.provision "file", source: "../../../.assets/provision/source.sh", destination: ".assets/provision/"
+    if install_packages || setup_bash || setup_pwsh
       node.vm.provision "shell", name: "install packages...", inline: script_install_packages
-      node.vm.provision "shell", name: "install exa...", path: "../../../.assets/provision/install_exa.sh", :args => '>/dev/null'
+      node.vm.provision "shell", name: "install eza...", path: "../../../.assets/provision/install_eza.sh", :args => '>/dev/null'
       node.vm.provision "shell", name: "install bat...", path: "../../../.assets/provision/install_bat.sh", :args => '>/dev/null'
       node.vm.provision "shell", name: "install ripgrep...", path: "../../../.assets/provision/install_ripgrep.sh", :args => '>/dev/null'
     end
@@ -123,18 +127,22 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "install kubeseal...", path: "../../../.assets/provision/install_kubeseal.sh", :args => '>/dev/null'
       node.vm.provision "shell", name: "install kustomize...", path: "../../../.assets/provision/install_kustomize.sh"
       node.vm.provision "shell", name: "install argo-rollouts cli...", path: "../../../.assets/provision/install_argorolloutscli.sh", :args => '>/dev/null'
-      node.vm.provision "shell", name: "install npm...", path: "../../../.assets/provision/install_npm.sh"
+      node.vm.provision "shell", name: "install nodejs...", path: "../../../.assets/provision/install_nodejs.sh"
       node.vm.provision "shell", name: "install smee...", path: "../../../.assets/provision/install_smee.sh"
     end
     if install_gnome
       node.vm.provision "shell", name: "install Gnome...", path: "../../../.assets/provision/install_gnome.sh"
       node.vm.provision "shell", name: "set up Gnome...", path: "../../../.assets/provision/setup_gnome.sh", privileged: false
-      if install_edge
-        node.vm.provision "shell", name: "install Edge...", path: "../../../.assets/provision/install_edge.sh"
-      end
+    end
+    if install_kde
+      node.vm.provision "shell", name: "install KDE...", path: "../../../.assets/provision/install_kde.sh"
+      node.vm.provision "shell", name: "install xrdp...", path: "../../../.assets/provision/install_xrdp.sh"
+    end
+    if (install_kde || install_gnome) && install_edge
+      node.vm.provision "shell", name: "install Edge...", path: "../../../.assets/provision/install_edge.sh"
     end
     if setup_bash || setup_pwsh
-      node.vm.provision "file", source: "../../../.assets/config", destination: "$HOME/tmp/"
+      node.vm.provision "file", source: "../../../.assets/config", destination: "tmp/"
       node.vm.provision "shell", name: "install oh-my-posh...", path: "../../../.assets/provision/install_omp.sh", :args => '>/dev/null'
       node.vm.provision "shell", name: "set up oh-my-posh...", path: "../../../.assets/provision/setup_omp.sh"
     end
@@ -146,12 +154,18 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "install pwsh...", path: "../../../.assets/provision/install_pwsh.sh", :args => '>/dev/null'
       node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../../.assets/provision/setup_profile_allusers.ps1"
       node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../../.assets/provision/setup_profile_user.ps1", privileged: false
-      node.vm.provision "shell", name: "clone ps-modules repo...", path: "../../../.assets/provision/setup_gh_repos.sh", :args => ['--repos', 'szymonos/ps-modules'], privileged: false
+      node.vm.provision "shell", name: "clone ps-modules repo...", path: "../../../.assets/provision/setup_gh_repos.sh", :args => ['--repos', 'szymonos/linux-setup-scripts szymonos/ps-modules'], privileged: false
       node.vm.provision "shell", name: "install ps-modules...", inline: script_install_psmodules, privileged: false
+    end
+    if copy_ssh_key
+      node.vm.provision "file", source: "#{ENV['HOME']}/.ssh/id_ed25519", destination: ".ssh/"
+      node.vm.provision "shell", name: "fix ssh key permissions...", inline: "chmod 400 .ssh/id_ed25519", privileged: false
     end
     if upgrade_system
       node.vm.provision "shell", name: "upgrade system...", path: "../../../.assets/provision/upgrade_system.sh"
     end
+    # cleanup home directory
+    node.vm.provision "shell", name: "cleanup HOME...", inline: "rm -rf .assets tmp/config", privileged: false
     # ~reload vm
     node.vm.provision :reload
   end

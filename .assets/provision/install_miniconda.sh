@@ -18,10 +18,6 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# set script working directory to workspace folder
-SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
-pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
-
 # *conda init function.
 function conda_init {
   __conda_setup="$("$HOME/miniconda3/bin/conda" 'shell.bash' 'hook' 2>/dev/null)"
