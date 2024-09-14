@@ -30,13 +30,14 @@ param (
 
 # calculate variables
 $identityFile = [IO.Path]::Combine($HOME, '.ssh', $HostName)
-$vagrantConfig = @"
-Host $HostName
-  HostName $IpAddress
-  User vagrant
-  IdentityFile $identityFile
-"@
+$vagrantConfig = [string]::Join("`n",
+    "Host $HostName",
+    "  HostName $IpAddress",
+    '  User vagrant',
+    "  IdentityFile $identityFile"
+)
 
+# update ssh config file
 $sshConfig = [IO.Path]::Combine($HOME, '.ssh', 'config')
 if (Test-Path $sshConfig -PathType Leaf) {
     $content = [IO.File]::ReadAllText($sshConfig).TrimEnd()
@@ -58,6 +59,7 @@ if (Test-Path $sshConfig -PathType Leaf) {
 [IO.File]::WriteAllText($sshConfig, $content)
 Copy-Item $Path -Destination $identityFile
 
+# update known_hosts file
 $knownHosts = [IO.Path]::Combine($HOME, '.ssh', 'known_hosts')
 if (Test-Path $knownHosts -PathType Leaf) {
     $content = [IO.File]::ReadAllLines($knownHosts)
@@ -66,6 +68,8 @@ if (Test-Path $knownHosts -PathType Leaf) {
         [IO.File]::WriteAllLines($knownHosts, ($content -notmatch "^$IpAddress"))
     }
 }
+
+# add fingerprint to known_hosts file
 if (Get-Command ssh-keyscan -ErrorAction SilentlyContinue) {
     Write-Host "Adding '$IpAddress' fingerprint to ssh known_hosts file..."
     do {
