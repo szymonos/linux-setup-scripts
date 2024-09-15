@@ -234,7 +234,7 @@ process {
     foreach ($lx in $lxss) {
         $Distro = $lx.Name
         # *perform distro checks
-        $chk = wsl.exe -d $Distro --exec .assets/provision/wsl_check.sh | ConvertFrom-Json -AsHashtable
+        $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
         # instantiate scope generic sorted set
         $scopes = [System.Collections.Generic.SortedSet[string]]::new()
         $Scope.ForEach({ $scopes.Add($_) | Out-Null })
