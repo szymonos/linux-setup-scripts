@@ -4,8 +4,8 @@
 .assets/scripts/linux_setup.sh
 # :set up the system using specified values
 scope="pwsh"
-scope="k8s_base python pwsh"
-scope="az distrobox docker k8s_base k8s_ext python rice shell"
+scope="conda k8s_base pwsh"
+scope="az conda distrobox docker k8s_base k8s_ext rice shell"
 # :set up the system using the specified scope
 .assets/scripts/linux_setup.sh --scope "$scope"
 # :set up the system using the specified scope and omp theme
@@ -39,15 +39,15 @@ SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
 
 # *Calculate and show installation scopes
-# convert scope string to array
+# run the distro_check.sh script and capture the output
+distro_check=$(.assets/provision/distro_check.sh array)
+
+# initialize the scopes array
 array=($scope)
-# determine additional scopes
-[ -d "$HOME/.local/share/powershell/Modules/Az" ] && array+=(az) || true
-[ -f /usr/bin/kubectl ] && array+=(k8s_base) || true
-[ -f /usr/local/bin/k3d ] && array+=(k8s_ext) || true
-[ -f /usr/bin/pwsh ] && array+=(pwsh) || true
-[ -d "$HOME/miniconda3" ] && array+=(python) || true
-[ -f /usr/bin/rg ] && array+=(shell) || true
+# populate the scopes array based on the output of distro_check.sh
+while IFS= read -r line; do
+  array+=("$line")
+done <<<"$distro_check"
 # add corresponding scopes
 grep -qw 'az' <<<${array[@]} && array+=(python) || true
 grep -qw 'k8s_ext' <<<${array[@]} && array+=(docker) && array+=(k8s_base) || true
@@ -73,6 +73,12 @@ sudo .assets/provision/install_base.sh $user
 
 for sc in ${scope_arr[@]}; do
   case $sc in
+  conda)
+    printf "\e[96minstalling python packages...\e[0m\n"
+    .assets/provision/install_miniconda.sh --fix_certify true
+    sudo .assets/provision/setup_python.sh
+    grep -qw 'az' <<<$scope && .assets/provision/install_azurecli.sh --fix_certify true || true
+    ;;
   distrobox)
     printf "\e[96minstalling distrobox...\e[0m\n"
     sudo .assets/provision/install_podman.sh
@@ -87,18 +93,22 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_kubectl.sh >/dev/null
     sudo .assets/provision/install_kubelogin.sh >/dev/null
     sudo .assets/provision/install_helm.sh >/dev/null
-    sudo .assets/provision/install_minikube.sh >/dev/null
-    sudo .assets/provision/install_k3d.sh >/dev/null
     sudo .assets/provision/install_k9s.sh >/dev/null
+    sudo .assets/provision/install_kubeseal.sh >/dev/null
+    sudo .assets/provision/install_flux.sh
+    sudo .assets/provision/install_kustomize.sh
     ;;
   k8s_ext)
     printf "\e[96minstalling kubernetes additional packages...\e[0m\n"
-    sudo .assets/provision/install_flux.sh
-    sudo .assets/provision/install_kustomize.sh
-    sudo .assets/provision/install_kubeseal.sh >/dev/null
+    sudo .assets/provision/install_minikube.sh >/dev/null
+    sudo .assets/provision/install_k3d.sh >/dev/null
     sudo .assets/provision/install_argorolloutscli.sh >/dev/null
     ;;
-  oh_my_posh)
+  nodejs)
+    printf "\e[96minstalling Node.js...\e[0m\n"
+    sudo .assets/provision/install_nodejs.sh >/dev/null
+    ;;
+  omp)
     printf "\e[96minstalling oh-my-posh...\e[0m\n"
     sudo .assets/provision/install_omp.sh >/dev/null
     if [ -n "$omp_theme" ]; then
@@ -113,12 +123,6 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96msetting up profile for current user...\e[0m\n"
     .assets/provision/setup_profile_user.ps1
     ;;
-  python)
-    printf "\e[96minstalling python packages...\e[0m\n"
-    .assets/provision/install_miniconda.sh --fix_certify true
-    sudo .assets/provision/setup_python.sh
-    grep -qw 'az' <<<$scope && .assets/provision/install_azurecli.sh --fix_certify true || true
-    ;;
   rice)
     printf "\e[96mricing distro...\e[0m\n"
     sudo .assets/provision/install_btop.sh
@@ -132,13 +136,19 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     sudo .assets/provision/install_yq.sh >/dev/null
-    printf "\e[96msetting up profile for all users...\e[0m\n"
-    sudo .assets/provision/setup_profile_allusers.sh $user
-    printf "\e[96msetting up profile for current user...\e[0m\n"
-    .assets/provision/setup_profile_user.sh
+    ;;
+  tf)
+    printf "\e[96minstalling terraform utils...\e[0m\n"
+    sudo .assets/provision/install_tfswitch.sh
+    sudo .assets/provision/install_terrascan.sh
     ;;
   esac
 done
+# setup bash profiles
+printf "\e[96msetting up profile for all users...\e[0m\n"
+sudo .assets/provision/setup_profile_allusers.sh $user
+printf "\e[96msetting up profile for current user...\e[0m\n"
+.assets/provision/setup_profile_user.sh
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
   cmnd="Import-Module (Resolve-Path './modules/InstallUtils'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules'"
