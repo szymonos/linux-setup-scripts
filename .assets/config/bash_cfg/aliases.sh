@@ -36,15 +36,6 @@ function sysinfo {
 #endregion
 
 #region aliases
-if grep -qw '^ID.*\balpine' /etc/os-release 2>/dev/null; then
-  alias bsh='/usr/bin/env -i ash --noprofile --norc'
-  alias ls='ls -h --color=auto --group-directories-first'
-else
-  alias bsh='/usr/bin/env -i bash --noprofile --norc'
-  alias ip='ip --color=auto'
-  alias ls='ls -h --color=auto --group-directories-first --time-style=long-iso'
-fi
-
 export SWD=$(pwd)
 alias swd="echo $SWD"
 alias cds="cd $SWD"
@@ -74,22 +65,10 @@ alias cd..='cd ../'
 alias cic='set completion-ignore-case On'
 alias cp='cp -iv'
 alias d='bm -d'
-alias eza='eza -g --color=auto --time-style=long-iso --group-directories-first --color-scale=all --git-repos'
 alias gsi='sysinfo'
-alias l='eza -1'
-alias lsa='eza -a'
-alias ll='eza -lah'
-alias lt='eza -Th'
-alias lta='eza -aTh --git-ignore'
-alias ltd='eza -DTh'
-alias ltad='eza -aDTh --git-ignore'
-alias llt='eza -lTh'
-alias llta='eza -laTh --git-ignore'
-alias ff='fastfetch'
 alias fix_stty='stty sane'
 alias fix_term='printf "\ec"'
 alias grep='grep --ignore-case --color=auto'
-alias lsa='ls -la'
 alias less='less -FRXc'
 alias md='mkdir -p'
 alias mkdir='mkdir -pv'
@@ -97,15 +76,47 @@ alias mv='mv -iv'
 alias osr='cat /etc/os-release'
 alias nano='nano -W'
 alias path='printf "${PATH//:/\\n}\n"'
-alias pwsh='pwsh -NoProfileLoadTime'
-alias p='pwsh -NoProfileLoadTime'
 alias rd='rmdir'
 alias show_options='shopt'
 alias src='source ~/.bashrc'
 alias systemctl='systemctl --no-pager'
-alias rg='rg --ignore-case'
 alias tree='tree -C'
 alias vi='vim'
 alias wget='wget -c'
-alias tfswitch="tfswitch --bin='$HOME/.local/bin/terraform'"
+
+# conditional aliases
+if grep -qw '^ID.*\balpine' /etc/os-release 2>/dev/null; then
+  alias bsh='/usr/bin/env -i ash --noprofile --norc'
+  alias ls='ls -h --color=auto --group-directories-first'
+else
+  alias bsh='/usr/bin/env -i bash --noprofile --norc'
+  alias ip='ip --color=auto'
+  alias ls='ls -h --color=auto --group-directories-first --time-style=long-iso'
+fi
+
+if [ -x /usr/bin/eza ]; then
+  alias eza='eza -g --color=auto --time-style=long-iso --group-directories-first --color-scale=all --git-repos'
+  alias l='eza -1'
+  alias lsa='eza -a'
+  alias ll='eza -lah'
+  alias lt='eza -Th'
+  alias lta='eza -aTh --git-ignore'
+  alias ltd='eza -DTh'
+  alias ltad='eza -aDTh --git-ignore'
+  alias llt='eza -lTh'
+  alias llta='eza -laTh --git-ignore'
+else
+  alias l='ls -1'
+  alias lsa='ls -a'
+  alias ll='ls -lah'
+fi
+
+if [ -x /usr/bin/pwsh ]; then
+  alias pwsh='pwsh -NoProfileLoadTime'
+  alias p='pwsh -NoProfileLoadTime'
+fi
+
+[ -x /usr/bin/rg ] && alias rg='rg --ignore-case' || true
+[ -x /usr/bin/fastfetch ] && alias ff='fastfetch' || true
+[ -x /usr/local/bin/tfswitch ] && alias tfswitch="tfswitch --bin='$HOME/.local/bin/terraform'" || true
 #endregion

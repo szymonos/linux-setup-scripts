@@ -414,18 +414,12 @@ process {
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
-                # *setup profiles
-                Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
-                Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
                 continue
             }
             terraform {
                 Write-Host 'installing terraform utils...' -ForegroundColor Cyan
-                $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
-                $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
                 $rel_tfs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh $Script:rel_tfs
+                $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
                 continue
             }
             zsh {
@@ -437,6 +431,11 @@ process {
                 continue
             }
         }
+        # *setup bash profiles
+        Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
+        Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
+        wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
         # *set gtk theme for wslg
         if ($lx.Version -eq 2 -and $chk.wslg) {
             $GTK_THEME = if ($GtkTheme -eq 'light') {

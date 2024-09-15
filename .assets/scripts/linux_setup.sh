@@ -47,7 +47,7 @@ array=($scope)
 # populate the scopes array based on the output of distro_check.sh
 while IFS= read -r line; do
   array+=("$line")
-done <<< "$distro_check"
+done <<<"$distro_check"
 # add corresponding scopes
 grep -qw 'az' <<<${array[@]} && array+=(python) || true
 grep -qw 'k8s_ext' <<<${array[@]} && array+=(docker) && array+=(k8s_base) || true
@@ -108,7 +108,7 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling Node.js...\e[0m\n"
     sudo .assets/provision/install_nodejs.sh >/dev/null
     ;;
-  oh_my_posh)
+  omp)
     printf "\e[96minstalling oh-my-posh...\e[0m\n"
     sudo .assets/provision/install_omp.sh >/dev/null
     if [ -n "$omp_theme" ]; then
@@ -136,19 +136,19 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     sudo .assets/provision/install_yq.sh >/dev/null
-    printf "\e[96msetting up profile for all users...\e[0m\n"
-    sudo .assets/provision/setup_profile_allusers.sh $user
-    printf "\e[96msetting up profile for current user...\e[0m\n"
-    .assets/provision/setup_profile_user.sh
     ;;
-  terraform)
+  tf)
     printf "\e[96minstalling terraform utils...\e[0m\n"
-    sudo .assets/provision/install_terraform.sh
-    sudo .assets/provision/install_terrascan.sh
     sudo .assets/provision/install_tfswitch.sh
+    sudo .assets/provision/install_terrascan.sh
     ;;
   esac
 done
+# setup bash profiles
+printf "\e[96msetting up profile for all users...\e[0m\n"
+sudo .assets/provision/setup_profile_allusers.sh $user
+printf "\e[96msetting up profile for current user...\e[0m\n"
+.assets/provision/setup_profile_user.sh
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
   cmnd="Import-Module (Resolve-Path './modules/InstallUtils'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules'"
