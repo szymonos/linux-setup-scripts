@@ -1,26 +1,27 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 : '
 .assets/provision/distro_check.sh | jq
 .assets/provision/distro_check.sh array
 '
 # store the state in an associative array
 declare -A state=(
-  ["shell"]=$([ -f /usr/bin/rg ] && echo "true" || echo "false")
-  ["pwsh"]=$([ -f /usr/bin/pwsh ] && echo "true" || echo "false")
-  ["zsh"]=$([ -f /usr/bin/zsh ] && echo "true" || echo "false")
+  ["user"]="$(id -un)"
+  ["az"]=$([ -d $HOME/.local/share/powershell/Modules/Az ] && echo "true" || echo "false")
+  ["conda"]=$([ -d $HOME/miniconda3 ] && echo "true" || echo "false")
+  ["git_user"]=$([ -n "$(git config --global --get user.name 2>/dev/null)" ] && echo "true" || echo "false")
+  ["git_email"]=$([ -n "$(git config --global --get user.email 2>/dev/null)" ] && echo "true" || echo "false")
+  ["gtkd"]=$([ grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null ] && echo "true" || echo "false")
   ["k8s_base"]=$([ -f /usr/bin/kubectl ] && echo "true" || echo "false")
   ["k8s_ext"]=$([ -f /usr/local/bin/k3d ] && echo "true" || echo "false")
   ["omp"]=$([ -f /usr/bin/oh-my-posh ] && echo "true" || echo "false")
-  ["tf"]=$([ -f /usr/bin/terraform ] && echo "true" || echo "false")
-  ["az"]=$([ -d $HOME/.local/share/powershell/Modules/Az ] && echo "true" || echo "false")
-  ["conda"]=$([ -d $HOME/miniconda3 ] && echo "true" || echo "false")
+  ["pwsh"]=$([ -f /usr/bin/pwsh ] && echo "true" || echo "false")
+  ["shell"]=$([ -f /usr/bin/rg ] && echo "true" || echo "false")
   ["ssh_key"]=$([ -f $HOME/.ssh/id_ed25519 ] && echo "true" || echo "false")
-  ["wslg"]=$([ -d /mnt/wslg ] && echo "true" || echo "false")
-  ["wsl_boot"]=$([ grep -qw "autoexec\.sh" /etc/wsl.conf 2>/dev/null ] && echo "true" || echo "false")
-  ["git_user"]=$([ -n "$(git config --global --get user.name 2>/dev/null)" ] && echo "true" || echo "false")
-  ["git_email"]=$([ -n "$(git config --global --get user.email 2>/dev/null)" ] && echo "true" || echo "false")
   ["systemd"]=$([ grep -qw "systemd.*true" /etc/wsl.conf 2>/dev/null ] && echo "true" || echo "false")
-  ["gtkd"]=$([ grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null ] && echo "true" || echo "false")
+  ["tf"]=$([ -f /usr/local/bin/tfswitch ] && echo "true" || echo "false")
+  ["wsl_boot"]=$([ grep -qw "autoexec\.sh" /etc/wsl.conf 2>/dev/null ] && echo "true" || echo "false")
+  ["wslg"]=$([ -d /mnt/wslg ] && echo "true" || echo "false")
+  ["zsh"]=$([ -f /usr/bin/zsh ] && echo "true" || echo "false")
 )
 
 # function to check if a key is in the exclude list
@@ -48,7 +49,8 @@ else
   # print the state as JSON
   json="{"
   for key in "${!state[@]}"; do
-    json+="\"$key\":\"${state[$key]}\","
+    [ "$key" = 'user' ] && value="\"${state[$key]}\"" || value="${state[$key]}"
+    json+="\"$key\":$value,"
   done
   json="${json%,}}"
   echo "$json"
