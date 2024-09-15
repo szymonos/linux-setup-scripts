@@ -107,4 +107,5 @@ alias rg='rg --ignore-case'
 alias tree='tree -C'
 alias vi='vim'
 alias wget='wget -c'
+alias tfswitch="tfswitch --bin='$HOME/.local/bin/terraform'"
 #endregion

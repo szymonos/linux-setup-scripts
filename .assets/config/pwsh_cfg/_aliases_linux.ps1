@@ -26,6 +26,7 @@ function p { & /usr/bin/env pwsh -NoProfileLoadTime @args }
 function rg { $input | & /usr/bin/env rg --ignore-case @args }
 function tree { & /usr/bin/env tree -C @args }
 function wget { & /usr/bin/env wget -c @args }
+function tfswitch { & /usr/bin/env tfswitch --bin="$HOME/.local/bin/terraform" @args }
 
 # *Aliases
 Set-Alias -Name ff -Value fastfetch
