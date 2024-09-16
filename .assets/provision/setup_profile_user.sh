@@ -51,8 +51,8 @@ EOF
 fi
 
 # add terraform using tfswitch
-if [ -f /usr/local/bin/tfswitch ] && ! command -v terraform &>/dev/null; then
-  LOCAL_BIN="$HOME/.local/bin"
+LOCAL_BIN="$HOME/.local/bin"
+if [ -f /usr/local/bin/tfswitch ] && [ ! -x "$LOCAL_BIN/terraform" ]; then
   # create local bin directory if it does not exist
   [ -d $LOCAL_BIN ] && true || mkdir -p $LOCAL_BIN
   printf '\e[92minstalling Terraform using tfswitch\e[0m\n' >&2
