@@ -85,7 +85,7 @@ There are three themes included in the repository:
   ![omp_base.png](images/omp_base.png)
 - `powerline` - using extended, powerline fonts, e.g. **Cascadia Code PL** fonts, to be downloaded from [microsoft/cascadia-code](https://github.com/microsoft/cascadia-code)  
   ![omp_base.png](images/omp_powerline.png)
-- `nerd` - using nerd fonts - can be downloaded manually from [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts) or installed using the script [install_fonts_nerd.ps1](../.assets/scripts/nerd_fonts_install.ps1)  
+- `nerd` - using nerd fonts - can be downloaded manually from [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts) or installed using the script [install_fonts_nerd.ps1](../.assets/scripts/fonts_install_nerd.ps1)  
   ![omp_base.png](images/omp_nerd.png)
 
 You can also specify any other theme name from [Themes | Oh My Posh](https://ohmyposh.dev/docs/themes) - it will be downloaded and installed automatically during the provisioning.
