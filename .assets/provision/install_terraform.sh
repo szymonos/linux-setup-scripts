@@ -37,8 +37,8 @@ retry_count=0
 # return latest release
 echo $REL
 
-if type $APP &>/dev/null; then
-  VER=$($APP --version | sed -En 's/Terraform v([0-9\.]+)/\1/p')
+if [ -x /usr/bin/terraform ]; then
+  VER=$(/usr/bin/terraform --version | sed -En 's/Terraform v([0-9\.]+)/\1/p')
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0

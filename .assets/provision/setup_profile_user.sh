@@ -50,15 +50,6 @@ fi
 EOF
 fi
 
-# add terraform using tfswitch
-if [ -f /usr/local/bin/tfswitch ] && ! command -v terraform &>/dev/null; then
-  LOCAL_BIN="$HOME/.local/bin"
-  # create local bin directory if it does not exist
-  [ -d $LOCAL_BIN ] && true || mkdir -p $LOCAL_BIN
-  printf '\e[92minstalling Terraform using tfswitch\e[0m\n' >&2
-  tfswitch --bin="$LOCAL_BIN/terraform" --latest
-fi
-
 # add conda initialization
 if ! grep -qw '__conda_setup' ~/.bashrc 2>/dev/null && [ -f $HOME/miniconda3/bin/conda ]; then
   $HOME/miniconda3/bin/conda init bash >/dev/null

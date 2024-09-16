@@ -31,7 +31,7 @@ if (Get-Module -Name Microsoft.PowerShell.PSResourceGet -ListAvailable) {
 }
 # disable oh-my-posh update notice
 if (Get-Command oh-my-posh -CommandType Application) {
-    oh-my-posh disable notice
+    oh-my-posh disable notice | Out-Null
 }
 # install PSReadLine
 for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5; $i++) {
@@ -43,7 +43,13 @@ for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5;
 $kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
 if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
     Write-Host 'adding kubectl auto-completion...'
-    (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
+    # build completer text
+    $completer = [string]::Join("`n",
+        (/usr/bin/kubectl completion powershell) -join "`n",
+        "Register-ArgumentCompleter -CommandName 'k' -ScriptBlock `${__kubectlCompleterBlock}"
+    )
+    # add additional ArgumentCompleter at the end of the profile
+    [System.IO.File]::WriteAllText($PROFILE, $completer)
 }
 
 # setup conda initialization

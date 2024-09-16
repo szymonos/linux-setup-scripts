@@ -12,7 +12,7 @@ Specified font extension.
 
 .EXAMPLE
 $Font = 'FiraCode'
-.assets/scripts/nerd_fonts_install.ps1 $Font
+.assets/scripts/fonts_install_nerd.ps1 $Font
 # :check installed fonts
 [Drawing.Text.InstalledFontCollection]::new().Families | Select-String $Font
 #>

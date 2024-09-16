@@ -6,10 +6,11 @@ Install latest CascadaCode fonts.
 https://github.com/microsoft/cascadia-code
 
 .EXAMPLE
-.assets/scripts/cascadia_code_install.ps1
+.assets/scripts/fonts_install_cascadia_code.ps1
 # :check installed fonts
 [Drawing.Text.InstalledFontCollection]::new().Families | Select-String 'cascadia' -Raw
 #>
+[CmdletBinding()]
 param ()
 
 begin {
@@ -17,11 +18,14 @@ begin {
 
     $tmp = New-Item "tmp.$(Get-Random)" -ItemType Directory
     $fontArchive = [IO.Path]::Combine($tmp, 'CascadiaCode.zip')
+
+    # latest release api endpoint for the cascadia-code repo
+    $urlGHRel = 'https://api.github.com/repos/microsoft/cascadia-code/releases/latest'
 }
 
 process {
     # get latest version
-    $rel = (Invoke-RestMethod https://api.github.com/repos/microsoft/cascadia-code/releases/latest).tag_name -replace '^v'
+    $rel = (Invoke-RestMethod $urlGHRel).tag_name -replace '^v'
     # download font
     try {
         $uri = "https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
