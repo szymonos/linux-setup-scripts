@@ -60,7 +60,7 @@ if (Test-Path $HOME/miniconda3/bin/conda -PathType Leaf) {
         Write-Verbose 'adding miniconda initialization...'
         $content = [string]::Join("`n",
             '#region conda initialize',
-            'try { (& "$HOME/miniconda3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression } catch { Out-Null }',
+            'try { (& "$HOME/miniconda3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
             '#endregion'
         )
         [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
