@@ -40,16 +40,20 @@ for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5;
 }
 
 # install kubectl autocompletion
-$kubectlSet = try { Select-String '__kubectl_debug' -Path $PROFILE -Quiet } catch { $false }
-if ((Test-Path /usr/bin/kubectl) -and -not $kubectlSet) {
-    Write-Host 'adding kubectl auto-completion...'
-    # build completer text
-    $completer = [string]::Join("`n",
-        (/usr/bin/kubectl completion powershell) -join "`n",
-        "Register-ArgumentCompleter -CommandName 'k' -ScriptBlock `${__kubectlCompleterBlock}"
-    )
-    # add additional ArgumentCompleter at the end of the profile
-    [System.IO.File]::WriteAllText($PROFILE, $completer)
+if (Test-Path /usr/bin/kubectl) {
+    $kubectlSet = try { Select-String 'Set-Alias -Name k' -Path $PROFILE.CurrentUserCurrentHost -SimpleMatch -Quiet } catch { $false }
+    if (-not $kubectlSet) {
+        Write-Host 'adding kubectl auto-completion...'
+        # build completer text
+        $completer = [string]::Join("`n",
+            (/usr/bin/kubectl completion powershell) -join "`n",
+            "`n# setup autocompletion for the 'k' alias",
+            'Set-Alias -Name k -Value kubectl',
+            "Register-ArgumentCompleter -CommandName 'k' -ScriptBlock `${__kubectlCompleterBlock}"
+        )
+        # add additional ArgumentCompleter at the end of the profile
+        [System.IO.File]::WriteAllText($PROFILE, $completer)
+    }
 }
 
 # setup conda initialization

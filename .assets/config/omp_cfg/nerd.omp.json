@@ -38,6 +38,18 @@
           "type": "executiontime"
         },
         {
+          "foreground": "#23D18B",
+          "foreground_templates": [
+            "{{ if gt .Code 0 }}#F14C4C{{ end }}"
+          ],
+          "properties": {
+            "always_enabled": true
+          },
+          "style": "plain",
+          "template": "<b>→</b> ",
+          "type": "status"
+        },
+        {
           "foreground": "#2CC7EE",
           "style": "plain",
           "template": "{{ if .SSHSession }}{{ .UserName }}<#4CD7FF>@</>{{ .HostName }} {{ end }}",
