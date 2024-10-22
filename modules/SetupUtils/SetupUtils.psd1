@@ -12,7 +12,7 @@
     RootModule           = 'SetupUtils.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.3.1'
+    ModuleVersion        = '0.4.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -71,6 +71,7 @@
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport    = @(
         # certs
+        'ConvertFrom-PEM'
         'ConvertTo-PEM'
         'Get-Certificate'
         # common
