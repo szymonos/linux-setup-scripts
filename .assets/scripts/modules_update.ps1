@@ -40,6 +40,7 @@ begin {
         'do-common'   = @{
             SetupUtils = @{
                 certs  = @(
+                    'ConvertFrom-PEM'
                     'ConvertTo-PEM'
                     'Get-Certificate'
                 )

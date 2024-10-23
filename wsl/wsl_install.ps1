@@ -69,7 +69,7 @@ begin {
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
     # import InstallUtils for the Update-SessionEnvironmentPath function
-    Import-Module (Resolve-Path './modules/InstallUtils')
+    Import-Module (Resolve-Path './modules/InstallUtils') -Force
 
     Write-Host 'checking if the repository is up to date...' -ForegroundColor Cyan
     if ((Update-GitRepository) -eq 2) {

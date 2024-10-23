@@ -7,6 +7,7 @@ $ErrorActionPreference = 'Stop'
 $exportModuleMemberParams = @{
     Function = @(
         # certs
+        'ConvertFrom-PEM'
         'ConvertTo-PEM'
         'Get-Certificate'
         # common

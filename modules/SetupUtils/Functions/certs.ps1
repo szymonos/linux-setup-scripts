@@ -1,3 +1,56 @@
+function ConvertFrom-PEM {
+    [CmdletBinding()]
+    [OutputType([System.Security.Cryptography.X509Certificates.X509Certificate2[]])]
+    param (
+        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'FromString')]
+        [string]$InputObject,
+
+        [Parameter(Mandatory, Position = 0, ParameterSetName = 'FromPath')]
+        [ValidateScript({ Test-Path $_ -PathType 'Leaf' }, ErrorMessage = "'{0}' is not a valid file path.")]
+        [string]$Path
+    )
+
+    begin {
+        # list to store input certificate strings
+        $pemTxt = [System.Collections.Generic.List[string]]::new()
+        # hashset for storing parsed pem certificates
+        $pemSplit = [System.Collections.Generic.HashSet[string]]::new()
+        # list to store decoded certificates
+        $x509Certs = [System.Collections.Generic.List[Security.Cryptography.X509Certificates.X509Certificate2]]::new()
+    }
+
+    process {
+        switch ($PsCmdlet.ParameterSetName) {
+            FromPath {
+                # read certificate file
+                Resolve-Path $Path | ForEach-Object {
+                    $pemTxt.Add([IO.File]::ReadAllText($_))
+                }
+                continue
+            }
+            FromString {
+                $InputObject.ForEach({ $pemTxt.Add($_) })
+                continue
+            }
+        }
+    }
+
+    end {
+        # parse certificate string
+        [regex]::Matches(
+            [string]::Join("`n", $pemTxt).Replace("`r`n", "`n"),
+            '(?<=-{5}BEGIN[\w ]+CERTIFICATE-{5}\n)[\S\n]+(?=\n-{5}END[\w ]+CERTIFICATE-{5})'
+        ).Value.ForEach({ $pemSplit.Add($_) | Out-Null })
+        # convert PEM encoded certificates to X509 certificate objects
+        foreach ($pem in $pemSplit) {
+            $decCrt = [Security.Cryptography.X509Certificates.X509Certificate2]::new([Convert]::FromBase64String($pem))
+            $x509Certs.Add($decCrt)
+        }
+
+        return $x509Certs
+    }
+}
+
 function ConvertTo-PEM {
     [CmdletBinding()]
     [OutputType([System.Collections.Generic.List[string]])]
