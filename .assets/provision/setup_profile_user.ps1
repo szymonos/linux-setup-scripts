@@ -29,10 +29,6 @@ if (Get-Module -Name Microsoft.PowerShell.PSResourceGet -ListAvailable) {
         .assets/provision/update_psresources.ps1
     }
 }
-# disable oh-my-posh update notice
-if (Get-Command oh-my-posh -CommandType Application) {
-    oh-my-posh disable notice | Out-Null
-}
 # install PSReadLine
 for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5; $i++) {
     Write-Host 'installing PSReadLine...'

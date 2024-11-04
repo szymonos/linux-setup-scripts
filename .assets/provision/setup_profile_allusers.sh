@@ -58,7 +58,7 @@ fi
 
 # *bash profile
 # add common bash aliases
-grep -qw 'd/aliases.sh' ~/.bashrc 2>/dev/null || cat <<EOF >>~/.bashrc
+grep -qw 'd/aliases.sh' $HOME/.bashrc 2>/dev/null || cat <<EOF >>$HOME/.bashrc
 # common aliases
 if [ -f "$PROFILE_PATH/aliases.sh" ]; then
   source "$PROFILE_PATH/aliases.sh"
@@ -66,13 +66,16 @@ fi
 EOF
 
 # add oh-my-posh invocation
-if ! grep -qw 'oh-my-posh' ~/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then
-  cat <<EOF >>~/.bashrc
+if ! grep -qw 'oh-my-posh' $HOME/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then
+  cat <<EOF >>$HOME/.bashrc
 # initialize oh-my-posh prompt
 if [ -f "$OMP_PATH/theme.omp.json" ] && type oh-my-posh &>/dev/null; then
-  eval "\$(oh-my-posh --init --shell bash --config "$OMP_PATH/theme.omp.json")"
+  eval "\$(oh-my-posh init bash --config "$OMP_PATH/theme.omp.json")"
 fi
 EOF
+elif grep -qw 'oh-my-posh --init' $HOME/.bashrc 2>/dev/null; then
+  # convert oh-my-posh initialization to the new API
+  sed -i 's/oh-my-posh --init --shell bash/oh-my-posh init bash/' $HOME/.bashrc &>/dev/null
 fi
 
 # make path autocompletion case insensitive
