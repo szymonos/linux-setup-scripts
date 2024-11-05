@@ -68,8 +68,8 @@ Remove-Variable path
 #endregion
 
 #region prompt
-if (-not $isWSL1 -and (Test-Path '/usr/bin/oh-my-posh')) {
-    oh-my-posh --init --shell pwsh --config "$(Resolve-Path $env:OMP_PATH/theme.omp.json -ErrorAction Stop)" | Invoke-Expression | Out-Null
+if (-not $isWSL1 -and (Test-Path /usr/bin/oh-my-posh -PathType Leaf) -and (Test-Path "$env:OMP_PATH/theme.omp.json" -PathType Leaf)) {
+    oh-my-posh init pwsh --config "$env:OMP_PATH/theme.omp.json" | Invoke-Expression | Out-Null
     # disable venv prompt as it is handled in oh-my-posh theme
     [Environment]::SetEnvironmentVariable('VIRTUAL_ENV_DISABLE_PROMPT', $true)
 } else {

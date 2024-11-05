@@ -39,7 +39,6 @@ RUN \
     # install and setup oh-my-posh theme
     && mkdir -p /usr/local/share/oh-my-posh \
     && install -m 0644 /tmp/cfg/base.omp.json /usr/local/share/oh-my-posh/theme.omp.json \
-    && oh-my-posh disable notice \
     # cleanup
     && apt-get autoremove -y \
     && apt-get clean -y \

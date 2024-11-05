@@ -90,6 +90,15 @@ vagrant plugin install vagrant-reload
 .assets/scripts/vg_cacert_fix.ps1
 ```
 
+## Vagrant home location
+
+The Vagrant home directory is where things such as boxes are stored, so it can actually become quite large on disk.  
+To change it, set the `VAGRANT_HOME` enviroment variable to some other location:
+
+```PowerShell
+[Environment]::SetEnvironmentVariable('VAGRANT_HOME', 'F:/Virtual Machines/.vagrant.d', 'Machine')
+```
+
 ## SSH configuration
 
 For convenience's sake, newly provisioned virtual machines are being added automatically to the SSH config and known_hosts file, so you don't need to use the `vagrant ssh` command which is much slower than the built-in `ssh` one, but also allows you to use the Remote SSH feature of the Visual Studio Code, for remote development. All the VMs should be instantly visible in the VSCode Remote SSH extension pane after provisioning.

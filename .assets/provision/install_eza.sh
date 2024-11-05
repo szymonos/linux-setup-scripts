@@ -51,13 +51,13 @@ fi
 printf "\e[92minstalling \e[1m$APP\e[0m\n" >&2
 case $SYS_ID in
 alpine)
-  apk add --no-cache $APP >&2 2>/dev/null
+  apk add --no-cache $APP >&2 2>/dev/null || binary=true && lib='musl'
   ;;
 arch)
-  pacman -Sy --needed --noconfirm $APP >&2 2>/dev/null || binary=true
+  pacman -Sy --needed --noconfirm $APP >&2 2>/dev/null || binary=true && lib='gnu'
   ;;
 fedora)
-  dnf install -y $APP >&2 2>/dev/null || binary=true
+  dnf install -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
@@ -67,13 +67,13 @@ debian | ubuntu)
   fi
   echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" >/etc/apt/sources.list.d/gierens.list
   chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
-  apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true
+  apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
   ;;
 opensuse)
-  zypper in -y $APP >&2 2>/dev/null || binary=true
+  zypper in -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
   ;;
 *)
-  binary=true
+  binary=true && lib='gnu'
   ;;
 esac
 

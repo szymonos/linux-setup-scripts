@@ -14,7 +14,7 @@ if [ -d $HOME/.zsh/zsh-autocomplete ]; then
 else
   git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git $HOME/.zsh/zsh-autocomplete
 fi
-if ! grep -w 'zsh-autocomplete.plugin.zsh' ~/.zshrc 2>/dev/null; then
+if ! grep -w 'zsh-autocomplete.plugin.zsh' $HOME/.zshrc 2>/dev/null; then
   cat <<'EOF' >>$HOME/.zshrc
 # *plugins
 source $HOME/.zsh/zsh-autocomplete/zsh-autocomplete.plugin.zsh
@@ -27,7 +27,7 @@ if [ -d $HOME/.zsh/zsh-autosuggestions ]; then
 else
   git clone https://github.com/zsh-users/zsh-autosuggestions $HOME/.zsh/zsh-autosuggestions
 fi
-if ! grep -w 'zsh-autosuggestions.zsh' ~/.zshrc 2>/dev/null; then
+if ! grep -w 'zsh-autosuggestions.zsh' $HOME/.zshrc 2>/dev/null; then
   echo 'source $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh' >>$HOME/.zshrc
 fi
 # ~zsh-syntax-highlighting
@@ -37,7 +37,7 @@ if [ -d $HOME/.zsh/zsh-syntax-highlighting ]; then
 else
   git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $HOME/.zsh/zsh-syntax-highlighting
 fi
-if ! grep -w 'zsh-syntax-highlighting.zsh' ~/.zshrc 2>/dev/null; then
+if ! grep -w 'zsh-syntax-highlighting.zsh' $HOME/.zshrc 2>/dev/null; then
   echo 'source $HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh' >>$HOME/.zshrc
 fi
 if ! grep -q '^bindkey .* autosuggest-accept' $HOME/.zshrc; then
@@ -46,7 +46,7 @@ fi
 
 # *aliases
 # add common zsh aliases
-grep -qw 'd/aliases.sh' ~/.zshrc 2>/dev/null || cat <<EOF >>$HOME/.zshrc
+grep -qw 'd/aliases.sh' $HOME/.zshrc 2>/dev/null || cat <<EOF >>$HOME/.zshrc
 # *aliases
 if [ -f "$PROFILE_PATH/aliases.sh" ]; then
   source "$PROFILE_PATH/aliases.sh"
@@ -54,7 +54,7 @@ fi
 EOF
 
 # add git aliases
-if ! grep -qw 'd/aliases_git.sh' ~/.zshrc 2>/dev/null && type git &>/dev/null; then
+if ! grep -qw 'd/aliases_git.sh' $HOME/.zshrc 2>/dev/null && type git &>/dev/null; then
   cat <<EOF >>$HOME/.zshrc
 # git aliases
 if [ -f "$PROFILE_PATH/aliases_git.sh" ] && type git &>/dev/null; then
@@ -64,7 +64,7 @@ EOF
 fi
 
 # add kubectl autocompletion and aliases
-if ! grep -qw 'kubectl' ~/.zshrc 2>/dev/null && type -f kubectl &>/dev/null; then
+if ! grep -qw 'kubectl' $HOME/.zshrc 2>/dev/null && type -f kubectl &>/dev/null; then
   cat <<EOF >>$HOME/.zshrc
 # kubectl autocompletion and aliases
 if type -f kubectl &>/dev/null; then
@@ -76,16 +76,19 @@ EOF
 fi
 
 # *add conda initialization
-if ! grep -qw '__conda_setup' ~/.zshrc 2>/dev/null && [ -f $HOME/miniconda3/bin/conda ]; then
+if ! grep -qw '__conda_setup' $HOME/.zshrc 2>/dev/null && [ -f $HOME/miniconda3/bin/conda ]; then
   $HOME/miniconda3/bin/conda init zsh >/dev/null
 fi
 
 # *add oh-my-posh invocation
-if ! grep -qw 'oh-my-posh' ~/.zshrc 2>/dev/null && type oh-my-posh &>/dev/null; then
-  cat <<EOF >>~/.zshrc
+if ! grep -qw 'oh-my-posh' $HOME/.zshrc 2>/dev/null && type oh-my-posh &>/dev/null; then
+  cat <<EOF >>$HOME/.zshrc
 # initialize oh-my-posh prompt
 if [ -f "$OMP_PATH/theme.omp.json" ] && type oh-my-posh &>/dev/null; then
-  eval "\$(oh-my-posh --init --shell zsh --config "$OMP_PATH/theme.omp.json")"
+  eval "\$(oh-my-posh init zsh --config "$OMP_PATH/theme.omp.json")"
 fi
 EOF
+elif grep -qw 'oh-my-posh --init' $HOME/.zshrc 2>/dev/null; then
+  # convert oh-my-posh initialization to the new API
+  sed -i 's/oh-my-posh --init --shell zsh/oh-my-posh init zsh/' $HOME/.zshrc
 fi
