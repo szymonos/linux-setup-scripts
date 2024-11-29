@@ -2,7 +2,8 @@
 #Requires -PSEdition Core
 <#
 .SYNOPSIS
-Script synopsis.
+Creates bash script to install certificates from chain in the vagrant box
+and adds the script invocation into the specified Vagrantfile.
 
 .PARAMETER Path
 Path to the Vagrantfile.
@@ -11,7 +12,6 @@ Path to the Vagrantfile.
 $Path = 'vagrant/hyperv/fedora/Vagrantfile'
 .assets/scripts/vg_certs_add.ps1 -p $Path
 #>
-
 [CmdletBinding()]
 [OutputType([System.Void])]
 param (
@@ -19,6 +19,14 @@ param (
     [ValidateScript({ Test-Path $_ -PathType 'Leaf' })]
     [string]$Path
 )
+
+$ErrorActionPreference = 'Stop'
+
+# set location to workspace folder
+Push-Location "$PSScriptRoot/../.."
+
+# import SetupUtils for the Set-WslConf function
+Import-Module (Convert-Path './modules/SetupUtils') -Force
 
 function Get-SshInstallScript ([string]$CertSaveStr) {
     $script = [string]::Join("`n",
@@ -39,7 +47,7 @@ function Get-SshInstallScript ([string]$CertSaveStr) {
         "esac`n",
         '# write certificate in CERT_PATH',
         "$CertSaveStr",
-        "# update certificates",
+        '# update certificates',
         'case $SYS_ID in',
         'arch)',
         "  trust extract-compat`n  ;;",
@@ -58,14 +66,17 @@ $scriptInstallRootCA = [IO.Path]::Combine($PWD, '.tmp', 'script_install_crt_chai
 $Path = Resolve-Path $Path
 $content = [IO.File]::ReadAllLines($Path)
 
+# intercept certificates from chain and filter out existing ones
+$chain = Get-Certificate -Uri 'gems.hashicorp.com' -BuildChain | Select-Object -Skip 1
+
 # create installation script
 New-Item (Split-Path $scriptInstallRootCA) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-$chain = .assets/tools/cert_chain_pem.ps1
-
+# instantiate string builder to store the certificates
 $builder = [System.Text.StringBuilder]::new()
 foreach ($cert in $chain) {
+    $pem = $cert | ConvertTo-PEM
     $builder.AppendLine("cat <<EOF >`"`$CERT_PATH/$($cert.Thumbprint).crt`"") | Out-Null
-    $builder.AppendLine($cert.PEM.Trim()) | Out-Null
+    $builder.AppendLine($pem.Trim()) | Out-Null
     $builder.AppendLine('EOF') | Out-Null
 }
 # save certificate installation file
