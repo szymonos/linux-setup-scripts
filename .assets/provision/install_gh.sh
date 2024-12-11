@@ -54,7 +54,6 @@ arch)
   pacman -Sy --needed --noconfirm github-cli >&2 2>/dev/null
   ;;
 fedora)
-  dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
   dnf install -y gh >&2 2>/dev/null
   ;;
 debian | ubuntu)
