@@ -116,6 +116,14 @@ if [ -x /usr/bin/pwsh ]; then
   alias p='pwsh -NoProfileLoadTime'
 fi
 
+if [ -x /usr/bin/kubectx ]; then
+  alias kc='kubectx'
+fi
+
+if [ -x /usr/bin/kubens ]; then
+  alias kn='kubens'
+fi
+
 [ -x /usr/bin/rg ] && alias rg='rg --ignore-case' || true
 [ -x /usr/bin/fastfetch ] && alias ff='fastfetch' || true
 [ -x /usr/local/bin/tfswitch ] && alias tfswitch="tfswitch --bin='$HOME/.local/bin/terraform'" || true
