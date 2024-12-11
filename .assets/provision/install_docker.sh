@@ -38,9 +38,9 @@ fedora)
     dnf remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine
   fi
   if [ ! -f /etc/yum.repos.d/docker-ce.repo ]; then
-    dnf config-manager --add-repo 'https://download.docker.com/linux/fedora/docker-ce.repo'
+    dnf config-manager addrepo --from-repofile='https://download.docker.com/linux/fedora/docker-ce.repo' >&2 2>/dev/null
   fi
-  dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
+  dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive

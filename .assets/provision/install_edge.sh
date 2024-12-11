@@ -30,7 +30,7 @@ arch)
 fedora)
   rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
   if [ ! -f /etc/yum.repos.d/microsoft-edge-stable.repo ]; then
-    dnf config-manager --add-repo 'https://packages.microsoft.com/yumrepos/edge'
+    dnf config-manager addrepo --from-repofile='https://packages.microsoft.com/yumrepos/edge' >&2 2>/dev/null
     mv -f /etc/yum.repos.d/packages.microsoft.com_yumrepos_edge.repo /etc/yum.repos.d/microsoft-edge.repo
   fi
   dnf install -y microsoft-edge-stable
