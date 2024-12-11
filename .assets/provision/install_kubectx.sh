@@ -25,7 +25,7 @@ if [ -z "$REL" ]; then
 fi
 
 if type $APP &>/dev/null; then
-  VER=$(kubectx version -s | sed -En 's/.*v([0-9\.]+)$/\1/p')
+  VER=$(kubectx --version)
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0

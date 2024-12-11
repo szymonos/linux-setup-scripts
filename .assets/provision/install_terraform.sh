@@ -51,7 +51,7 @@ arch)
   pacman -Sy --needed --noconfirm terraform >&2 2>/dev/null
   ;;
 fedora)
-  dnf config-manager --add-repo https://rpm.releases.hashicorp.com/fedora/hashicorp.repo
+  dnf config-manager addrepo --from-repofile=https://rpm.releases.hashicorp.com/fedora/hashicorp.repo >&2 2>/dev/null
   dnf -y install terraform
   ;;
 debian | ubuntu)
