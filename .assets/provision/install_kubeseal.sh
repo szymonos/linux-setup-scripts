@@ -13,20 +13,24 @@ fi
 # define variables
 APP='kubeseal'
 REL=$1
+URL=$2
 retry_count=0
 # get latest release if not provided as a parameter
-while [ -z "$REL" ]; do
-  REL=$(curl -s https://api.github.com/repos/bitnami-labs/sealed-secrets/tags | jq -r '.[0].name' | cut -c 2-)
-  ((retry_count++))
-  if [ $retry_count -eq 10 ]; then
-    printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
-    exit 0
+if [ -z "$REL" ]; then
+  if response="$(get_gh_release_latest --owner 'bitnami-labs' --repo 'sealed-secrets' --regex '^kubeseal-.+-linux-amd64.tar.gz$')"; then
+    REL=$(echo $response | jq -r '.version')
+    URL=$(echo $response | jq -r '.download_url')
+    # return json response
+    echo $response
+  else
+    exit 1
   fi
-  [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
-done
-# return latest release
-echo $REL
-
+fi
+# exit if the URL is not set
+if [ -z "$URL" ]; then
+  printf "\e[31mError: The download URL is required.\e[0m\n" >&2
+  exit 1
+fi
 
 if type $APP &>/dev/null; then
   VER=$(kubeseal --version | sed -En 's/.*\s([0-9\.]+)/\1/p')
@@ -39,8 +43,6 @@ fi
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
 TMP_DIR=$(mktemp -dp "$PWD")
-# calculate download uri
-URL="https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL:?}/kubeseal-${REL:?}-linux-amd64.tar.gz"
 # download and install file
 if download_file --uri $URL --target_dir $TMP_DIR; then
   tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"

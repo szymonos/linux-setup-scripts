@@ -31,11 +31,15 @@ esac
 
 # define variables
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
-[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'sharkdp' --repo 'bat')"
-# return latest release
-echo $REL
+if [ -z "$REL" ]; then
+  REL="$(get_gh_release_latest --owner 'sharkdp' --repo 'bat')"
+  if [ -n "$REL" ]; then
+    echo $REL
+  else
+    exit 1
+  fi
+fi
 
 if type $APP &>/dev/null; then
   VER=$(bat --version | sed -En 's/.*\s([0-9\.]+)/\1/p')
