@@ -14,6 +14,9 @@ Copy files as root.
 
 .EXAMPLE
 $Source = 'Debian:~/source'
+$Source = 'Debian:~/.local/share'
+$Source = 'Debian:~/.ssh'
+$Source = 'Debian:~/.kube'
 # :copy to the same path in destination distro
 $Destination = 'Ubuntu'
 # :copy to other specified path in destination distro
