@@ -36,7 +36,7 @@ for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5;
 }
 
 # install kubectl autocompletion
-if (Test-Path /usr/bin/kubectl) {
+if (Test-Path /usr/bin/kubectl -PathType Leaf) {
     $kubectlSet = try { Select-String 'Set-Alias -Name k' -Path $PROFILE.CurrentUserCurrentHost -SimpleMatch -Quiet } catch { $false }
     if (-not $kubectlSet) {
         Write-Host 'adding kubectl auto-completion...'
@@ -71,5 +71,19 @@ if (Test-Path $HOME/miniconda3/bin/conda -PathType Leaf) {
         if (-not $changeps1) {
             & "$HOME/miniconda3/bin/conda" config --set changeps1 false
         }
+    }
+}
+
+# add uv autocompletion
+if (Test-Path "$HOME/.local/bin/uv" -PathType Leaf) {
+    $uvSet = try { Select-String 'uv generate-shell-completion' -Path $PROFILE.CurrentUserAllHosts -SimpleMatch -Quiet } catch { $false }
+    if (-not $uvSet) {
+        Write-Verbose 'adding uv autocompletion...'
+        $content = [string]::Join("`n",
+            "`n#region uv autocompletion",
+            'try { (& uv generate-shell-completion powershell) | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
+            '#endregion'
+        )
+        [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
     }
 }
