@@ -22,6 +22,10 @@ fedora | opensuse)
   rpm -q $APP &>/dev/null && exit 0 || true
   ;;
 debian | ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
+  curl -fsSLk https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
+  chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" >/etc/apt/sources.list.d/github-cli.list
   dpkg -s $APP &>/dev/null && exit 0 || true
   ;;
 esac
@@ -57,10 +61,6 @@ fedora)
   dnf install -y gh >&2 2>/dev/null
   ;;
 debian | ubuntu)
-  export DEBIAN_FRONTEND=noninteractive
-  curl -fsSLk https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-  chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" >/etc/apt/sources.list.d/github-cli.list
   apt-get update && apt-get install -y gh >&2 2>/dev/null
   ;;
 opensuse)
