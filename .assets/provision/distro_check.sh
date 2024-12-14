@@ -6,7 +6,7 @@
 # store the state in an associative array
 declare -A state=(
   ["user"]="$(id -un)"
-  ["az"]=$([ -d $HOME/.local/share/powershell/Modules/Az ] && echo "true" || echo "false")
+  ["az"]=$([ -f $HOME/.local/bin/az ] && echo "true" || echo "false")
   ["conda"]=$([ -d $HOME/miniconda3 ] && echo "true" || echo "false")
   ["git_user"]=$([ -n "$(git config --global --get user.name 2>/dev/null)" ] && echo "true" || echo "false")
   ["git_email"]=$([ -n "$(git config --global --get user.email 2>/dev/null)" ] && echo "true" || echo "false")

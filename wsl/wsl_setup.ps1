@@ -300,7 +300,7 @@ process {
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
                 $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
                 if ('az' -in $scopes) {
-                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
                 }
                 continue
             }
