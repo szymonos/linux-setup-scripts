@@ -48,37 +48,27 @@ function Get-WslDistro {
             | Where-Object { $_.DistributionName -notmatch '^docker-desktop' } `
             | Select-Object $prop
         } else {
-            # change console encoding to utf-16
-            [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
             if ($Online) {
-                # get list of online WSL distros
-                [string[]]$result = wsl.exe --list --online | Where-Object { $_ }
-                if (-not $?) {
-                    Write-Error -Message 'Cannot get list of valid distributions.' -Category ConnectionError
-                }
-                # get distros header
-                [string]$head = $result | Select-String 'NAME\s+FRIENDLY' -CaseSensitive | Select-Object -ExpandProperty Line
-                # calculate header line index
-                if ($head) {
-                    $idx = $result.IndexOf($head)
-                    $dataIdx = if ($idx -ge 0) {
-                        $idx + 1
-                    } else {
-                        $result.Count - 1
+                # get list of online WSL distros in the loop
+                $retry = 0
+                $distros = $null
+                do {
+                    try {
+                        $distros = Invoke-RestMethod 'https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json' `
+                        | Select-Object -ExpandProperty Distributions `
+                        | Select-Object Name, FriendlyName
+                    } catch {
+                        Out-Null
                     }
-                    # calculate header columns indexes
-                    $nameIdx = $head.IndexOf('NAME')
-                    $friendlyIdx = $head.IndexOf('FRIENDLY')
-                    # add results to the distros list
-                    for ($i = $dataIdx; $i -lt $result.Count; $i++) {
-                        $distro = [PSCustomObject]@{
-                            Name         = $result[$i].Substring($nameIdx, $friendlyIdx - $nameIdx).TrimEnd()
-                            FriendlyName = $result[$i].Substring($friendlyIdx, $result[$i].Length - $friendlyIdx).TrimEnd()
-                        }
-                        $distros.Add($distro)
+                    $retry++
+                    if ($retry -gt 3) {
+                        Write-Error -Message 'Cannot get list of valid distributions.' -Category ConnectionError
+                        break
                     }
-                }
+                } until ($distros)
             } else {
+                # change console encoding to utf-16
+                [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
                 # get list of installed locally WSL distros
                 [string[]]$result = wsl.exe --list --verbose
                 # get distros header
@@ -106,12 +96,15 @@ function Get-WslDistro {
                     }
                 }
             }
-            [Console]::OutputEncoding = $outputEncoding
         }
     }
 
     end {
         return $distros
+    }
+
+    clean {
+        [Console]::OutputEncoding = $outputEncoding
     }
 }
 
