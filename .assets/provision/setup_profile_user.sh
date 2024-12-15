@@ -55,6 +55,17 @@ if ! grep -qw '__conda_setup' $HOME/.bashrc 2>/dev/null && [ -f $HOME/miniconda3
   $HOME/miniconda3/bin/conda init bash >/dev/null
 fi
 
+# add uv autocompletion
+if ! grep -qw 'uv generate-shell-completion' $HOME/.bashrc 2>/dev/null && [ -x $HOME/.local/bin/uv ]; then
+  cat <<EOF >>$HOME/.bashrc
+
+# initialize uv autocompletion
+if [ -x "$HOME/.local/bin/uv" ]; then
+  eval "\$(uv generate-shell-completion bash)"
+fi
+EOF
+fi
+
 # add oh-my-posh invocation
 if ! grep -qw 'oh-my-posh' $HOME/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then
   cat <<EOF >>$HOME/.bashrc

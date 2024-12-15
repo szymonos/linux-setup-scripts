@@ -13,16 +13,13 @@ fi
 # define variables
 APP='crictl'
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
-  if REL="$(get_gh_release_latest --owner 'kubernetes-sigs' --repo 'cri-tools')"; then
-    # return latest release
-    echo $REL
-  else
-    exit 1
-  fi
+  REL="$(get_gh_release_latest --owner 'kubernetes-sigs' --repo 'cri-tools')"
+  [ -n "$REL" ] || exit 1
 fi
+# return the release
+echo $REL
 
 if type $APP &>/dev/null; then
   VER=$(crictl --version | sed -En 's/crictl version v([0-9\.]+).*/\1/p')

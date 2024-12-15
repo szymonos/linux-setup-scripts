@@ -13,10 +13,12 @@ fi
 # define variables
 APP='flux'
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
-[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'fluxcd' --repo 'flux2')"
-# return latest release
+if [ -z "$REL" ]; then
+  REL="$(get_gh_release_latest --owner 'fluxcd' --repo 'flux2')"
+  [ -n "$REL" ] || exit 1
+fi
+# return the release
 echo $REL
 
 if type $APP &>/dev/null; then

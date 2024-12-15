@@ -34,6 +34,10 @@ fi
 
 # determine certifi path to add certificate
 if [ -z "$CERTIFY_CRT" ]; then
+  # try to activate azure-cli venv
+  AZ_VENV="$HOME/.azure/.venv/bin/activate"
+  [ -f "$AZ_VENV" ] && source "$AZ_VENV" || true
+  # calculate certifi path
   CERTIFY_CRT="$(pip show azure-cli 2>/dev/null | grep -oP '^Location: \K.+')/certifi/cacert.pem"
   if [ ! -f "$CERTIFY_CRT" ]; then
     printf '\e[33mcertifi/cacert.pem not found\e[0m\n' >&2

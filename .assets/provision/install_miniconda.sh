@@ -53,6 +53,7 @@ else
 
   # disable auto activation of the base conda environment
   conda_init
+  conda config --add channels defaults
   conda config --set auto_activate_base false
 fi
 

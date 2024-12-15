@@ -13,16 +13,13 @@ fi
 
 # define variables
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
-  if REL="$(get_gh_release_latest --owner 'microsoft' --repo 'cascadia-code')"; then
-    # return latest release
-    echo $REL
-  else
-    exit 1
-  fi
+  REL="$(get_gh_release_latest --owner 'microsoft' --repo 'cascadia-code')"
+  [ -n "$REL" ] || exit 1
 fi
+# return the release
+echo $REL
 
 echo "Install CascadiaCode v$REL" >&2
 # create temporary dir for the downloaded binary

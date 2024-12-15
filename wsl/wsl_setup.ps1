@@ -298,8 +298,9 @@ process {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh --fix_certify true
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
+                $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
                 if ('az' -in $scopes) {
-                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli.sh --fix_certify true
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
                 }
                 continue
             }
@@ -326,7 +327,7 @@ process {
                 $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
                 $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
-                $rel_kubeseal = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal
+                $rel_kubeseal = try { wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal.version $Script:rel_kubeseal.download_url | ConvertFrom-Json } catch { $null }
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
                 $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
                 continue
@@ -348,7 +349,7 @@ process {
             }
             oh_my_posh {
                 Write-Host 'installing oh-my-posh...' -ForegroundColor Cyan
-                $rel_omp = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp
+                $rel_omp = try { wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp.version $Script:rel_omp.download_url | ConvertFrom-Json } catch { $null }
                 if ($OmpTheme) {
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme --user $chk.user
                 }

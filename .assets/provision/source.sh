@@ -4,9 +4,10 @@
 '
 # *function to download file from specified uri
 download_file() {
+  # initialize local variables used as named parameters
+  local uri
+  local target_dir
   # parse named parameters
-  local uri=${uri}
-  local target_dir=${target_dir:-'.'}
   while [ $# -gt 0 ]; do
     if [[ $1 == *"--"* ]]; then
       param="${1/--/}"
@@ -22,13 +23,15 @@ download_file() {
     printf "\e[31mError: The \e[4mcurl\e[24m command is required.\e[0m\n" >&2
     return 1
   fi
+  # set the target directory to the current directory if not specified
+  [ -z "$target_dir" ] && target_dir='.' || true
 
   # define local variables
   local file_name="$(basename $uri)"
   local max_retries=8
   local retry_count=0
 
-  while [[ $retry_count -le $max_retries ]]; do
+  while [ $retry_count -le $max_retries ]; do
     # download file
     status_code=$(curl -w %{http_code} -#Lko "$target_dir/$file_name" "$uri" 2>/dev/null)
 
@@ -55,9 +58,12 @@ download_file() {
 
 # *function to get the latest release from the specified GitHub repo
 get_gh_release_latest() {
+  # initialize local variables used as named parameters
+  local owner
+  local repo
+  local asset
+  local regex
   # parse named parameters
-  local owner=${owner}
-  local repo=${repo}
   while [ $# -gt 0 ]; do
     if [[ $1 == *"--"* ]]; then
       param="${1/--/}"
@@ -70,7 +76,7 @@ get_gh_release_latest() {
   local max_retries=8
   local retry_count=0
   local api_response
-  local rate_limit_message="API rate limit exceeded"
+  local token
 
   if [[ -z "$owner" || -z "$repo" ]]; then
     printf "\e[31mError: The \e[4mowner\e[24m and \e[4mrepo\e[24m parameters are required.\e[0m\n" >&2
@@ -83,31 +89,63 @@ get_gh_release_latest() {
     return 1
   fi
 
+  # calculate the API URI
+  api_uri="https://api.github.com/repos/$owner/$repo/releases"
+  # get the latest release if asset or regex is not specified
+  [ -z "$asset" ] && [ -z "$regex" ] && api_uri+="/latest" || true
   # send API request to GitHub
   while [ $retry_count -le $max_retries ]; do
-    api_response=$(curl -sk https://api.github.com/repos/$owner/$repo/releases/latest)
-    # check for API rate limit exceeded
-    if echo "$api_response" | jq -e '.message' | grep -q "API rate limit exceeded"; then
-      type gh &>/dev/null && token="$(gh auth token 2>/dev/null)"
+    cmnd="curl -sk '${api_uri}'"
+    if echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "API rate limit exceeded"; then
+      # get the token from the gh command
+      [ -z "$token" ] && type gh &>/dev/null && token="$(gh auth token 2>/dev/null)"
+      # set the header with the token
       if [ -n "$token" ]; then
-        header="Authorization: Bearer ${token}"
-        api_response=$(curl -H "$header" -sk https://api.github.com/repos/$owner/$repo/releases/latest)
-        # check for bad credentials
-        if echo "$api_response" | jq -e '.message' | grep -q "Bad credentials"; then
-          printf "\e[31mError: Bad credentials, run the \e[4mgh auth login\e[24m command.\e[0m\n" >&2
-          return 1
-        fi
+        cmnd="curl -H 'Authorization: Bearer ${token}' -sk ${api_uri}"
       else
         printf "\e[31mError: API rate limit exceeded. Please try again later.\e[0m\n" >&2
         return 1
       fi
     fi
-    # get the tag_name from the API response
-    tag_name=$(echo "$api_response" | jq -r '.tag_name')
-    if [ -n "$tag_name" ]; then
+    # get the latest release
+    api_response="$(eval $cmnd)"
+
+    # check for exceeded API rate limit
+    if [ -n "$token" ] && echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "API rate limit exceeded"; then
+      printf "\e[31mError: API rate limit exceeded. Please try again later.\e[0m\n" >&2
+      return 1
+    elif echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "Bad credentials"; then
+      printf "\e[31mError: Bad credentials, run the \e[4mgh auth login\e[24m command.\e[0m\n" >&2
+      return 1
+    fi
+
+    # select release by asset name or regex
+    if echo "$api_response" | jq -e 'type == "array"' >/dev/null && echo "$api_response" | jq -e 'any(.[]; has("assets"))' >/dev/null; then
+      if [ -n "$asset" ]; then
+        api_response="$(echo $api_response | jq -r "limit(1; .[] | select(.assets[]?.name == \"$asset\"))")"
+      elif [ -n "$regex" ]; then
+        api_response="$(echo $api_response | jq -r "limit(1; .[] | select(.assets[]?.name | test(\"$regex\")))")"
+      fi
+    fi
+
+    # Check if the key 'tag_name' exists in the API response
+    tag_name="$(echo "$api_response" | jq -r 'try .tag_name catch empty')"
+    if [ 'null' != "$tag_name" ]; then
       rel="$(echo $tag_name | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
       if [ -n "$rel" ]; then
-        echo "$rel"
+        if [ -n "$asset" ]; then
+          download_url="$(echo "$api_response" | jq -r ".assets[] | select(.name == \"$asset\") | .browser_download_url")"
+        elif [ -n "$regex" ]; then
+          download_url="$(echo "$api_response" | jq -r ".assets[] | select(.name | test(\"$regex\")) | .browser_download_url")"
+        else
+          unset download_url
+        fi
+        # return the version and download URL if available
+        if [ -n "$download_url" ]; then
+          printf '{"version":"%s","download_url":"%s"}' "$rel" "$download_url"
+        else
+          echo "$rel"
+        fi
         return 0
       else
         printf "\e[31mError: Returned tag_name doesn't conform to the semantic versioning.\e[0m\n" >&2

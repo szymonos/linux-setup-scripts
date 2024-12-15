@@ -31,10 +31,12 @@ esac
 
 # define variables
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
-[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'sharkdp' --repo 'bat')"
-# return latest release
+if [ -z "$REL" ]; then
+  REL="$(get_gh_release_latest --owner 'sharkdp' --repo 'bat')"
+  [ -n "$REL" ] || exit 1
+fi
+# return the release
 echo $REL
 
 if type $APP &>/dev/null; then
@@ -58,16 +60,11 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$PWD")
-  # calculate download uri
-  URL="https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
-  # download and install file
-  if download_file --uri $URL --target_dir $TMP_DIR; then
-    dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null || binary=true
+  apt-get update && apt-get install -y $APP
+  # create symlink for batcat
+  if [ -x /usr/bin/batcat ] && ! type bat &>/dev/null; then
+    ln -s /usr/bin/batcat /usr/bin/bat
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
   ;;
 opensuse)
   zypper in -y $APP >&2 2>/dev/null || binary=true

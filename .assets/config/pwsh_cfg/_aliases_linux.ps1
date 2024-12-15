@@ -38,6 +38,10 @@ if (Test-Path '/usr/bin/rg' -PathType Leaf) {
 if (Test-Path '/usr/local/bin/tfswitch' -PathType Leaf) {
     function tfswitch { & /usr/bin/env tfswitch --bin="$HOME/.local/bin/terraform" @args }
 }
+# overwrite kn alias if kubens is available
+if (Test-Path '/usr/bin/kubens' -PathType Leaf) {
+    Set-Alias -Name kn -Value kubens
+}
 
 # *Aliases
 Set-Alias -Name rd -Value rmdir
