@@ -16,20 +16,18 @@ REL=$1
 URL=$2
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
-  if response="$(get_gh_release_latest --owner 'JanDeDobbeleer' --repo 'oh-my-posh' --asset 'posh-linux-amd64')"; then
-    REL=$(echo $response | jq -r '.version')
-    URL=$(echo $response | jq -r '.download_url')
-    # return json response
-    echo $response
-  else
-    exit 1
-  fi
-fi
-# exit if the URL is not set
-if [ -z "$URL" ]; then
+  response="$(get_gh_release_latest --owner 'JanDeDobbeleer' --repo 'oh-my-posh' --asset 'posh-linux-amd64')"
+  [ -n "$response" ] || exit 1
+  REL=$(echo $response | jq -r '.version')
+  URL=$(echo $response | jq -r '.download_url')
+elif [ -z "$URL" ]; then
   printf "\e[31mError: The download URL is required.\e[0m\n" >&2
   exit 1
+else
+  response="{\"version\":\"$REL\",\"download_url\":\"$URL\"}"
 fi
+# return json response
+echo $response
 
 if type $APP &>/dev/null; then
   VER=$(oh-my-posh version)

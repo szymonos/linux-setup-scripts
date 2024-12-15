@@ -13,10 +13,12 @@ fi
 # define variables
 APP='uv'
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
-[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'astral-sh' --repo 'uv')"
-# return latest release
+if [ -z "$REL" ]; then
+  REL="$(get_gh_release_latest --owner 'astral-sh' --repo 'uv')"
+  [ -n "$REL" ] || exit 1
+fi
+# return the release
 echo $REL
 
 if [ -x "$HOME/.local/bin/uv" ]; then

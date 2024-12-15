@@ -42,7 +42,6 @@ debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   # dotsource file with common functions
   . .assets/provision/source.sh
-  retry_count=0
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$PWD")
   # calculate download uri

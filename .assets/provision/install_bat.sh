@@ -34,12 +34,10 @@ REL=$1
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'sharkdp' --repo 'bat')"
-  if [ -n "$REL" ]; then
-    echo $REL
-  else
-    exit 1
-  fi
+  [ -n "$REL" ] || exit 1
 fi
+# return the release
+echo $REL
 
 if type $APP &>/dev/null; then
   VER=$(bat --version | sed -En 's/.*\s([0-9\.]+)/\1/p')

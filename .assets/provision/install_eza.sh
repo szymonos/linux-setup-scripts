@@ -34,10 +34,12 @@ esac
 
 # define variables
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
-[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'eza-community' --repo 'eza')"
-# return latest release
+if [ -z "$REL" ]; then
+  REL="$(get_gh_release_latest --owner 'eza-community' --repo 'eza')"
+  [ -n "$REL" ] || exit 1
+fi
+# return the release
 echo $REL
 
 if type $APP &>/dev/null; then

@@ -142,7 +142,7 @@ get_gh_release_latest() {
         fi
         # return the version and download URL if available
         if [ -n "$download_url" ]; then
-          printf '{ "version": "%s", "download_url": "%s" }\n' "$rel" "$download_url"
+          printf '{"version":"%s","download_url":"%s"}' "$rel" "$download_url"
         else
           echo "$rel"
         fi

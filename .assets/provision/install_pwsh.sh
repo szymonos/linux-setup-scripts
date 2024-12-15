@@ -13,10 +13,12 @@ fi
 # define variables
 APP='pwsh'
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
-[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'PowerShell' --repo 'PowerShell')"
-# return latest release
+if [ -z "$REL" ]; then
+  REL="$(get_gh_release_latest --owner 'PowerShell' --repo 'PowerShell')"
+  [ -n "$REL" ] || exit 1
+fi
+# return the release
 echo $REL
 
 if type $APP &>/dev/null; then

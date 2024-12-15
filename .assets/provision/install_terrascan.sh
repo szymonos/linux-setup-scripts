@@ -13,16 +13,13 @@ fi
 # define variables
 APP='terrascan'
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
-  if REL="$(get_gh_release_latest --owner 'tenable' --repo 'terrascan')"; then
-    # return latest release
-    echo $REL
-  else
-    exit 1
-  fi
+  REL="$(get_gh_release_latest --owner 'tenable' --repo 'terrascan')"
+  [ -n "$REL" ] || exit 1
 fi
+# return the release
+echo $REL
 
 if type $APP &>/dev/null; then
   VER=$($APP version | sed -En 's/.*\sv([0-9\.]+)/\1/p')

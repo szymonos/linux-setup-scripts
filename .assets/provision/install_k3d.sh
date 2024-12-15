@@ -13,10 +13,12 @@ fi
 # define variables
 APP='k3d'
 REL=$1
-retry_count=0
 # get latest release if not provided as a parameter
-[ -z "$REL" ] && REL="$(get_gh_release_latest --owner 'k3d-io' --repo 'k3d')"
-# return latest release
+if [ -z "$REL" ]; then
+  REL="$(get_gh_release_latest --owner 'k3d-io' --repo 'k3d')"
+  [ -n "$REL" ] || exit 1
+fi
+# return the release
 echo $REL
 
 if type $APP &>/dev/null; then
