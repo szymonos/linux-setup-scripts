@@ -1,4 +1,4 @@
-#Requires -PSEdition Core
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Get certificates in chain and install them in the specified WSL distribution.
@@ -124,7 +124,9 @@ process {
     wsl -d $Distro -u root --exec bash -c $cmd
 }
 
-end {
-    Remove-Item $tmpFolder -Recurse
+clean {
+    if (Test-Path $tmpFolder -PathType Container) {
+        Remove-Item $tmpFolder -Recurse
+    }
     Pop-Location
 }

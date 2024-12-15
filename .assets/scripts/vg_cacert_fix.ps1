@@ -1,5 +1,5 @@
 #Requires -RunAsAdministrator
-#Requires -PSEdition Core
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Fix self signed certificate error in Vagrant by installing certificates from chain into Vagrant\embedded directory.
@@ -65,7 +65,7 @@ process {
     }
 }
 
-end {
+clean {
     # return to the original location
     Pop-Location
 }

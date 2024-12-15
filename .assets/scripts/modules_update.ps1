@@ -1,4 +1,5 @@
-#Requires -PSEdition Core
+#!/usr/bin/pwsh -nop
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Update repository modules from ps-modules.
@@ -98,6 +99,6 @@ process {
     }
 }
 
-end {
+clean {
     Pop-Location
 }

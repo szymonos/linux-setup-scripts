@@ -1,5 +1,5 @@
-#Requires -PSEdition Core
 #!/usr/bin/pwsh -nop
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Generate example scripts from the current repository.
@@ -35,6 +35,6 @@ process {
     }
 }
 
-end {
+clean {
     Pop-Location
 }

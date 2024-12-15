@@ -1,4 +1,4 @@
-#Requires -PSEdition Core
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Copy files between WSL distributions.
@@ -105,7 +105,7 @@ process {
     Invoke-Expression "wsl.exe -d $dstDistro $($Root ? '--user root ' : '')--exec bash -c '$cmnd'"
 }
 
-end {
+clean {
     # move source to original location
     if ($useTmp) {
         $cmnd = "mv `"/tmp/cpf/$(Split-Path $srcPath -Leaf)`" `"$($rlPath)`" && rm -fr /tmp/cpf"
