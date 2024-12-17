@@ -16,7 +16,10 @@ REL=$1
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'astral-sh' --repo 'uv')"
-  [ -n "$REL" ] || exit 1
+  if [ -z "$REL" ]; then
+    printf "\e[31mFailed to get the latest version of $APP.\e[0m\n" >&2
+    exit 1
+  fi
 fi
 # return the release
 echo $REL

@@ -12,7 +12,7 @@
     RootModule           = 'SetupUtils.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.4.0'
+    ModuleVersion        = '0.5.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -33,7 +33,7 @@
     # Description = ''
 
     # Minimum version of the PowerShell engine required by this module
-    PowerShellVersion    = '7.0'
+    PowerShellVersion    = '7.3'
 
     # Name of the PowerShell host required by this module
     # PowerShellHostName = ''

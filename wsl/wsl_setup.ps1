@@ -1,4 +1,4 @@
-#Requires -PSEdition Core
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Setting up WSL distro(s).
@@ -542,6 +542,9 @@ process {
 }
 
 end {
-    Pop-Location
     Write-Host "`n`e[1;95m<< WSL setup completed >>`e[0m`n"
+}
+
+clean {
+    Pop-Location
 }
