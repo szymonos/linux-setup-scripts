@@ -30,12 +30,14 @@ version = "1.0.0"
 requires-python = ">=3.12.8,<3.13"
 dependencies = [
   "azure-cli",
-  "setuptools",
-  "pip",
   "certifi",
   "idna",
   "oauthlib",
+  "pip",
+  "pycparser",
   "requests_oauthlib",
+  "setuptools",
+  "wrapt",
 ]
 
 [tool.uv]
