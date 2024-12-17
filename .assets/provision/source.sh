@@ -128,9 +128,9 @@ get_gh_release_latest() {
       fi
     fi
 
-    # Check if the key 'tag_name' exists in the API response
-    tag_name="$(echo "$api_response" | jq -r 'try .tag_name catch empty')"
-    if [ 'null' != "$tag_name" ]; then
+    # Check if 'tag_name' exists
+    if echo "$api_response" | jq -e '.tag_name | select(. != null and . != "")' >/dev/null; then
+      tag_name="$(echo "$api_response" | jq -r '.tag_name')"
       rel="$(echo $tag_name | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
       if [ -n "$rel" ]; then
         if [ -n "$asset" ]; then
@@ -148,7 +148,7 @@ get_gh_release_latest() {
         fi
         return 0
       else
-        printf "\e[31mError: Returned tag_name doesn't conform to the semantic versioning.\e[0m\n" >&2
+        printf "\e[31mError: Returned tag_name doesn't conform to the semantic versioning ($tag_name).\e[0m\n" >&2
         return 1
       fi
     else
