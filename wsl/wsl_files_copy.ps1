@@ -17,6 +17,7 @@ $Source = 'Debian:~/source'
 $Source = 'Debian:~/.local/share'
 $Source = 'Debian:~/.ssh'
 $Source = 'Debian:~/.kube'
+$Source = 'Debian:~/.ssh/config'
 # :copy to the same path in destination distro
 $Destination = 'Ubuntu'
 # :copy to other specified path in destination distro
