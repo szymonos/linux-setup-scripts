@@ -26,31 +26,6 @@ debian | ubuntu)
   ;;
 esac
 
-# dotsource file with common functions
-. .assets/provision/source.sh
-
-# define variables
-REL=$1
-# get latest release if not provided as a parameter
-if [ -z "$REL" ]; then
-  REL="$(get_gh_release_latest --owner 'junegunn' --repo 'fzf')"
-  if [ -z "$REL" ]; then
-    printf "\e[31mFailed to get the latest version of $APP.\e[0m\n" >&2
-    exit 1
-  fi
-fi
-# return the release
-echo $REL
-
-if type $APP &>/dev/null; then
-  VER=$(rg --version | sed -En 's/.*\s([0-9\.]+)/\1/p')
-  if [ "$REL" = "$VER" ]; then
-    printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
-    exit 0
-  fi
-fi
-
-printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 case $SYS_ID in
 alpine)
   apk add --no-cache $APP >&2 2>/dev/null
@@ -68,14 +43,4 @@ debian | ubuntu)
 opensuse)
   zypper in -y $APP >&2 2>/dev/null || binary=true
   ;;
-*)
-  binary=true
-  ;;
 esac
-
-if [ "$binary" = true ] && [ -n "$REL" ]; then
-  echo 'Installing via script.' >&2
-  # create temporary dir for the downloaded binary
-  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-  ~/.fzf/install
-fi
