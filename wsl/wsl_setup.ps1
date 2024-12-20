@@ -412,7 +412,7 @@ process {
             }
             shell {
                 Write-Host 'installing shell packages...' -ForegroundColor Cyan
-                $rel_fzf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fzf.sh $Script:rel_fzf
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fzf.sh
                 $rel_eza = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_eza.sh $Script:rel_eza
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
