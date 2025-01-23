@@ -61,9 +61,19 @@ opensuse)
   ;;
 esac
 
+# check provided user
+user=${1:-$(id -un 1000 2>/dev/null)}
+if ! sudo -u $user true 2>/dev/null; then
+  if [ -n "$user" ]; then
+    printf "\e[31;1mUser does not exist ($user).\e[0m\n"
+  else
+    printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
+  fi
+  exit 1
+fi
 # add user to docker group
-if ! grep -q "^docker:.*\b$(id -un 1000)\b" /etc/group; then
-  usermod -aG docker $(id -un 1000)
+if ! grep -q "^docker:.*\b$user\b" /etc/group; then
+  usermod -aG docker $user
 fi
 
 # start docker services if systemd is running
