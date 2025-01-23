@@ -42,6 +42,7 @@ dependencies = [
 
 [tool.uv]
 prerelease = "allow"
+compile-bytecode = true
 EOF
 
 # install azure-cli
