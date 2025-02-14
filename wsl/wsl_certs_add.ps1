@@ -18,6 +18,14 @@ wsl/wsl_certs_add.ps1 $Distro
 # :specify custom Uri
 $Uris = @('pypi.org', 'login.microsoftonline.com')
 wsl/wsl_certs_add.ps1 $Distro -u $Uris
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 wsl/wsl_certs_add.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 wsl/wsl_certs_add.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 wsl/wsl_certs_add.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (

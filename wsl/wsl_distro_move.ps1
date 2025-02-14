@@ -18,6 +18,14 @@ $NewName = 'jammy'
 wsl/wsl_distro_move.ps1 $Distro -d $Destination -n $NewName
 wsl/wsl_distro_move.ps1 $Distro -d $Destination -n $NewName -Copy
 wsl/wsl_distro_move.ps1 $Distro -d $Destination -n $NewName -WhatIf
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 wsl/wsl_distro_move.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 wsl/wsl_distro_move.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 wsl/wsl_distro_move.ps1 -WriteOutput)
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param (

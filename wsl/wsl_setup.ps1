@@ -70,6 +70,14 @@ wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
 wsl/wsl_setup.ps1 $Distro -ShowSSHKey
 # :update all existing WSL distros
 wsl/wsl_setup.ps1
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 wsl/wsl_setup.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 wsl/wsl_setup.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 wsl/wsl_setup.ps1 -WriteOutput)
 #>
 using namespace System.Management.Automation.Host
 

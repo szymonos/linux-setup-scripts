@@ -25,6 +25,14 @@ $Destination = 'Ubuntu:~/myfiles'
 
 wsl/wsl_files_copy.ps1 $Source $Destination
 wsl/wsl_files_copy.ps1 $Source $Destination -Root
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 wsl/wsl_files_copy.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 wsl/wsl_files_copy.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 wsl/wsl_files_copy.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (
