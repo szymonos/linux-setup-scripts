@@ -15,6 +15,14 @@ $IpAddress = '192.168.121.57'
 $HostName = 'vg-fedora-hv'
 $Path = '~/.ssh/id_rsa'
 .assets/trigger/set_ssh_config.ps1 $IpAddress $HostName $Path
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 .assets/trigger/set_ssh_config.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 .assets/trigger/set_ssh_config.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 .assets/trigger/set_ssh_config.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (

@@ -6,6 +6,14 @@ Install/update PowerShell Core.
 wsl/pwsh_setup.ps1
 # !Run below command on execution error.
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 wsl/pwsh_setup.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 wsl/pwsh_setup.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 wsl/wsl_certs_add.ps1 -WriteOutput)
 #>
 
 begin {

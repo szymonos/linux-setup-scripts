@@ -15,6 +15,14 @@ $Font = 'FiraCode'
 .assets/scripts/fonts_install_nerd.ps1 $Font
 # :check installed fonts
 [Drawing.Text.InstalledFontCollection]::new().Families | Select-String $Font
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 .assets/scripts/fonts_install_nerd.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 .assets/scripts/fonts_install_nerd.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 .assets/scripts/fonts_install_nerd.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (

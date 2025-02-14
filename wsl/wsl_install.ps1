@@ -46,6 +46,14 @@ $Repos = @('procter-gamble/de-cf-wsl-setup-scripts')
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -r $Repos
 # with the specified scope
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -r $Repos -s $Scope
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 wsl/wsl_install.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 wsl/wsl_install.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 wsl/wsl_install.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (

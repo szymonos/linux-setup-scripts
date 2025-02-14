@@ -17,6 +17,14 @@ Flag whether to stop DockerDesktop process.
 wsl/wsl_restart.ps1
 gsudo wsl/wsl_restart.ps1
 gsudo wsl/wsl_restart.ps1 -StopDockerDesktop
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 wsl/wsl_restart.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 wsl/wsl_restart.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 wsl/wsl_restart.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (

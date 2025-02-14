@@ -25,6 +25,14 @@ $Iterations = 5
 .assets/tools/cmd_bench_compare.ps1 $Command1 $Command2 -i $Iterations
 $WarmUp = 2
 .assets/tools/cmd_bench_compare.ps1 $Command1 $Command2 -i $Iterations -w $WarmUp
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 .assets/tools/cmd_bench_compare.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 .assets/tools/cmd_bench_compare.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 .assets/tools/cmd_bench_compare.ps1 -WriteOutput)
 #>
 using module do-common
 

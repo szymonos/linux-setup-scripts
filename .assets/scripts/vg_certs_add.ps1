@@ -11,6 +11,14 @@ Path to the Vagrantfile.
 .EXAMPLE
 $Path = 'vagrant/hyperv/fedora/Vagrantfile'
 .assets/scripts/vg_certs_add.ps1 -p $Path
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 .assets/scripts/vg_certs_add.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 .assets/scripts/vg_certs_add.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 .assets/scripts/vg_certs_add.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 [OutputType([System.Void])]

@@ -10,6 +10,14 @@ Number of iterations to run the test.
 .assets/tools/term_bench.ps1 1000
 .assets/tools/term_bench.ps1 10000
 .assets/tools/term_bench.ps1 100000
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 .assets/tools/term_bench.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 .assets/tools/term_bench.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 .assets/tools/term_bench.ps1 -WriteOutput)
 #>
 param (
     [int]$Iterations

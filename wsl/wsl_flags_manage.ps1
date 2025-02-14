@@ -23,6 +23,14 @@ wsl/wsl_flags_manage.ps1 $Distro -AppendWindowsPath $true
 wsl/wsl_flags_manage.ps1 $Distro -AppendWindowsPath $false
 wsl/wsl_flags_manage.ps1 $Distro -Automount $true
 wsl/wsl_flags_manage.ps1 $Distro -Automount $false
+
+.NOTES
+# :save script example
+./scripts_egsave.ps1 wsl/wsl_flags_manage.ps1
+# :override the existing script example if exists
+./scripts_egsave.ps1 wsl/wsl_flags_manage.ps1 -Force
+# :open the example script in VSCode
+code -r (./scripts_egsave.ps1 wsl/wsl_flags_manage.ps1 -WriteOutput)
 #>
 [CmdletBinding(DefaultParameterSetName = 'Show')]
 param (
