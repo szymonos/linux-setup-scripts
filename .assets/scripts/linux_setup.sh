@@ -77,7 +77,8 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling python packages...\e[0m\n"
     .assets/provision/install_miniconda.sh --fix_certify true
     sudo .assets/provision/setup_python.sh
-    grep -qw 'az' <<<$scope && .assets/provision/install_azurecli.sh --fix_certify true || true
+    .assets/provision/install_uv.sh
+    grep -qw 'az' <<<$scope && .assets/provision/install_azurecli_uv.sh --fix_certify true || true
     ;;
   distrobox)
     printf "\e[96minstalling distrobox...\e[0m\n"
@@ -94,6 +95,7 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_kubelogin.sh >/dev/null
     sudo .assets/provision/install_helm.sh >/dev/null
     sudo .assets/provision/install_k9s.sh >/dev/null
+    sudo .assets/provision/install_kubectx.sh >/dev/null
     sudo .assets/provision/install_kubeseal.sh >/dev/null
     sudo .assets/provision/install_flux.sh
     sudo .assets/provision/install_kustomize.sh
@@ -139,6 +141,7 @@ for sc in ${scope_arr[@]}; do
     ;;
   tf)
     printf "\e[96minstalling terraform utils...\e[0m\n"
+    sudo .assets/provision/install_terraform.sh
     sudo .assets/provision/install_tfswitch.sh
     sudo .assets/provision/install_terrascan.sh
     ;;
