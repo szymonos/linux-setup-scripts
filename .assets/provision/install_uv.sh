@@ -32,20 +32,27 @@ if [ -x "$HOME/.local/bin/uv" ]; then
   fi
 fi
 
-printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
-# create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$PWD")
-# calculate download uri
-URL="https://astral.sh/uv/install.sh"
-# download and install file
-if download_file --uri $URL --target_dir $TMP_DIR; then
-  retry_count=0
-  while [ ! -x "$HOME/.local/bin/uv" ] && [ $retry_count -lt 10 ]; do
-    sh "$TMP_DIR/install.sh"
-    ((retry_count++))
-  done
+# check if the binary is already installed
+if [ -x "$HOME/.local/bin/uv" ]; then
+  # update uv using the self update command
+  printf "\e[92mupdating \e[1m$APP\e[22m\n" >&2
+  $HOME/.local/bin/uv self update >&2
+else
+  printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
+  # create temporary dir for the downloaded binary
+  TMP_DIR=$(mktemp -dp "$PWD")
+  # calculate download uri
+  URL="https://astral.sh/uv/install.sh"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    retry_count=0
+    while [ ! -x "$HOME/.local/bin/uv" ] && [ $retry_count -lt 10 ]; do
+      sh "$TMP_DIR/install.sh"
+      ((retry_count++))
+    done
+  fi
+  # remove temporary dir
+  rm -fr "$TMP_DIR"
 fi
-# remove temporary dir
-rm -fr "$TMP_DIR"
 
 exit 0
