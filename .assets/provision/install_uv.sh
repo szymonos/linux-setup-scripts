@@ -40,6 +40,7 @@ URL="https://astral.sh/uv/install.sh"
 # download and install file
 if download_file --uri $URL --target_dir $TMP_DIR; then
   retry_count=0
+  rm -f "$HOME/.local/bin/uv"
   while [ ! -x "$HOME/.local/bin/uv" ] && [ $retry_count -lt 10 ]; do
     sh "$TMP_DIR/install.sh"
     ((retry_count++))
