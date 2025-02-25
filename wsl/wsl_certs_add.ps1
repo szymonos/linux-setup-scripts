@@ -134,7 +134,7 @@ process {
 
 clean {
     if (Test-Path $tmpFolder -PathType Container) {
-        Remove-Item $tmpFolder -Recurse
+        Remove-Item $tmpFolder -Recurse -Force
     }
     Pop-Location
 }
