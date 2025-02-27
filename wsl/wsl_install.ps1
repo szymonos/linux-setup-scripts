@@ -16,17 +16,22 @@ The script will perform the following:
 Name of the WSL distro to install and set up.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli, do-az from ps-modules if pwsh scope specified; autoselects python scope
-- docker: docker, containerd buildx docker-compose (WSL2 only)
-- k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize
-- k8s_ext: minikube, k3d, argorollouts-cli (WSL2 only); autoselects docker and k8s_base scopes
+- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects conda scope
+- conda: miniconda, uv, pip, venv
+- distrobox: (WSL2 only) - podman and distrobox
+- docker: (WSL2 only) - docker, containerd buildx docker-compose
+- k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize, kubectx, kubens
+- k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
+- nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
-- python: pip, venv, miniconda
+- rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
 - terraform: terraform, terrascan, tfswitch
 - zsh: zsh shell with plugins
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
+.PARAMETER AddCertificate
+Intercept and add certificates from chain into selected distro.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
 

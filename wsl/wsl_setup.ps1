@@ -18,12 +18,12 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli, do-az from ps-modules if pwsh scope specified; autoselects conda scope
-- conda: pip, venv, miniconda
-- distrobox: podman and distrobox (WSL2 only)
-- docker: docker, containerd buildx docker-compose (WSL2 only)
-- k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize
-- k8s_ext: minikube, k3d, argorollouts-cli (WSL2 only); autoselects docker and k8s_base scopes
+- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects conda scope
+- conda: miniconda, uv, pip, venv
+- distrobox: (WSL2 only) - podman and distrobox
+- docker: (WSL2 only) - docker, containerd buildx docker-compose
+- k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize, kubectx, kubens
+- k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - rice: btop, cmatrix, cowsay, fastfetch
