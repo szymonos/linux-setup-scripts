@@ -157,14 +157,12 @@ begin {
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
                 Write-Host "`nspecified distribution not found ($Distro), proceeding to install..." -ForegroundColor Cyan
-                $cmd = "wsl.exe --install --distribution $Distro --web-download"
                 try {
                     Get-Service LxssManagerUser*, WSLService | Out-Null
-                    Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
-                    Invoke-Expression $cmd
+                    wsl.exe --install --distribution $Distro --web-download --no-launch
                 } catch {
                     if (Test-IsAdmin) {
-                        Invoke-Expression $cmd
+                        wsl.exe --install --distribution $Distro --web-download
                         Write-Host 'WSL service installation finished.'
                         Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
                     } else {
@@ -214,8 +212,7 @@ begin {
                         continue
                     }
                 }
-                Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
-                wsl.exe --install --distribution $Distro --web-download
+                wsl.exe --install --distribution $Distro --web-download --no-launch
             }
         }
         # get installed distro details
@@ -243,6 +240,10 @@ process {
         $Distro = $lx.Name
         # *perform distro checks
         $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+        if ($chk.def_uid -ne $chk.uid) {
+            Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
+            wsl.exe --distribution $Distro
+        }
         # instantiate scope generic sorted set
         $scopes = [System.Collections.Generic.SortedSet[string]]::new()
         $Scope.ForEach({ $scopes.Add($_) | Out-Null })

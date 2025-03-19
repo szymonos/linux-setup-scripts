@@ -3,9 +3,12 @@
 .assets/provision/distro_check.sh | jq
 .assets/provision/distro_check.sh array
 '
+
 # store the state in an associative array
 declare -A state=(
   ["user"]="$(id -un)"
+  ["uid"]="$(id -u)"
+  ["def_uid"]="$([ -f /etc/wsl-distribution.conf ] && grep 'defaultUid' /etc/wsl-distribution.conf | sed -E 's/defaultUid *= *([0-9]+)/\1/' || id -u)"
   ["az"]=$([ -f $HOME/.local/bin/az ] && echo "true" || echo "false")
   ["conda"]=$([ -d $HOME/miniconda3 ] && echo "true" || echo "false")
   ["git_user"]=$([ -n "$(git config --global --get user.name 2>/dev/null)" ] && echo "true" || echo "false")
