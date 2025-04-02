@@ -78,6 +78,11 @@ param (
 
 begin {
     $ErrorActionPreference = 'Stop'
+    # check if the script has been executed on Windows
+    if ($IsLinux) {
+        Write-Warning "This script is intended to be run on Windows only (outside of WSL)."
+        exit 1
+    }
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."

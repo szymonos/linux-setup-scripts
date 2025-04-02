@@ -127,9 +127,9 @@ param (
 begin {
     $ErrorActionPreference = 'Stop'
     # check if the script is running on Windows
-    if (-not $IsWindows) {
-        Write-Warning 'Run the script on Windows!'
-        exit 0
+    if ($IsLinux) {
+        Write-Warning "This script is intended to be run on Windows only (outside of WSL)."
+        exit 1
     }
 
     # set location to workspace folder
