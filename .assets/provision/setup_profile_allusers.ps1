@@ -50,7 +50,7 @@ process {
     # *modify eza alias
     if (Test-Path $CFG_PATH/_aliases_linux.ps1) {
         $eza_git = eza --version | Select-String '+git' -SimpleMatch -Quiet
-        $eza_nerd = Select-String '' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet
+        $eza_nerd = Select-String '\ue725' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet
         $eza_param = ($eza_git ? '--git ' : '') + ($eza_nerd ? '--icons ' : '')
         $content = [IO.File]::ReadAllLines("$CFG_PATH/_aliases_linux.ps1").Replace('eza -g ', "eza -g $eza_param")
         [IO.File]::WriteAllLines("$CFG_PATH/_aliases_linux.ps1", $content)

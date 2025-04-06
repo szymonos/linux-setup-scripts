@@ -32,7 +32,7 @@ if [ -f "$CFG_PATH/aliases.sh" ]; then
   # *set nerd fonts if oh-my-posh uses them
   eza_param=''
   eza --version 2>/dev/null | grep -Fqw '+git' && eza_param+='--git ' || true
-  grep -Fqw '' ""$OMP_PATH/theme.omp.json"" 2>/dev/null && eza_param+='--icons ' || true
+  grep -Fqw '\ue725' ""$OMP_PATH/theme.omp.json"" 2>/dev/null && eza_param+='--icons ' || true
   sed -i "s/eza -g /eza -g $eza_param/" "$CFG_PATH/aliases.sh"
 fi
 
