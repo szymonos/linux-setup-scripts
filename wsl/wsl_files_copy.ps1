@@ -80,12 +80,21 @@ begin {
     $srcDefUid = $distros.Where({ $_.Name -eq $srcDistro }).DefaultUid
     $dstDefUid = $distros.Where({ $_.Name -eq $dstDistro }).DefaultUid
     $useTmp = $srcDefUid -ne $dstDefUid ? $true : $false
+
+    # instantiate wsl command arguments variable
+    $wslArgs = [System.Collections.Generic.List[string]]::new()
+    # get information from the source distro
+    $wslArgs.AddRange([string[]]@('--distribution', $srcDistro))
+    if ($Root) {
+        $wslArgs.AddRange([string[]]@('--user', 'root'))
+    }
+    $wslArgs.AddRange([string[]]@('--exec', 'bash'))
 }
 
 process {
-    # get information from the source distro
-    $cmnd = "wsl.exe -d $srcDistro $($Root ? '--user root ' : '')--exec bash -c 'readlink -e $srcPath'"
-    $rlPath = Invoke-Expression $cmnd
+    $wslArgs.AddRange([string[]]@('-c', "readlink -e $srcPath"))
+    $rlPath = & wsl.exe @wslArgs
+
     if ($rlPath) {
         $srcPath = $mntDir + $rlPath
     } else {
@@ -95,29 +104,31 @@ process {
 
     # bind mount root filesystem of the source distro
     $cmnd = "findmnt $mntDir >/dev/null || mkdir -p $mntDir && mount --bind / $mntDir"
-    wsl.exe -d $srcDistro --user root --exec bash -c $cmnd
+    & wsl.exe -d $srcDistro --user root --exec bash -c $cmnd
 
     # move source files to tmp dir if distros are using different user ids
     if ($useTmp) {
-        $cmnd = "mkdir -p /tmp/cpf && mv `"$($rlPath)`" /tmp/cpf"
-        Invoke-Expression "wsl.exe -d $srcDistro $($Root ? '--user root ' : '')--exec bash -c '$cmnd'"
+        $wslArgs[-1] = "mkdir -p /tmp/cpf && mv `"$($rlPath)`" /tmp/cpf"
+        & wsl.exe @wslArgs
         $srcPath = "$mntDir/tmp/cpf/$(Split-Path $rlPath -Leaf)"
     }
 
     # copy files
-    $cmnd = [string]::Join("`n",
+    $wslArgs[1] = $dstDistro
+    $wslArgs[-1] = [string]::Join("`n",
         "if [ `"`$(basename $srcPath)`" = `"`$(basename $dstPath)`" ]; then",
         "`tdst=`"`$(readlink -m `$(dirname $dstPath))`"`nelse",
         "`tdst=`"`$(readlink -m $dstPath)`"`nfi",
         "mkdir -p `"`$dst`" && cp -rf `"$srcPath`" `"`$dst`""
     )
-    Invoke-Expression "wsl.exe -d $dstDistro $($Root ? '--user root ' : '')--exec bash -c '$cmnd'"
+    & wsl.exe @wslArgs
 }
 
 clean {
     # move source to original location
     if ($useTmp) {
-        $cmnd = "mv `"/tmp/cpf/$(Split-Path $srcPath -Leaf)`" `"$($rlPath)`" && rm -fr /tmp/cpf"
-        Invoke-Expression "wsl.exe -d $srcDistro $($Root ? '--user root ' : '')--exec bash -c '$cmnd'"
+        $wslArgs[1] = $srcDistro
+        $wslArgs[-1] = = "mv `"/tmp/cpf/$(Split-Path $srcPath -Leaf)`" `"$($rlPath)`" && rm -fr /tmp/cpf"
+        & wsl.exe @wslArgs
     }
 }
