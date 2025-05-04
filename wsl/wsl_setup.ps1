@@ -22,7 +22,7 @@ List of installation scopes. Valid values:
 - conda: miniconda, uv, pip, venv
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
-- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, kubeseal, flux, kustomize, kubectx, kubens
+- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, kubeseal, flux, kustomize, kubecolor, kubectx, kubens
 - k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
@@ -128,7 +128,7 @@ begin {
     $ErrorActionPreference = 'Stop'
     # check if the script is running on Windows
     if ($IsLinux) {
-        Write-Warning "This script is intended to be run on Windows only (outside of WSL)."
+        Write-Warning 'This script is intended to be run on Windows only (outside of WSL).'
         exit 1
     }
 
@@ -336,6 +336,7 @@ process {
                 $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
                 $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
+                $rel_kubecolor = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubecolor.sh $Script:rel_kubecolor
                 $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
                 $rel_kubeseal = try { wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal.version $Script:rel_kubeseal.download_url | ConvertFrom-Json } catch { $null }
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
