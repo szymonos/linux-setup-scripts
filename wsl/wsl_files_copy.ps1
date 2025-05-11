@@ -3,28 +3,32 @@
 .SYNOPSIS
 Copy files between WSL distributions.
 
-.PARAMETER Source
-Source written using the <distro>:<path> convention.
-Path needs to be absolute or starts in ~ home directory.
-.PARAMETER Destination
-Destination written using the <distro>:<path> convention.
-You can specify only the destination <distro> and the source path will be used.
+.PARAMETER SourceDistro
+Name of the source WSL distribution to copy files from.
+.PARAMETER DestinationDistro
+Name of the destination WSL distribution to copy files to.
+.PARAMETER Path
+Path of the files to copy from the source distribution.
+.PARAMETER DestinationPath
+Path of the files to copy to the destination distribution.
 .PARAMETER Root
-Copy files as root.
+Switch to run the command as root in the source distribution.
 
 .EXAMPLE
-$Source = 'Debian:~/source'
-$Source = 'Debian:~/.local/share'
-$Source = 'Debian:~/.ssh'
-$Source = 'Debian:~/.kube'
-$Source = 'Debian:~/.ssh/config'
-# :copy to the same path in destination distro
-$Destination = 'Ubuntu'
-# :copy to other specified path in destination distro
-$Destination = 'Ubuntu:~/myfiles'
+$SourceDistro = 'Debian'
+$DestinationDistro = 'Ubuntu'
+$Path = '~/source'
+$Path = '~/.local/share'
+$Path = '~/.gitconfig*'
+$Path = '~/.ssh'
+$Path = '~/.kube'
+wsl/wsl_files_copy.ps1 -s $SourceDistro -d $DestinationDistro -p $Path
+# :copy files as root user
+wsl/wsl_files_copy.ps1 -s $SourceDistro -d $DestinationDistro -p $Path -Root
 
-wsl/wsl_files_copy.ps1 $Source $Destination
-wsl/wsl_files_copy.ps1 $Source $Destination -Root
+# :copy to other specified path in destination distro
+$DestinationPath = '~/myfiles'
+wsl/wsl_files_copy.ps1 -s $SourceDistro -d $DestinationDistro -p $Path -dp $DestinationPath
 
 .NOTES
 # :save script example
@@ -36,12 +40,20 @@ code -r (./scripts_egsave.ps1 wsl/wsl_files_copy.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory, Position = 0)]
-    [ValidateScript( { $_ -match '^[\w-]+:(/|~)' } )]
-    [string]$Source,
+    [ValidateNotNullOrEmpty()]
+    [string]$SourceDistro,
 
-    [Parameter(Mandatory, Position = 1)]
-    [string]$Destination,
+    [Alias('d')]
+    [ValidateNotNullOrEmpty()]
+    [string]$DestinationDistro,
+
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$Path,
+
+    [Alias('dp')]
+    [ValidateNotNullOrEmpty()]
+    [string]$DestinationPath,
 
     [switch]$Root
 )
@@ -56,35 +68,45 @@ begin {
     # import SetupUtils for the Get-WslDistro function
     Import-Module (Convert-Path './modules/SetupUtils')
 
-    # calculate source and destination distros and paths
-    $srcDistro, $srcPath = $Source.Split(':')
-    $dstDistro, $dstPath = $Destination.Split(':')
-    if (-not $dstPath) {
-        $dstPath = $srcPath
+    # get list of existing WSL distros
+    $distros = Get-WslDistro -FromRegistry
+
+    if ($PSBoundParameters.ContainsKey('SourceDistro')) {
+        if ($SourceDistro -notin $distros.Name) {
+            Write-Warning "Specified source distro does not exist ($SourceDistro)."
+            exit
+        }
+    } else {
+        $msg = 'Select source distro:'
+        $SourceDistro = $distros.Name | Get-ArrayIndexMenu -Message $msg -Value
+    }
+    if ($PSBoundParameters.ContainsKey('DestinationDistro')) {
+        if ($DestinationDistro -notin $distros.Name) {
+            Write-Warning "Specified destination distro does not exist ($DestinationDistro)."
+            exit
+        }
+    } else {
+        $msg = 'Select destination distro:'
+        $DestinationDistro = $distros.Name | Get-ArrayIndexMenu -Message $msg -Value
     }
 
-    # check if specified distros exist
-    $distros = Get-WslDistro -FromRegistry
-    if ($srcDistro -notin $distros.Name) {
-        Write-Warning "Specified source distro does not exist ($srcDistro)."
-        exit
-    } elseif ($dstDistro -notin $distros.Name) {
-        Write-Warning "Specified destination distro does not exist ($dstDistro)."
-        exit
+    # calculate destination path
+    if (-not $PSBoundParameters.DestinationPath -or $PSBoundParameters.DestinationPath -eq $Path) {
+        $DestinationPath = $Path -replace '/[^/]+/?$'  # get the parent directory
     }
 
     # calculate source mount path
-    $mntDir = "/mnt/wsl/$srcDistro"
+    $mntDir = "/mnt/wsl/$SourceDistro"
 
     # determine if distros using different user ids
-    $srcDefUid = $distros.Where({ $_.Name -eq $srcDistro }).DefaultUid
-    $dstDefUid = $distros.Where({ $_.Name -eq $dstDistro }).DefaultUid
-    $useTmp = $srcDefUid -ne $dstDefUid ? $true : $false
+    $srcDefUid = $distros.Where({ $_.Name -eq $SourceDistro }).DefaultUid
+    $dstDefUid = $distros.Where({ $_.Name -eq $DestinationDistro }).DefaultUid
+    $useTmp = $srcDefUid -eq $dstDefUid ? $false : $true
 
     # instantiate wsl command arguments variable
     $wslArgs = [System.Collections.Generic.List[string]]::new()
     # get information from the source distro
-    $wslArgs.AddRange([string[]]@('--distribution', $srcDistro))
+    $wslArgs.AddRange([string[]]@('--distribution', $SourceDistro))
     if ($Root) {
         $wslArgs.AddRange([string[]]@('--user', 'root'))
     }
@@ -92,43 +114,44 @@ begin {
 }
 
 process {
-    $wslArgs.AddRange([string[]]@('-c', "readlink -e $srcPath"))
-    $rlPath = & wsl.exe @wslArgs
+    $wslArgs.AddRange([string[]]@('-c', "readlink -e $Path"))
+    $rlPath = @(& wsl.exe @wslArgs)
 
     if ($rlPath) {
-        $srcPath = $mntDir + $rlPath
+        $srcPath = $rlPath.ForEach({ "${mntDir}${_}" })
     } else {
-        Write-Warning "Source path is incorrect ($srcPath)."
+        Write-Warning "Source path is incorrect ($Path)."
         exit
     }
 
     # bind mount root filesystem of the source distro
     $cmnd = "findmnt $mntDir >/dev/null || mkdir -p $mntDir && mount --bind / $mntDir"
-    & wsl.exe -d $srcDistro --user root --exec bash -c $cmnd
+    & wsl.exe -d $SourceDistro --user root --exec bash -c $cmnd
 
-    # move source files to tmp dir if distros are using different user ids
+    # create temporary directory if distros are using different user ids
     if ($useTmp) {
-        $wslArgs[-1] = "mkdir -p /tmp/cpf && mv `"$($rlPath)`" /tmp/cpf"
+        $mv = $srcPath.ForEach({ "mv `"$($_)`" /tmp/cpf" }) -join ' && '
+        $wslArgs[-1] = "mkdir -p /tmp/cpf && $mv"
         & wsl.exe @wslArgs
-        $srcPath = "$mntDir/tmp/cpf/$(Split-Path $rlPath -Leaf)"
+        $srcPath = $rlPath.ForEach({ "$mntDir/tmp/cpf/$(Split-Path $_ -Leaf)" })
     }
 
-    # copy files
-    $wslArgs[1] = $dstDistro
-    $wslArgs[-1] = [string]::Join("`n",
-        "if [ `"`$(basename $srcPath)`" = `"`$(basename $dstPath)`" ]; then",
-        "`tdst=`"`$(readlink -m `$(dirname $dstPath))`"`nelse",
-        "`tdst=`"`$(readlink -m $dstPath)`"`nfi",
-        "mkdir -p `"`$dst`" && cp -rf `"$srcPath`" `"`$dst`""
-    )
+    # calculate destination path
+    $wslArgs[1] = $DestinationDistro
+    $wslArgs[-1] = "readlink -m $DestinationPath"
+    $dst = & wsl.exe @wslArgs
+    # copy files from source to destination
+    $cp = $srcPath.ForEach({ "cp -rf `"$($_)`" `"$dst`"" }) -join ' && '
+    $wslArgs[-1] = "[ -d `"$dst`" ] || mkdir -p `"$dst`" && $cp"
     & wsl.exe @wslArgs
 }
 
 clean {
     # move source to original location
-    if ($useTmp) {
-        $wslArgs[1] = $srcDistro
-        $wslArgs[-1] = = "mv `"/tmp/cpf/$(Split-Path $srcPath -Leaf)`" `"$($rlPath)`" && rm -fr /tmp/cpf"
+    if ($useTmp -and $srcPath) {
+        $wslArgs[1] = $SourceDistro
+        $mv = $srcPath.ForEach({ "mv `"/tmp/cpf/$(Split-Path $_ -Leaf)`" $(Split-Path $Path -Parent)" }) -join ' && '
+        $wslArgs[-1] = "$mv && rm -fr /tmp/cpf"
         & wsl.exe @wslArgs
     }
 }

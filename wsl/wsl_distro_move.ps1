@@ -6,10 +6,10 @@ Move/Copy (and optionally rename) existing WSL2 distro.
 Name of the existing WSL distro.
 .PARAMETER Destination
 Destination path, where distro folder will be created.
-.PARAMETER Copy
-Switch whether to copy distro instead of moving.
 .PARAMETER NewName
 Optional new name of the WSL distro.
+.PARAMETER Copy
+Switch whether to copy distro instead of moving.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
@@ -30,16 +30,19 @@ code -r (./scripts_egsave.ps1 wsl/wsl_distro_move.ps1 -WriteOutput)
 [CmdletBinding(SupportsShouldProcess)]
 param (
     [Parameter(Mandatory, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [string]$Distro,
 
     [Alias('d')]
     [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
     [string]$Destination,
 
-    [switch]$Copy,
-
     [Alias('n')]
-    [string]$NewName
+    [ValidateNotNullOrEmpty()]
+    [string]$NewName,
+
+    [switch]$Copy
 )
 
 begin {
