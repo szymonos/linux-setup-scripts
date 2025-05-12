@@ -47,7 +47,7 @@ function ConvertFrom-Cfg {
         switch ($PsCmdlet.ParameterSetName) {
             FromFile {
                 $content = [System.IO.File]::ReadAllLines((Resolve-Path $Path))
-                $content.ForEach({ $cfgList.Add( $_ ) })
+                $content.ForEach({ $cfgList.Add($_) })
             }
             FromPipeline {
                 if ($InputObject) {
@@ -60,27 +60,49 @@ function ConvertFrom-Cfg {
     end {
         # build an ordered dictionary from cfg object
         $cfg = [ordered]@{}
-        switch -Regex ($cfgList) {
-            '^\s*\[(.+)\]' {
-                # Section
+        $header = @()
+        $section = $null
+        $CommentCount = 0
+
+        foreach ($line in $cfgList) {
+            if (-not $section -and $line -match '^\s*\[(.+)\]') {
+                # first section encountered; store section header
+                $section = $matches[1]
+                $cfg[$section] = [ordered]@{}
+                continue
+            }
+            if (-not $section) {
+                # before any section header, preserve header comments (only if they are comments)
+                if ($line -match '^\s*[#;].*') {
+                    $header += $line
+                }
+                continue
+            }
+            if ($line -match '^\s*\[(.+)\]') {
+                # new section header encountered
                 $section = $matches[1]
                 $cfg[$section] = [ordered]@{}
                 $CommentCount = 0
+                continue
             }
-            '^\s*([#;].*)' {
-                # Comment
-                $value = $matches[1]
-                $CommentCount = $CommentCount + 1
-                $name = 'Comment' + $CommentCount
-                $cfg[$section][$name] = $value
+            elseif ($line -match '^\s*([#;].*)') {
+                # Comment within section
+                $CommentCount++
+                $name = "Comment$CommentCount"
+                $cfg[$section][$name] = $matches[1]
+                continue
             }
-            '^\s*(\w+)\s*=(.*)' {
-                # Key
+            elseif ($line -match '^\s*(\w+)\s*=(.*)') {
+                # Key value pair
                 $name, $value = $matches[1..2]
                 $cfg[$section][$name] = $value.Trim()
+                continue
             }
         }
-        # return configuration dictionary
+        # store header in special key if any header comments were collected
+        if ($header.Count -gt 0) {
+            $cfg['__header__'] = $header -join "`n"
+        }
         return $cfg
     }
 }
@@ -105,7 +127,12 @@ function ConvertTo-Cfg {
     }
 
     $builder = [System.Text.StringBuilder]::new()
+    # Restore header comments at the beginning if they exist
+    if ($OrderedDict.Contains("__header__")) {
+        $builder.AppendLine($OrderedDict['__header__']) | Out-Null
+    }
     foreach ($enum in $OrderedDict.GetEnumerator()) {
+        if ($enum.Key -eq '__header__') { continue }
         $section = $enum.Key
         $builder.AppendLine("`n[$section]") | Out-Null
         foreach ($cfg in $enum.Value.GetEnumerator()) {

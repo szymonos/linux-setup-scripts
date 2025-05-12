@@ -51,12 +51,26 @@ function Get-WslDistro {
             if ($Online) {
                 # get list of online WSL distros in the loop
                 $retry = 0
-                $distros = $null
+                $distros = [Collections.Generic.List[PSCustomObject]]::new()
                 do {
                     try {
-                        $distros = Invoke-RestMethod 'https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json' `
-                        | Select-Object -ExpandProperty Distributions `
-                        | Select-Object Name, FriendlyName
+                        $distInfo = Invoke-RestMethod 'https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json'
+                        $modernDistros = ($distInfo.ModernDistributions | Get-Member -MemberType NoteProperty).Name
+                        foreach ($distroFamily in $modernDistros) {
+                            foreach($distro in $distInfo.ModernDistributions.$distroFamily) {
+                                $distros.Add([PSCustomObject]@{
+                                    Name         = $distro.Name
+                                    FriendlyName = $distro.FriendlyName
+                                })
+                            }
+                        }
+                        foreach ($distro in $distInfo.Distributions) {
+                            $distros.Add([PSCustomObject]@{
+                                Name         = $distro.Name
+                                FriendlyName = $distro.FriendlyName
+                            })
+                        }
+                        $distros = $distros | Sort-Object -Property Name -Unique
                     } catch {
                         Out-Null
                     }
@@ -65,7 +79,7 @@ function Get-WslDistro {
                         Write-Error -Message 'Cannot get list of valid distributions.' -Category ConnectionError
                         break
                     }
-                } until ($distros)
+                } until ($distros.Count -gt 0)
             } else {
                 # change console encoding to utf-16
                 [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
