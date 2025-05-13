@@ -243,6 +243,8 @@ process {
         if ($chk.def_uid -ne $chk.uid) {
             Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
             wsl.exe --distribution $Distro
+            # rerun distro_check to get updated user
+            $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
         }
         # instantiate scope generic sorted set
         $scopes = [System.Collections.Generic.SortedSet[string]]::new()
