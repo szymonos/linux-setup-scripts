@@ -32,8 +32,8 @@ arch)
   fi
   ;;
 fedora)
-  rpm -q patch &>/dev/null || dnf groupinstall -y 'Development Tools'
-  dnf install -qy bash-completion bind-utils curl dnf-plugins-core git iputils jq redhat-lsb-core man-db nmap openssl tar tig tree unzip vim wget whois
+  rpm -q patch &>/dev/null || dnf group install -y development-tools
+  dnf install -qy bash-completion bind-utils curl dnf5-plugins git iputils jq man-db nmap openssl tar tig tree unzip vim wget whois
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive

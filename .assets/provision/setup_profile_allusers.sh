@@ -32,7 +32,7 @@ if [ -f "$CFG_PATH/aliases.sh" ]; then
   # *set nerd fonts if oh-my-posh uses them
   eza_param=''
   eza --version 2>/dev/null | grep -Fqw '+git' && eza_param+='--git ' || true
-  grep -Fqw '' ""$OMP_PATH/theme.omp.json"" 2>/dev/null && eza_param+='--icons ' || true
+  grep -Fqw '\ue725' ""$OMP_PATH/theme.omp.json"" 2>/dev/null && eza_param+='--icons ' || true
   sed -i "s/eza -g /eza -g $eza_param/" "$CFG_PATH/aliases.sh"
 fi
 
@@ -52,8 +52,6 @@ if [ -d "$CFG_PATH" ]; then
   install -m 0644 "$CFG_PATH/functions.sh" "$PROFILE_PATH"
   # clean config folder
   rm -fr "$CFG_PATH"
-  # TODO to be removed, cleanup legacy aliases
-  rm -f "$PROFILE_PATH/bash_aliases" "$PROFILE_PATH/bash_aliases_git" "$PROFILE_PATH/bash_aliases_kubectl"
 fi
 
 # *bash profile

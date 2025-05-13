@@ -22,7 +22,7 @@ List of installation scopes. Valid values:
 - conda: miniconda, uv, pip, venv
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
-- k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize, kubectx, kubens
+- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, kubeseal, flux, kustomize, kubecolor, kubectx, kubens
 - k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
@@ -127,9 +127,9 @@ param (
 begin {
     $ErrorActionPreference = 'Stop'
     # check if the script is running on Windows
-    if (-not $IsWindows) {
-        Write-Warning 'Run the script on Windows!'
-        exit 0
+    if ($IsLinux) {
+        Write-Warning 'This script is intended to be run on Windows only (outside of WSL).'
+        exit 1
     }
 
     # set location to workspace folder
@@ -157,14 +157,12 @@ begin {
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
                 Write-Host "`nspecified distribution not found ($Distro), proceeding to install..." -ForegroundColor Cyan
-                $cmd = "wsl.exe --install --distribution $Distro --web-download"
                 try {
                     Get-Service LxssManagerUser*, WSLService | Out-Null
-                    Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
-                    Invoke-Expression $cmd
+                    wsl.exe --install --distribution $Distro --web-download --no-launch
                 } catch {
                     if (Test-IsAdmin) {
-                        Invoke-Expression $cmd
+                        wsl.exe --install --distribution $Distro --web-download
                         Write-Host 'WSL service installation finished.'
                         Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
                     } else {
@@ -214,8 +212,7 @@ begin {
                         continue
                     }
                 }
-                Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
-                wsl.exe --install --distribution $Distro --web-download
+                wsl.exe --install --distribution $Distro --web-download --no-launch
             }
         }
         # get installed distro details
@@ -243,6 +240,12 @@ process {
         $Distro = $lx.Name
         # *perform distro checks
         $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+        if ($chk.def_uid -ne $chk.uid) {
+            Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
+            wsl.exe --distribution $Distro
+            # rerun distro_check to get updated user
+            $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+        }
         # instantiate scope generic sorted set
         $scopes = [System.Collections.Generic.SortedSet[string]]::new()
         $Scope.ForEach({ $scopes.Add($_) | Out-Null })
@@ -332,8 +335,10 @@ process {
                 Write-Host 'installing kubernetes base packages...' -ForegroundColor Cyan
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl && $($chk.k8s_base = $true)
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
+                $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
                 $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
+                $rel_kubecolor = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubecolor.sh $Script:rel_kubecolor
                 $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
                 $rel_kubeseal = try { wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal.version $Script:rel_kubeseal.download_url | ConvertFrom-Json } catch { $null }
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux

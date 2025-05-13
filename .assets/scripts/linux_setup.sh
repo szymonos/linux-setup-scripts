@@ -93,8 +93,10 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling kubernetes base packages...\e[0m\n"
     sudo .assets/provision/install_kubectl.sh >/dev/null
     sudo .assets/provision/install_kubelogin.sh >/dev/null
+    sudo .assets/provision/install_cilium.sh >/dev/null
     sudo .assets/provision/install_helm.sh >/dev/null
     sudo .assets/provision/install_k9s.sh >/dev/null
+    sudo .assets/provision/install_kubecolor.sh >/dev/null
     sudo .assets/provision/install_kubectx.sh >/dev/null
     sudo .assets/provision/install_kubeseal.sh >/dev/null
     sudo .assets/provision/install_flux.sh

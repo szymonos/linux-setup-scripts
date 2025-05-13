@@ -21,7 +21,10 @@ arch)
 fedora)
   rpm -q $APP &>/dev/null && exit 0 || true
   ;;
-debian | ubuntu)
+debian)
+  dpkg -s $APP &>/dev/null && exit 0 || true
+  ;;
+ubuntu)
   dpkg -s $APP &>/dev/null && exit 0 || true
   ;;
 opensuse)
@@ -64,7 +67,7 @@ arch)
 fedora)
   dnf install -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
   ;;
-debian | ubuntu)
+debian)
   export DEBIAN_FRONTEND=noninteractive
   mkdir -p /etc/apt/keyrings
   if [ ! -f /etc/apt/keyrings/gierens.gpg ]; then
@@ -72,6 +75,10 @@ debian | ubuntu)
   fi
   echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" >/etc/apt/sources.list.d/gierens.list
   chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+  apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
+  ;;
+ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
   ;;
 opensuse)

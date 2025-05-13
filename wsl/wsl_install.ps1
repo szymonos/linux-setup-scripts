@@ -20,7 +20,7 @@ List of installation scopes. Valid values:
 - conda: miniconda, uv, pip, venv
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
-- k8s_base: kubectl, kubelogin, helm, k9s, kubeseal, flux, kustomize, kubectx, kubens
+- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, kubeseal, flux, kustomize, kubectx, kubens
 - k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
@@ -78,6 +78,11 @@ param (
 
 begin {
     $ErrorActionPreference = 'Stop'
+    # check if the script has been executed on Windows
+    if ($IsLinux) {
+        Write-Warning "This script is intended to be run on Windows only (outside of WSL)."
+        exit 1
+    }
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."

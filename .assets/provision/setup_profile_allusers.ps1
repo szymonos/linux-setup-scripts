@@ -50,7 +50,7 @@ process {
     # *modify eza alias
     if (Test-Path $CFG_PATH/_aliases_linux.ps1) {
         $eza_git = eza --version | Select-String '+git' -SimpleMatch -Quiet
-        $eza_nerd = Select-String '' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet
+        $eza_nerd = Select-String '\ue725' -Path /usr/local/share/oh-my-posh/theme.omp.json -SimpleMatch -Quiet
         $eza_param = ($eza_git ? '--git ' : '') + ($eza_nerd ? '--icons ' : '')
         $content = [IO.File]::ReadAllLines("$CFG_PATH/_aliases_linux.ps1").Replace('eza -g ', "eza -g $eza_param")
         [IO.File]::WriteAllLines("$CFG_PATH/_aliases_linux.ps1", $content)
@@ -61,8 +61,6 @@ process {
         if (-not (Test-Path $SCRIPTS_PATH)) {
             New-Item $SCRIPTS_PATH -ItemType Directory | Out-Null
         }
-        # TODO to be removed, cleanup legacy aliases
-        Get-ChildItem -Path $SCRIPTS_PATH -Filter '*_aliases_*.ps1' -File | Remove-Item -Force
         # PowerShell profile
         install -m 0644 $CFG_PATH/profile.ps1 $PROFILE.AllUsersAllHosts
         # PowerShell functions

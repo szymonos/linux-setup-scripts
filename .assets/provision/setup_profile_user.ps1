@@ -37,7 +37,7 @@ for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5;
 
 # install kubectl autocompletion
 if (Test-Path /usr/bin/kubectl -PathType Leaf) {
-    $kubectlSet = try { Select-String 'Set-Alias -Name k' -Path $PROFILE.CurrentUserCurrentHost -SimpleMatch -Quiet } catch { $false }
+    $kubectlSet = try { Select-String 'kubecolor' -Path $PROFILE.CurrentUserCurrentHost -SimpleMatch -Quiet } catch { $false }
     if (-not $kubectlSet) {
         Write-Host 'adding kubectl auto-completion...'
         # build completer text
@@ -45,7 +45,12 @@ if (Test-Path /usr/bin/kubectl -PathType Leaf) {
             (/usr/bin/kubectl completion powershell) -join "`n",
             "`n# setup autocompletion for the 'k' alias",
             'Set-Alias -Name k -Value kubectl',
-            "Register-ArgumentCompleter -CommandName 'k' -ScriptBlock `${__kubectlCompleterBlock}"
+            "Register-ArgumentCompleter -CommandName 'k' -ScriptBlock `${__kubectlCompleterBlock}",
+            "`n# setup autocompletion for the 'kubecolor' binary",
+            'if (Test-Path /usr/bin/kubecolor -PathType Leaf) {',
+            '    Set-Alias -Name kubectl -Value kubecolor',
+            "    Register-ArgumentCompleter -CommandName 'kubecolor' -ScriptBlock `${__kubectlCompleterBlock}",
+            '}'
         )
         # add additional ArgumentCompleter at the end of the profile
         [System.IO.File]::WriteAllText($PROFILE, $completer)
