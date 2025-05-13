@@ -61,8 +61,6 @@ process {
         if (-not (Test-Path $SCRIPTS_PATH)) {
             New-Item $SCRIPTS_PATH -ItemType Directory | Out-Null
         }
-        # TODO to be removed, cleanup legacy aliases
-        Get-ChildItem -Path $SCRIPTS_PATH -Filter '*_aliases_*.ps1' -File | Remove-Item -Force
         # PowerShell profile
         install -m 0644 $CFG_PATH/profile.ps1 $PROFILE.AllUsersAllHosts
         # PowerShell functions

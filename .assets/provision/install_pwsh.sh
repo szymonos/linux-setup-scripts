@@ -74,24 +74,18 @@ fedora)
   dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-1.rh.x86_64.rpm" >&2 2>/dev/null || binary=true
   ;;
 debian | ubuntu)
-  if grep -qGw '"24.04"' /etc/os-release; then
-    # install pwsh from binary
-    # TODO remove after the issue on the Ubuntu 24.04 will be fixed
-    binary=true
-  else
-    export DEBIAN_FRONTEND=noninteractive
-    [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu67 >&2 2>/dev/null || true
-    # create temporary dir for the downloaded binary
-    TMP_DIR=$(mktemp -dp "$PWD")
-    # calculate download uri
-    URL="https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
-    # download and install file
-    if download_file --uri $URL --target_dir $TMP_DIR; then
-      dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null || binary=true
-    fi
-    # remove temporary dir
-    rm -fr "$TMP_DIR"
+  export DEBIAN_FRONTEND=noninteractive
+  [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu67 >&2 2>/dev/null || true
+  # create temporary dir for the downloaded binary
+  TMP_DIR=$(mktemp -dp "$PWD")
+  # calculate download uri
+  URL="https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
+  # download and install file
+  if download_file --uri $URL --target_dir $TMP_DIR; then
+    dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null || binary=true
   fi
+  # remove temporary dir
+  rm -fr "$TMP_DIR"
   ;;
 *)
   binary=true

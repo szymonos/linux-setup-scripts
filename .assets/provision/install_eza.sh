@@ -25,8 +25,6 @@ debian)
   dpkg -s $APP &>/dev/null && exit 0 || true
   ;;
 ubuntu)
-  # TODO to be removed after fix propagation
-  [ -f /etc/apt/sources.list.d/gierens.list ] && rm -f /etc/apt/sources.list.d/gierens.list || true
   dpkg -s $APP &>/dev/null && exit 0 || true
   ;;
 opensuse)
