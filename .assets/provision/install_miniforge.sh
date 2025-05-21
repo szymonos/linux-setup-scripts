@@ -34,19 +34,19 @@ function conda_init {
 }
 
 # *Install conda.
-if [ -d "$HOME/miniforge3" ]; then
+if [ -x "$HOME/miniforge3/bin/conda" ]; then
   conda_init
 else
   printf "\e[92minstalling \e[1mminiforge\e[0m\n"
   # dotsource file with common functions
   . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$PWD")
+  TMP_DIR=$(mktemp -dp "$HOME")
   # calculate download uri
   URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
   # download and install file
-  if download_file --uri $URL --target_dir $TMP_DIR; then
-    bash -C "$TMP_DIR/$(basename $URL)" -b -p "$HOME/miniforge3" >/dev/null
+  if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
+    bash -C "$TMP_DIR/$(basename $URL)" -u -b -p "$HOME/miniforge3" >/dev/null
   fi
   # remove temporary dir
   rm -fr "$TMP_DIR"

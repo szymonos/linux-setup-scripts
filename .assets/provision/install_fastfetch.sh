@@ -71,11 +71,11 @@ fedora)
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$PWD")
+  TMP_DIR=$(mktemp -dp "$HOME")
   # calculate download uri
   URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-linux-amd64.deb"
   # download and install file
-  if download_file --uri $URL --target_dir $TMP_DIR; then
+  if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null
   fi
   # remove temporary dir

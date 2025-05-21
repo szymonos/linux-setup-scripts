@@ -92,11 +92,11 @@ esac
 if [ "$binary" = true ] && [ -n "$REL" ]; then
   printf "Installing $APP \e[1mv$REL\e[22m from binary.\n" >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$PWD")
+  TMP_DIR=$(mktemp -dp "$HOME")
   # calculate download uri
   URL="https://github.com/eza-community/eza/releases/download/v${REL}/eza_x86_64-unknown-linux-${lib}.tar.gz"
   # download and install file
-  if download_file --uri $URL --target_dir $TMP_DIR; then
+  if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
     install -m 0755 "$TMP_DIR/eza" /usr/bin/
   fi

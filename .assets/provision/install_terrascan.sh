@@ -34,11 +34,11 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$PWD")
+TMP_DIR=$(mktemp -dp "$HOME")
 # calculate download uri
 URL="https://github.com/tenable/terrascan/releases/download/v${REL}/terrascan_${REL}_Linux_x86_64.tar.gz"
 # download and install file
-if download_file --uri $URL --target_dir $TMP_DIR; then
+if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
   install -m 0755 "$TMP_DIR/terrascan" /usr/bin/
 fi
