@@ -67,7 +67,7 @@ esac
 if [ "$binary" = true ] && [ -n "$REL" ]; then
   printf "Installing $APP \e[1mv$REL\e[22m from binary.\n" >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$PWD")
+  TMP_DIR=$(mktemp -dp "$HOME")
   # calculate download uri
   if [[ "$SYS_ID" =~ ^(debian|ubuntu)$ ]]; then
     asset="kubecolor_${REL}_linux_amd64.deb"
@@ -76,7 +76,7 @@ if [ "$binary" = true ] && [ -n "$REL" ]; then
   fi
   URL="https://github.com/kubecolor/kubecolor/releases/download/v${REL}/${asset}"
   # download and install file
-  if download_file --uri $URL --target_dir $TMP_DIR; then
+  if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     if [[ "$SYS_ID" =~ ^(debian|ubuntu)$ ]]; then
       sudo dpkg -i "$TMP_DIR/$asset" >&2 2>/dev/null
     else

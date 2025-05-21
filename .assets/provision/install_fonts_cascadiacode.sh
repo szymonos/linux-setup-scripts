@@ -26,11 +26,11 @@ echo $REL
 
 echo "Install CascadiaCode v$REL" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$PWD")
+TMP_DIR=$(mktemp -dp "$HOME")
 # calculate download uri
 URL="https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
 # download and install file
-if download_file --uri $URL --target_dir $TMP_DIR; then
+if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   unzip -q "$TMP_DIR/$(basename $URL)" -d "$TMP_DIR"
   mkdir -p /usr/share/fonts/cascadia-code
   find "$TMP_DIR/ttf" -type f -name "*.ttf" -exec cp {} /usr/share/fonts/cascadia-code/ \;

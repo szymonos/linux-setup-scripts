@@ -34,11 +34,11 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$PWD")
+TMP_DIR=$(mktemp -dp "$HOME")
 # calculate download uri
 URL="https://github.com/Azure/kubelogin/releases/download/v${REL}/kubelogin-linux-amd64.zip"
 # download and install file
-if download_file --uri $URL --target_dir $TMP_DIR; then
+if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   unzip -q "$TMP_DIR/$(basename $URL)" -d "$TMP_DIR"
   install -m 0755 "$TMP_DIR/bin/linux_amd64/kubelogin" /usr/local/bin/
 fi
