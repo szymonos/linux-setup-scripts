@@ -80,7 +80,7 @@ begin {
     $ErrorActionPreference = 'Stop'
     # check if the script has been executed on Windows
     if ($IsLinux) {
-        Write-Warning "This script is intended to be run on Windows only (outside of WSL)."
+        Write-Warning 'This script is intended to be run on Windows only (outside of WSL).'
         exit 1
     }
 
@@ -98,18 +98,28 @@ begin {
     # update environment paths
     Update-SessionEnvironmentPath
     # WSL feature name
-    $wslFeat = @('VirtualMachinePlatform', 'Microsoft-Windows-Subsystem-Linux')
+    $features = @('VirtualMachinePlatform', 'Microsoft-Windows-Subsystem-Linux')
 }
 
 process {
+    # *Check if SSH.Client is enabled
+    $sshClient = Get-WindowsCapability -Online | Where-Object Name -Like 'OpenSSH.Client*'
+    # if ($sshClient.State -eq 'NotPresent') {
+    if ($sshClient.State -ne 'Installed') {
+        Write-Host 'OpenSSH.Client feature not installed.'
+        Write-Host "`nInstalling OpenSSH.Client feature...`n" -ForegroundColor Yellow
+        $sshClient = Add-WindowsCapability -Online -Name $sshClient.Name
+    }
     # *Check if WSL Feature is enabled
-    if ((Test-IsAdmin) -and (Get-WindowsOptionalFeature -FeatureName $wslFeat[0] -Online).State -ne 'Enabled') {
-        $enabled = Enable-WindowsOptionalFeature -FeatureName $wslFeat -Online
-        if ($enabled.RestartNeeded) {
-            Write-Host 'Microsoft-Windows-Subsystem-Linux feature enabled.'
-            Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
-            exit 0
-        }
+    $wslFeat = Get-WindowsOptionalFeature -FeatureName $features[0] -Online
+    if ($wslFeat.State -ne 'Enabled') {
+        $wslFeat = Enable-WindowsOptionalFeature -FeatureName $features -Online
+    }
+    # *Check if restart is needed
+    if ($wslFeat.RestartNeeded -or $sshClient.RestartNeeded) {
+        Write-Host 'Required features enabled and system restart is needed.'
+        Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
+        exit 0
     }
 
     # *Perform WSL update
