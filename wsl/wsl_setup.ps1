@@ -196,7 +196,7 @@ begin {
                     0 {
                         Write-Host "`nunregistering current distro..." -ForegroundColor Cyan
                         wsl.exe --unregister $Distro
-                        continue
+                        break
                     }
                     1 {
                         for ($i = 0; $i -lt 5; $i++) {
@@ -209,7 +209,7 @@ begin {
                         }
                         $Distro = Get-ArrayIndexMenu $onlineDistros -Message 'Choose distro to install' -Value
                         Write-Host "`ninstalling selected distro ($Distro)..." -ForegroundColor Cyan
-                        continue
+                        break
                     }
                 }
                 wsl.exe --install --distribution $Distro --web-download --no-launch
