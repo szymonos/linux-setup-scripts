@@ -81,7 +81,7 @@ if [ "$binary" = true ] && [ -n "$REL" ]; then
       sudo dpkg -i "$TMP_DIR/$asset" >&2 2>/dev/null
     else
       tar -zxf "$TMP_DIR/$asset" -C "$TMP_DIR"
-      install -m 0755 "$TMP_DIR/eza" /usr/bin/
+      install -m 0755 "$TMP_DIR/kubecolor" /usr/bin/
     fi
   fi
   # remove temporary dir

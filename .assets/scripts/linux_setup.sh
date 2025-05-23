@@ -147,6 +147,12 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_tfswitch.sh
     sudo .assets/provision/install_terrascan.sh
     ;;
+  zsh)
+    printf "\e[96minstalling zsh...\e[0m\n"
+    sudo .assets/provision/install_zsh.sh
+    printf "\e[96msetting up zsh profile for current user...\e[0m\n"
+    .assets/provision/setup_profile_user_zsh.sh
+    ;;
   esac
 done
 # setup bash profiles
