@@ -58,7 +58,7 @@ if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
   array+=(shell)
 fi
 # sort array
-IFS=$'\n' scope_arr=($(sort --unique <<<${array[*]})) && unset IFS
+IFS=$'\n' scope_arr=($(sort -u <<<${array[*]})) && unset IFS
 # get distro name from os-release
 . /etc/os-release
 # display distro name and scopes to install
@@ -112,7 +112,7 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling Node.js...\e[0m\n"
     sudo .assets/provision/install_nodejs.sh >/dev/null
     ;;
-  omp)
+  oh_my_posh)
     printf "\e[96minstalling oh-my-posh...\e[0m\n"
     sudo .assets/provision/install_omp.sh >/dev/null
     if [ -n "$omp_theme" ]; then
