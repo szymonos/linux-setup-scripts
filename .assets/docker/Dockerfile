@@ -14,7 +14,7 @@ RUN apt-get update \
     && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu-nopasswd \
     && chmod 0440 /etc/sudoers.d/ubuntu-nopasswd \
     # change ownership to the ubuntu user
-    && chown -R ubuntu:ubuntu /home/ubuntu/source/lss/.assets \
+    && chown -R ubuntu:ubuntu /home/ubuntu/source \
     # setup the container for the ubuntu user
     && su - ubuntu -c 'cd "$HOME/source/lss" && .assets/scripts/linux_setup.sh --scope "pwsh" --omp_theme base' \
     #
@@ -31,3 +31,6 @@ WORKDIR /home/ubuntu
 
 # switch back to dialog for any ad-hoc use of apt
 ENV DEBIAN_FRONTEND=dialog
+
+# use PowerShell as the default shell
+ENTRYPOINT [ "/usr/bin/pwsh" ]

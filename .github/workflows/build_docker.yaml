@@ -15,25 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: linux-setup-scripts
 
-      - name: Checkout the ps-modules repo
-        uses: actions/checkout@v3
-        with:
-          repository: szymonos/ps-modules
-          ref: main
-          path: ps-modules
-
       - name: Docker Login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker images
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: linux-setup-scripts
           file: linux-setup-scripts/.assets/docker/Dockerfile
