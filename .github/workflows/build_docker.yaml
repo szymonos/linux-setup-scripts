@@ -1,9 +1,13 @@
 name: Publish Docker image
 
 on:
-  push:
+  pull_request:
     branches:
-      - 'main'
+      - main
+    paths:
+      - '.github/**'
+      - '.assets/**'
+      - 'modules/**'
 
 jobs:
   push_to_registry:
@@ -31,7 +35,7 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: linux-setup-scripts
           file: linux-setup-scripts/.assets/docker/Dockerfile
           push: true
           tags: muscimol/pwsh:latest
