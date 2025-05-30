@@ -89,23 +89,24 @@ get_gh_release_latest() {
     return 1
   fi
 
+  # try to retrieve gh-cli token
+  if [ -x /usr/bin/gh ]; then
+    # get the token from the gh command
+    token="$(gh auth token 2>/dev/null)"
+  fi
+
   # calculate the API URI
   api_uri="https://api.github.com/repos/$owner/$repo/releases"
   # get the latest release if asset or regex is not specified
   [ -z "$asset" ] && [ -z "$regex" ] && api_uri+="/latest" || true
+  cmnd="curl -sk $api_uri -H 'Accept: application/vnd.github+json'"
+  # set the header with the token
+  [ -n "$token" ] && cmnd+=" -H 'Authorization: Bearer ${token}'"
   # send API request to GitHub
   while [ $retry_count -le $max_retries ]; do
-    cmnd="curl -sk '${api_uri}'"
     if echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "API rate limit exceeded"; then
-      # get the token from the gh command
-      [ -z "$token" ] && type gh &>/dev/null && token="$(gh auth token 2>/dev/null)"
-      # set the header with the token
-      if [ -n "$token" ]; then
-        cmnd="curl -H 'Authorization: Bearer ${token}' -sk ${api_uri}"
-      else
-        printf "\e[31mError: API rate limit exceeded. Please try again later.\e[0m\n" >&2
-        return 1
-      fi
+      printf "\e[31mError: API rate limit exceeded. Please try again later.\e[0m\n" >&2
+      return 1
     fi
     # get the latest release
     api_response="$(eval $cmnd)"
