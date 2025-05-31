@@ -36,6 +36,7 @@ if (-not $isWSL1) {
 #region environment variables and aliases
 [Environment]::SetEnvironmentVariable('OMP_PATH', '/usr/local/share/oh-my-posh')
 [Environment]::SetEnvironmentVariable('SCRIPTS_PATH', '/usr/local/share/powershell/Scripts')
+[Environment]::SetEnvironmentVariable('USER_SCRIPTS_PATH', "$HOME/.config/powershell/Scripts")
 (Select-String '(?<=^ID.+)(alpine|arch|fedora|debian|ubuntu|opensuse)' -List /etc/os-release).Matches.Value.ForEach({
         [Environment]::SetEnvironmentVariable('DISTRO_FAMILY', $_)
     }
@@ -50,8 +51,11 @@ if (-not $isWSL1) {
     }
 }
 # dot source PowerShell alias scripts
-if (Test-Path $env:SCRIPTS_PATH) {
+if (Test-Path $env:SCRIPTS_PATH -PathType Container) {
     Get-ChildItem -Path $env:SCRIPTS_PATH -Filter '_aliases_*.ps1' -File | ForEach-Object { . $_.FullName }
+}
+if (Test-Path $env:USER_SCRIPTS_PATH -PathType Container) {
+    Get-ChildItem -Path $env:USER_SCRIPTS_PATH -Filter '_aliases_*.ps1' -File | ForEach-Object { . $_.FullName }
 }
 #endregion
 

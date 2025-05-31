@@ -57,6 +57,18 @@ if (Test-Path /usr/bin/kubectl -PathType Leaf) {
     }
 }
 
+# add gh copilot aliases
+if (Test-Path /usr/bin/gh) {
+    if (gh extension list | Select-String 'github/gh-copilot' -SimpleMatch -Quiet) {
+        $USER_SCRIPTS_PATH = "$HOME/.config/powershell/Scripts"
+        if (-not (Test-Path $USER_SCRIPTS_PATH)) {
+            New-Item -Path $USER_SCRIPTS_PATH -ItemType Directory -Force | Out-Null
+        }
+        $GH_COPILOT_PROFILE = Join-Path -Path $USER_SCRIPTS_PATH -ChildPath '_aliases_copilot.ps1'
+        gh copilot alias -- pwsh | Out-File ( New-Item -Path $GH_COPILOT_PROFILE -Force )
+    }
+}
+
 # setup conda initialization
 if (Test-Path $HOME/miniconda3/bin/conda -PathType Leaf) {
     $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
