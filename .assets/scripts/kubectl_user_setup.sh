@@ -30,9 +30,8 @@ fi
 # *Add kubectl aliases
 if ! grep -qF ".d/aliases_kubectl.sh" "$HOME/.bashrc"; then
   printf "\e[95madding kubectl aliases...\e[0m\n"
-  mkdir -p "$HOME/.bashrc.d" \
-  && cd "$HOME/.bashrc.d" \
-  && curl -sO "$GH_CONTENT_ASSETS/config/bash_cfg/aliases_kubectl.sh" \
+  mkdir -p "$HOME/.bashrc.d" >/dev/null \
+  && curl --fail -s "$GH_CONTENT_ASSETS/config/bash_cfg/aliases_kubectl.sh" -o "$HOME/.bashrc.d/aliases_kubectl.sh" \
   && echo "source '$HOME/.bashrc.d/aliases_kubectl.sh'" >>"$HOME/.bashrc"
 else
   printf "\e[32mkubectl aliases already added to .bashrc\e[0m\n"
