@@ -13,6 +13,7 @@ declare -A state=(
   ["conda"]=$([ -d $HOME/miniconda3 ] && echo "true" || echo "false")
   ["git_user"]=$([ -n "$(git config --global --get user.name 2>/dev/null)" ] && echo "true" || echo "false")
   ["git_email"]=$([ -n "$(git config --global --get user.email 2>/dev/null)" ] && echo "true" || echo "false")
+  ["gh_token"]=$([ -x /usr/bin/gh ] && gh auth token &>/dev/null && echo "true" || echo "false")
   ["gtkd"]=$(grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && echo "true" || echo "false")
   ["k8s_base"]=$([ -f /usr/bin/kubectl ] && echo "true" || echo "false")
   ["k8s_ext"]=$([ -f /usr/local/bin/k3d ] && echo "true" || echo "false")
@@ -41,7 +42,7 @@ is_excluded() {
 # check if array parameter is provided
 if [ "$1" = 'array' ]; then
   # keys to exclude
-  exclude_keys=('git_user' 'git_email' 'ssh_key' 'systemd' 'wslg' 'wsl_boot' 'gtkd')
+  exclude_keys=('git_user' 'git_email' 'ssh_key' 'systemd' 'wslg' 'wsl_boot' 'gtkd' 'gh_token')
   # print only the keys with true values, excluding specified keys
   for key in "${!state[@]}"; do
     if [ "${state[$key]}" = "true" ] && ! is_excluded "$key"; then

@@ -40,9 +40,7 @@ fi
 echo $REL
 
 if type $APP &>/dev/null; then
-  script -q -c "kubecolor version" output.log &>/dev/null
-  VER=$(cat -v output.log | grep -Po '(?<=m)([0-9]\.[0-9]\.[0-9])(?=\^)')
-  rm -f output.log
+  VER=$(kubecolor --kubecolor-version)
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0

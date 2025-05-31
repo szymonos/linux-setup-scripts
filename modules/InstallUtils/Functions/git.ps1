@@ -26,7 +26,7 @@ function Invoke-GhRepoClone {
         # determine organisation and repository name
         $org, $repo = $OrgRepo.Split('/')
         # command for getting the remote url
-        $getOrigin = { git config --get remote.origin.url }
+        $getOrigin = { git config --get remote.origin.url || 'https://github.com/' }
         # calculate destination path
         $destPath = Join-Path $Path -ChildPath $repo
     }
@@ -55,7 +55,7 @@ function Invoke-GhRepoClone {
             # determine GitHub protocol used (https/ssl)
             $gitProtocol = $(Invoke-Command $getOrigin) -replace '(^.+github\.com[:/]).*', '$1'
             # clone target repository
-            git clone "${gitProtocol}$org/$repo" "$destPath" --quiet
+            git clone "${gitProtocol}${org}/${repo}.git" "$destPath" --quiet
             # determine state of cloning the repository
             $status = if ($?) {
                 Write-Verbose "Repository `"$OrgRepo`" cloned successfully."

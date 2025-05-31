@@ -1,0 +1,42 @@
+FROM alpine:latest
+
+# add alpine user and home directory
+RUN adduser -D -h /home/alpine alpine
+
+# copy the entire .assets folder into the container
+COPY .assets /home/alpine/source/lss/.assets
+
+# install dependencies
+RUN apk add --no-cache bash sudo \
+    # allow alpine user to run sudo without password
+    && echo "alpine ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/alpine-nopasswd \
+    && chmod 0440 /etc/sudoers.d/alpine-nopasswd \
+    # change ownership to the alpine user
+    && chown -R alpine:alpine /home/alpine/source
+
+# switch to the 'alpine' user
+USER alpine
+
+# set the working directory
+WORKDIR /home/alpine
+
+RUN cd "$HOME/source/lss" \
+    # upgrade system packages
+    && sudo apk upgrade --available \
+    # install base packages
+    && sudo apk add --no-cache bind-tools ca-certificates iputils curl jq lsb-release-minimal nmap openssh-client openssl tar tree unzip vim whois \
+    # install and setup oh-my-posh
+    && sudo .assets/provision/install_omp.sh \
+    && sudo .assets/provision/setup_omp.sh --theme base --user alpine \
+    # setup shell
+    && sudo .assets/provision/install_eza.sh \
+    && sudo .assets/provision/install_bat.sh \
+    && sudo .assets/provision/install_ripgrep.sh \
+    && sudo .assets/provision/setup_profile_allusers.sh alpine \
+    && .assets/provision/setup_profile_user.sh \
+    #
+    # clean up
+    && sudo rm -rf /var/cache/apk/* /home/alpine/source
+
+# use PowerShell as the default shell
+ENTRYPOINT [ "/bin/bash" ]
