@@ -303,6 +303,12 @@ process {
         if (-not $chk.wsl_boot) {
             Set-WslConf -Distro $Distro -ConfDict ([ordered]@{ boot = @{ command = '"[ -x /etc/autoexec.sh ] && /etc/autoexec.sh || true"' } })
         }
+        # *setup GitHub CLI
+        if (-not $chk.gh_token) {
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
+            wsl.exe --distribution $Distro --exec .assets/provision/setup_gh.sh
+        }
+
         # *install scopes
         switch ($scopes) {
             conda {
@@ -546,8 +552,6 @@ process {
     }
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
-        # *install GitHub CLI
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh | Out-Null
         # *clone GitHub repositories
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"
