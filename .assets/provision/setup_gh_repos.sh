@@ -35,14 +35,7 @@ if ! grep -qw 'github.com' ~/.ssh/known_hosts 2>/dev/null; then
 fi
 
 # *check gh authentication status and login to GitHub if necessary
-if type gh &>/dev/null; then
-  retry_count=0
-  while [[ $retry_count -lt 5 ]]; do
-    gh auth status 2>&1 | grep -qw 'Token:' && github='https://github.com/' && break || true
-    gh auth login
-    ((retry_count++))
-  done
-fi
+gh auth token &>/dev/null && github='https://github.com/' || true
 
 # *setup source folder
 # create folders
