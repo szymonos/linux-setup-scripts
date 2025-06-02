@@ -102,21 +102,13 @@ begin {
 }
 
 process {
-    # *Check if SSH.Client is enabled
-    $sshClient = Get-WindowsCapability -Online | Where-Object Name -Like 'OpenSSH.Client*'
-    # if ($sshClient.State -eq 'NotPresent') {
-    if ($sshClient.State -ne 'Installed') {
-        Write-Host 'OpenSSH.Client feature not installed.'
-        Write-Host "`nInstalling OpenSSH.Client feature...`n" -ForegroundColor Yellow
-        $sshClient = Add-WindowsCapability -Online -Name $sshClient.Name
-    }
     # *Check if WSL Feature is enabled
     $wslFeat = Get-WindowsOptionalFeature -FeatureName $features[0] -Online
     if ($wslFeat.State -ne 'Enabled') {
         $wslFeat = Enable-WindowsOptionalFeature -FeatureName $features -Online
     }
     # *Check if restart is needed
-    if ($wslFeat.RestartNeeded -or $sshClient.RestartNeeded) {
+    if ($wslFeat.RestartNeeded) {
         Write-Host 'Required features enabled and system restart is needed.'
         Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
         exit 0

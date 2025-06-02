@@ -522,13 +522,46 @@ process {
             wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
         }
         # *check ssh keys and create if necessary
-        if (-not $chk.ssh_key -or $ShowSSHKey) {
-            $sshKey = '.ssh/id_ed25519'
-            if (-not ((Test-Path "$HOME/$sshKey") -and (Test-Path "$HOME/$sshKey.pub"))) {
-                if (Test-Path "$HOME/$sshKey") { Remove-Item "$HOME/$sshKey" }
-                ssh-keygen -t ed25519 -f "$HOME/$sshKey" -q -N ''
+        $sshKey = 'id_ed25519'
+        $winKey = "$HOME\.ssh\$sshKey"
+        $winKeyPub = "$HOME\.ssh\$sshKey.pub"
+        $sshWinPath = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))/.ssh"
+
+        $winKeyExists = (Test-Path $winKey) -and (Test-Path $winKeyPub)
+        if (-not $chk.ssh_key -and $winKeyExists) {
+            # copy Windows SSH keys to WSL using existing logic
+            $cmnd = [string]::Join("`n",
+                'mkdir -p $HOME/.ssh',
+                "install -m 0600 '$sshWinPath/$sshKey' `$HOME/.ssh",
+                "install -m 0644 '$sshWinPath/$sshKey.pub' `$HOME/.ssh"
+            )
+            wsl.exe --distribution $Distro --exec sh -c $cmnd
+        } elseif (-not $winKeyExists) {
+            if (Test-Path "$HOME\.ssh") {
+                Remove-Item $winKey, $winKeyPub -ErrorAction SilentlyContinue
+            } else {
+                New-Item "$HOME\.ssh" -ItemType Directory | Out-Null
             }
-            $idPub = [System.IO.File]::ReadAllLines("$HOME/$sshKey.pub")
+            # build bash command to generate SSH key if needed and copy to Windows
+            $cmnd = [string]::Join("`n",
+                '# copy SSH key to Windows',
+                "cp `"`$HOME/.ssh/id_ed25519`" $sshWinPath/id_ed25519",
+                "cp `"`$HOME/.ssh/id_ed25519.pub`" $sshWinPath/id_ed25519.pub"
+            )
+            if (-not $chk.ssh_key) {
+                $cmnd = [string]::Join("`n",
+                    '# remove existing SSH key',
+                    'rm -f "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"',
+                    '# create .ssh directory if not exists',
+                    'mkdir -p "$HOME/.ssh" >/dev/null',
+                    '# generate new SSH key',
+                    'ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -q'
+                ), $cmnd -join "`n"
+            }
+            wsl.exe --distribution $Distro --exec sh -c $cmnd
+        }
+        if (-not $chk.ssh_key -or $ShowSSHKey) {
+            $idPub = [System.IO.File]::ReadAllLines($winKeyPub)
             $msg = [string]::Join("`n",
                 "`e[97mUse the following values to add new SSH Key on `e[34;4mhttps://github.com/settings/ssh/new`e[97;24m",
                 "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
@@ -538,16 +571,6 @@ process {
             )
             Write-Host $msg
             [System.Console]::ReadKey() | Out-Null
-            if (-not $chk.ssh_key) {
-                Write-Host 'copying ssh keys...' -ForegroundColor Cyan
-                $mntHome = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))"
-                $cmd = [string]::Join("`n",
-                    'mkdir -p $HOME/.ssh',
-                    "install -m 0400 '$mntHome/$sshKey' `$HOME/.ssh",
-                    "install -m 0400 '$mntHome/$sshKey.pub' `$HOME/.ssh"
-                )
-                wsl.exe --distribution $Distro --exec sh -c $cmd
-            }
         }
     }
 
