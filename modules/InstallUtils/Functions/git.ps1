@@ -26,7 +26,7 @@ function Invoke-GhRepoClone {
         # determine organisation and repository name
         $org, $repo = $OrgRepo.Split('/')
         # command for getting the remote url
-        $getOrigin = { git config --get remote.origin.url || 'https://github.com/' }
+        $getOrigin = { git config --get remote.origin.url; if (-not $?) { 'https://github.com/' } }
         # calculate destination path
         $destPath = Join-Path $Path -ChildPath $repo
     }
