@@ -5,7 +5,7 @@ source <(curl -s https://raw.githubusercontent.com/szymonos/linux-setup-scripts/
 '
 
 # *GitHub user content assets URL
-GH_CONTENT_ASSETS="https://raw.githubusercontent.com/szymonos/linux-setup-scripts/main/.assets"
+GH_CONTENT_ASSETS="https://raw.githubusercontent.com/szymonos/linux-setup-scripts/dev/.assets"
 
 # *Install kubecolor
 printf "\e[95minstalling kubecolor...\e[0m\n"

@@ -10,6 +10,8 @@ if type $APP &>/dev/null; then
   exit 0
 fi
 
+# define variables
+REL=$1
 # try 6 times to get latest release if not provided as a parameter
 retry_count=0
 while [ -z "$REL" ]; do
