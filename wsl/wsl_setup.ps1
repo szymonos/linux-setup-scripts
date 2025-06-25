@@ -239,7 +239,15 @@ process {
     foreach ($lx in $lxss) {
         $Distro = $lx.Name
         # *perform distro checks
-        $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+        $chkStr = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh
+        try {
+            $chk = $chkStr | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+        } catch {
+            Write-Debug "$_"
+            Write-Warning "Failed to check the distro '$Distro'."
+            Write-Host "`nThe WSL seems to be not responding correctly. Run the script again!"
+            Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
+        }
         if ($chk.def_uid -ne $chk.uid) {
             Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
             wsl.exe --distribution $Distro
