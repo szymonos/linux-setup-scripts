@@ -312,10 +312,8 @@ process {
             Set-WslConf -Distro $Distro -ConfDict ([ordered]@{ boot = @{ command = '"[ -x /etc/autoexec.sh ] && /etc/autoexec.sh || true"' } })
         }
         # *setup GitHub CLI
-        if (-not $chk.gh_token) {
-            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-            wsl.exe --distribution $Distro --exec .assets/provision/setup_gh.sh
-        }
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh.sh --user $chk.user
 
         # *install scopes
         switch ($scopes) {
@@ -504,10 +502,10 @@ process {
         if (-not $chk.git_email) {
             if (-not ($email = git config --global --get user.email)) {
                 $email = try {
-                (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
+                    (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
                 } catch {
                     try {
-                    ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
+                        ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
                     } catch {
                         ''
                     }
