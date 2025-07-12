@@ -22,7 +22,7 @@ List of installation scopes. Valid values:
 - conda: miniconda, uv, pip, venv
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
-- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, kubeseal, flux, kustomize, kubecolor, kubectx, kubens
+- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, flux, kustomize, kubecolor, kubectx, kubens
 - k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
@@ -239,7 +239,15 @@ process {
     foreach ($lx in $lxss) {
         $Distro = $lx.Name
         # *perform distro checks
-        $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+        $chkStr = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh
+        try {
+            $chk = $chkStr | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+        } catch {
+            Write-Debug "$_"
+            Write-Warning "Failed to check the distro '$Distro'."
+            Write-Host "`nThe WSL seems to be not responding correctly. Run the script again!"
+            Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
+        }
         if ($chk.def_uid -ne $chk.uid) {
             Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
             wsl.exe --distribution $Distro
@@ -346,7 +354,6 @@ process {
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
                 $rel_kubecolor = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubecolor.sh $Script:rel_kubecolor
                 $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
-                $rel_kubeseal = try { wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubeseal.sh $Script:rel_kubeseal.version $Script:rel_kubeseal.download_url | ConvertFrom-Json } catch { $null }
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
                 $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
                 continue
