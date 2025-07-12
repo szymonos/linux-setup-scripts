@@ -233,12 +233,16 @@ begin {
             -Name 'SystemUsesLightTheme'
         $GtkTheme = $systemUsesLightTheme ? 'light' : 'dark'
     }
+
+    # script variable that determines if public SSH key has been added to GitHub
+    $script:sshKeyAdded = $false
 }
 
 process {
     foreach ($lx in $lxss) {
         $Distro = $lx.Name
-        # *perform distro checks
+
+        #region distro checks
         $chkStr = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh
         try {
             $chk = $chkStr | ConvertFrom-Json -AsHashtable -ErrorAction Stop
@@ -257,6 +261,7 @@ process {
         # instantiate scope generic sorted set
         $scopes = [System.Collections.Generic.SortedSet[string]]::new()
         $Scope.ForEach({ $scopes.Add($_) | Out-Null })
+
         # *determine additional scopes from distro check
         switch ($chk) {
             { $_.az } { $scopes.Add('az') | Out-Null }
@@ -287,16 +292,21 @@ process {
         }
         # display distro name and installed scopes
         Write-Host "`n`e[95;1m${Distro}$($scopes.Count ? " :`e[0;90m $($scopes -join ', ')`e[0m" : "`e[0m")"
+        #endregion
+
+        #region perform base setup
         # *fix WSL networking
         if ($FixNetwork) {
             Write-Host 'fixing network...' -ForegroundColor Cyan
             wsl/wsl_network_fix.ps1 $Distro
         }
+
         # *install certificates
         if ($AddCertificate) {
             Write-Host 'adding certificates in chain...' -ForegroundColor Cyan
             wsl/wsl_certs_add.ps1 $Distro
         }
+
         # *install packages
         Write-Host 'updating system...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
@@ -306,18 +316,73 @@ process {
             Write-Warning 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.'
             exit
         }
+
         # *boot setup
         wsl.exe --distribution $Distro --user root install -m 0755 .assets/provision/autoexec.sh /etc
         if (-not $chk.wsl_boot) {
             Set-WslConf -Distro $Distro -ConfDict ([ordered]@{ boot = @{ command = '"[ -x /etc/autoexec.sh ] && /etc/autoexec.sh || true"' } })
         }
+        #endregion
+
+        #region setup GitHub authentication
         # *setup GitHub CLI
-        if (-not $chk.gh_token) {
-            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-            wsl.exe --distribution $Distro --exec .assets/provision/setup_gh.sh
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
+        $cmdArgs = $sshKeyAdded ? @('-u', $chk.user) : @('-u', $chk.user, '-k')
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
+
+        # *check SSH keys and create if necessary
+        $sshKey = 'id_ed25519'
+        $winKey = "$HOME\.ssh\$sshKey"
+        $winKeyPub = "$HOME\.ssh\$sshKey.pub"
+        $sshWinPath = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))/.ssh"
+
+        $winKeyExists = (Test-Path $winKey) -and (Test-Path $winKeyPub)
+        if (-not $chk.ssh_key -and $winKeyExists) {
+            # copy Windows SSH keys to WSL
+            $cmnd = [string]::Join("`n",
+                'mkdir -p $HOME/.ssh',
+                "install -m 0600 '$sshWinPath/$sshKey' `$HOME/.ssh",
+                "install -m 0644 '$sshWinPath/$sshKey.pub' `$HOME/.ssh"
+            )
+            wsl.exe --distribution $Distro --exec sh -c $cmnd
+        } elseif (-not $winKeyExists) {
+            # copy WSL SSH keys to Windows
+            if (Test-Path "$HOME\.ssh") {
+                Remove-Item $winKey, $winKeyPub -ErrorAction SilentlyContinue
+            } else {
+                New-Item "$HOME\.ssh" -ItemType Directory | Out-Null
+            }
+            # build bash command to generate SSH key if needed and copy to Windows
+            $cmnd = [string]::Join("`n",
+                '# copy SSH key to Windows',
+                "cp `"`$HOME/.ssh/id_ed25519`" $sshWinPath/id_ed25519",
+                "cp `"`$HOME/.ssh/id_ed25519.pub`" $sshWinPath/id_ed25519.pub"
+            )
+            if (-not $chk.ssh_key) {
+                # generate new SSH key inside WSL if it does not exist
+                $cmnd = [string]::Join("`n",
+                    '# prepare clean $HOME/.ssh directory',
+                    '[ -d "$HOME/.ssh" ] && rm -f "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub" || mkdir "$HOME/.ssh" >/dev/null',
+                    '# generate new SSH key',
+                    'ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -q'
+                ), $cmnd -join "`n"
+            }
+            wsl.exe --distribution $Distro --exec sh -c $cmnd
         }
 
-        # *install scopes
+        # *add SSH key to GitHub if needed
+        if (-not $sshKeyAdded) {
+            $sshKeyAdded = try {
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh `
+                | ConvertFrom-Json -AsHashtable -ErrorAction Stop `
+                | Select-Object -ExpandProperty sshKey
+            } catch {
+                $false
+            }
+        }
+        #endregion
+
+        #region install scopes
         switch ($scopes) {
             conda {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
@@ -384,11 +449,12 @@ process {
             pwsh {
                 Write-Host 'installing pwsh...' -ForegroundColor Cyan
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
-                # *setup profiles
+                # setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
+
                 # *install PowerShell modules from ps-modules repository
                 # clone/refresh szymonos/ps-modules repository
                 $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'
@@ -414,6 +480,7 @@ process {
                 Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+
                 # *install PowerShell Az modules
                 if ('az' -in $scopes) {
                     $cmd = [string]::Join("`n",
@@ -443,7 +510,7 @@ process {
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
-                # *setup bash profiles
+                # setup bash profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
                 Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
@@ -460,13 +527,15 @@ process {
             zsh {
                 Write-Host 'installing zsh...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_zsh.sh
-                # *setup profiles
+                # setup profiles
                 Write-Host 'setting up zsh profile for current user...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user_zsh.sh
                 continue
             }
         }
-        # *set gtk theme for wslg
+        #endregion
+
+        #region set gtk theme for wslg
         if ($lx.Version -eq 2 -and $chk.wslg) {
             $GTK_THEME = if ($GtkTheme -eq 'light') {
                 $chk.gtkd ? '"Adwaita"' : $null
@@ -478,7 +547,9 @@ process {
                 wsl.exe --distribution $Distro --user root -- bash -c "echo 'export GTK_THEME=$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
             }
         }
-        # *setup git config
+        #endregion
+
+        #region setup git config
         $builder = [System.Text.StringBuilder]::new()
         # set up git author identity
         if (-not $chk.git_user) {
@@ -504,10 +575,10 @@ process {
         if (-not $chk.git_email) {
             if (-not ($email = git config --global --get user.email)) {
                 $email = try {
-                (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
+                    (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
                 } catch {
                     try {
-                    ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
+                        ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
                     } catch {
                         ''
                     }
@@ -528,64 +599,15 @@ process {
             Write-Host 'configuring git...' -ForegroundColor Cyan
             wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
         }
-        # *check ssh keys and create if necessary
-        $sshKey = 'id_ed25519'
-        $winKey = "$HOME\.ssh\$sshKey"
-        $winKeyPub = "$HOME\.ssh\$sshKey.pub"
-        $sshWinPath = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))/.ssh"
-
-        $winKeyExists = (Test-Path $winKey) -and (Test-Path $winKeyPub)
-        if (-not $chk.ssh_key -and $winKeyExists) {
-            # copy Windows SSH keys to WSL using existing logic
-            $cmnd = [string]::Join("`n",
-                'mkdir -p $HOME/.ssh',
-                "install -m 0600 '$sshWinPath/$sshKey' `$HOME/.ssh",
-                "install -m 0644 '$sshWinPath/$sshKey.pub' `$HOME/.ssh"
-            )
-            wsl.exe --distribution $Distro --exec sh -c $cmnd
-        } elseif (-not $winKeyExists) {
-            if (Test-Path "$HOME\.ssh") {
-                Remove-Item $winKey, $winKeyPub -ErrorAction SilentlyContinue
-            } else {
-                New-Item "$HOME\.ssh" -ItemType Directory | Out-Null
-            }
-            # build bash command to generate SSH key if needed and copy to Windows
-            $cmnd = [string]::Join("`n",
-                '# copy SSH key to Windows',
-                "cp `"`$HOME/.ssh/id_ed25519`" $sshWinPath/id_ed25519",
-                "cp `"`$HOME/.ssh/id_ed25519.pub`" $sshWinPath/id_ed25519.pub"
-            )
-            if (-not $chk.ssh_key) {
-                $cmnd = [string]::Join("`n",
-                    '# remove existing SSH key',
-                    'rm -f "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"',
-                    '# create .ssh directory if not exists',
-                    'mkdir -p "$HOME/.ssh" >/dev/null',
-                    '# generate new SSH key',
-                    'ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -q'
-                ), $cmnd -join "`n"
-            }
-            wsl.exe --distribution $Distro --exec sh -c $cmnd
-        }
-        if (-not $chk.ssh_key -or $ShowSSHKey) {
-            $idPub = [System.IO.File]::ReadAllLines($winKeyPub)
-            $msg = [string]::Join("`n",
-                "`e[97mUse the following values to add new SSH Key on `e[34;4mhttps://github.com/settings/ssh/new`e[97;24m",
-                "`n`e[1;96mTitle`e[0m`n$($idPub.Split()[-1])",
-                "`n`e[1;96mKey type`e[30m`n<Authentication Key>",
-                "`n`e[1;96mKey`e[0m`n$idPub",
-                "`npress any key to continue..."
-            )
-            Write-Host $msg
-            [System.Console]::ReadKey() | Out-Null
-        }
     }
+    #endregion
 
+    #region clone GitHub repositories
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
-        # *clone GitHub repositories
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"
     }
+    #endregion
 }
 
 end {

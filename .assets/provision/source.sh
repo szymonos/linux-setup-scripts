@@ -2,6 +2,99 @@
 : '
 . .assets/provision/source.sh
 '
+# *function to log in to GitHub as the specified user using the gh CLI
+# Usage: login_gh_user              # logs in the current user
+# Usage: login_gh_user -u $user     # logs in the specified user
+# Usage: login_gh_user -u $user -k  # logs in the specified user admin:public_key scope
+login_gh_user() {
+  # check if the gh CLI is installed
+  if ! [ -x /usr/bin/gh ]; then
+    printf "\e[31mError: The \e[1mgh\e[22m command is required but not installed.\e[0m\n" >&2
+    return 1
+  fi
+
+  # initialize local variable to the current user
+  local user="$(id -un)"
+  local token=""
+  local retries=0
+  # parse named parameters
+  OPTIND=1
+  while getopts ":u:k" opt; do
+    case $opt in
+    u)
+      user="$OPTARG"
+      ;;
+    k)
+      key=true
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+    esac
+  done
+  shift $((OPTIND - 1))
+
+  # check if the user exists
+  if ! id -u "$user" &>/dev/null; then
+    printf "\e[31mError: The user \e[1m$user\e[22m does not exist.\e[0m\n" >&2
+    return 1
+  fi
+
+  # *check gh authentication status
+  auth_status="$(sudo -u "$user" gh auth status 2>/dev/null)"
+
+  if echo "$auth_status" | grep -Fwq '✓'; then
+    if [ "$key" = true ]; then
+      if echo "$auth_status" | grep -Fwq 'admin:public_key'; then
+        printf "\e[32mUser \e[1m$user\e[22m is already authenticated to GitHub.\e[0m\n" >&2
+      else
+        while [[ $retries -lt 5 ]] && [ -z "$token" ]; do
+          sudo -u "$user" gh auth refresh -s admin:public_key >&2
+          token="$(sudo -u "$user" gh auth token 2>/dev/null)"
+          ((retries++))
+        done
+      fi
+    else
+      printf "\e[32mUser \e[1m$user\e[22m is already authenticated to GitHub.\e[0m\n" >&2
+    fi
+  else
+    # try to authenticate the user
+    while [[ $retries -lt 5 ]] && [ -z "$token" ]; do
+      if [ "$key" = true ]; then
+        sudo -u "$user" gh auth login -s admin:public_key >&2
+      else
+        sudo -u "$user" gh auth login >&2
+      fi
+      token="$(sudo -u "$user" gh auth token 2>/dev/null)"
+      ((retries++))
+    done
+
+    if [ -n "$token" ]; then
+      auth_status="$(sudo -u "$user" gh auth status)"
+    else
+      printf "\e[31mFailed to authenticate user \e[1m$user\e[22m to GitHub.\e[0m\n" >&2
+      echo 'none'
+      return 1
+    fi
+  fi
+
+  # *check gh authentication method
+  if echo "$auth_status" | grep -Fwq 'keyring'; then
+    echo 'keyring'
+  elif echo "$auth_status" | grep -Fwq '.config/gh/hosts.yml'; then
+    echo 'plaintext'
+  else
+    echo 'unknown'
+  fi
+
+  return 0
+}
+
 # *function to download file from specified uri
 download_file() {
   # initialize local variables used as named parameters
