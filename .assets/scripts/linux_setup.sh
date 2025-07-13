@@ -75,7 +75,7 @@ sudo .assets/provision/install_base.sh $user
 sudo .assets/provision/install_gh.sh
 sudo .assets/provision/setup_gh_https.sh -u $user -k
 # generate SSH key if not exists
-if ! ([ -f $HOME/.ssh/id_ed25519 ] && [ -f $HOME/.ssh/id_ed25519.pub ]); then
+if ! ([ -f "$HOME/.ssh/id_ed25519" ] && [ -f "$HOME/.ssh/id_ed25519.pub" ]); then
   # prepare clean $HOME/.ssh directory
   if [ -d "$HOME/.ssh" ]; then
     rm -f "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"
