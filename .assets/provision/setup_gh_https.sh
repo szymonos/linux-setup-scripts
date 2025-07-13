@@ -43,7 +43,7 @@ shift $((OPTIND - 1))
 # check if the user exists
 if ! id -u "$user" &>/dev/null; then
   printf "\e[31mError: The user \e[1m$user\e[22m does not exist.\e[0m\n" >&2
-  return 1
+  exit 1
 fi
 
 # define script variables
