@@ -17,6 +17,7 @@ login_gh_user() {
   local user="$(id -un)"
   local token=""
   local retries=0
+  local key=false
   # parse named parameters
   OPTIND=1
   while getopts ":u:k" opt; do

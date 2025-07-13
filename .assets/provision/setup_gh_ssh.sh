@@ -16,13 +16,23 @@ if echo "$auth_status" | grep -Fwq 'admin:public_key'; then
   # check if SSH key already added to GitHub
   ssh_dir="$HOME/.ssh"
   key_path="$ssh_dir/id_ed25519.pub"
+  if ! [ -r "$key_path" ]; then
+    printf "\e[31mSSH public key file not found or not readable: $key_path\e[0m\n" >&2
+    echo '{ "sshKey": false }'
+    exit 1
+  fi
   pub_key="$(cat $key_path | awk '{print $2}')"
+  if [ -z "$pub_key" ]; then
+    printf "\e[31mSSH public key is empty or invalid.\e[0m\n" >&2
+    echo '{ "sshKey": false }'
+    exit 1
+  fi
   if gh ssh-key list 2>/dev/null | grep -Fwq "$pub_key"; then
     printf "\e[32mSSH authentication key already exists in GitHub.\e[0m\n" >&2
     echo '{ "sshKey": true }'
   else
     # add the SSH key to GitHub
-    gh ssh-key add "$key_path" --title "$(cat "$key_path" | awk '{print $3}')" >/dev/null || {
+    gh ssh-key add "$key_path" --title "${USER}@$(uname -n)" >/dev/null || {
       printf "\e[31mFailed to add SSH key to GitHub.\e[0m\n" >&2
       echo '{ "sshKey": false }'
       exit 1
@@ -34,4 +44,10 @@ else
   printf "\e[31;1mMissing admin:public_key scope.\e[0m\n" >&2
   echo '{ "sshKey": false }'
   exit 1
+fi
+
+# *add github.com to known_hosts
+if ! grep -qw 'github.com' ~/.ssh/known_hosts 2>/dev/null; then
+  printf "\e[32madding GitHub fingerprint\e[0m\n"
+  ssh-keyscan github.com 1>>~/.ssh/known_hosts 2>/dev/null
 fi
