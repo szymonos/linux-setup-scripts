@@ -3,7 +3,7 @@
 # set up GitHub CLI https authentication for the specified user
 sudo .assets/provision/setup_gh_https.sh -u "$(id -un)"
 # set up GitHub CLI SSH authentication with admin:public_key scope
-sudo .assets/provision/setup_gh_https.sh -u "$(id -un) -k"
+sudo .assets/provision/setup_gh_https.sh -u "$(id -un)" -k
 '
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
@@ -43,7 +43,7 @@ shift $((OPTIND - 1))
 # check if the user exists
 if ! id -u "$user" &>/dev/null; then
   printf "\e[31mError: The user \e[1m$user\e[22m does not exist.\e[0m\n" >&2
-  return 1
+  exit 1
 fi
 
 # define script variables
