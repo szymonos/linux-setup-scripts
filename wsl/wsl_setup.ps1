@@ -66,8 +66,6 @@ wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme -AddCertificate
 $Repos = @('szymonos/linux-setup-scripts', 'szymonos/ps-modules')
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
-# :show SSH key during setup
-wsl/wsl_setup.ps1 $Distro -ShowSSHKey
 # :update all existing WSL distros
 wsl/wsl_setup.ps1
 
@@ -119,9 +117,7 @@ param (
     [Parameter(ParameterSetName = 'GitHub')]
     [switch]$FixNetwork,
 
-    [switch]$SkipRepoUpdate,
-
-    [switch]$ShowSSHKey
+    [switch]$SkipRepoUpdate
 )
 
 begin {
@@ -235,7 +231,7 @@ begin {
     }
 
     # script variable that determines if public SSH key has been added to GitHub
-    $script:sshKeyAdded = $false
+    $script:sshKeyAdded = 'missing'
 }
 
 process {
@@ -371,13 +367,25 @@ process {
         }
 
         # *add SSH key to GitHub if needed
-        if (-not $sshKeyAdded) {
-            $sshKeyAdded = try {
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh `
+        if ($sshKeyAdded -eq 'missing') {
+            try {
+                $sshKeyAdded = wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh `
                 | ConvertFrom-Json -AsHashtable -ErrorAction Stop `
                 | Select-Object -ExpandProperty sshKey
+                if ($sshKeyAdded -eq 'added') {
+                    # display message asking to authorize the SSH key
+                    $msg = [string]::Join("`n",
+                        "`e[97;1mSSH key added to GitHub.`e[0;90m $sshKey`e[0m`n",
+                        "`e[97mTo finish setting up SSH authentication, open `e[34;4mhttps://github.com/settings/ssh`e[97;24m",
+                        "and authorize the newly added key for your organization (enable SSO if required).`e[0m",
+                        "`npress any key to continue..."
+                    )
+                    Write-Host $msg
+                    # wait for user input to continue
+                    [System.Console]::ReadKey() | Out-Null
+                }
             } catch {
-                $false
+                $sshKeyAdded = 'missing'
             }
         }
         #endregion
