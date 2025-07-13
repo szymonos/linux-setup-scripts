@@ -327,7 +327,7 @@ process {
         #region setup GitHub authentication
         # *setup GitHub CLI
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-        $cmdArgs = $sshKeyAdded ? @('-u', $chk.user) : @('-u', $chk.user, '-k')
+        $cmdArgs = $sshKeyAdded -eq 'missing' ? @('-u', $chk.user, '-k') : @('-u', $chk.user)
         wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
 
         # *check SSH keys and create if necessary
@@ -576,10 +576,8 @@ process {
             if (-not ($email = git config --global --get user.email)) {
                 $email = try {
                     (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
-                    (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
                 } catch {
                     try {
-                        ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
                         ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
                     } catch {
                         ''
@@ -598,8 +596,9 @@ process {
             $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
             $builder.AppendLine('git config --global core.longpaths true') | Out-Null
             $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
+            $cmnd = $builder.ToString().Trim() -replace "`r"
             Write-Host 'configuring git...' -ForegroundColor Cyan
-            wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
+            wsl.exe --distribution $Distro --exec bash -c $cmnd
         }
     }
     #endregion
