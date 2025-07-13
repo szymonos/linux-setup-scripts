@@ -576,8 +576,10 @@ process {
             if (-not ($email = git config --global --get user.email)) {
                 $email = try {
                     (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
+                    (Get-ChildItem -Path HKCU:\Software\Microsoft\IdentityCRL\UserExtendedProperties).PSChildName
                 } catch {
                     try {
+                        ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
                         ([ADSI]"LDAP://$(WHOAMI /FQDN 2>$null)").mail
                     } catch {
                         ''
