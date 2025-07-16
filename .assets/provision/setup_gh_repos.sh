@@ -20,22 +20,11 @@ gh_repos=($repos)
 if [ -n "$WSL_DISTRO_NAME" ]; then
   ID="$WSL_DISTRO_NAME"
   ws_suffix='wsl'
-  github='git@github.com:'
 else
   . /etc/os-release
   ws_suffix='vm'
-  github='https://github.com/'
 fi
 ws_path="$HOME/source/workspaces/${ID,,}-${ws_suffix,,}.code-workspace"
-
-# *add github.com to known_hosts
-if ! grep -qw 'github.com' ~/.ssh/known_hosts 2>/dev/null; then
-  printf "\e[32madding github fingerprint\e[0m\n"
-  ssh-keyscan github.com 1>>~/.ssh/known_hosts 2>/dev/null
-fi
-
-# *check gh authentication status and login to GitHub if necessary
-gh auth token &>/dev/null && github='https://github.com/' || true
 
 # *setup source folder
 # create folders
@@ -52,7 +41,7 @@ for repo in ${gh_repos[@]}; do
   IFS='/' read -ra gh_path <<<"$repo"
   mkdir -p "${gh_path[0]}"
   pushd "${gh_path[0]}" >/dev/null
-  git clone "${github}${repo}.git" 2>/dev/null && echo $repo && cloned=true || true
+  git clone "https://github.com/${repo}.git" 2>/dev/null && echo $repo && cloned=true || true
   if ! grep -qw "$repo" "$ws_path" && [ -d "${gh_path[1]}" ]; then
     folder="\t{\n\t\t\t\"name\": \"${gh_path[1]}\",\n\t\t\t\"path\": \"..\/repos\/${repo/\//\\\/}\"\n\t\t},\n\t"
     sed -i "s/\(\]\)/$folder\1/" "$ws_path"
