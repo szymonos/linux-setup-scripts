@@ -27,7 +27,7 @@ cat <<EOF >$HOME/.azure/pyproject.toml
 [project]
 name = "azurecli"
 version = "1.0.0"
-requires-python = ">=3.12.8,<3.13"
+requires-python = "~=3.12.0"
 dependencies = [
   "azure-cli",
   "certifi",
