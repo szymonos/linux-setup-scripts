@@ -19,7 +19,7 @@ Name of the WSL distro to set up. If not specified, script will update all exist
 .PARAMETER Scope
 List of installation scopes. Valid values:
 - az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects conda scope
-- conda: miniconda, uv, pip, venv
+- conda: miniforge, uv, pip, venv
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
 - k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, flux, kustomize, kubecolor, kubectx, kubens
@@ -394,7 +394,7 @@ process {
         switch ($scopes) {
             conda {
                 Write-Host 'installing python packages...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh --fix_certify true
+                wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
                 $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
                 if ('az' -in $scopes) {

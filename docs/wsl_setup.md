@@ -54,7 +54,7 @@ To install other *features* you need to specify the list of **setup scopes** usi
 
 - `k8s_ext`: flux, kubeseal, kustomize, argorollouts-cli
 
-- `python`: python-pip, python-venv, miniconda
+- `python`: python-pip, python-venv, miniforge
 
 - `shell`: bat, exa, oh-my-posh, pwsh, ripgrep; bash and pwsh profiles, aliases and PS modules
 

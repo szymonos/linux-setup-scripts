@@ -92,7 +92,7 @@ for sc in ${scope_arr[@]}; do
   case $sc in
   conda)
     printf "\e[96minstalling python packages...\e[0m\n"
-    .assets/provision/install_miniconda.sh --fix_certify true
+    .assets/provision/install_miniforge.sh --fix_certify true
     sudo .assets/provision/setup_python.sh
     .assets/provision/install_uv.sh
     grep -qw 'az' <<<$scope && .assets/provision/install_azurecli_uv.sh --fix_certify true || true

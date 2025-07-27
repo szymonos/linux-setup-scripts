@@ -70,23 +70,23 @@ if (Test-Path /usr/bin/gh) {
 }
 
 # setup conda initialization
-if (Test-Path $HOME/miniconda3/bin/conda -PathType Leaf) {
+if (Test-Path $HOME/miniforge3/bin/conda -PathType Leaf) {
     $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
     # add conda init to the user profile
     if (-not $condaSet) {
-        Write-Verbose 'adding miniconda initialization...'
+        Write-Verbose 'adding miniforge initialization...'
         $content = [string]::Join("`n",
             '#region conda initialize',
-            'try { (& "$HOME/miniconda3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
+            'try { (& "$HOME/miniforge3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
             '#endregion'
         )
         [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
     }
     # disable conda env prompt if oh-my-posh is installed
     if (Test-Path /usr/bin/oh-my-posh -PathType Leaf) {
-        $changeps1 = & "$HOME/miniconda3/bin/conda" config --show changeps1 | Select-String 'False' -Quiet
+        $changeps1 = & "$HOME/miniforge3/bin/conda" config --show changeps1 | Select-String 'False' -Quiet
         if (-not $changeps1) {
-            & "$HOME/miniconda3/bin/conda" config --set changeps1 false
+            & "$HOME/miniforge3/bin/conda" config --set changeps1 false
         }
     }
 }

@@ -17,7 +17,7 @@ Name of the WSL distro to install and set up.
 .PARAMETER Scope
 List of installation scopes. Valid values:
 - az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects conda scope
-- conda: miniconda, uv, pip, venv
+- conda: miniforge, uv, pip, venv
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
 - k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, kubeseal, flux, kustomize, kubectx, kubens
