@@ -115,7 +115,6 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_k9s.sh >/dev/null
     sudo .assets/provision/install_kubecolor.sh >/dev/null
     sudo .assets/provision/install_kubectx.sh >/dev/null
-    sudo .assets/provision/install_kubeseal.sh >/dev/null
     sudo .assets/provision/install_flux.sh
     sudo .assets/provision/install_kustomize.sh
     ;;
