@@ -71,11 +71,28 @@ if $sys_upgrade; then
 fi
 sudo .assets/provision/install_base.sh $user
 
+# *setup GitHub CLI
+sudo .assets/provision/install_gh.sh
+sudo .assets/provision/setup_gh_https.sh -u $user -k
+# generate SSH key if not exists
+if ! ([ -f "$HOME/.ssh/id_ed25519" ] && [ -f "$HOME/.ssh/id_ed25519.pub" ]); then
+  # prepare clean $HOME/.ssh directory
+  if [ -d "$HOME/.ssh" ]; then
+    rm -f "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"
+  else
+    mkdir "$HOME/.ssh" >/dev/null
+  fi
+  # generate new SSH key
+  ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -q
+fi
+# add SSH key to GitHub
+.assets/provision/setup_gh_ssh.sh 1>/dev/null
+
 for sc in ${scope_arr[@]}; do
   case $sc in
   conda)
     printf "\e[96minstalling python packages...\e[0m\n"
-    .assets/provision/install_miniconda.sh --fix_certify true
+    .assets/provision/install_miniforge.sh --fix_certify true
     sudo .assets/provision/setup_python.sh
     .assets/provision/install_uv.sh
     grep -qw 'az' <<<$scope && .assets/provision/install_azurecli_uv.sh --fix_certify true || true
@@ -98,7 +115,6 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_k9s.sh >/dev/null
     sudo .assets/provision/install_kubecolor.sh >/dev/null
     sudo .assets/provision/install_kubectx.sh >/dev/null
-    sudo .assets/provision/install_kubeseal.sh >/dev/null
     sudo .assets/provision/install_flux.sh
     sudo .assets/provision/install_kustomize.sh
     ;;

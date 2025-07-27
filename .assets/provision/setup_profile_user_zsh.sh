@@ -76,8 +76,8 @@ EOF
 fi
 
 # *add conda initialization
-if ! grep -qw '__conda_setup' $HOME/.zshrc 2>/dev/null && [ -f $HOME/miniconda3/bin/conda ]; then
-  $HOME/miniconda3/bin/conda init zsh >/dev/null
+if ! grep -qw '__conda_setup' $HOME/.zshrc 2>/dev/null && [ -f $HOME/miniforge3/bin/conda ]; then
+  $HOME/miniforge3/bin/conda init zsh >/dev/null
 fi
 
 # *add oh-my-posh invocation

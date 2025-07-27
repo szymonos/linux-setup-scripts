@@ -10,7 +10,7 @@ declare -A state=(
   ["uid"]="$(id -u)"
   ["def_uid"]="$([ -f /etc/wsl-distribution.conf ] && grep 'defaultUid' /etc/wsl-distribution.conf | sed -E 's/defaultUid *= *([0-9]+)/\1/' || id -u)"
   ["az"]=$([ -f $HOME/.local/bin/az ] && echo "true" || echo "false")
-  ["conda"]=$([ -d $HOME/miniconda3 ] && echo "true" || echo "false")
+  ["conda"]=$([ -d $HOME/miniforge3 ] && echo "true" || echo "false")
   ["git_user"]=$([ -n "$(git config --global --get user.name 2>/dev/null)" ] && echo "true" || echo "false")
   ["git_email"]=$([ -n "$(git config --global --get user.email 2>/dev/null)" ] && echo "true" || echo "false")
   ["gtkd"]=$(grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && echo "true" || echo "false")

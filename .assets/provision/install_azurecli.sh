@@ -19,17 +19,17 @@ while [ $# -gt 0 ]; do
 done
 
 # check if conda installed
-[ -f "$HOME/miniconda3/bin/conda" ] || exit 0
+[ -f "$HOME/miniforge3/bin/conda" ] || exit 0
 
 # >>> conda initialize >>>
-__conda_setup="$("$HOME/miniconda3/bin/conda" 'shell.bash' 'hook' 2>/dev/null)"
+__conda_setup="$("$HOME/miniforge3/bin/conda" 'shell.bash' 'hook' 2>/dev/null)"
 if [ $? -eq 0 ]; then
   eval "$__conda_setup"
 else
-  if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
-    . "$HOME/miniconda3/etc/profile.d/conda.sh"
+  if [ -f "$HOME/miniforge3/etc/profile.d/conda.sh" ]; then
+    . "$HOME/miniforge3/etc/profile.d/conda.sh"
   else
-    export PATH="$HOME/miniconda3/bin:$PATH"
+    export PATH="$HOME/miniforge3/bin:$PATH"
   fi
 fi
 unset __conda_setup
@@ -58,4 +58,4 @@ conda deactivate
 
 # make symbolic link to az cli
 mkdir -p "$HOME/.local/bin"
-ln -sf "$HOME/miniconda3/envs/azurecli/bin/az" "$HOME/.local/bin/"
+ln -sf "$HOME/miniforge3/envs/azurecli/bin/az" "$HOME/.local/bin/"
