@@ -17,7 +17,7 @@ function tree { & /usr/bin/env tree -C @args }
 function wget { & /usr/bin/env wget -c @args }
 # conditional alias functions
 if (Test-Path '/usr/bin/eza' -PathType Leaf) {
-    function eza { & /usr/bin/env eza -g --color=auto --time-style=long-iso --group-directories-first --color-scale=all --absolute=follow --git-repos @args }
+    function eza { & /usr/bin/env eza -g --color=auto --time-style=long-iso --group-directories-first --color-scale=all --git-repos @args }
     function l { eza -1 @args }
     function lsa { eza -a @args }
     function ll { eza -lah @args }

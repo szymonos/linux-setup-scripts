@@ -95,7 +95,7 @@ else
 fi
 
 if [ -x /usr/bin/eza ]; then
-  alias eza='eza -g --color=auto --time-style=long-iso --group-directories-first --color-scale=all --absolute=follow --git-repos'
+  alias eza='eza -g --color=auto --time-style=long-iso --group-directories-first --color-scale=all --git-repos'
   alias l='eza -1'
   alias lsa='eza -a'
   alias ll='eza -lah'
