@@ -53,8 +53,8 @@ else
 
   # disable auto activation of the base conda environment
   conda_init
-  conda config --add channels defaults
-  conda config --set auto_activate_base false
+  # conda config --add channels defaults
+  conda config --set auto_activate false
 fi
 
 # *Add certificates to conda base certifi.
@@ -65,6 +65,10 @@ if $fix_certify; then
 fi
 
 # *Update conda.
+# accept Terms of Service for the default channel
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main >/dev/null
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r >/dev/null
+# update conda and all packages in the base environment
 conda update --name base --channel defaults conda --yes --update-all
 conda clean --yes --all
 
