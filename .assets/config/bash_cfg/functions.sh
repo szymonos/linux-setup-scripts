@@ -1,7 +1,11 @@
+: '
+. .assets/config/bash_cfg/functions.sh
+'
+
 function fxcertpy {
   # check if pip and openssl are available
-  type pip &>/dev/null && true || exit 0
-  type openssl &>/dev/null && true || exit 0
+  type pip &>/dev/null && true || return 1
+  type openssl &>/dev/null && true || return 1
 
   # determine system id
   SYS_ID="$(sed -En '/^ID.*(fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
@@ -18,25 +22,28 @@ function fxcertpy {
     CERT_PATH='/usr/share/pki/trust/anchors'
     ;;
   *)
-    exit 0
+    return 0
     ;;
   esac
 
   # get list of installed certificates
   cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
   if [ -z "$cert_paths" ]; then
-    exit 0
+    return 0
   fi
 
   certify_paths=()
-  # determine certifi cacert.pem path
-  SHOW=$(pip show -f certifi 2>/dev/null)
-  if [ -n "$SHOW" ]; then
-    location=$(echo "$SHOW" | grep -oP '^Location: \K.+')
-    if [ -n "$location" ]; then
-      cacert=$(echo "$SHOW" | grep -oE '\S+cacert\.pem$')
-      if [ -n "$cacert" ]; then
-        certify_paths+=("${location}/${cacert}")
+  # determine venv certifi cacert.pem path
+  if . .venv/bin/activate 2>/dev/null; then
+    [ -x $HOME/.local/bin/uv ] && SHOW=$(uv pip show -f certifi 2>/dev/null) || true
+    [ -n "$SHOW" ] && true || SHOW=$(pip show -f certifi 2>/dev/null)
+    if [ -n "$SHOW" ]; then
+      location=$(echo "$SHOW" | grep -oP '^Location: \K.+')
+      if [ -n "$location" ]; then
+        cacert=$(echo "$SHOW" | grep -oE '\S+cacert\.pem$')
+        if [ -n "$cacert" ]; then
+          certify_paths+=("${location}/${cacert}")
+        fi
       fi
     fi
   fi
@@ -55,7 +62,7 @@ function fxcertpy {
   # exit script if no certify cacert.pem found
   if [ -z "$certify_paths" ]; then
     printf '\e[33mcertifi/cacert.pem not found\e[0m\n' >&2
-    exit 0
+    return 0
   fi
 
   # iterate over certify files
