@@ -45,6 +45,14 @@ prerelease = "allow"
 compile-bytecode = true
 EOF
 
+# TODO remove this workaround when uv certificate handling is fixed
+# set SSL_CERT_FILE environment variable
+if grep opensuse /etc/os-release >/dev/null 2>&1; then
+  export SSL_CERT_FILE="/var/lib/ca-certificates/ca-bundle.pem"
+else
+  export SSL_CERT_FILE="/etc/ssl/certs/ca-certificates.crt"
+fi
+
 # install azure-cli
 $HOME/.local/bin/uv sync --no-cache --upgrade --directory "$HOME/.azure"
 

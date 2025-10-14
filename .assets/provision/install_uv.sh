@@ -39,6 +39,13 @@ if [ -x "$HOME/.local/bin/uv" ]; then
   # retry uv self update up to 5 times if it fails
   retry_count=0
   max_retries=5
+  # TODO remove this workaround when uv self update works reliably
+  # set SSL_CERT_FILE environment variable
+  if grep opensuse /etc/os-release >/dev/null 2>&1; then
+    export SSL_CERT_FILE="/var/lib/ca-certificates/ca-bundle.pem"
+  else
+    export SSL_CERT_FILE="/etc/ssl/certs/ca-certificates.crt"
+  fi
   while [ $retry_count -le $max_retries ]; do
     $HOME/.local/bin/uv self update >&2
     [ $? -eq 0 ] && break || true
