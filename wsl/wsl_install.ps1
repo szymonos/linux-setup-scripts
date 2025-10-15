@@ -16,14 +16,15 @@ The script will perform the following:
 Name of the WSL distro to install and set up.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects conda scope
-- conda: miniforge, uv, pip, venv
+- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects python scope
+- conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
-- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, kubeseal, flux, kustomize, kubectx, kubens
+- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, flux, kustomize, kubecolor, kubectx, kubens
 - k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
+- python: uv, pip, venv
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
 - terraform: terraform, terrascan, tfswitch
@@ -42,7 +43,7 @@ wsl/wsl_install.ps1 -Distro 'Ubuntu'
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -FixNetwork
 # :set up WSL distro with specified installation scopes
 $Scope = @('python')
-$Scope = @('az', 'docker', 'shell')
+$Scope = @('az', 'docker')
 $Scope = @('az', 'docker', 'pwsh')
 $Scope = @('az', 'docker', 'k8s_base', 'pwsh', 'terraform')
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -s $Scope
@@ -125,7 +126,7 @@ process {
     $wslDefaultVersion = (Get-ItemProperty @gpParam).DefaultVersion
     if ($wslDefaultVersion -eq 1) {
         Write-Warning 'You are currently using WSL version 1 as default.'
-        if ((Read-Host -Prompt 'Would you like to switch to WSL 2 (recommended)? [Y/n]') -ne 'n') {
+        if ((Read-Host -Prompt 'Would you like to switch to WSL 2 (may break current distro)? [y/N]') -eq 'y') {
             Write-Host 'Setting the default version to WSL 2.'
             wsl.exe --set-default-version 2
         } else {
