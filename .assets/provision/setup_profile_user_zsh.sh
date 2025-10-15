@@ -47,7 +47,7 @@ fi
 # *aliases
 # add common zsh aliases
 grep -qw 'd/aliases.sh' $HOME/.zshrc 2>/dev/null || cat <<EOF >>$HOME/.zshrc
-# *aliases
+# common aliases
 if [ -f "$PROFILE_PATH/aliases.sh" ]; then
   source "$PROFILE_PATH/aliases.sh"
 fi
@@ -78,6 +78,18 @@ fi
 # *add conda initialization
 if ! grep -qw '__conda_setup' $HOME/.zshrc 2>/dev/null && [ -f $HOME/miniforge3/bin/conda ]; then
   $HOME/miniforge3/bin/conda init zsh >/dev/null
+fi
+
+# *set up uv
+if ! grep -qw 'uv generate-shell-completion' $HOME/.bashrc 2>/dev/null && [ -x $HOME/.local/bin/uv ]; then
+  cat <<EOF >>$HOME/.bashrc
+
+# initialize uv autocompletion
+if [ -x "$HOME/.local/bin/uv" ]; then
+  export UV_NATIVE_TLS=true
+  eval "\$(uv generate-shell-completion bash)"
+fi
+EOF
 fi
 
 # *add oh-my-posh invocation
