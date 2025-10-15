@@ -91,13 +91,17 @@ if (Test-Path $HOME/miniforge3/bin/conda -PathType Leaf) {
     }
 }
 
-# add uv autocompletion
+# set up uv
 if (Test-Path "$HOME/.local/bin/uv" -PathType Leaf) {
+    # enable shell completion
     $uvSet = try { Select-String 'uv generate-shell-completion' -Path $PROFILE.CurrentUserAllHosts -SimpleMatch -Quiet } catch { $false }
     if (-not $uvSet) {
         Write-Verbose 'adding uv autocompletion...'
         $content = [string]::Join("`n",
-            "`n#region uv autocompletion",
+            "`n#region uv",
+            "# use system certificates",
+            '[System.Environment]::SetEnvironmentVariable("UV_NATIVE_TLS", $true)',
+            "`n# autocompletion",
             'try { (& uv generate-shell-completion powershell) | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
             '#endregion'
         )

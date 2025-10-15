@@ -53,7 +53,7 @@ debian | ubuntu)
   # remove temporary dir
   rm -fr "$TMP_DIR"
   # install nodejs
-  apt-get update && apt-get install -y $APP
+  apt-get update && apt-get install -y $APP npm
   ;;
 opensuse)
   zypper in -y $APP npm

@@ -6,7 +6,15 @@
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 
-# add common bash aliases
+# *add custom functions
+grep -qw 'd/functions.sh' $HOME/.bashrc 2>/dev/null || cat <<EOF >>$HOME/.bashrc
+# custom functions
+if [ -f "$PROFILE_PATH/functions.sh" ]; then
+  source "$PROFILE_PATH/functions.sh"
+fi
+EOF
+
+# *aliases
 grep -qw 'd/aliases.sh' $HOME/.bashrc 2>/dev/null || cat <<EOF >>$HOME/.bashrc
 # common aliases
 if [ -f "$PROFILE_PATH/aliases.sh" ]; then
@@ -23,14 +31,6 @@ if [ -f "$PROFILE_PATH/aliases_git.sh" ] && type git &>/dev/null; then
 fi
 EOF
 fi
-
-# add custom functions
-grep -qw 'd/functions.sh' $HOME/.bashrc 2>/dev/null || cat <<EOF >>$HOME/.bashrc
-# custom functions
-if [ -f "$PROFILE_PATH/functions.sh" ]; then
-  source "$PROFILE_PATH/functions.sh"
-fi
-EOF
 
 # add kubectl autocompletion and aliases
 if ! grep -qw 'kubectl' $HOME/.bashrc 2>/dev/null && type -f kubectl &>/dev/null; then
@@ -64,23 +64,24 @@ EOF
   fi
 fi
 
-# add conda initialization
+# *add conda initialization
 if ! grep -qw '__conda_setup' $HOME/.bashrc 2>/dev/null && [ -f $HOME/miniforge3/bin/conda ]; then
   $HOME/miniforge3/bin/conda init bash >/dev/null
 fi
 
-# add uv autocompletion
+# *set up uv
 if ! grep -qw 'uv generate-shell-completion' $HOME/.bashrc 2>/dev/null && [ -x $HOME/.local/bin/uv ]; then
   cat <<EOF >>$HOME/.bashrc
 
 # initialize uv autocompletion
 if [ -x "$HOME/.local/bin/uv" ]; then
+  export UV_NATIVE_TLS=true
   eval "\$(uv generate-shell-completion bash)"
 fi
 EOF
 fi
 
-# add oh-my-posh invocation
+# *add oh-my-posh invocation
 if ! grep -qw 'oh-my-posh' $HOME/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then
   cat <<EOF >>$HOME/.bashrc
 # initialize oh-my-posh prompt

@@ -17,6 +17,7 @@ declare -A state=(
   ["k8s_base"]=$([ -f /usr/bin/kubectl ] && echo "true" || echo "false")
   ["k8s_ext"]=$([ -f /usr/local/bin/k3d ] && echo "true" || echo "false")
   ["omp"]=$([ -f /usr/bin/oh-my-posh ] && echo "true" || echo "false")
+  ["python"]=$([ -f $HOME/.local/bin/uv ] && echo "true" || echo "false")
   ["pwsh"]=$([ -f /usr/bin/pwsh ] && echo "true" || echo "false")
   ["shell"]=$([ -f /usr/bin/rg ] && echo "true" || echo "false")
   ["ssh_key"]=$([ -f $HOME/.ssh/id_ed25519 ] && [ -f $HOME/.ssh/id_ed25519.pub ] && echo "true" || echo "false")

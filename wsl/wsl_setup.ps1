@@ -9,7 +9,7 @@ You can use the script for:
 - installing podman with distrobox (WSL2 only),
 - installing tools for interacting with kubernetes,
 - setting gtk theme in WSLg (WSL2 only),
-- installing Python environment management tools: venv and conda,
+- installing Python environment management tools: pip, uv, venv and conda,
 - cloning GH repositories and setting up VSCode workspace,
 - updating packages in all existing WSL distros.
 When GH repositories cloning is used, you need to generate and add an SSH key to your GH account.
@@ -18,14 +18,15 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects conda scope
-- conda: miniforge, uv, pip, venv
+- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects python scope
+- conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
 - k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, flux, kustomize, kubecolor, kubectx, kubens
 - k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
+- python: uv, pip, venv
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
 - terraform: terraform, terrascan, tfswitch
@@ -231,7 +232,7 @@ begin {
     }
 
     # script variable that determines if public SSH key has been added to GitHub
-    $script:sshKeyAdded = 'missing'
+    $script:sshStatus = @{ 'sshKey' = 'missing' }
 }
 
 process {
@@ -254,37 +255,57 @@ process {
             # rerun distro_check to get updated user
             $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
         }
-        # instantiate scope generic sorted set
-        $scopes = [System.Collections.Generic.SortedSet[string]]::new()
-        $Scope.ForEach({ $scopes.Add($_) | Out-Null })
 
+        $scopeSet = [System.Collections.Generic.HashSet[string]]::new()
+        $Scope.ForEach({ $scopeSet.Add($_) | Out-Null })
         # *determine additional scopes from distro check
         switch ($chk) {
-            { $_.az } { $scopes.Add('az') | Out-Null }
-            { $_.k8s_base } { $scopes.Add('k8s_base') | Out-Null }
-            { $_.k8s_ext } { $scopes.Add('k8s_ext') | Out-Null }
-            { $_.pwsh } { $scopes.Add('pwsh') | Out-Null }
-            { $_.conda } { $scopes.Add('conda') | Out-Null }
-            { $_.shell } { $scopes.Add('shell') | Out-Null }
-            { $_.tf } { $scopes.Add('terraform') | Out-Null }
+            { $_.az } { $scopeSet.Add('az') | Out-Null }
+            { $_.k8s_base } { $scopeSet.Add('k8s_base') | Out-Null }
+            { $_.k8s_ext } { $scopeSet.Add('k8s_ext') | Out-Null }
+            { $_.pwsh } { $scopeSet.Add('pwsh') | Out-Null }
+            { $_.conda } { $scopeSet.Add('conda') | Out-Null }
+            { $_.python } { $scopeSet.Add('python') | Out-Null }
+            { $_.shell } { $scopeSet.Add('shell') | Out-Null }
+            { $_.tf } { $scopeSet.Add('terraform') | Out-Null }
         }
         # add corresponding scopes
-        switch (@($scopes)) {
-            az { $scopes.Add('conda') | Out-Null }
-            k8s_ext { @('docker', 'k8s_base').ForEach({ $scopes.Add($_) | Out-Null }) }
-            pwsh { $scopes.Add('shell') | Out-Null }
-            zsh { $scopes.Add('shell') | Out-Null }
+        switch (@($scopeSet)) {
+            az { $scopeSet.Add('python') | Out-Null }
+            k8s_ext { @('docker', 'k8s_base').ForEach({ $scopeSet.Add($_) | Out-Null }) }
+            pwsh { $scopeSet.Add('shell') | Out-Null }
+            zsh { $scopeSet.Add('shell') | Out-Null }
         }
         # determine 'oh_my_posh' scope
         if ($lx.Version -eq 2 -and ($chk.omp -or $OmpTheme)) {
-            @('oh_my_posh', 'shell').ForEach({ $scopes.Add($_) | Out-Null })
+            @('oh_my_posh', 'shell').ForEach({ $scopeSet.Add($_) | Out-Null })
         }
         # remove scopes unavailable in WSL1
         if ($lx.Version -eq 1) {
-            $scopes.Remove('distrobox') | Out-Null
-            $scopes.Remove('docker') | Out-Null
-            $scopes.Remove('k8s_ext') | Out-Null
-            $scopes.Remove('oh_my_posh') | Out-Null
+            $scopeSet.Remove('distrobox') | Out-Null
+            $scopeSet.Remove('docker') | Out-Null
+            $scopeSet.Remove('k8s_ext') | Out-Null
+            $scopeSet.Remove('oh_my_posh') | Out-Null
+        }
+
+        # sort scopes for the specific installation order
+        [string[]]$scopes = $scopeSet | Sort-Object -Unique {
+            switch ($_) {
+                'docker' { 1 }
+                'k8s_base' { 2 }
+                'k8s_ext' { 3 }
+                'python' { 4 }
+                'conda' { 5 }
+                'az' { 6 }
+                'nodejs' { 7 }
+                'oh_my_posh' { 7 }
+                'shell' { 9 }
+                'zsh' { 10 }
+                'pwsh' { 11 }
+                'distrobox' { 12 }
+                'rice' { 13 }
+                default { 0 }
+            }
         }
         # display distro name and installed scopes
         Write-Host "`n`e[95;1m${Distro}$($scopes.Count ? " :`e[0;90m $($scopes -join ', ')`e[0m" : "`e[0m")"
@@ -323,7 +344,7 @@ process {
         #region setup GitHub authentication
         # *setup GitHub CLI
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-        $cmdArgs = $sshKeyAdded -eq 'missing' ? @('-u', $chk.user, '-k') : @('-u', $chk.user)
+        $cmdArgs = $sshStatus.sshKey -eq 'missing' ? @('-u', $chk.user, '-k') : @('-u', $chk.user)
         wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
 
         # *check SSH keys and create if necessary
@@ -367,12 +388,10 @@ process {
         }
 
         # *add SSH key to GitHub if needed
-        if ($sshKeyAdded -eq 'missing') {
+        if ($sshStatus.sshKey -eq 'missing') {
             try {
-                $sshKeyAdded = wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh `
-                | ConvertFrom-Json -AsHashtable -ErrorAction Stop `
-                | Select-Object -ExpandProperty sshKey
-                if ($sshKeyAdded -eq 'added') {
+                $sshStatus = wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+                if ($sshStatus.sshKey -eq 'added') {
                     # display message asking to authorize the SSH key
                     $msg = [string]::Join("`n",
                         "`e[97;1mSSH key added to GitHub.`e[0;90m $sshKey`e[0m`n",
@@ -385,22 +404,32 @@ process {
                     [System.Console]::ReadKey() | Out-Null
                 }
             } catch {
-                $sshKeyAdded = 'missing'
+                $sshStatus.sshKey = 'missing'
             }
         }
         #endregion
 
         #region install scopes
         switch ($scopes) {
-            conda {
-                Write-Host 'installing python packages...' -ForegroundColor Cyan
-                wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
-                $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
-                if ('az' -in $scopes) {
-                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
+            az {
+                Write-Host 'installing Azure tools...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
+                # *install PowerShell Az modules
+                if ('pwsh' -in $scopes) {
+                    $cmd = [string]::Join("`n",
+                        'if (-not (Get-Module -ListAvailable "Az")) {',
+                        "`tWrite-Host 'installing Az...'",
+                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
+                        'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
+                        "`tWrite-Host 'installing Az.ResourceGraph...'",
+                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
+                    )
+                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 }
-                continue
+            }
+            conda {
+                Write-Host 'installing miniforge conda...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
             }
             distrobox {
                 Write-Host 'installing distrobox...' -ForegroundColor Cyan
@@ -481,26 +510,19 @@ process {
                     $modules.Add('do-az') | Out-Null
                     Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
                 }
-                if ($chk.k8s_base) {
+                if ('k8s_base' -in $scopes) {
                     $modules.Add('aliases-kubectl') | Out-Null
                     Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
                 }
                 Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
-
-                # *install PowerShell Az modules
-                if ('az' -in $scopes) {
-                    $cmd = [string]::Join("`n",
-                        'if (-not (Get-Module -ListAvailable "Az")) {',
-                        "`tWrite-Host 'installing Az...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
-                        'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
-                        "`tWrite-Host 'installing Az.ResourceGraph...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
-                    )
-                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
-                }
+                continue
+            }
+            python {
+                Write-Host 'installing python tools...' -ForegroundColor Cyan
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
+                $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
                 continue
             }
             rice {
