@@ -88,7 +88,7 @@ process {
             New-Item $destPath -ItemType Directory | Out-Null
         }
         # shutting down distro before copying vhdx
-        wsl.exe --shutdown $Distro
+        wsl.exe --shutdown
         # copy distro disk image to new location
         if ([IO.Path]::GetPathRoot($srcPath) -eq [IO.Path]::GetPathRoot($destPath) -and -not $Copy) {
             New-Item -ItemType HardLink ([IO.Path]::Combine($destPath, 'ext4.vhdx')) -Target ([IO.Path]::Combine($srcPath, 'ext4.vhdx')) | Out-Null
