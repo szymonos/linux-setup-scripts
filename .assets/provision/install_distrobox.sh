@@ -13,20 +13,25 @@ SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p
 APP='distrobox'
 case $SYS_ID in
 alpine)
-  apk -e info $APP &>/dev/null && exit 0 || true
+  apk -e info $APP &>/dev/null && installed=true || installed=false
   ;;
 arch)
-  pacman -Qqe $APP &>/dev/null && exit 0 || true
+  pacman -Qqe $APP &>/dev/null && installed=true || installed=false
   ;;
 fedora | opensuse)
-  rpm -q $APP &>/dev/null && exit 0 || true
+  rpm -q $APP &>/dev/null && installed=true || installed=false
   ;;
 debian | ubuntu)
-  dpkg -s $APP &>/dev/null && exit 0 || true
+  dpkg -s $APP &>/dev/null && installed=true || installed=false
   ;;
 esac
+if [ "$installed" = true ]; then
+  printf "\e[32m$APP is already installed\e[0m\n"
+  exit 0
+else
+  printf "\e[92minstalling \e[1m$APP\e[0m\n"
+fi
 
-printf "\e[92minstalling \e[1m$APP\e[0m\n"
 case $SYS_ID in
 alpine)
   apk add --no-cache $APP
