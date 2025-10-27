@@ -5,7 +5,7 @@
 # :set up the system using specified values
 scope="pwsh"
 scope="k8s_base pwsh python"
-scope="az docker k8s_base pwsh tf nodejs"
+scope="az docker k8s_base pwsh terraform nodejs"
 scope="az distrobox k8s_ext rice pwsh"
 # :set up the system using the specified scope
 .assets/scripts/linux_setup.sh --scope "$scope"
@@ -68,6 +68,7 @@ order=(
   conda
   az
   nodejs
+  terraform
   oh_my_posh
   shell
   zsh
@@ -190,7 +191,7 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     sudo .assets/provision/install_yq.sh >/dev/null
     ;;
-  tf)
+  terraform)
     printf "\e[96minstalling terraform utils...\e[0m\n"
     sudo .assets/provision/install_terraform.sh
     sudo .assets/provision/install_tfswitch.sh

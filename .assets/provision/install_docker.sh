@@ -15,18 +15,24 @@ alpine)
   exit 0
   ;;
 arch)
-  pacman -Qqe docker &>/dev/null && exit 0 || true
+  pacman -Qqe docker &>/dev/null && installed=true || installed=false
   ;;
 fedora)
-  rpm -q docker-ce &>/dev/null && exit 0 || true
+  rpm -q docker-ce &>/dev/null && installed=true || installed=false
   ;;
 debian | ubuntu)
-  dpkg -s docker-ce &>/dev/null && exit 0 || true
+  dpkg -s docker-ce &>/dev/null && installed=true || installed=false
   ;;
 opensuse)
-  rpm -q docker &>/dev/null && exit 0 || true
+  rpm -q docker &>/dev/null && installed=true || installed=false
   ;;
 esac
+if [ "$installed" = true ]; then
+  printf "\e[32mdocker is already installed\e[0m\n"
+  exit 0
+else
+  printf "\e[92minstalling \e[1mdocker\e[0m\n"
+fi
 
 # install docker
 case $SYS_ID in

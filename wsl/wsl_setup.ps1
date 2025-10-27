@@ -262,13 +262,13 @@ process {
         # *determine additional scopes from distro check
         switch ($chk) {
             { $_.az } { $scopeSet.Add('az') | Out-Null }
+            { $_.conda } { $scopeSet.Add('conda') | Out-Null }
             { $_.k8s_base } { $scopeSet.Add('k8s_base') | Out-Null }
             { $_.k8s_ext } { $scopeSet.Add('k8s_ext') | Out-Null }
             { $_.pwsh } { $scopeSet.Add('pwsh') | Out-Null }
-            { $_.conda } { $scopeSet.Add('conda') | Out-Null }
             { $_.python } { $scopeSet.Add('python') | Out-Null }
             { $_.shell } { $scopeSet.Add('shell') | Out-Null }
-            { $_.tf } { $scopeSet.Add('terraform') | Out-Null }
+            { $_.terraform } { $scopeSet.Add('terraform') | Out-Null }
         }
         # add corresponding scopes
         switch (@($scopeSet)) {
@@ -278,7 +278,7 @@ process {
             zsh { $scopeSet.Add('shell') | Out-Null }
         }
         # determine 'oh_my_posh' scope
-        if ($lx.Version -eq 2 -and ($chk.omp -or $OmpTheme)) {
+        if ($lx.Version -eq 2 -and ($chk.oh_my_posh -or $OmpTheme)) {
             @('oh_my_posh', 'shell').ForEach({ $scopeSet.Add($_) | Out-Null })
         }
         # remove scopes unavailable in WSL1
@@ -299,13 +299,14 @@ process {
                 'conda' { 5 }
                 'az' { 6 }
                 'nodejs' { 7 }
-                'oh_my_posh' { 7 }
-                'shell' { 9 }
-                'zsh' { 10 }
-                'pwsh' { 11 }
-                'distrobox' { 12 }
-                'rice' { 13 }
-                default { 0 }
+                'terraform' { 8 }
+                'oh_my_posh' { 9 }
+                'shell' { 10 }
+                'zsh' { 11 }
+                'pwsh' { 12 }
+                'distrobox' { 13 }
+                'rice' { 14 }
+                default { 15 }
             }
         }
         # display distro name and installed scopes
@@ -413,24 +414,14 @@ process {
         #region install scopes
         switch ($scopes) {
             az {
-                Write-Host 'installing Azure tools...' -ForegroundColor Cyan
+                Write-Host 'installing azure-cli...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
-                # *install PowerShell Az modules
-                if ('pwsh' -in $scopes) {
-                    $cmd = [string]::Join("`n",
-                        'if (-not (Get-Module -ListAvailable "Az")) {',
-                        "`tWrite-Host 'installing Az...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
-                        'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
-                        "`tWrite-Host 'installing Az.ResourceGraph...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
-                    )
-                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
-                }
+                continue
             }
             conda {
                 Write-Host 'installing miniforge conda...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
+                continue
             }
             distrobox {
                 Write-Host 'installing distrobox...' -ForegroundColor Cyan
@@ -518,6 +509,18 @@ process {
                 Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+                # *install PowerShell Az modules
+                if ('pwsh' -in $scopes) {
+                    $cmd = [string]::Join("`n",
+                        'if (-not (Get-Module -ListAvailable "Az")) {',
+                        "`tWrite-Host 'installing Az...'",
+                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
+                        'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
+                        "`tWrite-Host 'installing Az.ResourceGraph...'",
+                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
+                    )
+                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
+                }
                 continue
             }
             python {
