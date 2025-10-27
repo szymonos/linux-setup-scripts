@@ -414,24 +414,14 @@ process {
         #region install scopes
         switch ($scopes) {
             az {
-                Write-Host 'installing Azure tools...' -ForegroundColor Cyan
+                Write-Host 'installing azure-cli...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
-                # *install PowerShell Az modules
-                if ('pwsh' -in $scopes) {
-                    $cmd = [string]::Join("`n",
-                        'if (-not (Get-Module -ListAvailable "Az")) {',
-                        "`tWrite-Host 'installing Az...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
-                        'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
-                        "`tWrite-Host 'installing Az.ResourceGraph...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
-                    )
-                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
-                }
+                continue
             }
             conda {
                 Write-Host 'installing miniforge conda...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
+                continue
             }
             distrobox {
                 Write-Host 'installing distrobox...' -ForegroundColor Cyan
@@ -519,6 +509,18 @@ process {
                 Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+                # *install PowerShell Az modules
+                if ('pwsh' -in $scopes) {
+                    $cmd = [string]::Join("`n",
+                        'if (-not (Get-Module -ListAvailable "Az")) {',
+                        "`tWrite-Host 'installing Az...'",
+                        "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
+                        'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
+                        "`tWrite-Host 'installing Az.ResourceGraph...'",
+                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
+                    )
+                    wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
+                }
                 continue
             }
             python {
