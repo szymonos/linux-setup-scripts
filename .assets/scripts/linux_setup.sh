@@ -4,8 +4,9 @@
 .assets/scripts/linux_setup.sh
 # :set up the system using specified values
 scope="pwsh"
-scope="conda k8s_base pwsh"
-scope="az conda distrobox docker k8s_base k8s_ext rice shell"
+scope="k8s_base pwsh python"
+scope="az docker k8s_base pwsh tf nodejs"
+scope="az distrobox k8s_ext rice pwsh"
 # :set up the system using the specified scope
 .assets/scripts/linux_setup.sh --scope "$scope"
 # :set up the system using the specified scope and omp theme
@@ -52,13 +53,39 @@ done <<<"$distro_check"
 grep -qw 'az' <<<${array[@]} && array+=(python) || true
 grep -qw 'k8s_ext' <<<${array[@]} && array+=(docker) && array+=(k8s_base) || true
 grep -qw 'pwsh' <<<${array[@]} && array+=(shell) || true
+grep -qw 'zsh' <<<${array[@]} && array+=(shell) || true
 # add oh_my_posh scope if necessary
 if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
   array+=(oh_my_posh)
   array+=(shell)
 fi
-# sort array
-IFS=$'\n' scope_arr=($(sort -u <<<${array[*]})) && unset IFS
+# remove duplicated and sort array
+order=(
+  docker
+  k8s_base
+  k8s_ext
+  python
+  conda
+  az
+  nodejs
+  oh_my_posh
+  shell
+  zsh
+  pwsh
+  distrobox
+  rice
+)
+scope_arr=()
+declare -A seen
+for item in "${order[@]}"; do
+  for val in "${array[@]}"; do
+    if [[ "$item" == "$val" && -z "${seen[$item]}" ]]; then
+      scope_arr+=("$item")
+      seen[$item]=1
+    fi
+  done
+done
+
 # get distro name from os-release
 . /etc/os-release
 # display distro name and scopes to install
@@ -90,12 +117,13 @@ fi
 
 for sc in ${scope_arr[@]}; do
   case $sc in
+  az)
+    printf "\e[96minstalling azure cli...\e[0m\n"
+    .assets/provision/install_azurecli_uv.sh --fix_certify true
+    ;;
   conda)
     printf "\e[96minstalling python packages...\e[0m\n"
     .assets/provision/install_miniforge.sh --fix_certify true
-    sudo .assets/provision/setup_python.sh
-    .assets/provision/install_uv.sh
-    grep -qw 'az' <<<$scope && .assets/provision/install_azurecli_uv.sh --fix_certify true || true
     ;;
   distrobox)
     printf "\e[96minstalling distrobox...\e[0m\n"
@@ -143,6 +171,11 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96msetting up profile for current user...\e[0m\n"
     .assets/provision/setup_profile_user.ps1
     ;;
+  python)
+    printf "\e[96minstalling python tools...\e[0m\n"
+    sudo .assets/provision/setup_python.sh
+    .assets/provision/install_uv.sh
+  ;;
   rice)
     printf "\e[96mricing distro...\e[0m\n"
     sudo .assets/provision/install_btop.sh
