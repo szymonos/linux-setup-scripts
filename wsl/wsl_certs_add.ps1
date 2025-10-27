@@ -44,47 +44,62 @@ begin {
         exit 0
     }
 
-    # check if distro exist
-    [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
-    | ForEach-Object { $_.GetValue('DistributionName') } `
-    | Where-Object { $_ -notmatch '^docker-desktop' }
-    if ($Distro -notin $distros) {
-        Write-Warning "The specified distro does not exist ($Distro)."
-        exit
-    }
-
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
     # check if the required functions are available, otherwise import SetupUtils module
     try {
-        Get-Command Get-Certificate -CommandType Function | Out-Null
-        Get-Command ConvertTo-PEM -CommandType Function | Out-Null
+        Get-Command Get-WslDistro -CommandType Function | Out-Null
     } catch {
         Import-Module (Resolve-Path './modules/SetupUtils')
+    }
+
+    # check if distro exist
+    $distros = Get-WslDistro | Where-Object Name -NotMatch '^docker-desktop'
+    if ($Distro -notin $distros.Name) {
+        Write-Warning "The specified distro does not exist ($Distro)."
+        exit
     }
 
     # determine update ca parameters depending on distro
     $sysId = wsl.exe -d $Distro --exec sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release
     switch -Regex ($sysId) {
         arch {
-            $crt = @{ path = '/etc/ca-certificates/trust-source/anchors'; cmd = 'trust extract-compat' }
-            continue
+            $crt = @{
+                path = '/etc/ca-certificates/trust-source/anchors'
+                cmnd = 'trust extract-compat'
+            }
+            break
         }
         fedora {
-            $crt = @{ path = '/etc/pki/ca-trust/source/anchors'; cmd = 'update-ca-trust' }
-            continue
+            $crt = @{
+                path = '/etc/pki/ca-trust/source/anchors'
+                cmnd = 'update-ca-trust'
+            }
+            break
         }
         'debian|ubuntu' {
-            $crt = @{ path = '/usr/local/share/ca-certificates'; cmd = 'update-ca-certificates' }
-            $cmd = 'type update-ca-certificates &>/dev/null || (export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y ca-certificates)'
-            wsl -d $Distro -u root --exec bash -c $cmd
-            continue
+            $crt = @{
+                path = '/usr/local/share/ca-certificates'
+                cmnd = 'update-ca-certificates'
+            }
+            $cmnd = [string]::Join(' ',
+                'type update-ca-certificates &>/dev/null',
+                '|| (export DEBIAN_FRONTEND=noninteractive',
+                '&& apt-get update',
+                '&& apt-get install -y ca-certificates)'
+            )
+            wsl -d $Distro -u root --exec bash -c $cmnd
+            break
         }
         opensuse {
-            $crt = @{ path = '/usr/share/pki/trust/anchors'; cmd = 'update-ca-certificates' }
-            continue
+            $crt = @{
+                path = '/usr/share/pki/trust/anchors'
+                cmnd = 'update-ca-certificates'
+            }
+            break
         }
-        Default {
+        default {
+            Write-Warning "The specified distro is not supported ($Distro)."
             exit
         }
     }
@@ -101,9 +116,7 @@ process {
     # intercept certificates from all uris
     foreach ($uri in $Uris) {
         try {
-            Get-Certificate -Uri $Uri -BuildChain `
-            | Select-Object -Skip 1 `
-            | ForEach-Object {
+            Get-Certificate -Uri $Uri -BuildChain | Select-Object -Skip 1 | ForEach-Object {
                 $certSet.Add($_) | Out-Null
             }
         } catch [System.Management.Automation.MethodInvocationException] {
@@ -128,8 +141,8 @@ process {
     }
 
     # copy certificates to the distro specific cert directory and install them
-    $cmd = "mkdir -p $($crt.path) && install -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmd)"
-    wsl -d $Distro -u root --exec bash -c $cmd
+    $cmnd = "mkdir -p $($crt.path) && install -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmnd)"
+    wsl -d $Distro -u root --exec bash -c $cmnd
 }
 
 clean {
