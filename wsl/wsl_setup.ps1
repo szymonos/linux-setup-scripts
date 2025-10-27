@@ -394,7 +394,7 @@ process {
                 if ($sshStatus.sshKey -eq 'added') {
                     # display message asking to authorize the SSH key
                     $msg = [string]::Join("`n",
-                        "`e[97;1mSSH key added to GitHub.`e[0;90m $sshKey`e[0m`n",
+                        "`e[97;1mSSH key added to GitHub:`e[0;90m $($sshStatus.title)`e[0m`n",
                         "`e[97mTo finish setting up SSH authentication, open `e[34;4mhttps://github.com/settings/ssh`e[97;24m",
                         "and authorize the newly added key for your organization (enable SSO if required).`e[0m",
                         "`npress any key to continue..."
