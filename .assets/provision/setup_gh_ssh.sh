@@ -32,13 +32,14 @@ if echo "$auth_status" | grep -Fwq 'admin:public_key'; then
     echo '{ "sshKey": "existing" }'
   else
     # add the SSH key to GitHub
-    gh ssh-key add "$key_path" --title "${USER}@$(uname -n)" >/dev/null || {
+    title="${USER}@$(uname -n)"
+    gh ssh-key add "$key_path" --title "$title" >/dev/null || {
       printf "\e[31mFailed to add SSH key to GitHub.\e[0m\n" >&2
       echo '{ "sshKey": "missing" }'
       exit 1
     }
     printf "\e[32mSSH key added to GitHub successfully.\e[0m\n" >&2
-    echo '{ "sshKey": "added" }'
+    echo '{ "sshKey": "added", "title": "'"$title"'" }'
   fi
 else
   printf "\e[31;1mMissing admin:public_key scope.\e[0m\n" >&2

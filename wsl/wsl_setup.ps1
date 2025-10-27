@@ -248,6 +248,7 @@ process {
             Write-Warning "Failed to check the distro '$Distro'."
             Write-Host "`nThe WSL seems to be not responding correctly. Run the script again!"
             Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
+            exit 1
         }
         if ($chk.def_uid -ne $chk.uid) {
             Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
@@ -394,7 +395,7 @@ process {
                 if ($sshStatus.sshKey -eq 'added') {
                     # display message asking to authorize the SSH key
                     $msg = [string]::Join("`n",
-                        "`e[97;1mSSH key added to GitHub.`e[0;90m $sshKey`e[0m`n",
+                        "`e[97;1mSSH key added to GitHub:`e[0;90m $($sshStatus.title)`e[0m`n",
                         "`e[97mTo finish setting up SSH authentication, open `e[34;4mhttps://github.com/settings/ssh`e[97;24m",
                         "and authorize the newly added key for your organization (enable SSO if required).`e[0m",
                         "`npress any key to continue..."
