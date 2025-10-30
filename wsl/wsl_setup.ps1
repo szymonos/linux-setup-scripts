@@ -380,11 +380,10 @@ process {
             if (-not $chk.ssh_key) {
                 # generate new SSH key inside WSL if it does not exist
                 $cmnd = [string]::Join("`n",
-                    '# prepare clean $HOME/.ssh directory',
-                    '[ -d "$HOME/.ssh" ] && rm -f "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub" || mkdir "$HOME/.ssh" >/dev/null',
-                    '# generate new SSH key',
-                    'ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -q'
-                ), $cmnd -join "`n"
+                    '# generate SSH key if missing',
+                    '.assets/provision/setup_ssh.sh',
+                    $cmnd
+                )
             }
             wsl.exe --distribution $Distro --exec sh -c $cmnd
         }
