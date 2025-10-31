@@ -49,6 +49,6 @@ fi
 
 # *add github.com to known_hosts
 if ! grep -qw 'github.com' ~/.ssh/known_hosts 2>/dev/null; then
-  printf "\e[32madding GitHub fingerprint\e[0m\n"
+  printf "\e[32madding GitHub fingerprint\e[0m\n" >&2
   ssh-keyscan github.com 1>>~/.ssh/known_hosts 2>/dev/null
 fi
