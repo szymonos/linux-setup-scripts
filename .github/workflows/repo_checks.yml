@@ -1,0 +1,29 @@
+name: Preflight Checks
+
+on:
+  pull_request_target:
+    types: [edited, opened, reopened, synchronize]
+
+  workflow_dispatch:
+
+jobs:
+  preflight_checks:
+    name: "pre-commit hooks"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install prek
+        uses: j178/prek-action@v1
+        with:
+          install-only: true
+
+      - name: Run pre-commit hooks on changed files
+        run: |
+          .github/scripts/prek_pr_run.sh \
+            --event_name "${{ github.event_name }}" \
+            --base_ref "${{ github.event.pull_request.base.ref }}"
