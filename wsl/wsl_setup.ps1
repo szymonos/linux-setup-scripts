@@ -89,8 +89,8 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_ext rice shell')]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_ext pwsh python rice shell terraform zsh')]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
