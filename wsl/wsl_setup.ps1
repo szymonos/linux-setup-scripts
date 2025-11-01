@@ -26,7 +26,7 @@ List of installation scopes. Valid values:
 - k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
-- python: uv, pip, venv
+- python: uv, prek, pip, venv
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
 - terraform: terraform, terrascan, tfswitch
@@ -509,7 +509,7 @@ process {
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
                 wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
                 # *install PowerShell Az modules
-                if ('pwsh' -in $scopes) {
+                if ('az' -in $scopes) {
                     $cmd = [string]::Join("`n",
                         'if (-not (Get-Module -ListAvailable "Az")) {',
                         "`tWrite-Host 'installing Az...'",
@@ -526,6 +526,7 @@ process {
                 Write-Host 'installing python tools...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
                 $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
+                $rel_prek = wsl.exe --distribution $Distro --exec .assets/provision/install_prek.sh $Script:rel_prek
                 continue
             }
             rice {
