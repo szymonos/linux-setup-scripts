@@ -177,6 +177,7 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling python tools...\e[0m\n"
     sudo .assets/provision/setup_python.sh
     .assets/provision/install_uv.sh
+    .assets/provision/install_prek.sh
   ;;
   rice)
     printf "\e[96mricing distro...\e[0m\n"
