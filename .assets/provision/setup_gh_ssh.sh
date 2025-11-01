@@ -21,7 +21,7 @@ if echo "$auth_status" | grep -Fwq 'admin:public_key'; then
     echo '{ "sshKey": "missing" }'
     exit 1
   fi
-  pub_key="$(cat $key_path | awk '{print $2}')"
+  pub_key="$(cat $key_path | sed -E 's/^\S+ (\S+) .*/\1/')"
   if [ -z "$pub_key" ]; then
     printf "\e[31mSSH public key is empty or invalid.\e[0m\n" >&2
     echo '{ "sshKey": "missing" }'
