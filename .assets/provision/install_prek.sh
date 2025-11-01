@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/install_uv.sh >/dev/null
+.assets/provision/install_prek.sh >/dev/null
 '
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
@@ -11,11 +11,11 @@ fi
 . .assets/provision/source.sh
 
 # define variables
-APP='uv'
-REL=$1
+APP='prek'
+
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
-  REL="$(get_gh_release_latest --owner 'astral-sh' --repo 'uv')"
+  REL="$(get_gh_release_latest --owner 'j178' --repo 'prek')"
   if [ -z "$REL" ]; then
     printf "\e[31mFailed to get the latest version of $APP.\e[0m\n" >&2
     exit 1
@@ -24,19 +24,17 @@ fi
 # return the release
 echo $REL
 
-if [ -x "$HOME/.local/bin/uv" ]; then
-  VER="$($HOME/.local/bin/uv self version | sed -En 's/.*\s([0-9\.]+)/\1/p')"
+# check installed version of prek and update if necessary
+if [ -x "$HOME/.local/bin/prek" ]; then
+  VER="$($HOME/.local/bin/prek --version | sed -En 's/.*\s([0-9\.]+)/\1/p')"
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
   else
-    # update uv using the self update command
-    printf "\e[92mupdating \e[1m$APP\e[22m\n" >&2
-    # retry uv self update up to 5 times if it fails
     retry_count=0
     max_retries=5
     while [ $retry_count -le $max_retries ]; do
-      $HOME/.local/bin/uv self update --native-tls >&2
+      $HOME/.local/bin/prek self update >&2
       [ $? -eq 0 ] && break || true
       ((retry_count++))
       echo "retrying... $retry_count/$max_retries" >&2
@@ -48,17 +46,16 @@ if [ -x "$HOME/.local/bin/uv" ]; then
   fi
 fi
 
-# check if the binary is already installed
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
 TMP_DIR=$(mktemp -dp "$HOME")
 # calculate download uri
-URL="https://astral.sh/uv/install.sh"
+URL="https://github.com/j178/prek/releases/download/v$REL/prek-installer.sh"
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   retry_count=0
-  while [ ! -x "$HOME/.local/bin/uv" ] && [ $retry_count -lt 10 ]; do
-    sh "$TMP_DIR/install.sh"
+  while [ ! -x "$HOME/.local/bin/prek" ] && [ $retry_count -lt 10 ]; do
+    sh "$TMP_DIR/prek-installer.sh"
     ((retry_count++))
   done
 fi

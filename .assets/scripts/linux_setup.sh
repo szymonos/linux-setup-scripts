@@ -10,6 +10,7 @@ scope="az distrobox k8s_ext rice pwsh"
 # :set up the system using the specified scope
 .assets/scripts/linux_setup.sh --scope "$scope"
 # :set up the system using the specified scope and omp theme
+omp_theme="base"
 omp_theme="nerd"
 .assets/scripts/linux_setup.sh --omp_theme "$omp_theme"
 .assets/scripts/linux_setup.sh --omp_theme "$omp_theme" --scope "$scope"
