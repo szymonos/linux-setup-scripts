@@ -25,46 +25,44 @@ fi
 echo $REL
 
 if [ -x "$HOME/.local/bin/uv" ]; then
-  VER="$($HOME/.local/bin/uv --version | sed -En 's/.*\s([0-9\.]+)/\1/p')"
+  VER="$($HOME/.local/bin/uv self version | sed -En 's/.*\s([0-9\.]+)/\1/p')"
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
+  else
+    # update uv using the self update command
+    printf "\e[92mupdating \e[1m$APP\e[22m\n" >&2
+    # retry uv self update up to 5 times if it fails
+    retry_count=0
+    max_retries=5
+    while [ $retry_count -le $max_retries ]; do
+      $HOME/.local/bin/uv self update --native-tls >&2
+      [ $? -eq 0 ] && break || true
+      ((retry_count++))
+      echo "retrying... $retry_count/$max_retries" >&2
+      if [ $retry_count -eq $max_retries ]; then
+        printf "\e[31mFailed to update $APP after $max_retries attempts.\e[0m\n" >&2
+        exit 1
+      fi
+    done
   fi
 fi
 
 # check if the binary is already installed
-if [ -x "$HOME/.local/bin/uv" ]; then
-  # update uv using the self update command
-  printf "\e[92mupdating \e[1m$APP\e[22m\n" >&2
-  # retry uv self update up to 5 times if it fails
+printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
+# create temporary dir for the downloaded binary
+TMP_DIR=$(mktemp -dp "$HOME")
+# calculate download uri
+URL="https://astral.sh/uv/install.sh"
+# download and install file
+if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   retry_count=0
-  max_retries=5
-  while [ $retry_count -le $max_retries ]; do
-    $HOME/.local/bin/uv self update --native-tls >&2
-    [ $? -eq 0 ] && break || true
+  while [ ! -x "$HOME/.local/bin/uv" ] && [ $retry_count -lt 10 ]; do
+    sh "$TMP_DIR/install.sh"
     ((retry_count++))
-    echo "retrying... $retry_count/$max_retries" >&2
-    if [ $retry_count -eq $max_retries ]; then
-      printf "\e[31mFailed to update $APP after $max_retries attempts.\e[0m\n" >&2
-      exit 1
-    fi
   done
-else
-  printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
-  # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
-  # calculate download uri
-  URL="https://astral.sh/uv/install.sh"
-  # download and install file
-  if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    retry_count=0
-    while [ ! -x "$HOME/.local/bin/uv" ] && [ $retry_count -lt 10 ]; do
-      sh "$TMP_DIR/install.sh"
-      ((retry_count++))
-    done
-  fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
 fi
+# remove temporary dir
+rm -fr "$TMP_DIR"
 
 exit 0
