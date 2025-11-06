@@ -1,7 +1,7 @@
 name: Preflight Checks
 
 on:
-  pull_request_target:
+  pull_request:
     types: [edited, opened, reopened, synchronize]
 
   workflow_dispatch:
@@ -24,6 +24,15 @@ jobs:
 
       - name: Run pre-commit hooks on changed files
         run: |
-          .github/scripts/prek_pr_run.sh \
-            --event_name "${{ github.event_name }}" \
-            --base_ref "${{ github.event.pull_request.base.ref }}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            printf "\033[1;34mRunning pre-commit hooks for pull request...\033[0m\n"
+            prek run \
+              --show-diff-on-failure --color=always \
+              --from-ref "origin/${{ github.event.pull_request.base.ref }}" --to-ref HEAD
+          else
+            # for manual runs / main branch runs, fall back to checking all files
+            printf "\033[1;34mRunning pre-commit hooks for all files...\033[0m\n"
+            prek run \
+              --show-diff-on-failure --color=always \
+              --all-files
+          fi
