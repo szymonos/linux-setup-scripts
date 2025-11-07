@@ -16,6 +16,8 @@ omp_theme="nerd"
 .assets/scripts/linux_setup.sh --omp_theme "$omp_theme" --scope "$scope"
 # :upgrade system first and then set up the system
 .assets/scripts/linux_setup.sh --sys_upgrade true --scope "$scope" --omp_theme "$omp_theme"
+# :skip GitHub authentication setup
+.assets/scripts/linux_setup.sh --skip_gh_auth true --scope "$scope" --omp_theme "$omp_theme"
 '
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n'
@@ -28,6 +30,7 @@ fi
 scope=${scope}
 omp_theme=${omp_theme}
 sys_upgrade=${sys_upgrade:-false}
+skip_gh_auth=${skip_gh_auth:-false}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
@@ -94,15 +97,16 @@ done
 printf "\e[95m$NAME$([ -n "$scope_arr" ] && echo " : \e[3m${scope_arr[*]}" || true)\e[0m\n"
 
 # *Install packages and setup profiles
-printf "\e[96mupdating system...\e[0m\n"
-if $sys_upgrade; then
+if [ "$sys_upgrade" = true ]; then
+  printf "\e[96mupdating system...\e[0m\n"
   sudo .assets/provision/upgrade_system.sh
 fi
+printf "\e[96minstalling base packages...\e[0m\n"
 sudo .assets/provision/install_base.sh $user
 
 # *setup GitHub CLI
-if [ "$GITHUB_ACTIONS" = true ]; then
-  printf "\e[32mRunning in GitHub Actions environment. Skipping gh installation and authentication setup.\e[0m\n" >&2
+if [ "$skip_gh_auth" = true ]; then
+  printf "\e[32mSkipping gh installation and authentication setup.\e[0m\n" >&2
 else
   sudo .assets/provision/install_gh.sh
   sudo .assets/provision/setup_gh_https.sh -u $user -k
