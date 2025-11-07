@@ -16,7 +16,7 @@ RUN apt-get update \
     # change ownership to the ubuntu user
     && chown -R ubuntu:ubuntu /home/ubuntu/source \
     # setup the container for the ubuntu user
-    && su - ubuntu -c 'cd "$HOME/source/lss" && .assets/scripts/linux_setup.sh --scope "pwsh" --omp_theme base' \
+    && su - ubuntu -c 'cd "$HOME/source/lss" && .assets/scripts/linux_setup.sh --skip_gh_auth true --scope "pwsh" --omp_theme base' \
     #
     # clean up
     && apt-get autoremove -y \
