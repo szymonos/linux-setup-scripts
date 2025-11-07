@@ -101,21 +101,25 @@ fi
 sudo .assets/provision/install_base.sh $user
 
 # *setup GitHub CLI
-sudo .assets/provision/install_gh.sh
-sudo .assets/provision/setup_gh_https.sh -u $user -k
-# generate SSH key if not exists
-if ! ([ -f "$HOME/.ssh/id_ed25519" ] && [ -f "$HOME/.ssh/id_ed25519.pub" ]); then
-  # prepare clean $HOME/.ssh directory
-  if [ -d "$HOME/.ssh" ]; then
-    rm -f "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"
-  else
-    mkdir "$HOME/.ssh" >/dev/null
+if [ "$GITHUB_ACTIONS" = true ]; then
+  printf "\e[32mRunning in GitHub Actions environment. Skipping gh installation and authentication setup.\e[0m\n" >&2
+else
+  sudo .assets/provision/install_gh.sh
+  sudo .assets/provision/setup_gh_https.sh -u $user -k
+  # generate SSH key if not exists
+  if ! ([ -f "$HOME/.ssh/id_ed25519" ] && [ -f "$HOME/.ssh/id_ed25519.pub" ]); then
+    # prepare clean $HOME/.ssh directory
+    if [ -d "$HOME/.ssh" ]; then
+      rm -f "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"
+    else
+      mkdir "$HOME/.ssh" >/dev/null
+    fi
+    # generate new SSH key
+    ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -q
   fi
-  # generate new SSH key
-  ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -q
+  # add SSH key to GitHub
+  .assets/provision/setup_gh_ssh.sh 1>/dev/null
 fi
-# add SSH key to GitHub
-.assets/provision/setup_gh_ssh.sh 1>/dev/null
 
 for sc in ${scope_arr[@]}; do
   case $sc in
@@ -178,7 +182,7 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/setup_python.sh
     .assets/provision/install_uv.sh
     .assets/provision/install_prek.sh
-  ;;
+    ;;
   rice)
     printf "\e[96mricing distro...\e[0m\n"
     sudo .assets/provision/install_btop.sh
