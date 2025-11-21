@@ -130,6 +130,7 @@ for sc in ${scope_arr[@]}; do
   az)
     printf "\e[96minstalling azure cli...\e[0m\n"
     .assets/provision/install_azurecli_uv.sh --fix_certify true
+    sudo .assets/provision/install_azcopy.sh
     ;;
   conda)
     printf "\e[96minstalling python packages...\e[0m\n"
