@@ -415,6 +415,7 @@ process {
             az {
                 Write-Host 'installing azure-cli...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
+                $rel_azcopy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_azcopy.sh $Script:rel_azcopy
                 continue
             }
             conda {
