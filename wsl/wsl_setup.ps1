@@ -44,6 +44,8 @@ List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 Intercept and add certificates from chain into selected distro.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
+.PARAMETER SkipRepoUpdate
+Skip updating current repository before running the setup.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
