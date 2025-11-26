@@ -44,6 +44,8 @@ List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 Intercept and add certificates from chain into selected distro.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
+.PARAMETER SkipRepoUpdate
+Skip updating current repository before running the setup.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
@@ -415,6 +417,7 @@ process {
             az {
                 Write-Host 'installing azure-cli...' -ForegroundColor Cyan
                 wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
+                $rel_azcopy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_azcopy.sh $Script:rel_azcopy
                 continue
             }
             conda {

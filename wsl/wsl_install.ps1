@@ -35,6 +35,8 @@ List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 Intercept and add certificates from chain into selected distro.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
+.PARAMETER SkipRepoUpdate
+Skip updating current repository before running the setup.
 
 .EXAMPLE
 # :perform basic Ubuntu WSL setup
@@ -74,7 +76,9 @@ param (
 
     [switch]$AddCertificate,
 
-    [switch]$FixNetwork
+    [switch]$FixNetwork,
+
+    [switch]$SkipRepoUpdate
 )
 
 begin {
@@ -90,10 +94,12 @@ begin {
     # import InstallUtils for the Update-SessionEnvironmentPath function
     Import-Module (Resolve-Path './modules/InstallUtils') -Force
 
-    Write-Host 'checking if the repository is up to date...' -ForegroundColor Cyan
-    if ((Update-GitRepository) -eq 2) {
-        Write-Host "`nRun the script again!" -ForegroundColor Yellow
-        exit 0
+    if (-not $SkipRepoUpdate) {
+        Write-Host 'checking if the repository is up to date...' -ForegroundColor Cyan
+        if ((Update-GitRepository) -eq 2) {
+            Write-Host "`nRun the script again!" -ForegroundColor Yellow
+            exit 0
+        }
     }
 
     # update environment paths
