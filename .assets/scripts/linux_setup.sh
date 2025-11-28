@@ -55,7 +55,7 @@ while IFS= read -r line; do
 done <<<"$distro_check"
 # add corresponding scopes
 grep -qw 'az' <<<${array[@]} && array+=(python) || true
-grep -qw 'k8s_ext' <<<${array[@]} && array+=(docker) && array+=(k8s_base) || true
+grep -qw 'k8s_ext' <<<${array[@]} && array+=(docker) && array+=(k8s_base) && array+=(k8s_dev) || true
 grep -qw 'pwsh' <<<${array[@]} && array+=(shell) || true
 grep -qw 'zsh' <<<${array[@]} && array+=(shell) || true
 # add oh_my_posh scope if necessary
@@ -67,6 +67,7 @@ fi
 order=(
   docker
   k8s_base
+  k8s_dev
   k8s_ext
   python
   conda
@@ -149,19 +150,22 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling kubernetes base packages...\e[0m\n"
     sudo .assets/provision/install_kubectl.sh >/dev/null
     sudo .assets/provision/install_kubelogin.sh >/dev/null
-    sudo .assets/provision/install_cilium.sh >/dev/null
-    sudo .assets/provision/install_helm.sh >/dev/null
     sudo .assets/provision/install_k9s.sh >/dev/null
     sudo .assets/provision/install_kubecolor.sh >/dev/null
     sudo .assets/provision/install_kubectx.sh >/dev/null
+    ;;
+  k8s_dev)
+    printf "\e[96minstalling kubernetes base packages...\e[0m\n"
+    sudo .assets/provision/install_argorolloutscli.sh >/dev/null
+    sudo .assets/provision/install_cilium.sh >/dev/null
     sudo .assets/provision/install_flux.sh
+    sudo .assets/provision/install_helm.sh >/dev/null
     sudo .assets/provision/install_kustomize.sh
     ;;
   k8s_ext)
     printf "\e[96minstalling kubernetes additional packages...\e[0m\n"
     sudo .assets/provision/install_minikube.sh >/dev/null
     sudo .assets/provision/install_k3d.sh >/dev/null
-    sudo .assets/provision/install_argorolloutscli.sh >/dev/null
     ;;
   nodejs)
     printf "\e[96minstalling Node.js...\e[0m\n"
