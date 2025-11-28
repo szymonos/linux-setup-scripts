@@ -18,7 +18,7 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects python scope
+- az: azure-cli, azcopy, Az PowerShell module if pwsh scope specified; autoselects python scope
 - conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose

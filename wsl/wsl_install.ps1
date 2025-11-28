@@ -16,7 +16,7 @@ The script will perform the following:
 Name of the WSL distro to install and set up.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects python scope
+- az: azure-cli, azcopy, Az PowerShell module if pwsh scope specified; autoselects python scope
 - conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
