@@ -401,16 +401,15 @@ process {
             try {
                 $sshStatus = wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh | ConvertFrom-Json -AsHashtable -ErrorAction Stop
                 if ($sshStatus.sshKey -eq 'added') {
+                    Clear-Host
                     # display message asking to authorize the SSH key
                     $msg = [string]::Join("`n",
                         "`e[97;1mSSH key added to GitHub:`e[0;90m $($sshStatus.title)`e[0m`n",
                         "`e[97mTo finish setting up SSH authentication, open `e[34;4mhttps://github.com/settings/ssh`e[97;24m",
                         "and authorize the newly added key for your organization (enable SSO if required).`e[0m",
-                        "`npress any key to continue..."
+                        "`npress Enter key to continue"
                     )
-                    Write-Host $msg
-                    # wait for user input to continue
-                    [System.Console]::ReadKey() | Out-Null
+                    Read-Host $msg
                 }
             } catch {
                 $sshStatus.sshKey = 'missing'
