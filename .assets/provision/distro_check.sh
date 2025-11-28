@@ -15,6 +15,7 @@ declare -A state=(
   ["git_email"]=$([ -n "$(git config --global --get user.email 2>/dev/null)" ] && echo "true" || echo "false")
   ["gtkd"]=$(grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && echo "true" || echo "false")
   ["k8s_base"]=$([ -f /usr/bin/kubectl ] && echo "true" || echo "false")
+  ["k8s_dev"]=$([ -f /usr/local/bin/helm ] && echo "true" || echo "false")
   ["k8s_ext"]=$([ -f /usr/local/bin/k3d ] && echo "true" || echo "false")
   ["oh_my_posh"]=$([ -f /usr/bin/oh-my-posh ] && echo "true" || echo "false")
   ["python"]=$([ -f $HOME/.local/bin/uv ] && echo "true" || echo "false")

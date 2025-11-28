@@ -22,8 +22,9 @@ List of installation scopes. Valid values:
 - conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
-- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, flux, kustomize, kubecolor, kubectx, kubens
-- k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
+- k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
+- k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools
+- k8s_ext: (WSL2 only) - minikube, k3d; autoselects docker, k8s_base and k8s_dev scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - python: uv, prek, pip, venv
@@ -91,7 +92,7 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
         ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_ext pwsh python rice shell terraform zsh')]
     [string[]]$Scope,
 
@@ -266,6 +267,7 @@ process {
             { $_.az } { $scopeSet.Add('az') | Out-Null }
             { $_.conda } { $scopeSet.Add('conda') | Out-Null }
             { $_.k8s_base } { $scopeSet.Add('k8s_base') | Out-Null }
+            { $_.k8s_dev } { $scopeSet.Add('k8s_dev') | Out-Null }
             { $_.k8s_ext } { $scopeSet.Add('k8s_ext') | Out-Null }
             { $_.pwsh } { $scopeSet.Add('pwsh') | Out-Null }
             { $_.python } { $scopeSet.Add('python') | Out-Null }
@@ -275,7 +277,7 @@ process {
         # add corresponding scopes
         switch (@($scopeSet)) {
             az { $scopeSet.Add('python') | Out-Null }
-            k8s_ext { @('docker', 'k8s_base').ForEach({ $scopeSet.Add($_) | Out-Null }) }
+            k8s_ext { @('docker', 'k8s_base', 'k8s_dev').ForEach({ $scopeSet.Add($_) | Out-Null }) }
             pwsh { $scopeSet.Add('shell') | Out-Null }
             zsh { $scopeSet.Add('shell') | Out-Null }
         }
@@ -296,19 +298,20 @@ process {
             switch ($_) {
                 'docker' { 1 }
                 'k8s_base' { 2 }
-                'k8s_ext' { 3 }
-                'python' { 4 }
-                'conda' { 5 }
-                'az' { 6 }
-                'nodejs' { 7 }
-                'terraform' { 8 }
-                'oh_my_posh' { 9 }
-                'shell' { 10 }
-                'zsh' { 11 }
-                'pwsh' { 12 }
-                'distrobox' { 13 }
-                'rice' { 14 }
-                default { 15 }
+                'k8s_dev' { 3 }
+                'k8s_ext' { 4 }
+                'python' { 5 }
+                'conda' { 6 }
+                'az' { 7 }
+                'nodejs' { 8 }
+                'terraform' { 9 }
+                'oh_my_posh' { 10 }
+                'shell' { 11 }
+                'zsh' { 12 }
+                'pwsh' { 13 }
+                'distrobox' { 14 }
+                'rice' { 15 }
+                default { 16 }
             }
         }
         # display distro name and installed scopes
@@ -450,12 +453,17 @@ process {
                 Write-Host 'installing kubernetes base packages...' -ForegroundColor Cyan
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl && $($chk.k8s_base = $true)
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
-                $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
-                $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
                 $rel_kubecolor = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubecolor.sh $Script:rel_kubecolor
                 $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
+                continue
+            }
+            k8s_dev {
+                Write-Host 'installing kubernetes dev packages...' -ForegroundColor Cyan
+                $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
+                $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
+                $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
                 continue
             }
@@ -463,7 +471,6 @@ process {
                 Write-Host 'installing kubernetes additional packages...' -ForegroundColor Cyan
                 $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
                 $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
-                $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
                 continue
             }
             nodejs {
