@@ -236,6 +236,10 @@ begin {
 
     # script variable that determines if public SSH key has been added to GitHub
     $script:sshStatus = @{ 'sshKey' = 'missing' }
+
+    # sets to track success and failed distros
+    $successDistros = [System.Collections.Generic.SortedSet[string]]::new()
+    $failDistros = [System.Collections.Generic.SortedSet[string]]::new()
 }
 
 process {
@@ -253,11 +257,23 @@ process {
             Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
             exit 1
         }
-        if ($chk.def_uid -ne $chk.uid) {
-            Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
-            wsl.exe --distribution $Distro
-            # rerun distro_check to get updated user
-            $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+        if ($chk.uid -eq 0) {
+            if ($chk.def_uid -ge 1000) {
+                Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
+                wsl.exe --distribution $Distro
+                # rerun distro_check to get updated user
+                $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+            } else {
+                $msg = [string]::Join("`n",
+                    "`n`e[93;1mWARNING: The '$Distro' WSL distro is set to use the root user.`e[0m`n",
+                    'This setup requires the non-root user to be configured as the default one.',
+                    "`e[97;1mRun the script again after creating a non-root user profile.`e[0m"
+                )
+                Write-Host $msg
+                # mark distro as failed
+                $failDistros.Add($Distro) | Out-Null
+                continue
+            }
         }
 
         $scopeSet = [System.Collections.Generic.HashSet[string]]::new()
@@ -649,11 +665,13 @@ process {
             Write-Host 'configuring git...' -ForegroundColor Cyan
             wsl.exe --distribution $Distro --exec bash -c $cmnd
         }
-    }
-    #endregion
+        #endregion
 
+        # mark distro as successfully set up
+        $successDistros.Add($Distro) | Out-Null
+    }
     #region clone GitHub repositories
-    if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
+    if ($PsCmdlet.ParameterSetName -eq 'GitHub' -and $Distro -notin $failDistros) {
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"
     }
@@ -661,7 +679,22 @@ process {
 }
 
 end {
-    Write-Host "`n`e[1;95m<< WSL setup completed >>`e[0m`n"
+    if ($successDistros.Count) {
+        if ($successDistros.Count) {
+            Write-Host "`n`e[95m<< Successfully set up the `e[1m$successDistros`e[22m WSL distro >>`e[0m`n"
+        } else {
+            Write-Host "`n`e[95m<< Successfully set up the following WSL distros >>`e[0m`n"
+            $successDistros.ForEach({ Write-Host "`e[1;95m- $_`e[0m" })
+        }
+    }
+    if ($failDistros.Count) {
+        if ($failDistros.Count) {
+            Write-Host "`n`e[91m<< Failed to set up the `e[4m$failDistros`e[24m WSL distro >>`e[0m`n"
+        } else {
+            Write-Host "`n`e[91m<< Failed to set up the following WSL distros >>`e[0m`n"
+            $failDistros.ForEach({ Write-Host "`e[1;91m- $_`e[0m" })
+        }
+    }
 }
 
 clean {
