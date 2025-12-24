@@ -210,8 +210,9 @@ for sc in ${scope_arr[@]}; do
   terraform)
     printf "\e[96minstalling terraform utils...\e[0m\n"
     sudo .assets/provision/install_terraform.sh
-    sudo .assets/provision/install_tfswitch.sh
     sudo .assets/provision/install_terrascan.sh
+    sudo .assets/provision/install_tflint.sh
+    sudo .assets/provision/install_tfswitch.sh
     ;;
   zsh)
     printf "\e[96minstalling zsh...\e[0m\n"
