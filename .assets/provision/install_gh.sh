@@ -25,11 +25,16 @@ fedora | opensuse)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  mkdir -p -m 755 /etc/apt/keyrings
-  if download_file --uri "https://cli.github.com/packages/githubcli-archive-keyring.gpg" --target_dir "/etc/apt/keyrings"; then
-    chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+  # create temporary dir for the downloaded binary
+  TMP_DIR=$(mktemp -dp "$HOME")
+  if download_file --uri "https://cli.github.com/packages/githubcli-archive-keyring.gpg" --target_dir "$TMP_DIR"; then
+    mkdir -p -m 755 /etc/apt/keyrings
+    install -m 0644 "$TMP_DIR/githubcli-archive-keyring.gpg" /etc/apt/keyrings
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" >/etc/apt/sources.list.d/github-cli.list
   fi
+  # remove temporary dir
+  rm -fr "$TMP_DIR"
+  # check if installed already
   dpkg -s gh &>/dev/null && exit 0 || true
   ;;
 esac
