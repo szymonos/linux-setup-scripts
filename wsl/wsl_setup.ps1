@@ -18,12 +18,13 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER Scope
 List of installation scopes. Valid values:
-- az: azure-cli, Az PowerShell module if pwsh scope specified; autoselects python scope
+- az: azure-cli, azcopy, Az PowerShell module if pwsh scope specified; autoselects python scope
 - conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
-- k8s_base: kubectl, kubelogin, cilium-cli, helm, k9s, flux, kustomize, kubecolor, kubectx, kubens
-- k8s_ext: (WSL2 only) - minikube, k3d, argorollouts-cli; autoselects docker and k8s_base scopes
+- k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
+- k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools
+- k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - python: uv, prek, pip, venv
@@ -91,8 +92,8 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_ext pwsh python rice shell terraform zsh')]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
@@ -235,6 +236,10 @@ begin {
 
     # script variable that determines if public SSH key has been added to GitHub
     $script:sshStatus = @{ 'sshKey' = 'missing' }
+
+    # sets to track success and failed distros
+    $successDistros = [System.Collections.Generic.SortedSet[string]]::new()
+    $failDistros = [System.Collections.Generic.SortedSet[string]]::new()
 }
 
 process {
@@ -252,11 +257,23 @@ process {
             Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
             exit 1
         }
-        if ($chk.def_uid -ne $chk.uid) {
-            Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
-            wsl.exe --distribution $Distro
-            # rerun distro_check to get updated user
-            $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+        if ($chk.uid -eq 0) {
+            if ($chk.def_uid -ge 1000) {
+                Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
+                wsl.exe --distribution $Distro
+                # rerun distro_check to get updated user
+                $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+            } else {
+                $msg = [string]::Join("`n",
+                    "`n`e[93;1mWARNING: The '$Distro' WSL distro is set to use the root user.`e[0m`n",
+                    'This setup requires the non-root user to be configured as the default one.',
+                    "`e[97;1mRun the script again after creating a non-root user profile.`e[0m"
+                )
+                Write-Host $msg
+                # mark distro as failed
+                $failDistros.Add($Distro) | Out-Null
+                continue
+            }
         }
 
         $scopeSet = [System.Collections.Generic.HashSet[string]]::new()
@@ -266,6 +283,7 @@ process {
             { $_.az } { $scopeSet.Add('az') | Out-Null }
             { $_.conda } { $scopeSet.Add('conda') | Out-Null }
             { $_.k8s_base } { $scopeSet.Add('k8s_base') | Out-Null }
+            { $_.k8s_dev } { $scopeSet.Add('k8s_dev') | Out-Null }
             { $_.k8s_ext } { $scopeSet.Add('k8s_ext') | Out-Null }
             { $_.pwsh } { $scopeSet.Add('pwsh') | Out-Null }
             { $_.python } { $scopeSet.Add('python') | Out-Null }
@@ -275,7 +293,7 @@ process {
         # add corresponding scopes
         switch (@($scopeSet)) {
             az { $scopeSet.Add('python') | Out-Null }
-            k8s_ext { @('docker', 'k8s_base').ForEach({ $scopeSet.Add($_) | Out-Null }) }
+            k8s_ext { @('docker', 'k8s_base', 'k8s_dev').ForEach({ $scopeSet.Add($_) | Out-Null }) }
             pwsh { $scopeSet.Add('shell') | Out-Null }
             zsh { $scopeSet.Add('shell') | Out-Null }
         }
@@ -296,19 +314,20 @@ process {
             switch ($_) {
                 'docker' { 1 }
                 'k8s_base' { 2 }
-                'k8s_ext' { 3 }
-                'python' { 4 }
-                'conda' { 5 }
-                'az' { 6 }
-                'nodejs' { 7 }
-                'terraform' { 8 }
-                'oh_my_posh' { 9 }
-                'shell' { 10 }
-                'zsh' { 11 }
-                'pwsh' { 12 }
-                'distrobox' { 13 }
-                'rice' { 14 }
-                default { 15 }
+                'k8s_dev' { 3 }
+                'k8s_ext' { 4 }
+                'python' { 5 }
+                'conda' { 6 }
+                'az' { 7 }
+                'nodejs' { 8 }
+                'terraform' { 9 }
+                'oh_my_posh' { 10 }
+                'shell' { 11 }
+                'zsh' { 12 }
+                'pwsh' { 13 }
+                'distrobox' { 14 }
+                'rice' { 15 }
+                default { 16 }
             }
         }
         # display distro name and installed scopes
@@ -401,16 +420,15 @@ process {
             try {
                 $sshStatus = wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh | ConvertFrom-Json -AsHashtable -ErrorAction Stop
                 if ($sshStatus.sshKey -eq 'added') {
+                    Clear-Host
                     # display message asking to authorize the SSH key
                     $msg = [string]::Join("`n",
                         "`e[97;1mSSH key added to GitHub:`e[0;90m $($sshStatus.title)`e[0m`n",
                         "`e[97mTo finish setting up SSH authentication, open `e[34;4mhttps://github.com/settings/ssh`e[97;24m",
                         "and authorize the newly added key for your organization (enable SSO if required).`e[0m",
-                        "`npress any key to continue..."
+                        "`npress Enter to continue"
                     )
-                    Write-Host $msg
-                    # wait for user input to continue
-                    [System.Console]::ReadKey() | Out-Null
+                    Read-Host $msg
                 }
             } catch {
                 $sshStatus.sshKey = 'missing'
@@ -451,20 +469,25 @@ process {
                 Write-Host 'installing kubernetes base packages...' -ForegroundColor Cyan
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl && $($chk.k8s_base = $true)
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
-                $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
-                $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
                 $rel_kubecolor = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubecolor.sh $Script:rel_kubecolor
                 $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
+                continue
+            }
+            k8s_dev {
+                Write-Host 'installing kubernetes dev packages...' -ForegroundColor Cyan
+                $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
+                $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
+                $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
                 continue
             }
             k8s_ext {
-                Write-Host 'installing kubernetes additional packages...' -ForegroundColor Cyan
+                Write-Host 'installing local kubernetes tools...' -ForegroundColor Cyan
                 $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
                 $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
-                $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
+                $rel_kind = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kind.sh $Script:rel_kind
                 continue
             }
             nodejs {
@@ -643,11 +666,13 @@ process {
             Write-Host 'configuring git...' -ForegroundColor Cyan
             wsl.exe --distribution $Distro --exec bash -c $cmnd
         }
-    }
-    #endregion
+        #endregion
 
+        # mark distro as successfully set up
+        $successDistros.Add($Distro) | Out-Null
+    }
     #region clone GitHub repositories
-    if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
+    if ($PsCmdlet.ParameterSetName -eq 'GitHub' -and $Distro -notin $failDistros) {
         Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"
     }
@@ -655,7 +680,22 @@ process {
 }
 
 end {
-    Write-Host "`n`e[1;95m<< WSL setup completed >>`e[0m`n"
+    if ($successDistros.Count) {
+        if ($successDistros.Count -eq 1) {
+            Write-Host "`n`e[95m<< Successfully set up the `e[1m$successDistros`e[22m WSL distro >>`e[0m`n"
+        } else {
+            Write-Host "`n`e[95m<< Successfully set up the following WSL distros >>`e[0m"
+            $successDistros.ForEach({ Write-Host "- $_" })
+        }
+    }
+    if ($failDistros.Count) {
+        if ($failDistros.Count -eq 1) {
+            Write-Host "`n`e[91m<< Failed to set up the `e[4m$failDistros`e[24m WSL distro >>`e[0m`n"
+        } else {
+            Write-Host "`n`e[91m<< Failed to set up the following WSL distros >>`e[0m"
+            $failDistros.ForEach({ Write-Host "- $_" })
+        }
+    }
 }
 
 clean {

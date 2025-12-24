@@ -32,6 +32,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
+printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 __install="curl -sk https://fluxcd.io/install.sh | bash"
 if type $APP &>/dev/null; then
   eval $__install
