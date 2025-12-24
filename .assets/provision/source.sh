@@ -88,7 +88,8 @@ login_gh_user() {
   if echo "$auth_status" | grep -Fwq 'keyring'; then
     echo 'keyring'
   elif echo "$auth_status" | grep -Fwq '.config/gh/hosts.yml'; then
-    echo 'plaintext'
+    gh_cfg=$(echo "$auth_status" | sed -n '/Logged in to/ s/.*(\([^)]*\)).*/\1/p')
+    cat "$gh_cfg"
   else
     echo 'unknown'
   fi

@@ -348,8 +348,14 @@ process {
         #region setup GitHub authentication
         # *setup GitHub CLI
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-        $cmdArgs = $sshStatus.sshKey -eq 'missing' ? @('-u', $chk.user, '-k') : @('-u', $chk.user)
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
+        $cmdArgs = [System.Collections.Generic.List[string]]::new([string[]]@('-u', $chk.user))
+        if ($sshStatus.sshKey -eq 'missing') {
+            $cmdArgs.Add('-k')
+        }
+        if ($Script:gh_cfg -match 'github\.com') {
+            $cmdArgs.AddRange([string[]]@('-c', ($gh_cfg -join "`n")))
+        }
+        $gh_cfg = wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
 
         # *check SSH keys and create if necessary
         $sshKey = 'id_ed25519'
