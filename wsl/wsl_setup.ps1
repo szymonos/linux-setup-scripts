@@ -30,7 +30,7 @@ List of installation scopes. Valid values:
 - python: uv, prek, pip, venv
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
-- terraform: terraform, terrascan, tfswitch
+- terraform: terraform, terrascan, tflint, tfswitch
 - zsh: zsh shell with plugins
 .PARAMETER OmpTheme
 Specify to install oh-my-posh prompt theme engine and name of the theme to be used.
@@ -587,6 +587,7 @@ process {
                 Write-Host 'installing terraform utils...' -ForegroundColor Cyan
                 $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
                 $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
+                $rel_tfl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tflint.sh $Script:rel_tfl
                 $rel_tfs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh $Script:rel_tfs
                 continue
             }

@@ -28,7 +28,7 @@ List of installation scopes. Valid values:
 - python: uv, prek, pip, venv
 - rice: btop, cmatrix, cowsay, fastfetch
 - shell: bat, eza, oh-my-posh, ripgrep, yq
-- terraform: terraform, terrascan, tfswitch
+- terraform: terraform, terrascan, tflint, tfswitch
 - zsh: zsh shell with plugins
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
