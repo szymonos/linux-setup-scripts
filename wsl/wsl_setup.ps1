@@ -24,7 +24,7 @@ List of installation scopes. Valid values:
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
 - k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools
-- k8s_ext: (WSL2 only) - minikube, k3d; autoselects docker, k8s_base and k8s_dev scopes
+- k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - python: uv, prek, pip, venv
@@ -93,7 +93,7 @@ param (
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_ext pwsh python rice shell terraform zsh')]
+        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
@@ -484,9 +484,10 @@ process {
                 continue
             }
             k8s_ext {
-                Write-Host 'installing kubernetes additional packages...' -ForegroundColor Cyan
+                Write-Host 'installing local kubernetes tools...' -ForegroundColor Cyan
                 $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
                 $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
+                $rel_kind = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kind.sh $Script:rel_kind
                 continue
             }
             nodejs {
@@ -680,7 +681,7 @@ process {
 
 end {
     if ($successDistros.Count) {
-        if ($successDistros.Count) {
+        if ($successDistros.Count -eq 1) {
             Write-Host "`n`e[95m<< Successfully set up the `e[1m$successDistros`e[22m WSL distro >>`e[0m`n"
         } else {
             Write-Host "`n`e[95m<< Successfully set up the following WSL distros >>`e[0m`n"
@@ -688,7 +689,7 @@ end {
         }
     }
     if ($failDistros.Count) {
-        if ($failDistros.Count) {
+        if ($failDistros.Count -eq 1) {
             Write-Host "`n`e[91m<< Failed to set up the `e[4m$failDistros`e[24m WSL distro >>`e[0m`n"
         } else {
             Write-Host "`n`e[91m<< Failed to set up the following WSL distros >>`e[0m`n"

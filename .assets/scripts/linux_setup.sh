@@ -155,7 +155,7 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_kubectx.sh >/dev/null
     ;;
   k8s_dev)
-    printf "\e[96minstalling kubernetes base packages...\e[0m\n"
+    printf "\e[96minstalling kubernetes dev packages...\e[0m\n"
     sudo .assets/provision/install_argorolloutscli.sh >/dev/null
     sudo .assets/provision/install_cilium.sh >/dev/null
     sudo .assets/provision/install_flux.sh
@@ -163,9 +163,10 @@ for sc in ${scope_arr[@]}; do
     sudo .assets/provision/install_kustomize.sh
     ;;
   k8s_ext)
-    printf "\e[96minstalling kubernetes additional packages...\e[0m\n"
+    printf "\e[96minstalling local kubernetes tools...\e[0m\n"
     sudo .assets/provision/install_minikube.sh >/dev/null
     sudo .assets/provision/install_k3d.sh >/dev/null
+    sudo .assets/provision/install_kind.sh >/dev/null
     ;;
   nodejs)
     printf "\e[96minstalling Node.js...\e[0m\n"
