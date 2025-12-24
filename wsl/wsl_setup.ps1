@@ -426,7 +426,7 @@ process {
                         "`e[97;1mSSH key added to GitHub:`e[0;90m $($sshStatus.title)`e[0m`n",
                         "`e[97mTo finish setting up SSH authentication, open `e[34;4mhttps://github.com/settings/ssh`e[97;24m",
                         "and authorize the newly added key for your organization (enable SSO if required).`e[0m",
-                        "`npress Enter key to continue"
+                        "`npress Enter to continue"
                     )
                     Read-Host $msg
                 }
@@ -684,16 +684,16 @@ end {
         if ($successDistros.Count -eq 1) {
             Write-Host "`n`e[95m<< Successfully set up the `e[1m$successDistros`e[22m WSL distro >>`e[0m`n"
         } else {
-            Write-Host "`n`e[95m<< Successfully set up the following WSL distros >>`e[0m`n"
-            $successDistros.ForEach({ Write-Host "`e[1;95m- $_`e[0m" })
+            Write-Host "`n`e[95m<< Successfully set up the following WSL distros >>`e[0m"
+            $successDistros.ForEach({ Write-Host "- $_" })
         }
     }
     if ($failDistros.Count) {
         if ($failDistros.Count -eq 1) {
             Write-Host "`n`e[91m<< Failed to set up the `e[4m$failDistros`e[24m WSL distro >>`e[0m`n"
         } else {
-            Write-Host "`n`e[91m<< Failed to set up the following WSL distros >>`e[0m`n"
-            $failDistros.ForEach({ Write-Host "`e[1;91m- $_`e[0m" })
+            Write-Host "`n`e[91m<< Failed to set up the following WSL distros >>`e[0m"
+            $failDistros.ForEach({ Write-Host "- $_" })
         }
     }
 }
