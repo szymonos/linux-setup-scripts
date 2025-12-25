@@ -81,7 +81,7 @@ login_gh_user() {
     if [ -n "$token" ]; then
       auth_status="$(sudo -u "$user" gh auth status)"
     else
-      printf "\e[31mFailed to authenticate to GitHub.\e[0m\n" >&2
+      printf "\e[33mFailed to authenticate to GitHub.\e[0m\n" >&2
       echo 'none'
       return 1
     fi
@@ -140,7 +140,7 @@ download_file() {
       return 0
       ;;
     404)
-      printf "\e[31mError: The file at the specified URL does not exist or is inaccessible:\n\e[0;4m${uri}\e[0m\n" >&2
+      printf "\e[33mRequested file not found at the specified URL or is inaccessible:\n\e[0;4m${uri}\e[0m\n" >&2
       return 1
       ;;
     *)
@@ -257,6 +257,6 @@ get_gh_release_latest() {
     fi
   done
 
-  printf "\e[31mFailed to get latest release after $max_retries attempts.\e[0m\n" >&2
+  printf "\e[33mFailed to get latest release after $max_retries attempts.\e[0m\n" >&2
   return 1
 }
