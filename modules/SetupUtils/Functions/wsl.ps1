@@ -26,14 +26,24 @@ function Get-WslDistro {
 
         if ($FromRegistry) {
             # specify list of properties to get from Windows registry lxss
-            $prop = @(
-                @{ Name = 'Name'; Expression = { $_.DistributionName } }
-                'DefaultUid'
-                @{ Name = 'Version'; Expression = { $_.Flags -lt 8 ? 1 : 2 } }
-                'Flags'
-                @{ Name = 'BasePath'; Expression = { $_.BasePath -replace '^\\\\\?\\' } }
-                'PSPath'
+            $prop = [System.Collections.Generic.List[PSObject]]::new(
+                [PSObject[]]@(
+                    @{ Name = 'Name'; Expression = { $_.DistributionName } }
+                    'DefaultUid'
+                    @{ Name = 'Version'; Expression = { $_.Flags -lt 8 ? 1 : 2 } }
+                    'Flags'
+                    @{ Name = 'BasePath'; Expression = { $_.BasePath -replace '^\\\\\?\\' } }
+                    'PSPath'
+                )
             )
+            # determine the default distribution
+            $defDistroName = try {
+                $defDistroID = Get-ItemPropertyValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -Name 'DefaultDistribution' -ErrorAction Stop
+                Get-ItemPropertyValue "HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss\$defDistroID" -Name 'DistributionName' -ErrorAction Stop
+            } catch {
+                $null
+            }
+            $prop.Add(@{ Name = 'Default'; Expression = { $_.DistributionName -eq $defDistroName } })
         } else {
             $distros = [Collections.Generic.List[PSCustomObject]]::new()
             $outputEncoding = [Console]::OutputEncoding
@@ -57,18 +67,18 @@ function Get-WslDistro {
                         $distInfo = Invoke-RestMethod 'https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json'
                         $modernDistros = ($distInfo.ModernDistributions | Get-Member -MemberType NoteProperty).Name
                         foreach ($distroFamily in $modernDistros) {
-                            foreach($distro in $distInfo.ModernDistributions.$distroFamily) {
+                            foreach ($distro in $distInfo.ModernDistributions.$distroFamily) {
                                 $distros.Add([PSCustomObject]@{
-                                    Name         = $distro.Name
-                                    FriendlyName = $distro.FriendlyName
-                                })
+                                        Name         = $distro.Name
+                                        FriendlyName = $distro.FriendlyName
+                                    })
                             }
                         }
                         foreach ($distro in $distInfo.Distributions) {
                             $distros.Add([PSCustomObject]@{
-                                Name         = $distro.Name
-                                FriendlyName = $distro.FriendlyName
-                            })
+                                    Name         = $distro.Name
+                                    FriendlyName = $distro.FriendlyName
+                                })
                         }
                         $distros = $distros | Sort-Object -Property Name -Unique
                     } catch {
@@ -102,6 +112,7 @@ function Get-WslDistro {
                     # add results to the distros list
                     for ($i = $dataIdx; $i -lt $result.Count; $i++) {
                         $distro = [PSCustomObject]@{
+                            Default = $result[$i].Substring(0, $nameIdx).TrimEnd() -eq '*'
                             Name    = $result[$i].Substring($nameIdx, $stateIdx - $nameIdx).TrimEnd()
                             State   = $result[$i].Substring($stateIdx, $versionIdx - $stateIdx).TrimEnd()
                             Version = $result[$i].Substring($versionIdx, $result[$i].Length - $versionIdx).TrimEnd()
