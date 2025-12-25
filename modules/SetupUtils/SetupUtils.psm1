@@ -2,6 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 . $PSScriptRoot/Functions/certs.ps1
 . $PSScriptRoot/Functions/common.ps1
+. $PSScriptRoot/Functions/logs.ps1
 . $PSScriptRoot/Functions/wsl.ps1
 
 $exportModuleMemberParams = @{
@@ -16,6 +17,8 @@ $exportModuleMemberParams = @{
         'ConvertTo-Cfg'
         'Get-ArrayIndexMenu'
         'Invoke-ExampleScriptSave'
+        # logs
+        'Show-LogContext'
         # wsl
         'Get-WslDistro'
         'Set-WslConf'

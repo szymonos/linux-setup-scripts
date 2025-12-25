@@ -12,7 +12,7 @@
     RootModule           = 'SetupUtils.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.5.3'
+    ModuleVersion        = '0.6.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -80,6 +80,8 @@
         'ConvertTo-Cfg'
         'Get-ArrayIndexMenu'
         'Invoke-ExampleScriptSave'
+        # logs
+        'Show-LogContext'
         # wsl
         'Get-WslDistro'
         'Set-WslConf'
