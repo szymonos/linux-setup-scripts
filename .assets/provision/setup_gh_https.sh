@@ -13,7 +13,7 @@ if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 elif ! [ -x /usr/bin/gh ]; then
-  printf "\e[31;1mgh is not installed. Please install gh first.\e[0m\n" >&2
+  printf "\e[31;1mgh cli is not installed.\e[0m\n" >&2
   exit 1
 fi
 
@@ -60,7 +60,8 @@ user_gh_cfg="$user_home/.config/gh"
 # *Save provided gh config
 if [ -n "$gh_cfg" ]; then
   echo "Saving provided gh config to $user_gh_cfg/hosts.yml" >&2
-  echo "$gh_cfg" >"$user_gh_cfg/hosts.yml"
+  sudo -u "$user" mkdir -p "$user_gh_cfg"
+  echo "$gh_cfg" | sudo -u "$user" tee "$user_gh_cfg/hosts.yml" >/dev/null
 fi
 
 # *Authenticate user to GitHub

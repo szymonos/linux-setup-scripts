@@ -68,7 +68,7 @@ login_gh_user() {
     fi
   else
     # try to authenticate the user
-    while [[ $retries -lt 5 ]] && [ -z "$token" ]; do
+    while [[ $retries -lt 3 ]] && [ -z "$token" ]; do
       if [ "$key" = true ]; then
         sudo -u "$user" gh auth login -s admin:public_key >&2
       else
