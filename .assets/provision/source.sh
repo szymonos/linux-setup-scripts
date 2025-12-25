@@ -48,11 +48,14 @@ login_gh_user() {
 
   # *check gh authentication status
   auth_status="$(sudo -u "$user" gh auth status 2>/dev/null)"
+  # extract gh username
+  gh_user="$(echo "$auth_status" | sed -rn '/Logged in to/ s/.*account ([[:alnum:]._.-]+).*/\1/p')"
+  gh_user=${gh_user:-$user}
 
   if echo "$auth_status" | grep -Fwq '✓'; then
     if [ "$key" = true ]; then
       if echo "$auth_status" | grep -Fwq 'admin:public_key'; then
-        printf "\e[32mUser \e[1m$user\e[22m is already authenticated to GitHub.\e[0m\n" >&2
+        printf "\e[32mUser \e[1m$gh_user\e[22m is already authenticated to GitHub.\e[0m\n" >&2
       else
         while [[ $retries -lt 5 ]] && [ -z "$token" ]; do
           sudo -u "$user" gh auth refresh -s admin:public_key >&2
@@ -61,7 +64,7 @@ login_gh_user() {
         done
       fi
     else
-      printf "\e[32mUser \e[1m$user\e[22m is already authenticated to GitHub.\e[0m\n" >&2
+      printf "\e[32mUser \e[1m$gh_user\e[22m is already authenticated to GitHub.\e[0m\n" >&2
     fi
   else
     # try to authenticate the user
@@ -78,7 +81,7 @@ login_gh_user() {
     if [ -n "$token" ]; then
       auth_status="$(sudo -u "$user" gh auth status)"
     else
-      printf "\e[31mFailed to authenticate user \e[1m$user\e[22m to GitHub.\e[0m\n" >&2
+      printf "\e[31mFailed to authenticate to GitHub.\e[0m\n" >&2
       echo 'none'
       return 1
     fi
