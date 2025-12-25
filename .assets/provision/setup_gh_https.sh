@@ -13,7 +13,7 @@ if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 elif ! [ -x /usr/bin/gh ]; then
-  printf "\e[31;1mgh is not installed. Please install gh first.\e[0m\n" >&2
+  printf "\e[31;1mgh cli is not installed.\e[0m\n" >&2
   exit 1
 fi
 
@@ -60,7 +60,8 @@ user_gh_cfg="$user_home/.config/gh"
 # *Save provided gh config
 if [ -n "$gh_cfg" ]; then
   echo "Saving provided gh config to $user_gh_cfg/hosts.yml" >&2
-  echo "$gh_cfg" >"$user_gh_cfg/hosts.yml"
+  sudo -u "$user" mkdir -p "$user_gh_cfg"
+  echo "$gh_cfg" | sudo -u "$user" tee "$user_gh_cfg/hosts.yml" >/dev/null
 fi
 
 # *Authenticate user to GitHub
@@ -88,11 +89,12 @@ else
       ln -s "$user_gh_cfg" /root/.config/gh
     fi
     echo "$gh_auth"
+    exit 0
   elif [ "$gh_auth" = 'keyring' ]; then
     printf "\e[32mLogging in user \e[1m$(id -un)\e[22m user separately, as \e[1m$user\e[22m user is authenticated to GitHub using keyring.\e[0m\n" >&2
     gh_auth="$(login_gh_user)"
     # check if the user is authenticated
-    [ "$gh_auth" = 'none' ] && exit 1 || true
+    [ "$gh_auth" = 'none' ] && exit 1 || exit 0
   else
     printf "\e[31;1mUnknown authentication method.\e[0m\n" >&2
     exit 1

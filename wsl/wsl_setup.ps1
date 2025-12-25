@@ -215,11 +215,17 @@ begin {
                 wsl.exe --install --distribution $Distro --web-download --no-launch
             }
         }
+        Write-Host "`ngetting GitHub authentication config from the default distro..." -ForegroundColor Cyan
+        $defDistro = $lxss.Where({ $_.Default }).Name
+        if ($defDistro -ne $Distro) {
+            $cmdArgs = @('-u', (wsl.exe --distribution $defDistro -- id -un), '-k')
+            $gh_cfg = wsl.exe --distribution $defDistro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
+        }
         # get installed distro details
         $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
     } elseif ($lxss) {
         Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update." -ForegroundColor White
-        $lxss.Name.ForEach({ Write-Host "- $_" })
+        $lxss.Name.ForEach({ Write-Host " - $_" })
         $lxss.Count ? '' : $null
     } else {
         Write-Warning 'No installed WSL distributions found.'
@@ -375,6 +381,11 @@ process {
             $cmdArgs.AddRange([string[]]@('-c', ($gh_cfg -join "`n")))
         }
         $gh_cfg = wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
+        if (-not $?) {
+            Write-Host ''
+            Write-Warning "Run the script again to reconfigure GitHub authentication!`n"
+            exit 1
+        }
 
         # *check SSH keys and create if necessary
         $sshKey = 'id_ed25519'
@@ -683,7 +694,7 @@ process {
 end {
     if ($successDistros.Count) {
         if ($successDistros.Count -eq 1) {
-            Write-Host "`n`e[95m<< Successfully set up the `e[1m$successDistros`e[22m WSL distro >>`e[0m`n"
+            Write-Host "`n`e[95m<< `e[1m$successDistros`e[22m WSL distro was set up successfully >>`e[0m`n"
         } else {
             Write-Host "`n`e[95m<< Successfully set up the following WSL distros >>`e[0m"
             $successDistros.ForEach({ Write-Host "- $_" })
