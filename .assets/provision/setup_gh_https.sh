@@ -89,11 +89,12 @@ else
       ln -s "$user_gh_cfg" /root/.config/gh
     fi
     echo "$gh_auth"
+    exit 0
   elif [ "$gh_auth" = 'keyring' ]; then
     printf "\e[32mLogging in user \e[1m$(id -un)\e[22m user separately, as \e[1m$user\e[22m user is authenticated to GitHub using keyring.\e[0m\n" >&2
     gh_auth="$(login_gh_user)"
     # check if the user is authenticated
-    [ "$gh_auth" = 'none' ] && exit 1 || true
+    [ "$gh_auth" = 'none' ] && exit 1 || exit 0
   else
     printf "\e[31;1mUnknown authentication method.\e[0m\n" >&2
     exit 1
