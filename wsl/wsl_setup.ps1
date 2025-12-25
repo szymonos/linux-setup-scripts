@@ -128,7 +128,7 @@ begin {
     $ErrorActionPreference = 'Stop'
     # check if the script is running on Windows
     if ($IsLinux) {
-        Write-Warning 'This script is intended to be run on Windows only (outside of WSL).'
+        Show-LogContext 'This script is intended to be run on Windows only (outside of WSL).' -Level WARNING
         exit 1
     }
 
@@ -140,9 +140,9 @@ begin {
     Import-Module (Convert-Path './modules/SetupUtils') -Force
 
     if (-not $SkipRepoUpdate) {
-        Write-Host "`nchecking if the repository is up to date..." -ForegroundColor Cyan
+        Show-LogContext 'checking if the repository is up to date'
         if ((Update-GitRepository) -eq 2) {
-            Write-Host "`nRun the script again!" -ForegroundColor Yellow
+            Show-LogContext 'Run the script again!' -Level WARNING
             exit 0
         }
     }
@@ -156,28 +156,27 @@ begin {
             }
             # install online distro
             if ($Distro -in $onlineDistros.Name) {
-                Write-Host "`nspecified distribution not found ($Distro), proceeding to install..." -ForegroundColor Cyan
+                Show-LogContext "specified distribution not found ($Distro), proceeding to install"
                 try {
                     Get-Service LxssManagerUser*, WSLService | Out-Null
                     wsl.exe --install --distribution $Distro --web-download --no-launch
                 } catch {
                     if (Test-IsAdmin) {
                         wsl.exe --install --distribution $Distro --web-download
-                        Write-Host 'WSL service installation finished.'
-                        Write-Host "`nRestart the system and run the script again to install the specified WSL distro!`n" -ForegroundColor Yellow
+                        Show-LogContext 'WSL service installation finished.'
+                        Show-LogContext "`nRestart the system and run the script again to install the specified WSL distro!`n" -Level WARNING
                     } else {
                         Start-Process pwsh.exe "-NoProfile -Command `"$cmd`"" -Verb RunAs
-                        Write-Host "`nWSL service installing. Wait for the process to finish and restart the system!`n" -ForegroundColor Yellow
+                        Show-LogContext "`nWSL service installing. Wait for the process to finish and restart the system!`n" -Level WARNING
                     }
                     exit 0
                 }
             } else {
-                Write-Warning "The specified distro does not exist ($Distro)."
+                Show-LogContext "The specified distro does not exist ($Distro)." -Level WARNING
                 exit 1
             }
         } elseif ($lxss.Where({ $_.Name -eq $Distro }).Version -eq 1) {
-            Write-Host ''
-            Write-Warning "The distribution `"$Distro`" is currently using WSL1!"
+            Show-LogContext "The distribution `"$Distro`" is currently using WSL1!" -Level WARNING
             $caption = 'It is strongly recommended to use WSL2.'
             $message = 'Select your choice:'
             $choices = @(
@@ -194,7 +193,7 @@ begin {
                 }
                 switch ($choice) {
                     0 {
-                        Write-Host "`nunregistering current distro..." -ForegroundColor Cyan
+                        Show-LogContext 'unregistering current distro'
                         wsl.exe --unregister $Distro
                         break
                     }
@@ -208,14 +207,14 @@ begin {
                             }
                         }
                         $Distro = Get-ArrayIndexMenu $onlineDistros -Message 'Choose distro to install' -Value
-                        Write-Host "`ninstalling selected distro ($Distro)..." -ForegroundColor Cyan
+                        Show-LogContext "installing selected distro ($Distro)"
                         break
                     }
                 }
                 wsl.exe --install --distribution $Distro --web-download --no-launch
             }
         }
-        Write-Host "`ngetting GitHub authentication config from the default distro..." -ForegroundColor Cyan
+        Show-LogContext 'getting GitHub authentication config from the default distro'
         $defDistro = $lxss.Where({ $_.Default }).Name
         if ($defDistro -ne $Distro) {
             $cmdArgs = @('-u', (wsl.exe --distribution $defDistro -- id -un), '-k')
@@ -224,11 +223,10 @@ begin {
         # get installed distro details
         $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
     } elseif ($lxss) {
-        Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update." -ForegroundColor White
+        Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update:" -ForegroundColor White
         $lxss.Name.ForEach({ Write-Host " - $_" })
-        $lxss.Count ? '' : $null
     } else {
-        Write-Warning 'No installed WSL distributions found.'
+        Show-LogContext 'No installed WSL distributions found.' -Level WARNING
         exit 0
     }
 
@@ -257,8 +255,8 @@ process {
         try {
             $chk = $chkStr | ConvertFrom-Json -AsHashtable -ErrorAction Stop
         } catch {
-            Write-Debug "$_"
-            Write-Warning "Failed to check the distro '$Distro'."
+            Show-LogContext $_
+            Show-LogContext "Failed to check the distro '$Distro'." -Level WARNING
             Write-Host "`nThe WSL seems to be not responding correctly. Run the script again!"
             Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
             exit 1
@@ -343,23 +341,23 @@ process {
         #region perform base setup
         # *fix WSL networking
         if ($FixNetwork) {
-            Write-Host 'fixing network...' -ForegroundColor Cyan
+            Show-LogContext 'fixing network'
             wsl/wsl_network_fix.ps1 $Distro
         }
 
         # *install certificates
         if ($AddCertificate) {
-            Write-Host 'adding certificates in chain...' -ForegroundColor Cyan
+            Show-LogContext 'adding certificates in chain'
             wsl/wsl_certs_add.ps1 $Distro
         }
 
         # *install packages
-        Write-Host 'updating system...' -ForegroundColor Cyan
+        Show-LogContext 'updating system'
         wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh $chk.user
         if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
-            Write-Warning 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.'
+            Show-LogContext 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.' -Level WARNING
             exit
         }
 
@@ -382,8 +380,7 @@ process {
         }
         $gh_cfg = wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
         if (-not $?) {
-            Write-Host ''
-            Write-Warning "Run the script again to reconfigure GitHub authentication!`n"
+            Write-Host "`nRun the script again to reconfigure GitHub authentication!`n" -ForegroundColor Yellow
             exit 1
         }
 
@@ -450,24 +447,24 @@ process {
         #region install scopes
         switch ($scopes) {
             az {
-                Write-Host 'installing azure-cli...' -ForegroundColor Cyan
+                Show-LogContext 'installing azure-cli'
                 wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
                 $rel_azcopy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_azcopy.sh $Script:rel_azcopy
                 continue
             }
             conda {
-                Write-Host 'installing miniforge conda...' -ForegroundColor Cyan
+                Show-LogContext 'installing miniforge conda'
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
                 continue
             }
             distrobox {
-                Write-Host 'installing distrobox...' -ForegroundColor Cyan
+                Show-LogContext 'installing distrobox'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_podman.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_distrobox.sh $chk.user
                 continue
             }
             docker {
-                Write-Host 'installing docker...' -ForegroundColor Cyan
+                Show-LogContext 'installing docker'
                 if (-not $chk.systemd) {
                     # turn on systemd for docker autostart
                     wsl/wsl_systemd.ps1 $Distro -Systemd 'true'
@@ -477,7 +474,7 @@ process {
                 continue
             }
             k8s_base {
-                Write-Host 'installing kubernetes base packages...' -ForegroundColor Cyan
+                Show-LogContext 'installing kubernetes base packages'
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl && $($chk.k8s_base = $true)
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
                 $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
@@ -486,7 +483,7 @@ process {
                 continue
             }
             k8s_dev {
-                Write-Host 'installing kubernetes dev packages...' -ForegroundColor Cyan
+                Show-LogContext 'installing kubernetes dev packages'
                 $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
                 $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
@@ -495,14 +492,14 @@ process {
                 continue
             }
             k8s_ext {
-                Write-Host 'installing local kubernetes tools...' -ForegroundColor Cyan
+                Show-LogContext 'installing local kubernetes tools'
                 $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
                 $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
                 $rel_kind = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kind.sh $Script:rel_kind
                 continue
             }
             nodejs {
-                Write-Host 'installing Node.js...' -ForegroundColor Cyan
+                Show-LogContext 'installing Node.js'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_nodejs.sh
                 if ($AddCertificate) {
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_nodejs_certs.sh
@@ -510,7 +507,7 @@ process {
                 continue
             }
             oh_my_posh {
-                Write-Host 'installing oh-my-posh...' -ForegroundColor Cyan
+                Show-LogContext 'installing oh-my-posh'
                 $rel_omp = try { wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp.version $Script:rel_omp.download_url | ConvertFrom-Json } catch { $null }
                 if ($OmpTheme) {
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme --user $chk.user
@@ -518,12 +515,12 @@ process {
                 continue
             }
             pwsh {
-                Write-Host 'installing pwsh...' -ForegroundColor Cyan
+                Show-LogContext 'installing pwsh'
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
                 # setup profiles
-                Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
+                Show-LogContext 'setting up profile for all users'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
-                Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
+                Show-LogContext 'setting up profile for current user'
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
 
                 # *install PowerShell modules from ps-modules repository
@@ -534,7 +531,7 @@ process {
                 } else {
                     Write-Error 'Cloning ps-modules repository failed.'
                 }
-                Write-Host 'installing ps-modules...' -ForegroundColor Cyan
+                Show-LogContext 'installing ps-modules'
                 Write-Host "`e[32mAllUsers    :`e[0;90m do-common`e[0m"
                 wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
                 # instantiate psmodules generic lists
@@ -566,14 +563,14 @@ process {
                 continue
             }
             python {
-                Write-Host 'installing python tools...' -ForegroundColor Cyan
+                Show-LogContext 'installing python tools'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
                 $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
                 $rel_prek = wsl.exe --distribution $Distro --exec .assets/provision/install_prek.sh $Script:rel_prek
                 continue
             }
             rice {
-                Write-Host 'ricing distro ...' -ForegroundColor Cyan
+                Show-LogContext 'ricing distro '
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_btop.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cmatrix.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cowsay.sh
@@ -581,21 +578,21 @@ process {
                 continue
             }
             shell {
-                Write-Host 'installing shell packages...' -ForegroundColor Cyan
+                Show-LogContext 'installing shell packages'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fzf.sh
                 $rel_eza = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_eza.sh $Script:rel_eza
                 $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
                 # setup bash profiles
-                Write-Host 'setting up profile for all users...' -ForegroundColor Cyan
+                Show-LogContext 'setting up profile for all users'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
-                Write-Host 'setting up profile for current user...' -ForegroundColor Cyan
+                Show-LogContext 'setting up profile for current user'
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
                 continue
             }
             terraform {
-                Write-Host 'installing terraform utils...' -ForegroundColor Cyan
+                Show-LogContext 'installing terraform utils'
                 $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
                 $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
                 $rel_tfl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tflint.sh $Script:rel_tfl
@@ -603,10 +600,10 @@ process {
                 continue
             }
             zsh {
-                Write-Host 'installing zsh...' -ForegroundColor Cyan
+                Show-LogContext 'installing zsh'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_zsh.sh
                 # setup profiles
-                Write-Host 'setting up zsh profile for current user...' -ForegroundColor Cyan
+                Show-LogContext 'setting up zsh profile for current user'
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user_zsh.sh
                 continue
             }
@@ -621,7 +618,7 @@ process {
                 $chk.gtkd ? $null : '"Adwaita:dark"'
             }
             if ($GTK_THEME) {
-                Write-Host "setting `e[3m$GtkTheme`e[23m gtk theme..." -ForegroundColor Cyan
+                Show-LogContext "setting `e[3m$GtkTheme`e[23m gtk theme"
                 wsl.exe --distribution $Distro --user root -- bash -c "echo 'export GTK_THEME=$GTK_THEME' >/etc/profile.d/gtk_theme.sh"
             }
         }
@@ -675,7 +672,7 @@ process {
             $builder.AppendLine('git config --global core.longpaths true') | Out-Null
             $builder.AppendLine('git config --global push.autoSetupRemote true') | Out-Null
             $cmnd = $builder.ToString().Trim() -replace "`r"
-            Write-Host 'configuring git...' -ForegroundColor Cyan
+            Show-LogContext 'configuring git'
             wsl.exe --distribution $Distro --exec bash -c $cmnd
         }
         #endregion
@@ -685,7 +682,7 @@ process {
     }
     #region clone GitHub repositories
     if ($PsCmdlet.ParameterSetName -eq 'GitHub' -and $Distro -notin $failDistros) {
-        Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
+        Show-LogContext 'cloning GitHub repositories'
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"
     }
     #endregion
@@ -697,7 +694,7 @@ end {
             Write-Host "`n`e[95m<< `e[1m$successDistros`e[22m WSL distro was set up successfully >>`e[0m`n"
         } else {
             Write-Host "`n`e[95m<< Successfully set up the following WSL distros >>`e[0m"
-            $successDistros.ForEach({ Write-Host "- $_" })
+            $successDistros.ForEach({ Write-Host " - $_" })
         }
     }
     if ($failDistros.Count) {
@@ -705,7 +702,7 @@ end {
             Write-Host "`n`e[91m<< Failed to set up the `e[4m$failDistros`e[24m WSL distro >>`e[0m`n"
         } else {
             Write-Host "`n`e[91m<< Failed to set up the following WSL distros >>`e[0m"
-            $failDistros.ForEach({ Write-Host "- $_" })
+            $failDistros.ForEach({ Write-Host " - $_" })
         }
     }
 }
