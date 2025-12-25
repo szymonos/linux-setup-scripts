@@ -62,6 +62,12 @@ if [ -n "$gh_cfg" ]; then
   echo "Saving provided gh config to $user_gh_cfg/hosts.yml" >&2
   sudo -u "$user" mkdir -p "$user_gh_cfg"
   echo "$gh_cfg" | sudo -u "$user" tee "$user_gh_cfg/hosts.yml" >/dev/null
+  if ! sudo -u "$user" git config --global credential.'https://github.com'.helper | grep -wqF 'gh auth'; then
+    sudo -u "$user" git config --global credential.'https://github.com'.helper '!/usr/bin/gh auth git-credential'
+  fi
+  if ! sudo -u "$user" git config --global credential.'https://gist.github.com'.helper | grep -wqF 'gh auth'; then
+    sudo -u "$user" git config --global credential.'https://gist.github.com'.helper '!/usr/bin/gh auth git-credential'
+  fi
 fi
 
 # *Authenticate user to GitHub
