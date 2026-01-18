@@ -2,7 +2,7 @@
 . .assets/config/bash_cfg/functions.sh
 '
 
-function fxcertpy {
+function fixcertpy {
   # check if pip and openssl are available
   type pip &>/dev/null && true || return 1
   type openssl &>/dev/null && true || return 1
@@ -59,31 +59,51 @@ function fxcertpy {
     fi
   fi
 
-  # exit script if no certify cacert.pem found
-  if [ -z "$certify_paths" ]; then
-    printf '\e[33mcertifi/cacert.pem not found\e[0m\n' >&2
+  # print notification about cacert.pem file(s) update
+  if [ ${#certify_paths[@]} -gt 0 ]; then
+    printf '\e[36madding custom certificates to the following files:\e[0m\n' >&2
+  else
+    printf '\e[33mno certify/cacert.pem files found to be updated\e[0m\n' >&2
     return 0
   fi
-
+  # instantiate variable about number of certificates added
+  cert_count=0
+  # track unique serials that have been added across all certify files
+  declare -A added_serials=()
   # iterate over certify files
-  for certify in ${certify_paths[@]}; do
+  for certify in "${certify_paths[@]}"; do
     echo "${certify//$HOME/\~}" >&2
     # iterate over installed certificates
-    for path in ${cert_paths[@]}; do
-      serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
+    for path in "${cert_paths[@]}"; do
+      serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 2>/dev/null | cut -d= -f2)
+      # skip if openssl didn't produce a serial
+      [ -n "$serial" ] || continue
       if ! grep -qw "$serial" "$certify"; then
-        # add certificate to array
-        echo " - $(openssl x509 -in $path -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2
+        # add certificate to array (print subject)
+        echo " - $(openssl x509 -in "$path" -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2
         CERT="
-$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
-$(openssl x509 -in $path -outform PEM)"
+$(openssl x509 -in "$path" -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
+$(openssl x509 -in "$path" -outform PEM)"
         # append new certificates to certify cacert.pem
         if [ -w "$certify" ]; then
           echo "$CERT" >>"$certify"
         else
           echo "$CERT" | sudo tee -a "$certify" >/dev/null
         fi
+        # increment unique certificate count only once per serial
+        if [ -z "${added_serials[$serial]+x}" ]; then
+          added_serials[$serial]=1
+          cert_count=$((cert_count + 1))
+        fi
       fi
     done
   done
+  if [ $cert_count -gt 0 ]; then
+    printf "\e[34madded $cert_count certificate(s) to certifi/cacert.pem file(s)\e[0m\n" >&2
+  else
+    printf '\e[34mno new certificates to add\e[0m\n' >&2
+  fi
 }
+
+# alias for backward compatibility
+alias fxcertpy='fixcertpy'
