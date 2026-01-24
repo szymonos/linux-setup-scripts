@@ -45,6 +45,11 @@ if [ -z "$CERTIFY_CRT" ]; then
   fi
 fi
 
+# instantiate variable about number of certificates added
+cert_count=0
+# track unique serials that have been added across all certify files
+declare -A added_serials=()
+# iterate over certify files
 for path in ${cert_paths[@]}; do
   serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
   if ! grep -qw "$serial" "$CERTIFY_CRT"; then
@@ -52,10 +57,23 @@ for path in ${cert_paths[@]}; do
     CERT="
 $(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
 $(openssl x509 -in $path -outform PEM)"
+
     if [ -w "$CERTIFY_CRT" ]; then
       echo "$CERT" >>"$CERTIFY_CRT"
     else
       echo "$CERT" | sudo tee -a "$CERTIFY_CRT" >/dev/null
     fi
+    # increment unique certificate count only once per serial
+    if [ -z "${added_serials[$serial]+x}" ]; then
+      added_serials[$serial]=1
+      cert_count=$((cert_count + 1))
+    fi
   fi
 done
+
+# print summary of added certificates
+if [ $cert_count -gt 0 ]; then
+  printf "\e[34madded $cert_count certificate(s) to azure-cli certifi bundle\e[0m\n" >&2
+else
+  printf '\e[34mno new certificates to add to azure-cli certifi bundle\e[0m\n' >&2
+fi

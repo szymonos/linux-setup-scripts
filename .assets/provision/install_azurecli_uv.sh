@@ -26,8 +26,8 @@ mkdir -p "$HOME/.azure"
 cat <<EOF >$HOME/.azure/pyproject.toml
 [project]
 name = "azurecli"
-version = "1.0.0"
-requires-python = "~=3.12.0"
+version = "1.1.0"
+requires-python = "~=3.13.0"
 dependencies = [
   "azure-cli",
   "certifi",
@@ -58,5 +58,11 @@ fi
 mkdir -p "$HOME/.local/bin"
 ln -sf "$HOME/.azure/.venv/bin/az" "$HOME/.local/bin/"
 
+# set default output to jsonc
+if ! [ -f "$HOME/.azure/config" ] || ! grep -wq jsonc "$HOME/.azure/config" 2>/dev/null; then
+  $HOME/.azure/.venv/bin/az config set core.output=jsonc 2>/dev/null
+fi
 # set dynamic install to allow preview extensions
-az config set extension.dynamic_install_allow_preview=true 2>/dev/null
+if ! grep -wq dynamic_install_allow_preview "$HOME/.azure/config" 2>/dev/null; then
+  $HOME/.azure/.venv/bin/az config set extension.dynamic_install_allow_preview=true 2>/dev/null
+fi
