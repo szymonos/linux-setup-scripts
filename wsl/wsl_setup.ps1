@@ -22,6 +22,7 @@ List of installation scopes. Valid values:
 - conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
+- gcloud: google-cloud-cli
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
 - k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools
 - k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
@@ -59,7 +60,7 @@ $Scope = @('conda', 'pwsh')
 $Scope = @('conda', 'k8s_ext', 'pwsh', 'rice')
 $Scope = @('az', 'docker', 'shell')
 $Scope = @('az', 'k8s_base', 'pwsh', 'nodejs', 'terraform')
-$Scope = @('az', 'k8s_ext', 'pwsh')
+$Scope = @('az', 'gcloud', 'k8s_ext', 'pwsh')
 wsl/wsl_setup.ps1 $Distro -s $Scope
 wsl/wsl_setup.ps1 $Distro -s $Scope -AddCertificate
 # :set up shell with the specified oh-my-posh theme
@@ -92,8 +93,8 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker gcloud k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
@@ -286,6 +287,7 @@ process {
         switch ($chk) {
             { $_.az } { $scopeSet.Add('az') | Out-Null }
             { $_.conda } { $scopeSet.Add('conda') | Out-Null }
+            { $_.gcloud } { $scopeSet.Add('gcloud') | Out-Null }
             { $_.k8s_base } { $scopeSet.Add('k8s_base') | Out-Null }
             { $_.k8s_dev } { $scopeSet.Add('k8s_dev') | Out-Null }
             { $_.k8s_ext } { $scopeSet.Add('k8s_ext') | Out-Null }
@@ -323,15 +325,16 @@ process {
                 'python' { 5 }
                 'conda' { 6 }
                 'az' { 7 }
-                'nodejs' { 8 }
-                'terraform' { 9 }
-                'oh_my_posh' { 10 }
-                'shell' { 11 }
-                'zsh' { 12 }
-                'pwsh' { 13 }
-                'distrobox' { 14 }
-                'rice' { 15 }
-                default { 16 }
+                'gcloud' { 8 }
+                'nodejs' { 9 }
+                'terraform' { 10 }
+                'oh_my_posh' { 11 }
+                'shell' { 12 }
+                'zsh' { 13 }
+                'pwsh' { 14 }
+                'distrobox' { 15 }
+                'rice' { 16 }
+                default { 17 }
             }
         }
         # display distro name and installed scopes
@@ -471,6 +474,12 @@ process {
                     wsl.exe --shutdown
                 }
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_docker.sh $chk.user
+                continue
+            }
+            gcloud {
+                Show-LogContext 'installing google-cloud-cli'
+                $rel_gcloud = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gcloud.sh $Script:rel_gcloud
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_gcloud_certs.sh
                 continue
             }
             k8s_base {
