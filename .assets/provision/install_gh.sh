@@ -54,8 +54,8 @@ debian | ubuntu)
   apt-get update && apt-get install -y gh >&2 2>/dev/null
   ;;
 opensuse)
-  zypper addrepo https://cli.github.com/packages/rpm/gh-cli.repo
-  zypper ref
-  zypper install -y gh >&2 2>/dev/null
+  zypper --non-interactive --quiet addrepo --no-check https://cli.github.com/packages/rpm/gh-cli.repo
+  zypper --gpg-auto-import-keys --quiet refresh gh-cli
+  zypper --non-interactive install -y gh >&2 2>/dev/null
   ;;
 esac

@@ -94,7 +94,7 @@ esac
 
 if [ "$binary" = true ] && [ -n "$REL" ]; then
   echo 'Installing from binary.' >&2
-  [ "$SYS_ID" = 'opensuse' ] && zypper in -y libicu >&2 2>/dev/null || true
+  [ "$SYS_ID" = 'opensuse' ] && zypper --non-interactive in -y libicu >&2 2>/dev/null || true
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$HOME")
   # calculate download uri

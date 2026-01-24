@@ -19,7 +19,7 @@ debian | ubuntu)
   sudo apt-get update && sudo apt-get install -y build-essential sassc
   ;;
 opensuse)
-  sudo zypper in -y -t pattern devel_basis
+  sudo zypper --non-interactive in -y -t pattern devel_basis
   INSTALL_DASH=false
   ;;
 *)

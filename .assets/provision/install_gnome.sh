@@ -35,8 +35,8 @@ ubuntu)
   systemctl set-default graphical.target
   ;;
 opensuse)
-  zypper in -y -t pattern gnome
-  zypper in -y firefox
+  zypper --non-interactive in -y -t pattern gnome
+  zypper --non-interactive in -y firefox
   systemctl set-default graphical.target
   ;;
 esac

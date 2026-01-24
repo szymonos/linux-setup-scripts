@@ -54,8 +54,9 @@ fedora)
   dnf install -y kubecolor >&2 2>/dev/null
   ;;
 opensuse)
-  sudo zypper addrepo https://kubecolor.github.io/packages/rpm/kubecolor.repo &>/dev/null
-  zypper in -y $APP >&2 2>/dev/null
+  zypper --non-interactive --quiet addrepo --no-check https://kubecolor.github.io/packages/rpm/kubecolor.repo
+  zypper --gpg-auto-import-keys --quiet refresh $APP
+  zypper --non-interactive install -y $APP >&2 2>/dev/null
   ;;
 *)
   binary=true

@@ -70,7 +70,7 @@ debian | ubuntu)
   fi
   ;;
 opensuse)
-  zypper in -y $APP >&2 2>/dev/null || binary=true
+  zypper --non-interactive in -y $APP >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true

@@ -29,6 +29,6 @@ debian | ubuntu)
   apt-get update && apt-get dist-upgrade -qy --allow-downgrades --allow-remove-essential --allow-change-held-packages
   ;;
 opensuse)
-  zypper refresh && zypper dup -y
+  zypper --gpg-auto-import-keys refresh && zypper --non-interactive dup -y
   ;;
 esac

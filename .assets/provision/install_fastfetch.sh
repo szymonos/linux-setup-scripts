@@ -82,6 +82,6 @@ debian | ubuntu)
   rm -fr "$TMP_DIR"
   ;;
 opensuse)
-  zypper in -y $APP >&2 2>/dev/null
+  zypper --non-interactive in -y $APP >&2 2>/dev/null
   ;;
 esac

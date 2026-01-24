@@ -45,7 +45,7 @@ debian | ubuntu)
   apt-get update && apt-get install -y python3-pip python3-virtualenv python3-venv
   ;;
 opensuse)
-  zypper in -y python3-pip python3-virtualenv
+  zypper --non-interactive in -y python3-pip python3-virtualenv
   ;;
 esac
 

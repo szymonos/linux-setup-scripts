@@ -56,7 +56,7 @@ debian | ubuntu)
   apt-get update && apt-get install -y $APP npm
   ;;
 opensuse)
-  zypper in -y $APP npm
+  zypper --non-interactive in -y $APP npm
   ;;
 esac
 

@@ -20,6 +20,7 @@ List of installation scopes. Valid values:
 - conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
+- gcloud: google-cloud-cli
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
 - k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools
 - k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
@@ -47,6 +48,7 @@ wsl/wsl_install.ps1 -Distro 'Ubuntu' -FixNetwork
 # :set up WSL distro with specified installation scopes
 $Scope = @('python')
 $Scope = @('az', 'docker')
+$Scope = @('az', 'conda', 'docker', 'gcloud', 'k8s_base')  # with gcloud cli
 $Scope = @('az', 'docker', 'pwsh')
 $Scope = @('az', 'docker', 'k8s_base', 'pwsh', 'terraform')
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -s $Scope
@@ -69,7 +71,7 @@ param (
     [Parameter(Mandatory, Position = 0)]
     [string]$Distro,
 
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false })]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false })]
     [string[]]$Scope,
 
     [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false })]

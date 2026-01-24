@@ -67,6 +67,6 @@ debian | ubuntu)
   apt-get update && apt-get install terraform
   ;;
 opensuse)
-  zypper in -y terraform >&2 2>/dev/null
+  zypper --non-interactive in -y terraform >&2 2>/dev/null
   ;;
 esac

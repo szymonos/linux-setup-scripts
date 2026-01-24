@@ -45,8 +45,8 @@ debian | ubuntu)
   ;;
 opensuse)
   rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
-  zypper addrepo https://packages.microsoft.com/yumrepos/edge microsoft-edge
-  zypper refresh
-  zypper install -y microsoft-edge-stable
+  zypper --non-interactive --quiet addrepo --no-check https://packages.microsoft.com/yumrepos/edge microsoft-edge
+  zypper --gpg-auto-import-keys --quiet refresh microsoft-edge
+  zypper --non-interactive install -y microsoft-edge-stable >&2 2>/dev/null
   ;;
 esac
