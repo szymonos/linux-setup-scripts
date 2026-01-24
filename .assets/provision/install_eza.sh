@@ -82,7 +82,7 @@ ubuntu)
   apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
   ;;
 opensuse)
-  zypper in -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
+  zypper --non-interactive in -y $APP >&2 2>/dev/null || binary=true && lib='gnu'
   ;;
 *)
   binary=true && lib='gnu'

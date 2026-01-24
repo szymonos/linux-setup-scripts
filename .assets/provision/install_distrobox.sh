@@ -61,6 +61,6 @@ debian | ubuntu)
   apt-get update && apt-get install -y $APP
   ;;
 opensuse)
-  zypper in -y $APP
+  zypper --non-interactive in -y $APP
   ;;
 esac

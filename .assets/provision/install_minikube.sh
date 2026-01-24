@@ -66,7 +66,7 @@ debian | ubuntu)
   rm -fr "$TMP_DIR"
   ;;
 opensuse)
-  zypper in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null || binary=true
+  zypper --non-interactive in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true

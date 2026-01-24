@@ -66,7 +66,7 @@ debian | ubuntu)
   apt-get update >&2 && apt-get install -y exa >&2 2>/dev/null || binary=true
   ;;
 opensuse)
-  zypper in -y exa >&2 2>/dev/null || binary=true
+  zypper --non-interactive in -y exa >&2 2>/dev/null || binary=true
   ;;
 *)
   binary=true

@@ -63,7 +63,7 @@ debian | ubuntu)
   apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
   ;;
 opensuse)
-  zypper in -y docker containerd docker-compose
+  zypper --non-interactive in -y docker containerd docker-compose
   ;;
 esac
 
