@@ -72,6 +72,7 @@ order=(
   python
   conda
   az
+  gcloud
   nodejs
   terraform
   oh_my_posh
@@ -110,7 +111,7 @@ if [ "$skip_gh_auth" = true ]; then
   printf "\e[32mSkipping gh installation and authentication setup.\e[0m\n" >&2
 else
   sudo .assets/provision/install_gh.sh
-  sudo .assets/provision/setup_gh_https.sh -u $user -k
+  sudo .assets/provision/setup_gh_https.sh -u $user -k >/dev/null
   # generate SSH key if not exists
   if ! ([ -f "$HOME/.ssh/id_ed25519" ] && [ -f "$HOME/.ssh/id_ed25519.pub" ]); then
     # prepare clean $HOME/.ssh directory
@@ -123,7 +124,7 @@ else
     ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -q
   fi
   # add SSH key to GitHub
-  .assets/provision/setup_gh_ssh.sh 1>/dev/null
+  .assets/provision/setup_gh_ssh.sh >/dev/null
 fi
 
 for sc in ${scope_arr[@]}; do
@@ -131,7 +132,7 @@ for sc in ${scope_arr[@]}; do
   az)
     printf "\e[96minstalling azure cli...\e[0m\n"
     .assets/provision/install_azurecli_uv.sh --fix_certify true
-    sudo .assets/provision/install_azcopy.sh
+    sudo .assets/provision/install_azcopy.sh >/dev/null
     ;;
   conda)
     printf "\e[96minstalling python packages...\e[0m\n"
@@ -146,6 +147,11 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling docker...\e[0m\n"
     sudo .assets/provision/install_docker.sh $user
     ;;
+  gcloud)
+    printf "\e[96minstalling google-cloud-cli...\e[0m\n"
+    sudo .assets/provision/install_gcloud.sh >/dev/null
+    sudo .assets/provision/fix_gcloud_certs.sh
+    ;;
   k8s_base)
     printf "\e[96minstalling kubernetes base packages...\e[0m\n"
     sudo .assets/provision/install_kubectl.sh >/dev/null
@@ -158,9 +164,9 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling kubernetes dev packages...\e[0m\n"
     sudo .assets/provision/install_argorolloutscli.sh >/dev/null
     sudo .assets/provision/install_cilium.sh >/dev/null
-    sudo .assets/provision/install_flux.sh
+    sudo .assets/provision/install_flux.sh >/dev/null
     sudo .assets/provision/install_helm.sh >/dev/null
-    sudo .assets/provision/install_kustomize.sh
+    sudo .assets/provision/install_kustomize.sh >/dev/null
     ;;
   k8s_ext)
     printf "\e[96minstalling local kubernetes tools...\e[0m\n"
@@ -170,7 +176,7 @@ for sc in ${scope_arr[@]}; do
     ;;
   nodejs)
     printf "\e[96minstalling Node.js...\e[0m\n"
-    sudo .assets/provision/install_nodejs.sh >/dev/null
+    sudo .assets/provision/install_nodejs.sh
     ;;
   oh_my_posh)
     printf "\e[96minstalling oh-my-posh...\e[0m\n"
@@ -190,18 +196,19 @@ for sc in ${scope_arr[@]}; do
   python)
     printf "\e[96minstalling python tools...\e[0m\n"
     sudo .assets/provision/setup_python.sh
-    .assets/provision/install_uv.sh
-    .assets/provision/install_prek.sh
+    .assets/provision/install_uv.sh >/dev/null
+    .assets/provision/install_prek.sh >/dev/null
     ;;
   rice)
     printf "\e[96mricing distro...\e[0m\n"
     sudo .assets/provision/install_btop.sh
     sudo .assets/provision/install_cmatrix.sh
     sudo .assets/provision/install_cowsay.sh
-    sudo .assets/provision/install_fastfetch.sh
+    sudo .assets/provision/install_fastfetch.sh >/dev/null
     ;;
   shell)
     printf "\e[96minstalling shell packages...\e[0m\n"
+    sudo .assets/provision/install_fzf.sh
     sudo .assets/provision/install_eza.sh >/dev/null
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
@@ -209,10 +216,10 @@ for sc in ${scope_arr[@]}; do
     ;;
   terraform)
     printf "\e[96minstalling terraform utils...\e[0m\n"
-    sudo .assets/provision/install_terraform.sh
-    sudo .assets/provision/install_terrascan.sh
-    sudo .assets/provision/install_tflint.sh
-    sudo .assets/provision/install_tfswitch.sh
+    sudo .assets/provision/install_terraform.sh >/dev/null
+    sudo .assets/provision/install_terrascan.sh >/dev/null
+    sudo .assets/provision/install_tflint.sh >/dev/null
+    sudo .assets/provision/install_tfswitch.sh >/dev/null
     ;;
   zsh)
     printf "\e[96minstalling zsh...\e[0m\n"
