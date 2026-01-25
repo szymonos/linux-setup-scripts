@@ -12,45 +12,45 @@ install_pkgs() {
   pkgs=$2
 
   case "$manager" in
-    apk)
-      if ! apk add --no-cache $pkgs 2>/dev/null; then
-        for pkg in $pkgs; do
-          apk add --no-cache "$pkg" 2>/dev/null || true
-        done
-      fi
-      ;;
-    pacman)
-      if ! pacman -Sy --needed --noconfirm --color=auto $pkgs 2>/dev/null; then
-        for pkg in $pkgs; do
-          pacman -S --needed --noconfirm --color=auto "$pkg" 2>/dev/null || true
-        done
-      fi
-      ;;
-    dnf)
-      if ! dnf install -y $pkgs 2>/dev/null; then
-        for pkg in $pkgs; do
-          dnf install -y "$pkg" 2>/dev/null || true
-        done
-      fi
-      ;;
-    apt)
-      if ! apt-get install -y $pkgs 2>/dev/null; then
-        for pkg in $pkgs; do
-          apt-get install -y "$pkg" 2>/dev/null || true
-        done
-      fi
-      ;;
-    zypper)
-      if ! zypper --non-interactive in -y $pkgs 2>/dev/null; then
-        for pkg in $pkgs; do
-          zypper --non-interactive --no-refresh in -y "$pkg" 2>/dev/null || true
-        done
-      fi
-      ;;
-    *)
-      # fallback: do nothing
-      true
-      ;;
+  apk)
+    if ! apk add --no-cache $pkgs 2>/dev/null; then
+      for pkg in $pkgs; do
+        apk add --no-cache "$pkg" 2>/dev/null || true
+      done
+    fi
+    ;;
+  pacman)
+    if ! pacman -Sy --needed --noconfirm --color=auto $pkgs 2>/dev/null; then
+      for pkg in $pkgs; do
+        pacman -S --needed --noconfirm --color=auto "$pkg" 2>/dev/null || true
+      done
+    fi
+    ;;
+  dnf)
+    if ! dnf install -y $pkgs 2>/dev/null; then
+      for pkg in $pkgs; do
+        dnf install -y "$pkg" 2>/dev/null || true
+      done
+    fi
+    ;;
+  apt)
+    if ! apt-get install -y $pkgs 2>/dev/null; then
+      for pkg in $pkgs; do
+        apt-get install -y "$pkg" 2>/dev/null || true
+      done
+    fi
+    ;;
+  zypper)
+    if ! zypper --non-interactive in -y $pkgs 2>/dev/null; then
+      for pkg in $pkgs; do
+        zypper --non-interactive --no-refresh in -y "$pkg" 2>/dev/null || true
+      done
+    fi
+    ;;
+  *)
+    # fallback: do nothing
+    true
+    ;;
   esac
 }
 
@@ -94,7 +94,11 @@ fedora)
   # install development tools group
   rpm -q patch >/dev/null 2>&1 || dnf group install -y development-tools 2>/dev/null || true
   # install base packages
-  pkgs="bash-completion bind-utils curl dnf5-plugins gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+  if [ "$(readlink $(which dnf))" = 'dnf5' ]; then
+    pkgs="bash-completion bind-utils curl dnf5-plugins gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+  else
+    pkgs="bash-completion bind-utils curl dnf-plugins-core gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+  fi
   install_pkgs dnf "$pkgs"
   ;;
 debian | ubuntu)
