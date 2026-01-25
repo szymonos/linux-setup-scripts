@@ -24,7 +24,7 @@ List of installation scopes. Valid values:
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
 - gcloud: google-cloud-cli
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
-- k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools
+- k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools; autoselects k8s_base scope
 - k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
 - nodejs: Node.js JavaScript runtime environment
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
@@ -159,16 +159,36 @@ begin {
             if ($Distro -in $onlineDistros.Name) {
                 Show-LogContext "specified distribution not found ($Distro), proceeding to install"
                 try {
-                    Get-Service LxssManagerUser*, WSLService | Out-Null
+                    Get-Service WSLService | Out-Null
                     wsl.exe --install --distribution $Distro --web-download --no-launch
+                    if ($? -and $Distro -notin (Get-WslDistro -FromRegistry).Name) {
+                        Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
+                        wsl.exe --install --distribution $Distro --web-download
+                    }
+                    if (-not $?) {
+                        Show-LogContext "`"$Distro`" distro installation failed." -Level ERROR
+                        exit 1
+                    }
                 } catch {
                     if (Test-IsAdmin) {
                         wsl.exe --install --distribution $Distro --web-download
-                        Show-LogContext 'WSL service installation finished.'
-                        Show-LogContext "`nRestart the system and run the script again to install the specified WSL distro!`n" -Level WARNING
+                        if ($?) {
+                            Show-LogContext 'WSL service installation finished.'
+                            Show-LogContext "`nRestart the system and run the script again to install the specified WSL distro!`n" -Level WARNING
+                        } else {
+                            Show-LogContext 'WSL service installation failed.' -Level ERROR
+                            exit 1
+                        }
                     } else {
-                        Start-Process pwsh.exe "-NoProfile -Command `"$cmd`"" -Verb RunAs
-                        Show-LogContext "`nWSL service installing. Wait for the process to finish and restart the system!`n" -Level WARNING
+                        Show-LogContext "`nInstalling WSL service. Wait for the process to finish and restart the system!`n" -Level WARNING
+                        Start-Process pwsh.exe "-NoProfile -Command `"wsl.exe --install --distribution $Distro --web-download`"" -Verb RunAs
+                        if ($?) {
+                            Show-LogContext 'WSL service installation finished.'
+                            Show-LogContext "`nRestart the system and run the script again to install the specified WSL distro!`n" -Level WARNING
+                        } else {
+                            Show-LogContext 'WSL service installation failed.' -Level ERROR
+                            exit 1
+                        }
                     }
                     exit 0
                 }
@@ -299,6 +319,7 @@ process {
         # add corresponding scopes
         switch (@($scopeSet)) {
             az { $scopeSet.Add('python') | Out-Null }
+            k8s_dev { $scopeSet.Add('k8s_base') | Out-Null }
             k8s_ext { @('docker', 'k8s_base', 'k8s_dev').ForEach({ $scopeSet.Add($_) | Out-Null }) }
             pwsh { $scopeSet.Add('shell') | Out-Null }
             zsh { $scopeSet.Add('shell') | Out-Null }
@@ -501,10 +522,15 @@ process {
                 continue
             }
             k8s_ext {
-                Show-LogContext 'installing local kubernetes tools'
-                $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
-                $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
-                $rel_kind = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kind.sh $Script:rel_kind
+                wsl.exe --distribution $Distro --exec sh -c '[ -f /usr/bin/docker ] && true || false'
+                if ($?) {
+                    Show-LogContext 'installing local kubernetes tools'
+                    $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
+                    $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
+                    $rel_kind = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kind.sh $Script:rel_kind
+                } else {
+                    Show-LogContext 'docker not found, skipping local kubernetes tools installation' -Level WARNING
+                }
                 continue
             }
             nodejs {

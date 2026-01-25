@@ -55,6 +55,7 @@ while IFS= read -r line; do
 done <<<"$distro_check"
 # add corresponding scopes
 grep -qw 'az' <<<${array[@]} && array+=(python) || true
+grep -qw 'k8s_dev' <<<${array[@]} && array+=(k8s_base) || true
 grep -qw 'k8s_ext' <<<${array[@]} && array+=(docker) && array+=(k8s_base) && array+=(k8s_dev) || true
 grep -qw 'pwsh' <<<${array[@]} && array+=(shell) || true
 grep -qw 'zsh' <<<${array[@]} && array+=(shell) || true
