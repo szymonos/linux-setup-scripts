@@ -129,7 +129,7 @@ begin {
     $ErrorActionPreference = 'Stop'
     # check if the script is running on Windows
     if ($IsLinux) {
-        Show-LogContext 'This script is intended to be run on Windows only (outside of WSL).' -Level WARNING
+        Write-Warning 'This script is intended to be run on Windows only (outside of WSL).'
         exit 1
     }
 
@@ -143,7 +143,7 @@ begin {
     if (-not $SkipRepoUpdate) {
         Show-LogContext 'checking if the repository is up to date'
         if ((Update-GitRepository) -eq 2) {
-            Show-LogContext 'Run the script again!' -Level WARNING
+            Write-Warning 'Repository has been updated. Run the script again!'
             exit 0
         }
     }
