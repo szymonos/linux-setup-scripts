@@ -42,6 +42,8 @@ Specify gtk theme for wslg. Available values: light, dark.
 Default: automatically detects based on the system theme.
 .PARAMETER Repos
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
+.PARAMETER Pixi
+(Experimental) Install and set up Pixi package manager for WSL.
 .PARAMETER AddCertificate
 Intercept and add certificates from chain into selected distro.
 .PARAMETER FixNetwork
@@ -93,8 +95,10 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker gcloud k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')]
+    [ValidateScript(
+        { $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker gcloud k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')
+    ]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
@@ -110,9 +114,13 @@ param (
     [string]$GtkTheme,
 
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
-        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
+    [ValidateScript(
+        { $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
+        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')
+    ]
     [string[]]$Repos,
+
+    [switch]$Pixi,
 
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
@@ -374,15 +382,20 @@ process {
             Show-LogContext 'adding certificates in chain'
             wsl/wsl_certs_add.ps1 $Distro
         }
+        if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
+            Show-LogContext 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.' -Level ERROR
+            exit 1
+        }
 
         # *install packages
         Show-LogContext 'updating system'
         wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh $chk.user
-        if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
-            Show-LogContext 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.' -Level WARNING
-            exit
+        if ($PSBoundParameters.Pixi) {
+            Show-LogContext 'installing pixi package manager'
+            wsl.exe --distribution $Distro --exec .assets/provision/install_pixi.sh
+            $pixiArgs = [System.Collections.Generic.List[string]]::new()
         }
 
         # *boot setup
@@ -483,7 +496,11 @@ process {
             }
             distrobox {
                 Show-LogContext 'installing distrobox'
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_podman.sh
+                if ($PSBoundParameters.Pixi) {
+                    $pixiArgs.Add('podman')
+                } else {
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_podman.sh
+                }
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_distrobox.sh $chk.user
                 continue
             }
@@ -507,9 +524,13 @@ process {
                 Show-LogContext 'installing kubernetes base packages'
                 $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl && $($chk.k8s_base = $true)
                 $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
-                $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
                 $rel_kubecolor = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubecolor.sh $Script:rel_kubecolor
                 $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
+                if ($PSBoundParameters.Pixi) {
+                    $pixiArgs.Add('k9s')
+                } else {
+                    $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
+                }
                 continue
             }
             k8s_dev {
@@ -518,16 +539,24 @@ process {
                 $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
                 $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
-                $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
+                if ($PSBoundParameters.Pixi) {
+                    $pixiArgs.Add('kustomize')
+                } else {
+                    $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
+                }
                 continue
             }
             k8s_ext {
                 wsl.exe --distribution $Distro --exec sh -c '[ -f /usr/bin/docker ] && true || false'
                 if ($?) {
                     Show-LogContext 'installing local kubernetes tools'
-                    $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
                     $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
                     $rel_kind = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kind.sh $Script:rel_kind
+                    if ($PSBoundParameters.Pixi) {
+                        $pixiArgs.Add('minikube')
+                    } else {
+                        $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
+                    }
                 } else {
                     Show-LogContext 'docker not found, skipping local kubernetes tools installation' -Level WARNING
                 }
@@ -606,17 +635,25 @@ process {
             }
             rice {
                 Show-LogContext 'ricing distro '
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_btop.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cmatrix.sh
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cowsay.sh
-                $rel_ff = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fastfetch.sh $Script:rel_ff
+                if ($PSBoundParameters.Pixi) {
+                    $pixiArgs.AddRange([string[]]@('btop', 'fastfetch'))
+                } else {
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_btop.sh
+                    $rel_ff = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fastfetch.sh $Script:rel_ff
+                }
                 continue
             }
             shell {
                 Show-LogContext 'installing shell packages'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fzf.sh
+                if ($PSBoundParameters.Pixi) {
+                    $pixiArgs.Add('bat')
+                } else {
+                    $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
+                }
                 $rel_eza = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_eza.sh $Script:rel_eza
-                $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
                 $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
                 $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
                 # setup bash profiles
@@ -628,9 +665,13 @@ process {
             }
             terraform {
                 Show-LogContext 'installing terraform utils'
-                $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
+                if ($PSBoundParameters.Pixi) {
+                    $pixiArgs.AddRange([string[]]@('terraform', 'tflint'))
+                } else {
+                    $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
+                    $rel_tfl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tflint.sh $Script:rel_tfl
+                }
                 $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
-                $rel_tfl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tflint.sh $Script:rel_tfl
                 $rel_tfs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh $Script:rel_tfs
                 continue
             }
@@ -642,6 +683,14 @@ process {
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user_zsh.sh
                 continue
             }
+        }
+        if ($PsCmdlet.ParameterSetName -eq 'Update' -and $chk.pixi) {
+            Show-LogContext 'updating packages via pixi'
+            wsl.exe --distribution $Distro --cd ~ --exec .pixi/bin/pixi global update
+        }
+        if ($PSBoundParameters.Pixi -and $pixiArgs.Count -gt 0) {
+            Show-LogContext 'installing packages via pixi'
+            wsl.exe --distribution $Distro --cd ~ --exec .pixi/bin/pixi global install @pixiArgs
         }
         #endregion
 

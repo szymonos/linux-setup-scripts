@@ -70,39 +70,56 @@ if (Test-Path /usr/bin/gh) {
 }
 
 # setup conda initialization
-if (Test-Path $HOME/miniforge3/bin/conda -PathType Leaf) {
+$condaCmd = 'miniforge3/bin/conda'
+if (Test-Path "$HOME/$condaCmd" -PathType Leaf) {
     $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
     # add conda init to the user profile
     if (-not $condaSet) {
         Write-Verbose 'adding miniforge initialization...'
         $content = [string]::Join("`n",
             '#region conda initialize',
-            'try { (& "$HOME/miniforge3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
+            "try { (& `"`$HOME/$condaCmd`" `"shell.powershell`" `"hook`") | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }",
             '#endregion'
         )
         [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
     }
     # disable conda env prompt if oh-my-posh is installed
     if (Test-Path /usr/bin/oh-my-posh -PathType Leaf) {
-        $changeps1 = & "$HOME/miniforge3/bin/conda" config --show changeps1 | Select-String 'False' -Quiet
+        $changeps1 = & "`$HOME/$condaCmd" config --show changeps1 | Select-String 'False' -Quiet
         if (-not $changeps1) {
-            & "$HOME/miniforge3/bin/conda" config --set changeps1 false
+            & "`$HOME/$condaCmd" config --set changeps1 false
         }
     }
 }
 
 # set up uv
 if (Test-Path "$HOME/.local/bin/uv" -PathType Leaf) {
-    # enable shell completion
-    $uvSet = try { Select-String 'uv generate-shell-completion' -Path $PROFILE.CurrentUserAllHosts -SimpleMatch -Quiet } catch { $false }
+    $completionCmd = 'uv generate-shell-completion powershell'
+    $uvSet = try { Select-String $completionCmd -Path $PROFILE.CurrentUserAllHosts -SimpleMatch -Quiet } catch { $false }
     if (-not $uvSet) {
         Write-Verbose 'adding uv autocompletion...'
         $content = [string]::Join("`n",
-            "`n#region uv",
-            "# use system certificates",
+            '#region uv',
+            '# use system certificates',
             '[System.Environment]::SetEnvironmentVariable("UV_NATIVE_TLS", $true)',
             "`n# autocompletion",
-            'try { (& uv generate-shell-completion powershell) | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
+            "try { (& `$HOME/.local/bin/$completionCmd) | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }",
+            '#endregion'
+        )
+        [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
+    }
+}
+
+# set up pixi
+if (Test-Path "$HOME/.pixi/bin/pixi" -PathType Leaf) {
+    $completionCmd = 'pixi completion --shell powershell'
+    $pixiSet = try { Select-String $completionCmd -Path $PROFILE.CurrentUserAllHosts -SimpleMatch -Quiet } catch { $false }
+    if (-not $pixiSet) {
+        Write-Verbose 'adding pixi autocompletion...'
+        $content = [string]::Join("`n",
+            '#region pixi',
+            '# autocompletion',
+            "try { (& `$HOME/.pixi/bin/$completionCmd) | Out-String | Invoke-Expression } catch { Out-Null }",
             '#endregion'
         )
         [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
