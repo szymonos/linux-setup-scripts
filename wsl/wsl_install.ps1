@@ -53,7 +53,7 @@ $Scope = @('az', 'docker', 'pwsh')
 $Scope = @('az', 'docker', 'k8s_base', 'pwsh', 'terraform')
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -s $Scope
 # :set up WSL distro and clone specified GitHub repositories
-$Repos = @('procter-gamble/de-cf-wsl-setup-scripts')
+$Repos = @('szymonos/linux-setup-scripts')
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -r $Repos
 # with the specified scope
 wsl/wsl_install.ps1 -Distro 'Ubuntu' -r $Repos -s $Scope
@@ -71,7 +71,8 @@ param (
     [Parameter(Mandatory, Position = 0)]
     [string]$Distro,
 
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false })]
+    [Alias('s')]
+    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false })]
     [string[]]$Scope,
 
     [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false })]

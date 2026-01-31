@@ -106,6 +106,11 @@ if [ "$sys_upgrade" = true ]; then
 fi
 printf "\e[96minstalling base packages...\e[0m\n"
 sudo .assets/provision/install_base.sh $user
+# update pixi packages if pixi is installed
+if grep -qw 'pixi' <<<${array[@]}; then
+  printf "\e[96mupdating pixi packages...\e[0m\n"
+  "$HOME/.pixi/bin/pixi" global update
+fi
 
 # *setup GitHub CLI
 if [ "$skip_gh_auth" = true ]; then
@@ -138,6 +143,7 @@ for sc in ${scope_arr[@]}; do
   conda)
     printf "\e[96minstalling python packages...\e[0m\n"
     .assets/provision/install_miniforge.sh --fix_certify true
+    .assets/provision/install_pixi.sh
     ;;
   distrobox)
     printf "\e[96minstalling distrobox...\e[0m\n"

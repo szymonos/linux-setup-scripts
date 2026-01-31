@@ -81,13 +81,29 @@ if ! grep -qw '__conda_setup' $HOME/.zshrc 2>/dev/null && [ -f $HOME/miniforge3/
 fi
 
 # *set up uv
-if ! grep -qw 'uv generate-shell-completion' $HOME/.bashrc 2>/dev/null && [ -x $HOME/.local/bin/uv ]; then
-  cat <<EOF >>$HOME/.bashrc
+COMPLETION_CMD='uv generate-shell-completion zsh'
+UV_PATH=".local/bin"
+if ! grep -qw "$COMPLETION_CMD" $HOME/.zshrc 2>/dev/null && [ -x "$HOME/$UV_PATH/uv" ]; then
+  cat <<EOF >>$HOME/.zshrc
 
 # initialize uv autocompletion
-if [ -x "$HOME/.local/bin/uv" ]; then
+if [ -x "$HOME/$UV_PATH/uv" ]; then
   export UV_NATIVE_TLS=true
-  eval "\$(uv generate-shell-completion bash)"
+  eval "\$(\$HOME/$UV_PATH/$COMPLETION_CMD)"
+fi
+EOF
+fi
+
+# *set up pixi
+COMPLETION_CMD='pixi completion --shell zsh'
+PIXI_PATH=".pixi/bin"
+if ! grep -qw "$COMPLETION_CMD" $HOME/.zshrc 2>/dev/null && [ -x "$HOME/$PIXI_PATH/pixi" ]; then
+  cat <<EOF >>$HOME/.zshrc
+
+# initialize pixi autocompletion
+if [ -x "\$HOME/$PIXI_PATH/pixi" ]; then
+  autoload -Uz compinit && compinit
+  eval "\$(\$HOME/$PIXI_PATH/$COMPLETION_CMD)"
 fi
 EOF
 fi

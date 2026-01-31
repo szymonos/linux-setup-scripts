@@ -93,8 +93,10 @@ param (
     [Alias('s')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker gcloud k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')]
+    [ValidateScript(
+        { $_.ForEach({ $_ -in @('az', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
+        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker gcloud k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')
+    ]
     [string[]]$Scope,
 
     [Parameter(ParameterSetName = 'Update')]
@@ -110,8 +112,10 @@ param (
     [string]$GtkTheme,
 
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
-    [ValidateScript({ $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
-        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')]
+    [ValidateScript(
+        { $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
+        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')
+    ]
     [string[]]$Repos,
 
     [Parameter(ParameterSetName = 'Setup')]
@@ -129,7 +133,7 @@ begin {
     $ErrorActionPreference = 'Stop'
     # check if the script is running on Windows
     if ($IsLinux) {
-        Show-LogContext 'This script is intended to be run on Windows only (outside of WSL).' -Level WARNING
+        Write-Warning 'This script is intended to be run on Windows only (outside of WSL).'
         exit 1
     }
 
@@ -143,7 +147,7 @@ begin {
     if (-not $SkipRepoUpdate) {
         Show-LogContext 'checking if the repository is up to date'
         if ((Update-GitRepository) -eq 2) {
-            Show-LogContext 'Run the script again!' -Level WARNING
+            Write-Warning 'Repository has been updated. Run the script again!'
             exit 0
         }
     }
@@ -374,15 +378,19 @@ process {
             Show-LogContext 'adding certificates in chain'
             wsl/wsl_certs_add.ps1 $Distro
         }
+        if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
+            Show-LogContext 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.' -Level ERROR
+            exit 1
+        }
 
         # *install packages
         Show-LogContext 'updating system'
         wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh $chk.user
-        if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
-            Show-LogContext 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.' -Level WARNING
-            exit
+        if ($PsCmdlet.ParameterSetName -eq 'Update' -and $chk.pixi) {
+            Show-LogContext 'updating pixi packages'
+            wsl.exe --distribution $Distro --cd ~ --exec .pixi/bin/pixi global update
         }
 
         # *boot setup
@@ -477,8 +485,9 @@ process {
                 continue
             }
             conda {
-                Show-LogContext 'installing miniforge conda'
+                Show-LogContext 'installing conda tools'
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
+                wsl.exe --distribution $Distro --exec .assets/provision/install_pixi.sh
                 continue
             }
             distrobox {
