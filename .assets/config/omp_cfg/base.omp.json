@@ -6,7 +6,7 @@
       "segments": [
         {
           "foreground": "#23D18B",
-          "properties": {
+          "options": {
             "fetch_version": false
           },
           "style": "plain",
@@ -21,7 +21,7 @@
         },
         {
           "foreground": "#F5F543",
-          "properties": {
+          "options": {
             "threshold": 1
           },
           "style": "plain",
@@ -33,7 +33,7 @@
           "foreground_templates": [
             "{{ if gt .Code 0 }}#F14C4C{{ end }}"
           ],
-          "properties": {
+          "options": {
             "always_enabled": true
           },
           "style": "plain",
@@ -48,7 +48,7 @@
         },
         {
           "foreground": "#56B6C2",
-          "properties": {
+          "options": {
             "folder_separator_icon": "/",
             "style": "agnoster_short"
           },
@@ -64,9 +64,8 @@
             "{{ if gt .Ahead 0 }}#B388FF{{ end }}",
             "{{ if gt .Behind 0 }}#B388FF{{ end }}"
           ],
-          "properties": {
+          "options": {
             "branch_icon": "",
-            "branch_max_length": 25,
             "commit_icon": "",
             "fetch_status": true,
             "tag_icon": ""
@@ -77,7 +76,7 @@
         },
         {
           "foreground": "#29B8DB",
-          "properties": {
+          "options": {
             "mapped_shell_names": {
               "bash": "$",
               "pwsh": ">",
@@ -95,7 +94,7 @@
       "segments": [
         {
           "foreground": "#2E6CE6",
-          "properties": {
+          "options": {
             "parse_kubeconfig": true
           },
           "style": "plain",
@@ -106,5 +105,5 @@
       "type": "rprompt"
     }
   ],
-  "version": 2
+  "version": 4
 }

@@ -53,7 +53,7 @@ if (Test-Path /usr/bin/kubectl -PathType Leaf) {
             '}'
         )
         # add additional ArgumentCompleter at the end of the profile
-        [System.IO.File]::WriteAllText($PROFILE, $completer)
+        [System.IO.File]::WriteAllText($PROFILE, "$($completer.Trim())`n")
     }
 }
 
@@ -69,42 +69,98 @@ if (Test-Path /usr/bin/gh) {
     }
 }
 
+#region $PROFILE.CurrentUserAllHosts,
+# load existing profile
+$profileContent = [System.Collections.Generic.List[string]]::new()
+if (Test-Path $PROFILE.CurrentUserAllHosts -PathType Leaf) {
+    $profileContent.AddRange([System.IO.File]::ReadAllLines($PROFILE.CurrentUserAllHosts))
+}
+# track if profile is modified
+$isProfileModified = $false
+
 # setup conda initialization
-if (Test-Path $HOME/miniforge3/bin/conda -PathType Leaf) {
-    $condaSet = try { Select-String 'conda init' -Path $PROFILE.CurrentUserAllHosts -Quiet } catch { $false }
-    # add conda init to the user profile
-    if (-not $condaSet) {
+$condaCli = 'miniforge3/bin/conda'
+if (Test-Path "$HOME/$condaCli" -PathType Leaf) {
+    if (-not ($profileContent | Select-String $condaCli -SimpleMatch -Quiet)) {
         Write-Verbose 'adding miniforge initialization...'
-        $content = [string]::Join("`n",
-            '#region conda initialize',
-            'try { (& "$HOME/miniforge3/bin/conda" "shell.powershell" "hook") | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
-            '#endregion'
+        $profileContent.AddRange(
+            [string[]]@(
+                "`n#region conda"
+                '# initialization'
+                "try { (& `"`$HOME/$condaCli`" 'shell.powershell' 'hook') | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }"
+                '#endregion'
+            )
         )
-        [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
+        $isProfileModified = $true
     }
-    # disable conda env prompt if oh-my-posh is installed
+    # hide conda env in shell prompt if oh-my-posh is installed
     if (Test-Path /usr/bin/oh-my-posh -PathType Leaf) {
-        $changeps1 = & "$HOME/miniforge3/bin/conda" config --show changeps1 | Select-String 'False' -Quiet
+        $changeps1 = & "$HOME/$condaCli" config --show | Select-String 'changeps1: False' -SimpleMatch -Quiet
         if (-not $changeps1) {
-            & "$HOME/miniforge3/bin/conda" config --set changeps1 false
+            & "$HOME/$condaCli" config --set changeps1 false
         }
     }
 }
 
 # set up uv
-if (Test-Path "$HOME/.local/bin/uv" -PathType Leaf) {
-    # enable shell completion
-    $uvSet = try { Select-String 'uv generate-shell-completion' -Path $PROFILE.CurrentUserAllHosts -SimpleMatch -Quiet } catch { $false }
-    if (-not $uvSet) {
+$uvCli = '.local/bin/uv'
+if (Test-Path "$HOME/$uvCli" -PathType Leaf) {
+    if (-not ($profileContent | Select-String 'UV_NATIVE_TLS' -SimpleMatch -Quiet)) {
         Write-Verbose 'adding uv autocompletion...'
-        $content = [string]::Join("`n",
-            "`n#region uv",
-            "# use system certificates",
-            '[System.Environment]::SetEnvironmentVariable("UV_NATIVE_TLS", $true)',
-            "`n# autocompletion",
-            'try { (& uv generate-shell-completion powershell) | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }',
-            '#endregion'
+        $profileContent.AddRange(
+            [string[]]@(
+                "`n#region uv"
+                '# use system certificates'
+                '[System.Environment]::SetEnvironmentVariable("UV_NATIVE_TLS", $true)'
+            )
         )
-        [System.IO.File]::AppendAllText($PROFILE.CurrentUserAllHosts, $content)
+        $isProfileModified = $true
+
+        $completionCmd = 'generate-shell-completion powershell'
+        if (-not ($profileContent | Select-String $completionCmd -SimpleMatch -Quiet)) {
+            $profileContent.AddRange(
+                [string[]]@(
+                    '# autocompletion'
+                    "try { (& `"`$HOME/$uvCli`" $completionCmd) | Out-String | Invoke-Expression | Out-Null } catch { Out-Null }"
+                    '#endregion'
+                )
+            )
+            $isProfileModified = $true
+        } else {
+            $profileContent.Add('#endregion')
+        }
     }
 }
+
+# set up pixi
+$pixiCli = '.pixi/bin/pixi'
+if (Test-Path "$HOME/$pixiCli" -PathType Leaf) {
+    if (-not ($profileContent | Select-String $pixiCli -SimpleMatch -Quiet)) {
+        Write-Verbose 'adding pixi autocompletion...'
+        $profileContent.AddRange(
+            [string[]]@(
+                "`n#region pixi"
+                '# autocompletion'
+                "try { (& `"`$HOME/$pixiCli`" completion --shell powershell) | Out-String | Invoke-Expression } catch { Out-Null }"
+                '#endregion'
+            )
+        )
+        $isProfileModified = $true
+    }
+    # hide pixi env in shell prompt if oh-my-posh is installed
+    if (Test-Path /usr/bin/oh-my-posh -PathType Leaf) {
+        $changeps1 = & "$HOME/$pixiCli" config list | Select-String 'change-ps1 = false' -SimpleMatch -Quiet
+        if (-not $changeps1) {
+            & "$HOME/$pixiCli" config set --global shell.change-ps1 false
+        }
+    }
+}
+
+# save profile if modified
+if ($isProfileModified) {
+    [System.IO.File]::WriteAllText(
+        $PROFILE.CurrentUserAllHosts,
+        "$(($profileContent -join "`n").Trim())`n"
+    )
+}
+#endregion
