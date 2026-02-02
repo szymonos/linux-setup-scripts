@@ -263,12 +263,12 @@ begin {
         $GtkTheme = $systemUsesLightTheme ? 'light' : 'dark'
     }
 
-    # script variable that determines if public SSH key has been added to GitHub
+    # *set script variables
     $script:sshStatus = @{ 'sshKey' = 'missing' }
-
+    $script:pwshEnvSet = $true
     # sets to track success and failed distros
-    $successDistros = [System.Collections.Generic.SortedSet[string]]::new()
-    $failDistros = [System.Collections.Generic.SortedSet[string]]::new()
+    $script:successDistros = [System.Collections.Generic.SortedSet[string]]::new()
+    $script:failDistros = [System.Collections.Generic.SortedSet[string]]::new()
 }
 
 process {
@@ -605,18 +605,21 @@ process {
                     wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 }
                 # *set persistent environment variables for pwsh
-                $envVars = @{
-                    POWERSHELL_TELEMETRY_OPTOUT = '1'
-                    POWERSHELL_UPDATECHECK      = 'Off'
-                }
-                foreach ($key in $envVars.Keys) {
-                    if ([System.Environment]::GetEnvironmentVariable($key, 'User') -ne $envVars[$key]) {
-                        [System.Environment]::SetEnvironmentVariable($key, $envVars[$key], 'User')
+                if ($pwshEnvSet) {
+                    $envVars = @{
+                        POWERSHELL_TELEMETRY_OPTOUT = '1'
+                        POWERSHELL_UPDATECHECK      = 'Off'
                     }
-                    $wslEnv = [System.Environment]::GetEnvironmentVariable('WSLENV', 'User')
-                    if ($wslEnv -notmatch "\b$key\b") {
-                        [System.Environment]::SetEnvironmentVariable('WSLENV', "${wslEnv}$($wslEnv ? ':' : '')${key}/u", 'User')
+                    foreach ($key in $envVars.Keys) {
+                        if ([System.Environment]::GetEnvironmentVariable($key, 'User') -ne $envVars[$key]) {
+                            [System.Environment]::SetEnvironmentVariable($key, $envVars[$key], 'User')
+                        }
+                        $wslEnv = [System.Environment]::GetEnvironmentVariable('WSLENV', 'User')
+                        if ($wslEnv -notmatch "\b$key\b") {
+                            [System.Environment]::SetEnvironmentVariable('WSLENV', "${wslEnv}$($wslEnv ? ':' : '')${key}/u", 'User')
+                        }
                     }
+                    $pwshEnvSet = $false
                 }
                 continue
             }
