@@ -604,6 +604,20 @@ process {
                     )
                     wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 }
+                # *set persistent environment variables for pwsh
+                $envVars = @{
+                    POWERSHELL_TELEMETRY_OPTOUT = '1'
+                    POWERSHELL_UPDATECHECK      = 'Off'
+                }
+                foreach ($key in $envVars.Keys) {
+                    if ([System.Environment]::GetEnvironmentVariable($key, 'User') -ne $envVars[$key]) {
+                        [System.Environment]::SetEnvironmentVariable($key, $envVars[$key], 'User')
+                    }
+                    $wslEnv = [System.Environment]::GetEnvironmentVariable('WSLENV', 'User')
+                    if ($wslEnv -notmatch "\b$key\b") {
+                        [System.Environment]::SetEnvironmentVariable('WSLENV', "${wslEnv}$($wslEnv ? ':' : '')${key}/u", 'User')
+                    }
+                }
                 continue
             }
             python {
