@@ -164,10 +164,10 @@ begin {
                 Show-LogContext "specified distribution not found ($Distro), proceeding to install"
                 try {
                     Get-Service WSLService | Out-Null
-                    wsl.exe --install --distribution $Distro --web-download --no-launch
+                    wsl.exe --install --distribution $Distro --no-launch
                     if ($? -and $Distro -notin (Get-WslDistro -FromRegistry).Name) {
                         Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
-                        wsl.exe --install --distribution $Distro --web-download
+                        wsl.exe --install --distribution $Distro
                     }
                     if (-not $?) {
                         Show-LogContext "`"$Distro`" distro installation failed." -Level ERROR
@@ -175,7 +175,7 @@ begin {
                     }
                 } catch {
                     if (Test-IsAdmin) {
-                        wsl.exe --install --distribution $Distro --web-download
+                        wsl.exe --install --distribution $Distro
                         if ($?) {
                             Show-LogContext 'WSL service installation finished.'
                             Show-LogContext "`nRestart the system and run the script again to install the specified WSL distro!`n" -Level WARNING
@@ -185,7 +185,7 @@ begin {
                         }
                     } else {
                         Show-LogContext "`nInstalling WSL service. Wait for the process to finish and restart the system!`n" -Level WARNING
-                        Start-Process pwsh.exe "-NoProfile -Command `"wsl.exe --install --distribution $Distro --web-download`"" -Verb RunAs
+                        Start-Process pwsh.exe "-NoProfile -Command `"wsl.exe --install --distribution $Distro`"" -Verb RunAs
                         if ($?) {
                             Show-LogContext 'WSL service installation finished.'
                             Show-LogContext "`nRestart the system and run the script again to install the specified WSL distro!`n" -Level WARNING
@@ -236,7 +236,7 @@ begin {
                         break
                     }
                 }
-                wsl.exe --install --distribution $Distro --web-download --no-launch
+                wsl.exe --install --distribution $Distro --no-launch
             }
         }
         Show-LogContext 'getting GitHub authentication config from the default distro'
