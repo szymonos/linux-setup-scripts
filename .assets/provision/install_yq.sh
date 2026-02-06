@@ -40,7 +40,7 @@ trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 URL="https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz"
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-  tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
+  tar -zxf "$TMP_DIR/$(basename \"$URL\")" -C "$TMP_DIR"
   install -m 0755 "$TMP_DIR/yq_linux_amd64" /usr/local/bin/yq
   pushd "$TMP_DIR" >/dev/null && bash ./install-man-page.sh && popd >/dev/null
 fi

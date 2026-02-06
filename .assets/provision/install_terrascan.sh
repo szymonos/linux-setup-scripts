@@ -40,7 +40,7 @@ trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 URL="https://github.com/tenable/terrascan/releases/download/v${REL}/terrascan_${REL}_Linux_x86_64.tar.gz"
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-  tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
+  tar -zxf "$TMP_DIR/$(basename \"$URL\")" -C "$TMP_DIR"
   install -m 0755 "$TMP_DIR/terrascan" /usr/bin/
 fi
 # remove temporary dir
