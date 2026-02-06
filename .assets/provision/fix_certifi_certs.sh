@@ -26,9 +26,7 @@ opensuse)
   ;;
 esac
 
-shopt -s nullglob
-cert_paths=("$CERT_PATH"/*.crt)
-shopt -u nullglob
+cert_paths=($(ls "$CERT_PATH"/*.crt 2>/dev/null || true))
 if [ ${#cert_paths[@]} -eq 0 ]; then
   exit 0
 fi
