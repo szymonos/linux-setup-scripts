@@ -56,10 +56,14 @@ alpine)
   apk add --no-cache $APP >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm $APP >&2 2>/dev/null || binary=true
+  if ! pacman -Sy --needed --noconfirm "$APP" >/dev/null 2>&1; then
+    binary=true
+  fi
   ;;
 fedora)
-  dnf install -y $APP >&2 2>/dev/null || binary=true
+  if ! dnf install -y "$APP" >/dev/null 2>&1; then
+    binary=true
+  fi
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
@@ -70,26 +74,30 @@ debian | ubuntu)
   fi
   ;;
 opensuse)
-  zypper --non-interactive in -y $APP >&2 2>/dev/null || binary=true
+  if ! zypper --non-interactive in -y "$APP" >/dev/null 2>&1; then
+    binary=true
+  fi
   ;;
 *)
   binary=true
   ;;
 esac
 
-if [ "$binary" = true ]; then
+if [ "${binary:-}" = true ]; then
   echo 'Installing from binary.' >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    tar -zxf "$TMP_DIR/$(basename $URL)" --strip-components=1 -C "$TMP_DIR"
+    tar -zxf "$TMP_DIR/$(basename \"$URL\")" --strip-components=1 -C "$TMP_DIR"
     install -m 0755 "$TMP_DIR/bat" /usr/bin/
     install -m 0644 "$TMP_DIR/bat.1" "$(manpath | cut -d : -f 1)/man1/"
     install -m 0644 "$TMP_DIR/autocomplete/bat.bash" /etc/bash_completion.d/
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
+  # temporary dir cleaned up by trap
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
 fi

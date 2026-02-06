@@ -34,15 +34,17 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 # calculate download uri
 URL="https://github.com/containerd/nerdctl/releases/download/v${REL}/${APP}-${REL}-linux-amd64.tar.gz"
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-  tar -zxf "$TMP_DIR/$(basename $URL)" --no-same-owner -C "$TMP_DIR"
+  tar -zxf "$TMP_DIR/$(basename \"$URL\")" --no-same-owner -C "$TMP_DIR"
   install -m 0755 "$TMP_DIR/nerdctl" /usr/local/bin/
   install -m 0755 "$TMP_DIR/containerd-rootless-setuptool.sh" /usr/local/bin/
   install -m 0755 "$TMP_DIR/containerd-rootless.sh" /usr/local/bin/
 fi
 # remove temporary dir
-rm -fr "$TMP_DIR"
+rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+trap - EXIT

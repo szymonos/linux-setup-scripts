@@ -34,13 +34,15 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 # calculate download uri
 URL='https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh'
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-  bash -C "$TMP_DIR/$(basename $URL)"
+  bash -c "$TMP_DIR/$(basename \"$URL\")"
   install -m 0755 kustomize /usr/bin/
 fi
 # remove temporary dir
-rm -fr kustomize "$TMP_DIR"
+rm -rf kustomize "${TMP_DIR:-}" >/dev/null 2>&1 || true
+trap - EXIT

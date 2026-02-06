@@ -41,23 +41,25 @@ alpine)
   apk add --no-cache ncurses-terminfo-base krb5-libs libgcc libintl libssl1.1 libstdc++ tzdata userspace-rcu zlib icu-libs >&2 2>/dev/null
   apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache lttng-ust >&2 2>/dev/null
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-alpine-x64.tar.gz"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     mkdir -p /opt/microsoft/powershell/7
-    tar -zxf "$TMP_DIR/$(basename $URL)" -C /opt/microsoft/powershell/7
+    tar -zxf "$TMP_DIR/$(basename "$URL")" -C /opt/microsoft/powershell/7
     chmod +x /opt/microsoft/powershell/7/pwsh
-    ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+    ln -sf /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
   fi
   # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
   ;;
 arch)
   if pacman -Qqe paru &>/dev/null; then
     user=${1:-$(id -un 1000 2>/dev/null)}
-    if ! sudo -u $user true 2>/dev/null; then
+    if ! sudo -u "$user" true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"
       else
@@ -65,7 +67,7 @@ arch)
       fi
       exit 1
     fi
-    sudo -u $user paru -Sy --needed --noconfirm powershell-bin
+    sudo -u "$user" paru -Sy --needed --noconfirm powershell-bin
   else
     binary=true
   fi
@@ -77,15 +79,21 @@ debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu76 >&2 2>/dev/null || true
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell_${REL}-1.deb_amd64.deb"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null || binary=true
+    if ! dpkg -i "$TMP_DIR/$(basename "$URL")" >/dev/null 2>&1; then
+      # try to fix missing dependencies
+      apt-get install -f -y >/dev/null 2>&1 || true
+      binary=true
+    fi
   fi
   # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
   ;;
 *)
   binary=true
@@ -96,16 +104,18 @@ if [ "$binary" = true ] && [ -n "$REL" ]; then
   echo 'Installing from binary.' >&2
   [ "$SYS_ID" = 'opensuse' ] && zypper --non-interactive in -y libicu >&2 2>/dev/null || true
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://github.com/PowerShell/PowerShell/releases/download/v${REL}/powershell-${REL}-linux-x64.tar.gz"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     mkdir -p /opt/microsoft/powershell/7
-    tar -zxf "$TMP_DIR/$(basename $URL)" -C /opt/microsoft/powershell/7
+    tar -zxf "$TMP_DIR/$(basename "$URL")" -C /opt/microsoft/powershell/7
     chmod +x /opt/microsoft/powershell/7/pwsh
     [ -f /usr/bin/pwsh ] || ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
   fi
   # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
 fi

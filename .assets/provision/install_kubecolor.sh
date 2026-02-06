@@ -67,10 +67,11 @@ opensuse)
   ;;
 esac
 
-if [ "$binary" = true ] && [ -n "$REL" ]; then
+if [ "${binary:-}" = true ] && [ -n "$REL" ]; then
   printf "Installing $APP \e[1mv$REL\e[22m from binary.\n" >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   if [[ "$SYS_ID" =~ ^(debian|ubuntu)$ ]]; then
     asset="kubecolor_${REL}_linux_amd64.deb"
@@ -81,12 +82,15 @@ if [ "$binary" = true ] && [ -n "$REL" ]; then
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     if [[ "$SYS_ID" =~ ^(debian|ubuntu)$ ]]; then
-      sudo dpkg -i "$TMP_DIR/$asset" >&2 2>/dev/null
+      if ! dpkg -i "$TMP_DIR/$asset" >/dev/null 2>&1; then
+        apt-get install -f -y >/dev/null 2>&1 || true
+      fi
     else
-      tar -zxf "$TMP_DIR/$asset" -C "$TMP_DIR"
+      tar -zxf "$TMP_DIR/$(basename "$URL")" -C "$TMP_DIR"
       install -m 0755 "$TMP_DIR/kubecolor" /usr/bin/
     fi
   fi
   # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
 fi

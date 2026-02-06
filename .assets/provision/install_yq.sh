@@ -34,7 +34,8 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 # calculate download uri
 URL="https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz"
 # download and install file
@@ -44,4 +45,5 @@ if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   pushd "$TMP_DIR" >/dev/null && bash ./install-man-page.sh && popd >/dev/null
 fi
 # remove temporary dir
-rm -fr "$TMP_DIR"
+rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+trap - EXIT
