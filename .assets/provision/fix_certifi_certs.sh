@@ -26,9 +26,10 @@ opensuse)
   ;;
 esac
 
-# get list of installed certificates
-cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
-if [ -z "$cert_paths" ]; then
+shopt -s nullglob
+cert_paths=("$CERT_PATH"/*.crt)
+shopt -u nullglob
+if [ ${#cert_paths[@]} -eq 0 ]; then
   exit 0
 fi
 
@@ -63,22 +64,23 @@ if [ -z "$certify_paths" ]; then
 fi
 
 # iterate over certify files
-for certify in ${certify_paths[@]}; do
+for certify in "${certify_paths[@]}"; do
   echo "${certify//$HOME/\~}" >&2
   # iterate over installed certificates
-  for path in ${cert_paths[@]}; do
+  for path in "${cert_paths[@]}"; do
     serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
     if ! grep -qw "$serial" "$certify"; then
       # add certificate to array
-      echo " - $(openssl x509 -in $path -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2
-      CERT="
-$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
-$(openssl x509 -in $path -outform PEM)"
+      subj=$(openssl x509 -in "$path" -noout -subject -nameopt RFC2253 | sed 's/\\//g')
+      echo " - $subj" >&2
+      info=$(openssl x509 -in "$path" -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} printf '# %s\n' "{}")
+      pem=$(openssl x509 -in "$path" -outform PEM)
+      CERT="$info\n$pem"
       # append new certificates to certify cacert.pem
       if [ -w "$certify" ]; then
-        echo "$CERT" >>"$certify"
+        printf '%s\n' "$CERT" >>"$certify"
       else
-        echo "$CERT" | sudo tee -a "$certify" >/dev/null
+        printf '%s\n' "$CERT" | sudo tee -a "$certify" >/dev/null
       fi
     fi
   done

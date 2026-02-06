@@ -26,8 +26,10 @@ debian | ubuntu)
 esac
 
 # get list of installed certificates
-cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
-if [ -z "$cert_paths" ]; then
+shopt -s nullglob
+cert_paths=("$CERT_PATH"/*.crt)
+shopt -u nullglob
+if [ ${#cert_paths[@]} -eq 0 ]; then
   printf '\nThere are no certificate(s) to install.\n' >&2
   exit 0
 fi
@@ -50,18 +52,20 @@ cert_count=0
 # track unique serials that have been added across all certify files
 declare -A added_serials=()
 # iterate over certify files
-for path in ${cert_paths[@]}; do
+for path in "${cert_paths[@]}"; do
   serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
   if ! grep -qw "$serial" "$CERTIFY_CRT"; then
-    echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2
-    CERT="
-$(openssl x509 -in $path -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
-$(openssl x509 -in $path -outform PEM)"
+    subject=$(openssl x509 -in "$path" -noout -subject -nameopt RFC2253 | sed 's/\\//g')
+    printf '%s\n' "$subject" >&2
+
+    info=$(openssl x509 -in "$path" -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} printf '# %s\n' "{}")
+    pem=$(openssl x509 -in "$path" -outform PEM)
+    CERT="$info\n$pem"
 
     if [ -w "$CERTIFY_CRT" ]; then
-      echo "$CERT" >>"$CERTIFY_CRT"
+      printf '%s\n' "$CERT" >>"$CERTIFY_CRT"
     else
-      echo "$CERT" | sudo tee -a "$CERTIFY_CRT" >/dev/null
+      printf '%s\n' "$CERT" | sudo tee -a "$CERTIFY_CRT" >/dev/null
     fi
     # increment unique certificate count only once per serial
     if [ -z "${added_serials[$serial]+x}" ]; then
