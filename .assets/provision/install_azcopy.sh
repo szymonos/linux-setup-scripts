@@ -44,27 +44,33 @@ fedora)
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://github.com/Azure/azure-storage-azcopy/releases/download/v${REL}/azcopy-${REL}.x86_64.deb"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null
+    if ! dpkg -i "$TMP_DIR/$(basename "$URL")" >/dev/null 2>&1; then
+      apt-get install -f -y >/dev/null 2>&1 || true
+    fi
   fi
   # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
   ;;
 *)
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://github.com/Azure/azure-storage-azcopy/releases/download/v${REL}/azcopy_linux_amd64_${REL}.tar.gz"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
+    tar -zxf "$TMP_DIR/$(basename "$URL")" -C "$TMP_DIR"
     install -m 0755 "$TMP_DIR/azcopy_linux_amd64_${REL}/azcopy" /usr/bin/
   fi
   # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
   ;;
 esac

@@ -102,162 +102,172 @@ login_gh_user() {
 
 # *function to download file from specified uri
 download_file() {
-  # initialize local variables used as named parameters
-  local uri
-  local target_dir
-  # parse named parameters
+  # named parameters: --uri <url> [--target_dir <dir>]
+  local uri="" target_dir="."
   while [ $# -gt 0 ]; do
-    if [[ $1 == *"--"* ]]; then
-      param="${1/--/}"
-      declare $param="$2"
-    fi
-    shift
-  done
-
-  if [ -z "$uri" ]; then
-    printf "\e[31mError: The \e[4muri\e[24m parameter is required.\e[0m\n" >&2
-    return 1
-  elif ! type curl &>/dev/null; then
-    printf "\e[31mError: The \e[4mcurl\e[24m command is required.\e[0m\n" >&2
-    return 1
-  fi
-  # set the target directory to the current directory if not specified
-  [ -z "$target_dir" ] && target_dir='.' || true
-
-  # define local variables
-  local file_name="$(basename $uri)"
-  local max_retries=8
-  local retry_count=0
-
-  while [ $retry_count -le $max_retries ]; do
-    # download file
-    status_code=$(curl -w %{http_code} -#Lko "$target_dir/$file_name" "$uri" 2>/dev/null)
-
-    # check the HTTP status code
-    case $status_code in
-    200)
-      echo "Download successful. Ready to install." >&2
-      return 0
+    case "$1" in
+    --*=*)
+      param="${1%%=*}"
+      val="${1#*=}"
+      param="${param#--}"
+      declare "$param"="$val"
+      shift
       ;;
-    404)
-      printf "\e[33mRequested file not found at the specified URL or is inaccessible:\n\e[0;4m${uri}\e[0m\n" >&2
-      return 1
+    --*)
+      param="${1#--}"
+      shift
+      declare "$param"="$1"
+      shift
       ;;
     *)
-      ((retry_count++))
-      echo "retrying... $retry_count/$max_retries" >&2
+      shift
       ;;
     esac
   done
 
-  echo "Failed to download file after $max_retries attempts." >&2
+  if [ -z "${uri:-}" ]; then
+    printf "\e[31mError: The \e[4muri\e[24m parameter is required.\e[0m\n" >&2
+    return 1
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
+    printf "\e[31mError: The \e[4mcurl\e[24m command is required.\e[0m\n" >&2
+    return 1
+  fi
+
+  target_dir="${target_dir:-.}"
+  mkdir -p "$target_dir" >/dev/null 2>&1 || true
+
+  local file_name file_path
+  file_name="$(basename "$uri")"
+  file_path="$target_dir/$file_name"
+  local attempt=0 max_attempts=8
+
+  while [ $attempt -lt $max_attempts ]; do
+    if curl --fail -sS -L --retry 3 --retry-delay 2 -o "$file_path" "$uri"; then
+      echo "Download successful. Ready to install." >&2
+      return 0
+    fi
+    attempt=$((attempt + 1))
+    # If a 404 is returned curl will exit non-zero; detect and bail early
+    if [ -f "$file_path" ] && [ ! -s "$file_path" ]; then
+      rm -f "$file_path" >/dev/null 2>&1 || true
+    fi
+    echo "Download attempt $attempt/$max_attempts failed. Retrying..." >&2
+    sleep $((attempt < 3 ? 1 : 2))
+  done
+
+  printf "\e[31mFailed to download file after %s attempts: %s\e[0m\n" "$max_attempts" "$uri" >&2
   return 1
 }
 
 # *function to get the latest release from the specified GitHub repo
 get_gh_release_latest() {
-  # initialize local variables used as named parameters
-  local owner
-  local repo
-  local asset
-  local regex
-  # parse named parameters
+  # named params: --owner <owner> --repo <repo> [--asset <name>] [--regex <regex>]
+  local owner="" repo="" asset="" regex=""
   while [ $# -gt 0 ]; do
-    if [[ $1 == *"--"* ]]; then
-      param="${1/--/}"
-      declare $param="$2"
-    fi
-    shift
+    case "$1" in
+    --*=*)
+      param="${1%%=*}"
+      val="${1#*=}"
+      param="${param#--}"
+      declare "$param"="$val"
+      shift
+      ;;
+    --*)
+      param="${1#--}"
+      shift
+      declare "$param"="$1"
+      shift
+      ;;
+    *)
+      shift
+      ;;
+    esac
   done
 
-  # define local variables
   local max_retries=8
-  local retry_count=0
+  local attempt=0
   local api_response
-  local token
+  local token=""
 
-  if [[ -z "$owner" || -z "$repo" ]]; then
+  if [ -z "${owner:-}" ] || [ -z "${repo:-}" ]; then
     printf "\e[31mError: The \e[4mowner\e[24m and \e[4mrepo\e[24m parameters are required.\e[0m\n" >&2
     return 1
-  elif ! type curl &>/dev/null; then
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
     printf "\e[31mError: The \e[4mcurl\e[24m command is required.\e[0m\n" >&2
     return 1
-  elif ! type jq &>/dev/null; then
+  fi
+  if ! command -v jq >/dev/null 2>&1; then
     printf "\e[31mError: The \e[4mjq\e[24m command is required.\e[0m\n" >&2
     return 1
   fi
 
-  # try to retrieve gh-cli token
-  if [ -x /usr/bin/gh ]; then
-    # get the token from the gh command
-    token="$(gh auth token 2>/dev/null)"
+  if command -v gh >/dev/null 2>&1; then
+    token="$(gh auth token 2>/dev/null || true)"
   fi
 
-  # calculate the API URI
   api_uri="https://api.github.com/repos/$owner/$repo/releases"
-  # get the latest release if asset or regex is not specified
-  [ -z "$asset" ] && [ -z "$regex" ] && api_uri+="/latest" || true
-  cmnd="curl -sk $api_uri -H 'Accept: application/vnd.github+json'"
-  # set the header with the token
-  [ -n "$token" ] && cmnd+=" -H 'Authorization: Bearer ${token}'"
-  # send API request to GitHub
-  while [ $retry_count -le $max_retries ]; do
-    if echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "API rate limit exceeded"; then
+  if [ -z "${asset:-}" ] && [ -z "${regex:-}" ]; then
+    api_uri="$api_uri/latest"
+  fi
+
+  # prepare curl headers
+  headers=(-H 'Accept: application/vnd.github+json')
+  [ -n "$token" ] && headers+=(-H "Authorization: Bearer $token")
+
+  while [ $attempt -lt $max_retries ]; do
+    api_response="$(curl --fail -sS -L "${headers[@]}" "$api_uri" 2>/dev/null || true)"
+
+    # detect API errors
+    msg="$(echo "$api_response" | jq -r 'try .message catch empty')"
+    if echo "$msg" | grep -Fq "API rate limit exceeded"; then
       printf "\e[31mError: API rate limit exceeded. Please try again later.\e[0m\n" >&2
       return 1
     fi
-    # get the latest release
-    api_response="$(eval $cmnd)"
-
-    # check for exceeded API rate limit
-    if [ -n "$token" ] && echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "API rate limit exceeded"; then
-      printf "\e[31mError: API rate limit exceeded. Please try again later.\e[0m\n" >&2
-      return 1
-    elif echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "Bad credentials"; then
+    if echo "$msg" | grep -Fq "Bad credentials"; then
       printf "\e[31mError: Bad credentials, run the \e[4mgh auth login\e[24m command.\e[0m\n" >&2
       return 1
     fi
 
-    # select release by asset name or regex
-    if echo "$api_response" | jq -e 'type == "array"' >/dev/null && echo "$api_response" | jq -e 'any(.[]; has("assets"))' >/dev/null; then
-      if [ -n "$asset" ]; then
-        api_response="$(echo $api_response | jq -r "limit(1; .[] | select(.assets[]?.name == \"$asset\"))")"
-      elif [ -n "$regex" ]; then
-        api_response="$(echo $api_response | jq -r "limit(1; .[] | select(.assets[]?.name | test(\"$regex\")))")"
+    # if this is an array response and asset/regex provided, try to pick matching release
+    if echo "$api_response" | jq -e 'type == "array"' >/dev/null 2>&1 && echo "$api_response" | jq -e 'any(.[]; has("assets"))' >/dev/null 2>&1; then
+      if [ -n "${asset:-}" ]; then
+        api_response="$(echo "$api_response" | jq -r "limit(1; .[] | select(.assets[]?.name == \"$asset\"))")"
+      elif [ -n "${regex:-}" ]; then
+        api_response="$(echo "$api_response" | jq -r "limit(1; .[] | select(.assets[]?.name | test(\"$regex\")))")"
       fi
     fi
 
-    # Check if 'tag_name' exists
-    if echo "$api_response" | jq -e '.tag_name | select(. != null and . != "")' >/dev/null; then
+    if echo "$api_response" | jq -e '.tag_name | select(. != null and . != "")' >/dev/null 2>&1; then
       tag_name="$(echo "$api_response" | jq -r '.tag_name')"
-      rel="$(echo $tag_name | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
+      rel="$(echo "$tag_name" | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
       if [ -n "$rel" ]; then
-        if [ -n "$asset" ]; then
+        if [ -n "${asset:-}" ]; then
           download_url="$(echo "$api_response" | jq -r ".assets[] | select(.name == \"$asset\") | .browser_download_url")"
-        elif [ -n "$regex" ]; then
+        elif [ -n "${regex:-}" ]; then
           download_url="$(echo "$api_response" | jq -r ".assets[] | select(.name | test(\"$regex\")) | .browser_download_url")"
         else
           unset download_url
         fi
-        # return the version and download URL if available
-        if [ -n "$download_url" ]; then
+        if [ -n "${download_url:-}" ]; then
           printf '{"version":"%s","download_url":"%s"}' "$rel" "$download_url"
         else
           echo "$rel"
         fi
         return 0
       else
-        printf "\e[31mError: Returned tag_name doesn't conform to the semantic versioning ($tag_name).\e[0m\n" >&2
+        printf "\e[31mError: Returned tag_name doesn't conform to the semantic versioning (%s).\e[0m\n" "$tag_name" >&2
         return 1
       fi
-    else
-      # increment the retry count
-      ((retry_count++))
-      echo "retrying... $retry_count/$max_retries" >&2
     fi
+
+    attempt=$((attempt + 1))
+    echo "retrying... $attempt/$max_retries" >&2
+    sleep $((attempt < 3 ? 1 : 2))
   done
 
-  printf "\e[33mFailed to get latest release after $max_retries attempts.\e[0m\n" >&2
+  printf "\e[33mFailed to get latest release after %s attempts.\e[0m\n" "$max_retries" >&2
   return 1
 }
 

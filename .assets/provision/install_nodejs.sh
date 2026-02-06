@@ -43,15 +43,16 @@ debian | ubuntu)
   # dotsource file with common functions
   . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://deb.nodesource.com/setup_lts.x"
   # download and install homebrew
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    bash -c "$TMP_DIR/setup_lts.x"
+    bash -c "$TMP_DIR/$(basename \"$URL\")"
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
   # install nodejs
   apt-get update && apt-get install -y $APP npm
   ;;

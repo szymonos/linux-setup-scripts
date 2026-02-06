@@ -50,18 +50,20 @@ arch)
   ;;
 esac
 
-if [ "$binary" = true ]; then
+if [ "${binary:-}" = true ]; then
   echo 'Installing from binary.' >&2
   # dotsource file with common functions
   . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://dl.k8s.io/release/${REL}/bin/linux/amd64/kubectl"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/bin/
+    install -m 0755 "$TMP_DIR/$(basename \"$URL\")" /usr/bin/
   fi
   # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
 fi

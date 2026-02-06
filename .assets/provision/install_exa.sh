@@ -56,37 +56,46 @@ alpine)
   apk add --no-cache exa >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm exa >&2 2>/dev/null || binary=true
+  if ! pacman -Sy --needed --noconfirm exa >/dev/null 2>&1; then
+    binary=true
+  fi
   ;;
 fedora)
-  dnf install -y exa >&2 2>/dev/null || binary=true
+  if ! dnf install -y exa >/dev/null 2>&1; then
+    binary=true
+  fi
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update >&2 && apt-get install -y exa >&2 2>/dev/null || binary=true
+  if ! (apt-get update >/dev/null 2>&1 && apt-get install -y exa >/dev/null 2>&1); then
+    binary=true
+  fi
   ;;
 opensuse)
-  zypper --non-interactive in -y exa >&2 2>/dev/null || binary=true
+  if ! zypper --non-interactive in -y exa >/dev/null 2>&1; then
+    binary=true
+  fi
   ;;
 *)
   binary=true
   ;;
 esac
 
-if [ "$binary" = true ] && [ -n "$REL" ]; then
+if [ "${binary:-}" = true ] && [ -n "$REL" ]; then
   echo 'Installing from binary.' >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    unzip -q "$TMP_DIR/$(basename $URL)" -d "$TMP_DIR"
+    unzip -q "$TMP_DIR/$(basename \"$URL\")" -d "$TMP_DIR"
     install -m 0755 "$TMP_DIR/bin/exa" /usr/bin/
     install -m 0644 "$TMP_DIR/man/exa.1" "$(manpath | cut -d : -f 1)/man1/"
     install -m 0644 "$TMP_DIR/man/exa_colors.5" "$(manpath | cut -d : -f 1)/man5/"
     install -m 0644 "$TMP_DIR/completions/exa.bash" /etc/bash_completion.d/
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
 fi

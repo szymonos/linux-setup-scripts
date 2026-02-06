@@ -66,7 +66,8 @@ install_from_tarball() {
     archive_name='google-cloud-cli-linux-x86_64.tar.gz'
   fi
   url="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${archive_name}"
-  tmp_dir="$(mktemp -dp "$HOME")"
+  tmp_dir="$(mktemp -d -p "$HOME")"
+  trap 'rm -rf "${tmp_dir:-}" >/dev/null 2>&1 || true' EXIT
 
   printf '\e[33mFalling back to the official Google Cloud CLI tarball.\e[0m\n' >&2
   if ! download_file --uri "$url" --target_dir "$tmp_dir"; then
@@ -94,7 +95,7 @@ install_from_tarball() {
     ln -sf "$install_dir/$gcloud_dir/bin/gke-gcloud-auth-plugin" /usr/bin/gke-gcloud-auth-plugin
   fi
 
-  rm -rf "$tmp_dir"
+  trap - EXIT
   printf '\e[32mInstalled Google Cloud CLI from tarball.\e[0m\n' >&2
 }
 

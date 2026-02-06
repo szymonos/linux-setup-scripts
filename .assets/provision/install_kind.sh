@@ -36,14 +36,16 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 # calculate download uri
 URL="https://github.com/$OWNER/$REPO/releases/download/v${REL}/kind-linux-amd64"
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   mkdir -p /opt/kind
-  install -m 0755 "$TMP_DIR/kind-linux-amd64" /opt/kind/kind
+  install -m 0755 "$TMP_DIR/$(basename "$URL")" /opt/kind/kind
   [ -f /usr/bin/kind ] || ln -s /opt/kind/kind /usr/bin/kind
 fi
 # remove temporary dir
-rm -fr "$TMP_DIR"
+rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+trap - EXIT

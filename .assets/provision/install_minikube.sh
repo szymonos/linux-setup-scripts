@@ -55,15 +55,18 @@ fedora)
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null || binary=true
+    if ! dpkg -i "$TMP_DIR/$(basename "$URL")" >/dev/null 2>&1; then
+      apt-get install -f -y >/dev/null 2>&1 || true
+    fi
   fi
   # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
   ;;
 opensuse)
   zypper --non-interactive in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null || binary=true
@@ -76,13 +79,14 @@ esac
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
   # calculate download uri
   URL="https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-    install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/local/bin/minikube
+    install -m 0755 "$TMP_DIR/$(basename "$URL")" /usr/local/bin/minikube
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
+  rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+  trap - EXIT
 fi
