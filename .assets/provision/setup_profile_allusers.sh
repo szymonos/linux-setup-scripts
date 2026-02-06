@@ -77,7 +77,7 @@ elif grep -qw 'oh-my-posh --init' $HOME/.bashrc 2>/dev/null; then
 fi
 
 # make path autocompletion case insensitive
-grep -qw 'completion-ignore-case' /etc/inputrc || echo 'set completion-ignore-case on' >>/etc/inputrc
+grep -qw 'completion-ignore-case' /etc/inputrc || printf '%s\n' 'set completion-ignore-case on' >>/etc/inputrc
 
 # *set localtime to UTC
 [ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime

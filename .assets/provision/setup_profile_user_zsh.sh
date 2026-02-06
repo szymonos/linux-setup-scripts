@@ -28,7 +28,7 @@ else
   git clone https://github.com/zsh-users/zsh-autosuggestions $HOME/.zsh/zsh-autosuggestions
 fi
 if ! grep -w 'zsh-autosuggestions.zsh' $HOME/.zshrc 2>/dev/null; then
-  echo 'source $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh' >>$HOME/.zshrc
+  printf '%s
 fi
 # ~zsh-syntax-highlighting
 # https://github.com/zsh-users/zsh-syntax-highlighting
@@ -38,10 +38,10 @@ else
   git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $HOME/.zsh/zsh-syntax-highlighting
 fi
 if ! grep -w 'zsh-syntax-highlighting.zsh' $HOME/.zshrc 2>/dev/null; then
-  echo 'source $HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh' >>$HOME/.zshrc
+  printf '%s
 fi
 if ! grep -q '^bindkey .* autosuggest-accept' $HOME/.zshrc; then
-  echo "bindkey '^ ' autosuggest-accept\n" >>$HOME/.zshrc
+  printf '%s
 fi
 
 # *aliases
