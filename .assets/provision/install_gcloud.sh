@@ -89,6 +89,10 @@ install_from_tarball() {
   ln -sf "$install_dir/$gcloud_dir/bin/gcloud" /usr/bin/gcloud
   ln -sf "$install_dir/$gcloud_dir/bin/gsutil" /usr/bin/gsutil
   ln -sf "$install_dir/$gcloud_dir/bin/bq" /usr/bin/bq
+  if [ -x /usr/bin/kubectl ]; then
+    gcloud components install --quiet gke-gcloud-auth-plugin >&2
+    ln -sf "$install_dir/$gcloud_dir/bin/gke-gcloud-auth-plugin" /usr/bin/gke-gcloud-auth-plugin
+  fi
 
   rm -rf "$tmp_dir"
   printf '\e[32mInstalled Google Cloud CLI from tarball.\e[0m\n' >&2
@@ -140,6 +144,9 @@ repo_gpgcheck=0
 gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key-v10.gpg
 EOF
   if dnf makecache --refresh >&2 && dnf install -y "$APP" >&2; then
+    if [ -x /usr/bin/kubectl ]; then
+      dnf install -y google-cloud-cli-gke-gcloud-auth-plugin >&2
+    fi
     pkg_install=true
   else
     [ -f /etc/yum.repos.d/google-cloud-cli.repo ] && rm -f /etc/yum.repos.d/google-cloud-cli.repo
@@ -159,6 +166,9 @@ deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.goog
 EOF
     chmod 644 /usr/share/keyrings/cloud.google.gpg /etc/apt/sources.list.d/google-cloud-cli.list
     if apt-get update >&2 && apt-get install -y "$APP" >&2; then
+      if [ -x /usr/bin/kubectl ]; then
+        apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin >&2
+      fi
       pkg_install=true
     else
       [ -f /etc/apt/sources.list.d/google-cloud-cli.list ] && rm -f /etc/apt/sources.list.d/google-cloud-cli.list
@@ -169,10 +179,19 @@ EOF
   fi
   ;;
 opensuse)
-  # add repository with --no-check to disable metadata signature validation
-  if zypper --non-interactive --quiet addrepo --no-check https://packages.cloud.google.com/yum/repos/cloud-sdk-el10-x86_64 "$APP" && \
-     zypper --gpg-auto-import-keys --quiet refresh "$APP" && \
-     zypper --non-interactive install -y "$APP" >&2 2>/dev/null; then
+  cat <<'EOF' >/etc/zypp/repos.d/google-cloud-cli.repo
+[google-cloud-cli]
+name=Google Cloud CLI
+baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el10-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key-v10.gpg
+EOF
+  if zypper --gpg-auto-import-keys --quiet refresh "$APP" && zypper --non-interactive install -y "$APP" >&2 2>/dev/null; then
+    if [ -x /usr/bin/kubectl ]; then
+      zypper --non-interactive install -y google-cloud-cli-gke-gcloud-auth-plugin >&2 2>/dev/null
+    fi
     pkg_install=true
   else
     [ -f /etc/zypp/repos.d/google-cloud-cli.repo ] && rm -f /etc/zypp/repos.d/google-cloud-cli.repo
