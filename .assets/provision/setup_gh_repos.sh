@@ -9,7 +9,7 @@ ws_suffix=${ws_suffix:-devops}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
-    declare $param="$2"
+    declare "$param"="$2"
   fi
   shift
 done
@@ -41,7 +41,7 @@ for repo in ${gh_repos[@]}; do
   IFS='/' read -ra gh_path <<<"$repo"
   mkdir -p "${gh_path[0]}"
   pushd "${gh_path[0]}" >/dev/null
-  git clone "https://github.com/${repo}.git" 2>/dev/null && echo $repo && cloned=true || true
+  git clone "https://github.com/${repo}.git" 2>/dev/null && echo "$repo" && cloned=true || true
   if ! grep -qw "$repo" "$ws_path" && [ -d "${gh_path[1]}" ]; then
     folder="\t{\n\t\t\t\"name\": \"${gh_path[1]}\",\n\t\t\t\"path\": \"..\/repos\/${repo/\//\\\/}\"\n\t\t},\n\t"
     sed -i "s/\(\]\)/$folder\1/" "$ws_path"

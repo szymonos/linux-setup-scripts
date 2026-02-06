@@ -22,7 +22,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 if [ -x "$HOME/.local/bin/uv" ]; then
   VER="$($HOME/.local/bin/uv self version | sed -En 's/.*\s([0-9\.]+)/\1/p')"

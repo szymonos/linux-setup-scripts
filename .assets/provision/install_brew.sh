@@ -23,7 +23,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 if type brew &>/dev/null; then
   VER=$(brew --version | grep -Eo '[0-9\.]+\.[0-9]+\.[0-9]+')

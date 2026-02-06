@@ -9,7 +9,7 @@ fi
 
 # check if specified user exists
 user=${1:-$(id -un 1000 2>/dev/null)}
-if ! sudo -u $user true 2>/dev/null; then
+if ! sudo -u "$user" true 2>/dev/null; then
   if [ -n "$user" ]; then
     printf "\e[31;1mUser does not exist ($user).\e[0m\n"
   else
@@ -19,12 +19,12 @@ if ! sudo -u $user true 2>/dev/null; then
 fi
 
 # path variables
-CFG_PATH="$(sudo -u $user sh -c 'echo $HOME/tmp/config/bash_cfg')"
+CFG_PATH="$(sudo -u "$user" sh -c 'echo "$HOME"/tmp/config/bash_cfg')"
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 # copy config files for WSL setup
 if [ -d .assets/config/bash_cfg ]; then
-  sudo -u $user mkdir -p "$CFG_PATH"
+  sudo -u "$user" mkdir -p "$CFG_PATH"
   cp -f .assets/config/bash_cfg/* "$CFG_PATH"
 fi
 # *modify eza alias
