@@ -22,7 +22,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 # check installed version of prek and update if necessary
 if [ -x "$HOME/.local/bin/prek" ]; then

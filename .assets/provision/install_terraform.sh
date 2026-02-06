@@ -40,7 +40,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 if [ -x /usr/bin/terraform ]; then
   VER=$(/usr/bin/terraform --version | sed -En 's/Terraform v([0-9\.]+)/\1/p')

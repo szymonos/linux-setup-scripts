@@ -37,7 +37,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 if type $APP &>/dev/null; then
   VER=$(kubecolor --kubecolor-version)

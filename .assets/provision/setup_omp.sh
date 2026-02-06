@@ -20,13 +20,13 @@ user=${user:-$(id -un 1000 2>/dev/null)}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
-    declare $param="$2"
+    declare "$param"="$2"
   fi
   shift
 done
 
 # check if specified user exists
-if ! sudo -u $user true 2>/dev/null; then
+if ! sudo -u "$user" true 2>/dev/null; then
   if [ -n "$user" ]; then
     printf "\e[31;1mUser does not exist ($user).\e[0m\n"
   else
@@ -36,10 +36,10 @@ if ! sudo -u $user true 2>/dev/null; then
 fi
 
 # path variables
-CFG_PATH="$(sudo -u $user sh -c 'echo $HOME/tmp/config/omp_cfg')"
+CFG_PATH="$(sudo -u "$user" sh -c 'echo "$HOME"/tmp/config/omp_cfg')"
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 # create CFG folder
-sudo -u $user mkdir -p $CFG_PATH
+sudo -u "$user" mkdir -p $CFG_PATH
 # copy profile for WSL setup
 if [ -f ".assets/config/omp_cfg/${theme}.omp.json" ]; then
   cp -f ".assets/config/omp_cfg/${theme}.omp.json" "$CFG_PATH"

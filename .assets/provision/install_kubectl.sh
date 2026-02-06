@@ -30,7 +30,7 @@ while [ -z "$REL" ]; do
   [[ "$REL" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo 'retrying...' >&2
 done
 # return latest release
-echo $REL
+echo "$REL"
 
 if [ -f /usr/bin/kubectl ]; then
   VER=$(/usr/bin/kubectl version --client -o yaml | sed -En 's/.*gitVersion: (v[0-9\.]+)$/\1/p')

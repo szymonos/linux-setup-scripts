@@ -24,7 +24,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 if type $APP &>/dev/null; then
   VER=$(kind version | sed -En 's/.*v([0-9\.]+).*/\1/p')

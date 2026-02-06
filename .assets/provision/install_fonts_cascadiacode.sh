@@ -22,7 +22,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 echo "Install CascadiaCode v$REL" >&2
 # create temporary dir for the downloaded binary
