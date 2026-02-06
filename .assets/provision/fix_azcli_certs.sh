@@ -25,10 +25,10 @@ debian | ubuntu)
   ;;
 esac
 
-# get list of installed certificates
-shopt -s nullglob
-cert_paths=("$CERT_PATH"/*.crt)
-shopt -u nullglob
+# get list of installed certificates (use ls-based command substitution for readability)
+# ls prints nothing to stdout when the glob doesn't match (stderr is redirected)
+# so the resulting array will be empty -- this mirrors the original behaviour.
+cert_paths=($(ls "$CERT_PATH"/*.crt 2>/dev/null || true))
 if [ ${#cert_paths[@]} -eq 0 ]; then
   printf '\nThere are no certificate(s) to install.\n' >&2
   exit 0
