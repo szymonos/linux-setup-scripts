@@ -30,7 +30,7 @@ arch)
 fedora)
   # Load the Hyper-V kernel module
   if ! [ -f "/etc/modules-load.d/hv_sock.conf" ] || [ "$(cat /etc/modules-load.d/hv_sock.conf | grep hv_sock)" = "" ]; then
-    echo "hv_sock" >>/etc/modules-load.d/hv_sock.conf
+    printf '%s\n' "hv_sock" >>/etc/modules-load.d/hv_sock.conf
   fi
   dnf -y install xrdp tigervnc-server
   # enable firewall rules
