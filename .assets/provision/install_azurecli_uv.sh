@@ -26,8 +26,8 @@ mkdir -p "$HOME/.azure"
 cat <<EOF >$HOME/.azure/pyproject.toml
 [project]
 name = "azurecli"
-version = "1.1.0"
-requires-python = "~=3.13.0"
+version = "1.2.0"
+requires-python = "==3.13.*"
 dependencies = [
   "azure-cli",
   "certifi",
@@ -36,6 +36,7 @@ dependencies = [
   "pip",
   "pycparser",
   "requests_oauthlib",
+  "rpds-py",
   "setuptools",
   "wrapt",
 ]

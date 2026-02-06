@@ -80,10 +80,11 @@ fi
 if [ "$gh_auth" = 'none' ]; then
   exit 1
 else
+  # TODO uncomment once copilot-cli is added to the automation
   # install gh-copilot extension if not already installed
-  if ! sudo -u "$user" gh extension list | grep -qF 'github/gh-copilot'; then
-    sudo -u "$user" gh extension install github/gh-copilot 2>/dev/null
-  fi
+  # if ! sudo -u "$user" gh extension list | grep -qF 'github/gh-copilot'; then
+  #   sudo -u "$user" gh extension install github/gh-copilot 2>/dev/null
+  # fi
   if echo "$gh_auth" | grep -Fwq 'github.com'; then
     if [ "$(readlink /root/.config/gh)" != "$user_gh_cfg" ]; then
       # remove path if it exists

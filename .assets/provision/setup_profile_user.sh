@@ -50,19 +50,20 @@ fi
 EOF
 fi
 
+# TODO uncomment once copilot-cli is added to the automation
 # add gh copilot aliases
-if gh extension list 2>/dev/null | grep -qF 'github/gh-copilot'; then
-  mkdir -p "$HOME/.bashrc.d" >/dev/null
-  gh copilot alias -- bash >"$HOME/.bashrc.d/aliases_gh_copilot.sh"
-  if ! grep -qF 'd/aliases_gh_copilot.sh' $HOME/.bashrc 2>/dev/null; then
-    cat <<EOF >>$HOME/.bashrc
-# gh copilot aliases
-if [ -f "\$HOME/.bashrc.d/aliases_gh_copilot.sh" ]; then
-  source "\$HOME/.bashrc.d/aliases_gh_copilot.sh"
-fi
-EOF
-  fi
-fi
+# if gh extension list 2>/dev/null | grep -qF 'github/gh-copilot'; then
+#   mkdir -p "$HOME/.bashrc.d" >/dev/null
+#   gh copilot alias -- bash >"$HOME/.bashrc.d/aliases_gh_copilot.sh"
+#   if ! grep -qF 'd/aliases_gh_copilot.sh' $HOME/.bashrc 2>/dev/null; then
+#     cat <<EOF >>$HOME/.bashrc
+# # gh copilot aliases
+# if [ -f "\$HOME/.bashrc.d/aliases_gh_copilot.sh" ]; then
+#   source "\$HOME/.bashrc.d/aliases_gh_copilot.sh"
+# fi
+# EOF
+#   fi
+# fi
 
 # *add conda initialization
 if ! grep -qw '__conda_setup' $HOME/.bashrc 2>/dev/null && [ -f $HOME/miniforge3/bin/conda ]; then

@@ -57,6 +57,7 @@ if (Test-Path /usr/bin/kubectl -PathType Leaf) {
     }
 }
 
+<# TODO uncomment once copilot-cli is added to the automation
 # add gh copilot aliases
 if (Test-Path /usr/bin/gh) {
     if (gh extension list | Select-String 'github/gh-copilot' -SimpleMatch -Quiet) {
@@ -68,6 +69,7 @@ if (Test-Path /usr/bin/gh) {
         gh copilot alias -- pwsh | Out-File ( New-Item -Path $GH_COPILOT_PROFILE -Force )
     }
 }
+#>
 
 #region $PROFILE.CurrentUserAllHosts,
 # load existing profile
