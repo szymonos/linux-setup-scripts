@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 : '
 Add kubecolor and kubectl aliases to the user environment
 source <(curl -s https://raw.githubusercontent.com/szymonos/linux-setup-scripts/main/.assets/scripts/online_kubectl_user_setup.sh)
