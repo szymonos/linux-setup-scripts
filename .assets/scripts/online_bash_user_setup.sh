@@ -27,7 +27,7 @@ alpine)
 arch)
   pacman -Qqe jq &>/dev/null || pacman -Sy --needed --noconfirm jq
   ;;
-fedora | opensuse)
+fedora)
   rpm -q jq &>/dev/null || dnf install -y jq
   ;;
 debian | ubuntu)
@@ -35,6 +35,13 @@ debian | ubuntu)
   apt-get update &>/dev/null && apt-get install -y apt-utils
   dpkg -s gnupg &>/dev/null || apt-get install -y gnupg
   dpkg -s jq &>/dev/null || apt-get install -y jq
+  ;;
+opensuse)
+  rpm -q jq &>/dev/null || zypper --non-interactive in -y jq
+  ;;
+*)
+  printf "\e[31mUnsupported system.\e[0m\n"
+  exit 1
   ;;
 esac
 
@@ -55,6 +62,10 @@ else
 fi
 
 # *Enable color prompt
-sed -i 's/^#force_color_prompt/force_color_prompt/' "$HOME/.bashrc"
+if grep -qF "force_color_prompt" "$HOME/.bashrc"; then
+  sed -i 's/^#force_color_prompt/force_color_prompt/' "$HOME/.bashrc"
+else
+  echo 'PS1="\e[32m\u\e[96m@\e[32m\h\e[m:\e[94m\w\e[m\\$ "' >>"$HOME/.bashrc"
+fi
 
-source $HOME/.bashrc
+source "$HOME/.bashrc"
