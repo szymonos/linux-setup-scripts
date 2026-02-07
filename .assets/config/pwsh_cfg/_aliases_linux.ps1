@@ -35,6 +35,9 @@ if (Test-Path '/usr/bin/eza' -PathType Leaf) {
 if (Test-Path '/usr/bin/rg' -PathType Leaf) {
     function rg { $input | & /usr/bin/env rg --ignore-case @args }
 }
+if (Test-Path '/usr/bin/bat' -PathType Leaf) {
+    function batp { $input | & /usr/bin/env bat -pP @args }
+}
 if (Test-Path '/usr/local/bin/tfswitch' -PathType Leaf) {
     function tfswitch { & /usr/bin/env tfswitch --bin="$HOME/.local/bin/terraform" @args }
 }

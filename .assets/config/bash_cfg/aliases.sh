@@ -111,6 +111,10 @@ else
   alias ll='ls -lah'
 fi
 
+if [ -x /usr/bin/bat ]; then
+  alias batp='bat -pP'
+fi
+
 if [ -x /usr/bin/pwsh ]; then
   alias pwsh='pwsh -NoProfileLoadTime'
   alias p='pwsh -NoProfileLoadTime'
