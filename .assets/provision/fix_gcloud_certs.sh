@@ -23,6 +23,7 @@ debian | ubuntu)
   ;;
 opensuse)
   CERT_PATH='/usr/share/pki/trust/anchors'
+  ;;
 esac
 
 cert_files=($(find "$CERT_PATH" -maxdepth 1 -name '*.crt' 2>/dev/null || true))
@@ -65,7 +66,7 @@ $(openssl x509 -in "$cert_path" -noout -issuer -subject -serial -fingerprint -na
 $(openssl x509 -in "$cert_path" -outform PEM)"
 
     if [ -w "$GCLOUD_CERTIFI" ]; then
-      echo "$cert_content" >>"$GCLOUD_CERTIFI"
+      printf '%s\n' "$cert_content" >>"$GCLOUD_CERTIFI"
     else
       printf '\e[33mInsufficient permissions to write to %s\e[0m\n' "$GCLOUD_CERTIFI" >&2
     fi

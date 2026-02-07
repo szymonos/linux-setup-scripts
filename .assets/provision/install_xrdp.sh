@@ -14,7 +14,7 @@ case $SYS_ID in
 arch)
   if pacman -Qqe paru &>/dev/null; then
     user=${1:-$(id -un 1000 2>/dev/null)}
-    if ! sudo -u $user true 2>/dev/null; then
+    if ! sudo -u "$user" true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"
       else
@@ -22,7 +22,7 @@ arch)
       fi
       exit 1
     fi
-    sudo -u $user paru -Sy --needed --noconfirm xrdp
+    sudo -u "$user" paru -Sy --needed --noconfirm xrdp
   else
     printf '\e[33;1mWarning: paru not installed.\e[0m\n'
   fi
@@ -30,7 +30,7 @@ arch)
 fedora)
   # Load the Hyper-V kernel module
   if ! [ -f "/etc/modules-load.d/hv_sock.conf" ] || [ "$(cat /etc/modules-load.d/hv_sock.conf | grep hv_sock)" = "" ]; then
-    echo "hv_sock" >>/etc/modules-load.d/hv_sock.conf
+    printf '%s\n' "hv_sock" >>/etc/modules-load.d/hv_sock.conf
   fi
   dnf -y install xrdp tigervnc-server
   # enable firewall rules

@@ -22,7 +22,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 if [ -x "$HOME/.local/bin/uv" ]; then
   VER="$($HOME/.local/bin/uv self version | sed -En 's/.*\s([0-9\.]+)/\1/p')"
@@ -51,7 +51,8 @@ fi
 # check if the binary is already installed
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 # calculate download uri
 URL="https://astral.sh/uv/install.sh"
 # download and install file
@@ -63,6 +64,7 @@ if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   done
 fi
 # remove temporary dir
-rm -fr "$TMP_DIR"
+rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+trap - EXIT
 
 exit 0

@@ -22,7 +22,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 if type $APP &>/dev/null; then
   VER=$(flux --version | sed -En 's/.*\s([0-9\.]+)/\1/p')

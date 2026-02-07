@@ -26,13 +26,14 @@ done
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n"
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 asset="kubecolor_${REL}_linux_amd64.tar.gz"
 URL="https://github.com/kubecolor/kubecolor/releases/download/v${REL}/${asset}"
 printf "\e[96mdownloading \e[4m$asset\e[24m from GitHub...\e[0m\n"
 retry_count=0
 while [[ ! -f "$TMP_DIR/$asset" && $retry_count -lt 8 ]]; do
-  curl -#Lko "$TMP_DIR/$asset" "$URL"
+  curl --fail -sS -L -o "$TMP_DIR/$asset" "$URL" || true
   if [ $retry_count -eq 5 ]; then
     printf "\e[33m$APP couldn't be downloaded\e[0m\n"
     exit 1
@@ -46,4 +47,5 @@ tar -zxf "$TMP_DIR/$asset" -C "$TMP_DIR"
 # install binary
 printf "\e[96minstalling $APP to \e[4m~/.local/bin\e[0m\n"
 install -m 0755 "$TMP_DIR/$APP" "$HOME/.local/bin/"
-rm -fr "$TMP_DIR"
+rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+trap - EXIT

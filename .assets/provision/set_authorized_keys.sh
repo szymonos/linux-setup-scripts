@@ -5,4 +5,4 @@ if ! echo "$1" | grep -qE '^(ssh-|ecdsa-)'; then
   exit 1
 fi
 
-grep -q "$1" ~/.ssh/authorized_keys || echo "$1" >>~/.ssh/authorized_keys
+grep -q "$1" ~/.ssh/authorized_keys || printf '%s\n' "$1" >>~/.ssh/authorized_keys

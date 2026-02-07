@@ -22,7 +22,7 @@ if [ -z "$REL" ]; then
   fi
 fi
 # return the release
-echo $REL
+echo "$REL"
 
 if type $APP &>/dev/null; then
   VER=$($APP version | sed -En 's/.*\sv([0-9\.]+)/\1/p')
@@ -34,13 +34,15 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 # calculate download uri
 URL="https://github.com/tenable/terrascan/releases/download/v${REL}/terrascan_${REL}_Linux_x86_64.tar.gz"
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-  tar -zxf "$TMP_DIR/$(basename $URL)" -C "$TMP_DIR"
+  tar -zxf "$TMP_DIR/$(basename \"$URL\")" -C "$TMP_DIR"
   install -m 0755 "$TMP_DIR/terrascan" /usr/bin/
 fi
 # remove temporary dir
-rm -fr "$TMP_DIR"
+rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+trap - EXIT

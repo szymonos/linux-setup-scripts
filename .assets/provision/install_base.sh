@@ -2,7 +2,7 @@
 : '
 sudo .assets/provision/install_base.sh $(id -un)
 '
-if [ $(id -u) -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
@@ -76,7 +76,7 @@ arch)
   # install paru
   if ! pacman -Qqe paru >/dev/null 2>&1; then
     user=${1:-$(id -un 1000 2>/dev/null)}
-    if ! sudo -u $user true 2>/dev/null; then
+    if ! sudo -u "$user" true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"
       else
@@ -84,7 +84,7 @@ arch)
       fi
       exit 1
     fi
-    sudo -u $user bash -c 'git clone https://aur.archlinux.org/paru-bin.git && cd paru-bin && makepkg -si --noconfirm && cd ..; rm -fr paru-bin'
+    sudo -u "$user" bash -c 'git clone https://aur.archlinux.org/paru-bin.git && cd paru-bin && makepkg -si --noconfirm && cd ..; rm -fr paru-bin'
     grep -qw '^BottomUp' /etc/paru.conf || sed -i 's/^#BottomUp/BottomUp/' /etc/paru.conf
   fi
   ;;

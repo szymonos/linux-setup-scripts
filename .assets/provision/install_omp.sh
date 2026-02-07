@@ -18,8 +18,8 @@ URL=$2
 if [ -z "$REL" ]; then
   response="$(get_gh_release_latest --owner 'JanDeDobbeleer' --repo 'oh-my-posh' --asset 'posh-linux-amd64')"
   [ -n "$response" ] || exit 1
-  REL=$(echo $response | jq -r '.version')
-  URL=$(echo $response | jq -r '.download_url')
+  REL=$(echo "$response" | jq -r '.version')
+  URL=$(echo "$response" | jq -r '.download_url')
 elif [ -z "$URL" ]; then
   printf "\e[31mError: The download URL is required.\e[0m\n" >&2
   exit 1
@@ -27,7 +27,7 @@ else
   response="{\"version\":\"$REL\",\"download_url\":\"$URL\"}"
 fi
 # return json response
-echo $response
+echo "$response"
 
 if type $APP &>/dev/null; then
   VER=$(oh-my-posh version)
@@ -39,10 +39,12 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true' EXIT
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
-  install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/bin/oh-my-posh
+  install -m 0755 "$TMP_DIR/$(basename \"$URL\")" /usr/bin/oh-my-posh
 fi
 # remove temporary dir
-rm -fr "$TMP_DIR"
+rm -rf "${TMP_DIR:-}" >/dev/null 2>&1 || true
+trap - EXIT
