@@ -71,7 +71,7 @@ debian)
   export DEBIAN_FRONTEND=noninteractive
   mkdir -p /etc/apt/keyrings
   if [ ! -f /etc/apt/keyrings/gierens.gpg ]; then
-    wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+    curl -fsSL https://raw.githubusercontent.com/eza-community/eza/main/deb.asc 2>/dev/null | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
   fi
   echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" >/etc/apt/sources.list.d/gierens.list
   chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list

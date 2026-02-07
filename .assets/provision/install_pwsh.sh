@@ -75,7 +75,7 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu67 >&2 2>/dev/null || true
+  [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu76 >&2 2>/dev/null || true
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -dp "$HOME")
   # calculate download uri

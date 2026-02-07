@@ -158,6 +158,24 @@ if (Test-Path "$HOME/$pixiCli" -PathType Leaf) {
     }
 }
 
+# set up opencode
+$openCodePath = '.opencode/bin'
+if (Test-Path "$HOME/$openCodePath/opencode" -PathType Leaf) {
+    if (-not ($profileContent | Select-String $openCodePath -SimpleMatch -Quiet)) {
+        Write-Verbose 'adding opencode path...'
+        $profileContent.AddRange(
+            [string[]]@(
+                "`n#region opencode"
+                "if ((Test-Path `"`$HOME/$openCodePath/opencode`" -PathType Leaf) -and `"`$HOME/$openCodePath`" -notin `$env:PATH.Split([IO.Path]::PathSeparator)) {"
+                "    [Environment]::SetEnvironmentVariable('PATH', [string]::Join([IO.Path]::PathSeparator, `"`$HOME/$openCodePath`", `$env:PATH))"
+                '}'
+                '#endregion'
+            )
+        )
+        $isProfileModified = $true
+    }
+}
+
 # save profile if modified
 if ($isProfileModified) {
     [System.IO.File]::WriteAllText(
