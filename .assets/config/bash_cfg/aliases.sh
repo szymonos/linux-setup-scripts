@@ -5,7 +5,6 @@ alias cds="cd $SWD"
 alias sudo='sudo '
 alias _='sudo'
 alias please='sudo'
-alias -- -='cd -'
 alias ..='cd ../'
 alias ...='cd ../../'
 alias .3='cd ../../../'
@@ -30,8 +29,8 @@ alias cp='cp -iv'
 alias d='bm -d'
 alias fix_stty='stty sane'
 alias fix_term='printf "\ec"'
-alias grep='grep --ignore-case --color=auto'
-alias less='less -FRXc'
+alias grep='grep -i --color=auto'
+alias less='less -FRX'
 alias md='mkdir -p'
 alias mkdir='mkdir -pv'
 alias mv='mv -iv'
@@ -47,17 +46,18 @@ alias vi='vim'
 alias wget='wget -c'
 
 # conditional aliases
-if grep -qw '^ID.*\balpine' /etc/os-release 2>/dev/null; then
+if grep -qEw 'ID="?alpine' /etc/os-release 2>/dev/null; then
   alias bsh='/usr/bin/env -i ash --noprofile --norc'
   alias ls='ls -h --color=auto --group-directories-first'
 else
   alias bsh='/usr/bin/env -i bash --noprofile --norc'
   alias ip='ip --color=auto'
   alias ls='ls -h --color=auto --group-directories-first --time-style=long-iso'
+  alias -- -='cd -'
 fi
 
 if [ -x /usr/bin/eza ]; then
-  if grep -qw '^ID.*\balpine' /etc/os-release 2>/dev/null; then
+  if grep -qEw '^ID="?alpine' /etc/os-release 2>/dev/null; then
     alias eza='eza -g --color=auto --group-directories-first --color-scale=all --git-repos'
   else
     alias eza='eza -g --color=auto --group-directories-first --color-scale=all --git-repos --time-style=long-iso'
