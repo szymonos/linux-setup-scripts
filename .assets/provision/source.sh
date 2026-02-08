@@ -260,3 +260,178 @@ get_gh_release_latest() {
   printf "\e[33mFailed to get latest release after $max_retries attempts.\e[0m\n" >&2
   return 1
 }
+
+# *Helper function to recursively find a file by name (POSIX-compliant, no find command needed)
+find_file() {
+  local search_dir="$1"
+  local target="$2"
+
+  # check current directory
+  if [ -f "$search_dir/$target" ]; then
+    echo "$search_dir/$target"
+    return 0
+  fi
+
+  # recursively search subdirectories
+  for item in "$search_dir"/*; do
+    if [ -d "$item" ]; then
+      local result=$(find_file "$item" "$target")
+      if [ -n "$result" ]; then
+        echo "$result"
+        return 0
+      fi
+    fi
+  done
+
+  return 1
+}
+
+# *Function to download and install GitHub releases into user directory
+install_github_release_user() {
+  local gh_owner gh_repo file_name binary_name current_version
+  local auth_header retry_count latest_release response http_code body file url tmp_dir binary_path
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    --gh_owner)
+      gh_owner="$2"
+      shift 2
+      ;;
+    --gh_repo)
+      gh_repo="$2"
+      shift 2
+      ;;
+    --file_name)
+      file_name="$2"
+      shift 2
+      ;;
+    --binary_name)
+      binary_name="$2"
+      shift 2
+      ;;
+    --current_version)
+      current_version="$2"
+      shift 2
+      ;;
+    *)
+      printf "\e[31mUnknown parameter: $1\e[0m\n" >&2
+      return 1
+      ;;
+    esac
+  done
+
+  #region initialization
+  # validate required parameters
+  if [ -z "$gh_owner" ] || [ -z "$gh_repo" ] || [ -z "$file_name" ]; then
+    printf "\e[31mMissing required parameters: --gh_owner, --gh_repo, --file_name\e[0m\n" >&2
+    return 1
+  fi
+
+  # set binary_name to gh_repo if not provided
+  [ -z "$binary_name" ] && binary_name="$gh_repo"
+
+  # check for GITHUB_TOKEN environment variable (should start with 'ghp_' or 'gho_' and be ~40 chars)
+  auth_header=""
+  if [ -n "$GITHUB_TOKEN" ] && echo "$GITHUB_TOKEN" | grep -qE "^gh[po]_" && [ ${#GITHUB_TOKEN} -ge 36 ]; then
+    auth_header="-H \"Authorization: Bearer $GITHUB_TOKEN\""
+  fi
+
+  # create temporary directory and set cleanup trap
+  tmp_dir=$(mktemp -d -p "$HOME")
+  trap "rm -rf \"$tmp_dir\" >/dev/null 2>&1" RETURN
+  #endregion
+
+  #region get latest release version
+  printf "\e[96mfetching latest release for \e[4m%s/%s\e[24m...\e[0m\n" "$gh_owner" "$gh_repo"
+  retry_count=0
+  latest_release=""
+  while :; do
+    response=$(eval curl -skw "\"\\n%{http_code}\"" $auth_header "\"https://api.github.com/repos/${gh_owner}/${gh_repo}/releases/latest\"" 2>/dev/null)
+    http_code=$(echo "$response" | tail -n1)
+    body=$(echo "$response" | sed '$d')
+
+    # check for API errors
+    if echo "$body" | grep -q '"message".*"API rate limit exceeded"'; then
+      printf "\e[31mAPI rate limit exceeded. Please set a valid GITHUB_TOKEN environment variable.\e[0m\n" >&2
+      return 1
+    elif echo "$body" | grep -q '"message".*"Bad credentials"'; then
+      printf "\e[31mBad credentials. The GITHUB_TOKEN is invalid.\e[0m\n" >&2
+      return 1
+    fi
+
+    if [ "$http_code" = "404" ]; then
+      printf "\e[31mRelease not found (404) for \e[4m%s/%s\e[0m\n" "$gh_owner" "$gh_repo" >&2
+      return 1
+    elif [ "$http_code" = "200" ]; then
+      latest_release=$(echo "$body" | sed -En 's/.*"tag_name": "v?([^"]*)".*/\1/p')
+      [ -n "$latest_release" ] && break
+    fi
+
+    ((retry_count++))
+    if [ $retry_count -eq 5 ]; then
+      printf "\e[31m5/5 failed to get latest release for \e[4m%s/%s\e[0m\n" "$gh_owner" "$gh_repo" >&2
+      return 1
+    else
+      printf "%d/5 retrying...\n" "$retry_count" >&2
+      sleep 1
+    fi
+  done
+
+  # skip download if current_version is provided AND it equals the latest release
+  if [ -n "$current_version" ] && [ "$current_version" = "$latest_release" ]; then
+    printf "\e[32;1m%s\e[22m v%s is already latest release, skipping download\e[0m\n" "$binary_name" "$current_version" >&2
+    return 0
+  fi
+  #endregion
+
+  #region download file
+  printf "\e[96mdownloading \e[1m%s\e[22m v%s...\e[0m\n" "$binary_name" "$latest_release"
+
+  # Replace version placeholder in filename
+  file="${file_name//\{VERSION\}/$latest_release}"
+  url="https://github.com/${gh_owner}/${gh_repo}/releases/download/v${latest_release}/${file}"
+
+  retry_count=0
+  while :; do
+    http_code=$(curl -fsSL -w "%{http_code}" "$url" -o "$tmp_dir/${file}" 2>/dev/null)
+
+    if [ "$http_code" = "404" ]; then
+      printf "\e[31mfile not found (404): \e[4m%s\e[0m\n" "$url" >&2
+      return 1
+    elif [ -f "$tmp_dir/${file}" ] && [ -s "$tmp_dir/${file}" ]; then
+      break
+    fi
+
+    ((retry_count++))
+    if [ $retry_count -eq 5 ]; then
+      printf "\e[31m5/5 failed to download \e[1m%s\e[22m v%s\e[0m\n" "$binary_name" "$latest_release" >&2
+      return 1
+    else
+      printf "%d/5 retrying...\n" "$retry_count" >&2
+      sleep 1
+    fi
+  done
+  #endregion
+
+  #region extract archive
+  if [[ "$file" == *.tar.gz ]]; then
+    tar -zxf "$tmp_dir/${file}" -C "$tmp_dir" 2>/dev/null
+  elif [[ "$file" == *.zip ]]; then
+    unzip -q -o "$tmp_dir/${file}" -d "$tmp_dir" 2>/dev/null
+  fi
+
+  # find the binary recursively using helper function (works without find command)
+  binary_path=$(find_file "$tmp_dir" "$binary_name")
+
+  if [ -f "$binary_path" ]; then
+    [ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
+    install -m 0755 "$binary_path" "$HOME/.local/bin/" &&
+      printf "\e[32;1m%s\e[22m v%s installed successfully\e[0m\n" "$binary_name" "$latest_release" >&2
+    return 0
+  else
+    printf "\e[31mBinary \e[1m%s\e[22m not found in archive\e[0m\n" "$binary_name" >&2
+    return 1
+  fi
+  #endregion
+}
