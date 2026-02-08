@@ -2,7 +2,15 @@
 : '
 . .assets/provision/source.sh
 '
-# *function to log in to GitHub as the specified user using the gh CLI
+
+# *Helper to enable strict mode in the current shell when explicitly requested.
+# This file is intended to be dot-sourced, so we avoid changing shell options
+# implicitly on import. Call enable_strict_mode from scripts that want it.
+enable_strict_mode() {
+  set -euo pipefail
+}
+
+# *Function to log in to GitHub as the specified user using the gh CLI
 # Usage: login_gh_user              # logs in the current user
 # Usage: login_gh_user -u $user     # logs in the specified user
 # Usage: login_gh_user -u $user -k  # logs in the specified user admin:public_key scope
@@ -100,16 +108,16 @@ login_gh_user() {
   return 0
 }
 
-# *function to download file from specified uri
+# *Function to download file from specified uri
 download_file() {
   # initialize local variables used as named parameters
-  local uri
-  local target_dir
+  local uri=''
+  local target_dir=''
   # parse named parameters
   while [ $# -gt 0 ]; do
     if [[ $1 == *"--"* ]]; then
       param="${1/--/}"
-      declare $param="$2"
+      declare $param="${2:-}"
     fi
     shift
   done
@@ -154,18 +162,18 @@ download_file() {
   return 1
 }
 
-# *function to get the latest release from the specified GitHub repo
+# *Function to get the latest release from the specified GitHub repo
 get_gh_release_latest() {
   # initialize local variables used as named parameters
-  local owner
-  local repo
-  local asset
-  local regex
+  local owner=''
+  local repo=''
+  local asset=''
+  local regex=''
   # parse named parameters
   while [ $# -gt 0 ]; do
     if [[ $1 == *"--"* ]]; then
       param="${1/--/}"
-      declare $param="$2"
+      declare $param="${2:-}"
     fi
     shift
   done
@@ -173,8 +181,8 @@ get_gh_release_latest() {
   # define local variables
   local max_retries=8
   local retry_count=0
-  local api_response
-  local token
+  local api_response=''
+  local token=''
 
   if [[ -z "$owner" || -z "$repo" ]]; then
     printf "\e[31mError: The \e[4mowner\e[24m and \e[4mrepo\e[24m parameters are required.\e[0m\n" >&2
@@ -229,15 +237,15 @@ get_gh_release_latest() {
 
     # Check if 'tag_name' exists
     if echo "$api_response" | jq -e '.tag_name | select(. != null and . != "")' >/dev/null; then
+      local tag_name download_url rel
       tag_name="$(echo "$api_response" | jq -r '.tag_name')"
-      rel="$(echo $tag_name | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
+      rel="$(echo "$tag_name" | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
       if [ -n "$rel" ]; then
+        download_url=''
         if [ -n "$asset" ]; then
           download_url="$(echo "$api_response" | jq -r ".assets[] | select(.name == \"$asset\") | .browser_download_url")"
         elif [ -n "$regex" ]; then
           download_url="$(echo "$api_response" | jq -r ".assets[] | select(.name | test(\"$regex\")) | .browser_download_url")"
-        else
-          unset download_url
         fi
         # return the version and download URL if available
         if [ -n "$download_url" ]; then

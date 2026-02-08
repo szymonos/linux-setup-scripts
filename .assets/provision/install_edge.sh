@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_edge.sh $(id -un)
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1

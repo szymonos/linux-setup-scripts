@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_base.sh $(id -un)
 '
+set -eu
+
 if [ $(id -u) -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
