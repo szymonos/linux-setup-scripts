@@ -6,6 +6,8 @@ sudo .assets/provision/install_fonts_nerd.sh "RobotoMono"
 sudo .assets/provision/install_fonts_nerd.sh --uninstall "RobotoMono"
 sudo .assets/provision/install_fonts_nerd.sh --version
 '
+set -euo pipefail
+
 __ScriptVersion='0.1'
 
 if [ $EUID -ne 0 ]; then
@@ -88,7 +90,8 @@ if [ -n "$1" ]; then
     # dotsource file with common functions
     . .assets/provision/source.sh
     # create temporary dir for the downloaded binary
-    TMP_DIR=$(mktemp -dp "$HOME")
+    TMP_DIR=$(mktemp -d -p "$HOME")
+    trap 'rm -fr "$TMP_DIR"' EXIT
     # calculate download uri
     URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
     # download and install file
@@ -100,8 +103,6 @@ if [ -n "$1" ]; then
       # build font information caches
       fc-cache -f /usr/share/fonts/${font,,}-nf
     fi
-    # remove temporary dir
-    rm -fr "$TMP_DIR"
   fi
 else
   printf '\e[31;1mProvide font name.\e[0m\n' >&2

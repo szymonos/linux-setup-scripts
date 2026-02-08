@@ -665,7 +665,7 @@ process {
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_zsh.sh
                 # setup profiles
                 Show-LogContext 'setting up zsh profile for current user'
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user_zsh.sh
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user_zsh.zsh
                 continue
             }
         }

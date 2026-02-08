@@ -2,6 +2,8 @@
 : '
 .assets/provision/fix_azcli_certs.sh
 '
+set -euo pipefail
+
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
@@ -50,7 +52,7 @@ cert_count=0
 # track unique serials that have been added across all certify files
 declare -A added_serials=()
 # iterate over certify files
-for path in ${cert_paths[@]}; do
+for path in "${cert_paths[@]}"; do
   serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
   if ! grep -qw "$serial" "$CERTIFY_CRT"; then
     echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2

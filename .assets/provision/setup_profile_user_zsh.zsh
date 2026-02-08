@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 : '
-.assets/provision/setup_profile_user_zsh.sh
+.assets/provision/setup_profile_user_zsh.zsh
 '
 # path variables
 PROFILE_PATH='/etc/profile.d'

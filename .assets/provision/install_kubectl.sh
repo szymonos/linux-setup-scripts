@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_kubectl.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -17,12 +19,12 @@ arch)
   ;;
 esac
 
-REL=$1
+REL=${1:-}
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
   REL=$(curl -sLk https://dl.k8s.io/release/stable.txt)
-  ((retry_count++))
+  ((retry_count++)) || true
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
@@ -55,13 +57,12 @@ if [ "$binary" = true ]; then
   # dotsource file with common functions
   . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://dl.k8s.io/release/${REL}/bin/linux/amd64/kubectl"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/bin/
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
 fi

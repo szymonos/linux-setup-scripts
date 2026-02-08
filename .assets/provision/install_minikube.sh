@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_minikube.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -24,7 +26,7 @@ esac
 . .assets/provision/source.sh
 
 # define variables
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'kubernetes' --repo 'minikube')"
@@ -37,7 +39,7 @@ fi
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(minikube version | grep -Po '(?<=v)[0-9\.]+$')
+  VER=$(minikube version | grep -Po '(?<=v)[0-9\.]+$' || true)
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
@@ -55,15 +57,14 @@ fedora)
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null || binary=true
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
   ;;
 opensuse)
   zypper --non-interactive in -y --allow-unsigned-rpm "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm" >&2 2>/dev/null || binary=true
@@ -76,13 +77,12 @@ esac
 if [ "$binary" = true ]; then
   echo 'Installing from binary.' >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/local/bin/minikube
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
 fi

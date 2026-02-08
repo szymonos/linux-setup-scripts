@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_smee.sh
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -15,7 +17,7 @@ else
   retry_count=0
   while ! type $APP &>/dev/null && [ $retry_count -lt 10 ]; do
     npm install -g smee-client
-    ((retry_count++))
+    ((retry_count++)) || true
   done
 fi
 

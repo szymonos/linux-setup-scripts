@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_kubecolor.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -27,7 +29,7 @@ esac
 . .assets/provision/source.sh
 
 # define variables
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'kubecolor' --repo 'kubecolor')"
@@ -70,7 +72,8 @@ esac
 if [ "$binary" = true ] && [ -n "$REL" ]; then
   printf "Installing $APP \e[1mv$REL\e[22m from binary.\n" >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   if [[ "$SYS_ID" =~ ^(debian|ubuntu)$ ]]; then
     asset="kubecolor_${REL}_linux_amd64.deb"
@@ -87,6 +90,4 @@ if [ "$binary" = true ] && [ -n "$REL" ]; then
       install -m 0755 "$TMP_DIR/kubecolor" /usr/bin/
     fi
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
 fi

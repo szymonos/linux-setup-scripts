@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_docker.sh $(id -un)
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -72,7 +74,7 @@ opensuse)
 esac
 
 # check provided user
-user=${1:-$(id -un 1000 2>/dev/null)}
+user=${1:-$(id -un 1000 2>/dev/null || true)}
 if ! sudo -u $user true 2>/dev/null; then
   if [ -n "$user" ]; then
     printf "\e[31;1mUser does not exist ($user).\e[0m\n"

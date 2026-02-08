@@ -2,6 +2,8 @@
 : '
 .assets/provision/install_prek.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
@@ -12,6 +14,7 @@ fi
 
 # define variables
 APP='prek'
+REL=${1:-}
 
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
@@ -36,7 +39,7 @@ if [ -x "$HOME/.local/bin/prek" ]; then
     while [ $retry_count -le $max_retries ]; do
       $HOME/.local/bin/prek self update >&2
       [ $? -eq 0 ] && break || true
-      ((retry_count++))
+      ((retry_count++)) || true
       echo "retrying... $retry_count/$max_retries" >&2
       if [ $retry_count -eq $max_retries ]; then
         printf "\e[31mFailed to update $APP after $max_retries attempts.\e[0m\n" >&2
@@ -48,7 +51,8 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -fr "$TMP_DIR"' EXIT
 # calculate download uri
 URL="https://github.com/j178/prek/releases/download/v$REL/prek-installer.sh"
 # download and install file
@@ -56,10 +60,7 @@ if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   retry_count=0
   while [ ! -x "$HOME/.local/bin/prek" ] && [ $retry_count -lt 10 ]; do
     sh "$TMP_DIR/prek-installer.sh"
-    ((retry_count++))
+    ((retry_count++)) || true
   done
 fi
-# remove temporary dir
-rm -fr "$TMP_DIR"
-
 exit 0

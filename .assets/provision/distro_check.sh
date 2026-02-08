@@ -3,6 +3,8 @@
 .assets/provision/distro_check.sh | jq
 .assets/provision/distro_check.sh array
 '
+set -euo pipefail
+
 
 # store the state in an associative array
 declare -A state=(
@@ -43,7 +45,7 @@ is_excluded() {
 }
 
 # check if array parameter is provided
-if [ "$1" = 'array' ]; then
+if [ "${1:-}" = 'array' ]; then
   # keys to exclude
   exclude_keys=('git_user' 'git_email' 'ssh_key' 'systemd' 'wslg' 'wsl_boot' 'gtkd')
   # print only the keys with true values, excluding specified keys

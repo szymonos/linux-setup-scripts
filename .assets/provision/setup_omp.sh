@@ -9,6 +9,8 @@ sudo .assets/provision/setup_omp.sh --user $(id -un) --theme nerd
 # :you can specify any themes from https://ohmyposh.dev/docs/themes/ (e.g. atomic)
 sudo .assets/provision/setup_omp.sh --user $(id -un) --theme atomic
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -16,11 +18,11 @@ fi
 
 # parse named parameters
 theme=${theme:-base}
-user=${user:-$(id -un 1000 2>/dev/null)}
+user=${user:-$(id -un 1000 2>/dev/null || echo '')}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
-    declare $param="$2"
+    declare $param="${2:-}"
   fi
   shift
 done

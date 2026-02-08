@@ -2,6 +2,8 @@
 : '
 .assets/provision/setup_profile_user.sh
 '
+set -euo pipefail
+
 # path variables
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'

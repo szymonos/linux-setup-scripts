@@ -2,6 +2,8 @@
 : '
 .assets/provision/fix_certifi_certs.sh
 '
+set -euo pipefail
+
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
@@ -63,10 +65,10 @@ if [ -z "$certify_paths" ]; then
 fi
 
 # iterate over certify files
-for certify in ${certify_paths[@]}; do
+for certify in "${certify_paths[@]}"; do
   echo "${certify//$HOME/\~}" >&2
   # iterate over installed certificates
-  for path in ${cert_paths[@]}; do
+  for path in "${cert_paths[@]}"; do
     serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
     if ! grep -qw "$serial" "$certify"; then
       # add certificate to array

@@ -2,6 +2,8 @@
 : '
 sudo .assets\provision\setup_docker_mount.sh
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -14,7 +16,7 @@ fstype=${fstype:-ext4}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
-    declare $param="$2"
+    declare $param="${2:-}"
     # echo $1 $2 // Optional to see the parameter:value result
   fi
   shift

@@ -2,7 +2,15 @@
 : '
 . .assets/provision/source.sh
 '
-# *function to log in to GitHub as the specified user using the gh CLI
+
+# *Helper to enable strict mode in the current shell when explicitly requested.
+# This file is intended to be dot-sourced, so we avoid changing shell options
+# implicitly on import. Call enable_strict_mode from scripts that want it.
+enable_strict_mode() {
+  set -euo pipefail
+}
+
+# *Function to log in to GitHub as the specified user using the gh CLI
 # Usage: login_gh_user              # logs in the current user
 # Usage: login_gh_user -u $user     # logs in the specified user
 # Usage: login_gh_user -u $user -k  # logs in the specified user admin:public_key scope
@@ -60,7 +68,7 @@ login_gh_user() {
         while [[ $retries -lt 5 ]] && [ -z "$token" ]; do
           sudo -u "$user" gh auth refresh -s admin:public_key >&2
           token="$(sudo -u "$user" gh auth token 2>/dev/null)"
-          ((retries++))
+          ((retries++)) || true
         done
       fi
     else
@@ -75,7 +83,7 @@ login_gh_user() {
         sudo -u "$user" gh auth login >&2
       fi
       token="$(sudo -u "$user" gh auth token 2>/dev/null)"
-      ((retries++))
+      ((retries++)) || true
     done
 
     if [ -n "$token" ]; then
@@ -100,16 +108,16 @@ login_gh_user() {
   return 0
 }
 
-# *function to download file from specified uri
+# *Function to download file from specified uri
 download_file() {
   # initialize local variables used as named parameters
-  local uri
-  local target_dir
+  local uri=''
+  local target_dir=''
   # parse named parameters
   while [ $# -gt 0 ]; do
     if [[ $1 == *"--"* ]]; then
       param="${1/--/}"
-      declare $param="$2"
+      declare $param="${2:-}"
     fi
     shift
   done
@@ -144,7 +152,7 @@ download_file() {
       return 1
       ;;
     *)
-      ((retry_count++))
+      ((retry_count++)) || true
       echo "retrying... $retry_count/$max_retries" >&2
       ;;
     esac
@@ -154,18 +162,18 @@ download_file() {
   return 1
 }
 
-# *function to get the latest release from the specified GitHub repo
+# *Function to get the latest release from the specified GitHub repo
 get_gh_release_latest() {
   # initialize local variables used as named parameters
-  local owner
-  local repo
-  local asset
-  local regex
+  local owner=''
+  local repo=''
+  local asset=''
+  local regex=''
   # parse named parameters
   while [ $# -gt 0 ]; do
     if [[ $1 == *"--"* ]]; then
       param="${1/--/}"
-      declare $param="$2"
+      declare $param="${2:-}"
     fi
     shift
   done
@@ -173,8 +181,8 @@ get_gh_release_latest() {
   # define local variables
   local max_retries=8
   local retry_count=0
-  local api_response
-  local token
+  local api_response=''
+  local token=''
 
   if [[ -z "$owner" || -z "$repo" ]]; then
     printf "\e[31mError: The \e[4mowner\e[24m and \e[4mrepo\e[24m parameters are required.\e[0m\n" >&2
@@ -229,15 +237,15 @@ get_gh_release_latest() {
 
     # Check if 'tag_name' exists
     if echo "$api_response" | jq -e '.tag_name | select(. != null and . != "")' >/dev/null; then
+      local tag_name download_url rel
       tag_name="$(echo "$api_response" | jq -r '.tag_name')"
-      rel="$(echo $tag_name | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
+      rel="$(echo "$tag_name" | sed -E 's/[^0-9]*([0-9]+\.[0-9]+\.[0-9]+)/\1/')"
       if [ -n "$rel" ]; then
+        download_url=''
         if [ -n "$asset" ]; then
           download_url="$(echo "$api_response" | jq -r ".assets[] | select(.name == \"$asset\") | .browser_download_url")"
         elif [ -n "$regex" ]; then
           download_url="$(echo "$api_response" | jq -r ".assets[] | select(.name | test(\"$regex\")) | .browser_download_url")"
-        else
-          unset download_url
         fi
         # return the version and download URL if available
         if [ -n "$download_url" ]; then
@@ -252,7 +260,7 @@ get_gh_release_latest() {
       fi
     else
       # increment the retry count
-      ((retry_count++))
+      ((retry_count++)) || true
       echo "retrying... $retry_count/$max_retries" >&2
     fi
   done
@@ -289,7 +297,8 @@ find_file() {
 # *Function to download and install GitHub releases into user directory
 install_github_release_user() {
   local gh_owner gh_repo file_name binary_name current_version
-  local auth_header retry_count latest_release response http_code body file url tmp_dir binary_path
+  local auth_header retry_count latest_release response http_code body file url binary_path
+  local tmp_dir cleanup saved_return saved_exit
 
   # Parse arguments
   while [[ $# -gt 0 ]]; do
@@ -339,7 +348,17 @@ install_github_release_user() {
 
   # create temporary directory and set cleanup trap
   tmp_dir=$(mktemp -d -p "$HOME")
-  trap "rm -rf \"$tmp_dir\" >/dev/null 2>&1" RETURN
+  # save existing traps to restore after cleanup
+  saved_return="$(trap -p RETURN)"
+  saved_exit="$(trap -p EXIT)"
+  # create trap that cleans up and restores outer traps (if any)
+  # shellcheck disable=SC2016  # $tmp_dir should not expand here
+  cleanup='rm -fr "$tmp_dir"'
+  # restore saved traps if they exist, otherwise just remove the trap for that signal
+  [ -n "$saved_return" ] && cleanup="$cleanup; $saved_return" || cleanup="$cleanup; trap - RETURN"
+  [ -n "$saved_exit" ] && cleanup="$cleanup; $saved_exit" || cleanup="$cleanup; trap - EXIT"
+  # shellcheck disable=SC2064  # We want $cleanup to expand now
+  trap "$cleanup" RETURN EXIT
   #endregion
 
   #region get latest release version
@@ -368,7 +387,7 @@ install_github_release_user() {
       [ -n "$latest_release" ] && break
     fi
 
-    ((retry_count++))
+    ((retry_count++)) || true
     if [ $retry_count -eq 5 ]; then
       printf "\e[31m5/5 failed to get latest release for \e[4m%s/%s\e[0m\n" "$gh_owner" "$gh_repo" >&2
       return 1
@@ -403,7 +422,7 @@ install_github_release_user() {
       break
     fi
 
-    ((retry_count++))
+    ((retry_count++)) || true
     if [ $retry_count -eq 5 ]; then
       printf "\e[31m5/5 failed to download \e[1m%s\e[22m v%s\e[0m\n" "$binary_name" "$latest_release" >&2
       return 1

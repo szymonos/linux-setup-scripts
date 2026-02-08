@@ -92,5 +92,20 @@ process {
         if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
             .assets/provision/update_psresources.ps1
         }
+        #region update PSResourceGet to RC version to resolve Az module installation issue
+        # TODO remove, once fixed PSResourceGet is updated to GA release
+        Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -Reinstall -Scope AllUsers
+        # delete old version of PSResourceGet, if exists
+        Get-Module -ListAvailable -Name Microsoft.PowerShell.PSResourceGet | ForEach-Object {
+            [PSCustomObject]@{
+                Name       = $_.Name
+                Version    = "$($_.Version)$($_.PrivateData.PSData.Prerelease ? "-$($_.PrivateData.PSData.Prerelease)" : '')"
+                ModuleBase = $_.ModuleBase
+            }
+        } | Sort-Object -Property Version -Descending | Select-Object -Skip 1 | ForEach-Object {
+            Write-Host "removing old version of PSResourceGet: $($_.Version)" -ForegroundColor Yellow
+            Remove-Item -Path $_.ModuleBase -Recurse -Force
+        }
+        #endregion
     }
 }

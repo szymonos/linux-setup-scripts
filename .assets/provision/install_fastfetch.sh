@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_fastfetch.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -27,7 +29,7 @@ esac
 . .assets/provision/source.sh
 
 # define variables
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'fastfetch-cli' --repo 'fastfetch')"
@@ -40,7 +42,7 @@ fi
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$($APP --version | grep -Po '(?<=\s)[0-9\.]+(?=\s)')
+  VER=$($APP --version | grep -Po '(?<=\s)[0-9\.]+(?=\s)' || true)
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
@@ -51,7 +53,7 @@ printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 case $SYS_ID in
 arch)
   if pacman -Qqe paru &>/dev/null; then
-    user=${1:-$(id -un 1000 2>/dev/null)}
+    user=${1:-$(id -un 1000 2>/dev/null || true)}
     if ! sudo -u $user true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"
@@ -71,15 +73,14 @@ fedora)
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${REL}/fastfetch-linux-amd64.deb"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     dpkg -i "$TMP_DIR/$(basename $URL)" >&2 2>/dev/null
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
   ;;
 opensuse)
   zypper --non-interactive in -y $APP >&2 2>/dev/null

@@ -1,0 +1,6 @@
+---
+# Base Markdownlint configuration
+default: true
+# ignore line length rule
+MD013: false
+MD024: false

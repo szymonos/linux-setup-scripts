@@ -54,11 +54,11 @@ while IFS= read -r line; do
   array+=("$line")
 done <<<"$distro_check"
 # add corresponding scopes
-grep -qw 'az' <<<${array[@]} && array+=(python) || true
-grep -qw 'k8s_dev' <<<${array[@]} && array+=(k8s_base) || true
-grep -qw 'k8s_ext' <<<${array[@]} && array+=(docker) && array+=(k8s_base) && array+=(k8s_dev) || true
-grep -qw 'pwsh' <<<${array[@]} && array+=(shell) || true
-grep -qw 'zsh' <<<${array[@]} && array+=(shell) || true
+grep -qw 'az' <<<"${array[@]}" && array+=(python) || true
+grep -qw 'k8s_dev' <<<"${array[@]}" && array+=(k8s_base) || true
+grep -qw 'k8s_ext' <<<"${array[@]}" && array+=(docker) && array+=(k8s_base) && array+=(k8s_dev) || true
+grep -qw 'pwsh' <<<"${array[@]}" && array+=(shell) || true
+grep -qw 'zsh' <<<"${array[@]}" && array+=(shell) || true
 # add oh_my_posh scope if necessary
 if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
   array+=(oh_my_posh)
@@ -107,7 +107,7 @@ fi
 printf "\e[96minstalling base packages...\e[0m\n"
 sudo .assets/provision/install_base.sh $user
 # update pixi packages if pixi is installed
-if grep -qw 'pixi' <<<${array[@]}; then
+if grep -qw 'pixi' <<<"${array[@]}"; then
   printf "\e[96mupdating pixi packages...\e[0m\n"
   "$HOME/.pixi/bin/pixi" global update
 fi
@@ -133,7 +133,7 @@ else
   .assets/provision/setup_gh_ssh.sh >/dev/null
 fi
 
-for sc in ${scope_arr[@]}; do
+for sc in "${scope_arr[@]}"; do
   case $sc in
   az)
     printf "\e[96minstalling azure cli...\e[0m\n"
@@ -232,7 +232,7 @@ for sc in ${scope_arr[@]}; do
     printf "\e[96minstalling zsh...\e[0m\n"
     sudo .assets/provision/install_zsh.sh
     printf "\e[96msetting up zsh profile for current user...\e[0m\n"
-    .assets/provision/setup_profile_user_zsh.sh
+    .assets/provision/setup_profile_user_zsh.zsh
     ;;
   esac
 done

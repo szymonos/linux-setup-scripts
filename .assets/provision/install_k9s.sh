@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_k9s.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -12,7 +14,7 @@ fi
 
 # define variables
 APP='k9s'
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'derailed' --repo 'k9s')"
@@ -34,7 +36,8 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -fr "$TMP_DIR"' EXIT
 # calculate download uri
 URL="https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_amd64.tar.gz"
 # download and install file
@@ -44,5 +47,3 @@ if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   install -m 0755 "$TMP_DIR/k9s" /opt/k9s/
   [ -f /usr/bin/k9s ] || ln -s /opt/k9s/k9s /usr/bin/k9s
 fi
-# remove temporary dir
-rm -fr "$TMP_DIR"

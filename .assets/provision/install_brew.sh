@@ -3,6 +3,8 @@
 # https://docs.brew.sh/Installation
 .assets/provision/install_brew.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
@@ -13,7 +15,7 @@ fi
 
 # define variables
 APP='brew'
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'Homebrew' --repo 'brew')"
@@ -26,7 +28,7 @@ fi
 echo $REL
 
 if type brew &>/dev/null; then
-  VER=$(brew --version | grep -Eo '[0-9\.]+\.[0-9]+\.[0-9]+')
+  VER=$(brew --version | grep -Eo '[0-9\.]+\.[0-9]+\.[0-9]+' || true)
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
@@ -40,13 +42,12 @@ else
   # skip tap cloning
   export HOMEBREW_INSTALL_FROM_API=1
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://raw.githubusercontent.com/Homebrew/install/master/install.sh"
   # download and install homebrew
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     bash -c "$TMP_DIR/$(basename $URL)"
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
 fi

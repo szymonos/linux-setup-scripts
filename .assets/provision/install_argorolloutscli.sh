@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_argorolloutscli.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -12,7 +14,7 @@ fi
 
 # define variables
 APP='kubectl-argo-rollouts'
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'argoproj' --repo 'argo-rollouts')"
@@ -34,12 +36,11 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -fr "$TMP_DIR"' EXIT
 # calculate download uri
 URL="https://github.com/argoproj/argo-rollouts/releases/download/v${REL}/kubectl-argo-rollouts-linux-amd64"
 # download and install file
 if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   install -m 0755 "$TMP_DIR/$(basename $URL)" /usr/local/bin/kubectl-argo-rollouts
 fi
-# remove temporary dir
-rm -fr "$TMP_DIR"

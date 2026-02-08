@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_yq.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -12,7 +14,7 @@ fi
 
 # define variables
 APP='yq'
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'mikefarah' --repo 'yq')"
@@ -34,7 +36,8 @@ fi
 
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -fr "$TMP_DIR"' EXIT
 # calculate download uri
 URL="https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz"
 # download and install file
@@ -43,5 +46,3 @@ if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   install -m 0755 "$TMP_DIR/yq_linux_amd64" /usr/local/bin/yq
   pushd "$TMP_DIR" >/dev/null && bash ./install-man-page.sh && popd >/dev/null
 fi
-# remove temporary dir
-rm -fr "$TMP_DIR"

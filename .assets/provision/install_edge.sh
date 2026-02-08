@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_edge.sh $(id -un)
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -13,7 +15,7 @@ SYS_ID="$(sed -En '/^ID.*(arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /e
 case $SYS_ID in
 arch)
   if pacman -Qqe paru &>/dev/null; then
-    user=${1:-$(id -un 1000 2>/dev/null)}
+    user=${1:-$(id -un 1000 2>/dev/null || true)}
     if ! sudo -u $user true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"

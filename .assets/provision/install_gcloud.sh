@@ -42,11 +42,11 @@ get_latest_gcloud_version() {
   local metadata_uri='https://dl.google.com/dl/cloudsdk/channels/rapid/components-2.json'
   if ! command -v curl &>/dev/null; then
     printf '\e[31mThe curl command is required to determine the latest Google Cloud CLI release.\e[0m\n' >&2
-    exit 1
+    return 1
   fi
   if ! command -v jq &>/dev/null; then
     printf '\e[31mThe jq command is required to parse the Google Cloud CLI release metadata.\e[0m\n' >&2
-    exit 1
+    return 1
   fi
   curl -fsSL "$metadata_uri" | jq -r '.version'
 }
@@ -66,13 +66,13 @@ install_from_tarball() {
     archive_name='google-cloud-cli-linux-x86_64.tar.gz'
   fi
   url="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${archive_name}"
-  tmp_dir="$(mktemp -dp "$HOME")"
+  tmp_dir="$(mktemp -d -p "$HOME")"
+  trap 'rm -fr "$tmp_dir"' RETURN EXIT
 
   printf '\e[33mFalling back to the official Google Cloud CLI tarball.\e[0m\n' >&2
   if ! download_file --uri "$url" --target_dir "$tmp_dir"; then
-    rm -rf "$tmp_dir"
     printf '\e[31mFailed to download the Google Cloud CLI archive.\e[0m\n' >&2
-    exit 1
+    return 1
   fi
 
   tar -zxf "$tmp_dir/$archive_name" -C "$tmp_dir"
@@ -94,14 +94,13 @@ install_from_tarball() {
     ln -sf "$install_dir/$gcloud_dir/bin/gke-gcloud-auth-plugin" /usr/bin/gke-gcloud-auth-plugin
   fi
 
-  rm -rf "$tmp_dir"
   printf '\e[32mInstalled Google Cloud CLI from tarball.\e[0m\n' >&2
+  return 0
 }
 
 REL="${1:-}"
 if [ -z "$REL" ]; then
-  REL="$(get_latest_gcloud_version)"
-  if [ -z "$REL" ]; then
+  if ! REL="$(get_latest_gcloud_version)"; then
     printf "\e[31mFailed to get the latest version of $APP.\e[0m\n" >&2
     exit 1
   fi
