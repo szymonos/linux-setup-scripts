@@ -67,7 +67,16 @@ install_from_tarball() {
   fi
   url="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${archive_name}"
   tmp_dir="$(mktemp -d -p "$HOME")"
-  trap 'rm -fr "$tmp_dir"' RETURN
+
+  # Save existing traps to restore after cleanup
+  local saved_return=$(trap -p RETURN)
+  local saved_exit=$(trap -p EXIT)
+
+  # Create trap that cleans up and restores outer traps (if any)
+  local cleanup="rm -fr '$tmp_dir'"
+  [ -n "$saved_return" ] && cleanup="$cleanup; $saved_return" || cleanup="$cleanup; trap - RETURN"
+  [ -n "$saved_exit" ] && cleanup="$cleanup; $saved_exit" || cleanup="$cleanup; trap - EXIT"
+  trap "$cleanup" RETURN EXIT
 
   printf '\e[33mFalling back to the official Google Cloud CLI tarball.\e[0m\n' >&2
   if ! download_file --uri "$url" --target_dir "$tmp_dir"; then

@@ -347,7 +347,16 @@ install_github_release_user() {
 
   # create temporary directory and set cleanup trap
   tmp_dir=$(mktemp -d -p "$HOME")
-  trap "rm -rf \"$tmp_dir\" >/dev/null 2>&1" RETURN
+
+  # Save existing traps to restore after cleanup
+  local saved_return=$(trap -p RETURN)
+  local saved_exit=$(trap -p EXIT)
+
+  # Create trap that cleans up and restores outer traps (if any)
+  local cleanup="rm -rf \"$tmp_dir\" >/dev/null 2>&1"
+  [ -n "$saved_return" ] && cleanup="$cleanup; $saved_return" || cleanup="$cleanup; trap - RETURN"
+  [ -n "$saved_exit" ] && cleanup="$cleanup; $saved_exit" || cleanup="$cleanup; trap - EXIT"
+  trap "$cleanup" RETURN EXIT
   #endregion
 
   #region get latest release version
