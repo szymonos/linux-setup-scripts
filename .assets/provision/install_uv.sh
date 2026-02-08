@@ -2,6 +2,8 @@
 : '
 .assets/provision/install_uv.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
@@ -12,7 +14,7 @@ fi
 
 # define variables
 APP='uv'
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'astral-sh' --repo 'uv')"

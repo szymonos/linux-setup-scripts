@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_azcopy.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -13,7 +15,7 @@ fi
 # define variables
 SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 APP='azcopy'
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'Azure' --repo 'azure-storage-azcopy')"

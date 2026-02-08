@@ -3,6 +3,8 @@
 #
 sudo .assets/provision/install_fonts_cascadiacode.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -12,7 +14,7 @@ fi
 . .assets/provision/source.sh
 
 # define variables
-REL=$1
+REL=${1:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'microsoft' --repo 'cascadia-code')"

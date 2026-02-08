@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_kind.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -12,7 +14,7 @@ fi
 
 # define variables
 APP='kind'
-REL=$1
+REL=${1:-}
 OWNER='kubernetes-sigs'
 REPO='kind'
 # get latest release if not provided as a parameter

@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_omp.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -12,8 +14,8 @@ fi
 
 # define variables
 APP='oh-my-posh'
-REL=$1
-URL=$2
+REL=${1:-}
+URL=${2:-}
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   response="$(get_gh_release_latest --owner 'JanDeDobbeleer' --repo 'oh-my-posh' --asset 'posh-linux-amd64')"

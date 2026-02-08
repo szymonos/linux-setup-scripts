@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_kubectl.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -17,7 +19,7 @@ arch)
   ;;
 esac
 
-REL=$1
+REL=${1:-}
 retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do

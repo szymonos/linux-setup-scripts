@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/install_tflint.sh >/dev/null
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -12,7 +14,7 @@ fi
 
 # define variables
 APP='tflint'
-REL=$1
+REL=${1:-}
 OWNER='terraform-linters'
 REPO='tflint'
 # get latest release if not provided as a parameter
