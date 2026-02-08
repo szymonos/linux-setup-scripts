@@ -12,5 +12,6 @@ fi
 if [ -x "$HOME/.pixi/bin/pixi" ]; then
   $HOME/.pixi/bin/pixi self-update
 else
+  printf "\e[92minstalling \e[1mpixi\e[22m\e[0m\n" >&2
   curl -fsSL https://pixi.sh/install.sh | sh
 fi
