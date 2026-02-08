@@ -39,7 +39,7 @@ fi
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$(minikube version | grep -Po '(?<=v)[0-9\.]+$')
+  VER=$(minikube version | grep -Po '(?<=v)[0-9\.]+$' || true)
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0

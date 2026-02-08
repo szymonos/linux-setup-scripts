@@ -77,7 +77,7 @@ arch)
   install_pkgs pacman "$pkgs"
   # install paru
   if ! pacman -Qqe paru >/dev/null 2>&1; then
-    user=${1:-$(id -un 1000 2>/dev/null)}
+    user=${1:-$(id -un 1000 2>/dev/null || true)}
     if ! sudo -u $user true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"

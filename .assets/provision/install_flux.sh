@@ -42,7 +42,7 @@ else
   retry_count=0
   while ! type $APP &>/dev/null && [ $retry_count -lt 10 ]; do
     eval $__install
-    ((retry_count++))
+    ((retry_count++)) || true
   done
 fi
 

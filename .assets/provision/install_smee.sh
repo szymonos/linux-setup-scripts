@@ -17,7 +17,7 @@ else
   retry_count=0
   while ! type $APP &>/dev/null && [ $retry_count -lt 10 ]; do
     npm install -g smee-client
-    ((retry_count++))
+    ((retry_count++)) || true
   done
 fi
 

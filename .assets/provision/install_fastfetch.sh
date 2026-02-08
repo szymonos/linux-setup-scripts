@@ -42,7 +42,7 @@ fi
 echo $REL
 
 if type $APP &>/dev/null; then
-  VER=$($APP --version | grep -Po '(?<=\s)[0-9\.]+(?=\s)')
+  VER=$($APP --version | grep -Po '(?<=\s)[0-9\.]+(?=\s)' || true)
   if [ "$REL" = "$VER" ]; then
     printf "\e[32m$APP v$VER is already latest\e[0m\n" >&2
     exit 0
@@ -53,7 +53,7 @@ printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 case $SYS_ID in
 arch)
   if pacman -Qqe paru &>/dev/null; then
-    user=${1:-$(id -un 1000 2>/dev/null)}
+    user=${1:-$(id -un 1000 2>/dev/null || true)}
     if ! sudo -u $user true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"

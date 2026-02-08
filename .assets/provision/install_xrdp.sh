@@ -15,7 +15,7 @@ SYS_ID="$(sed -En '/^ID.*(arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /e
 case $SYS_ID in
 arch)
   if pacman -Qqe paru &>/dev/null; then
-    user=${1:-$(id -un 1000 2>/dev/null)}
+    user=${1:-$(id -un 1000 2>/dev/null || true)}
     if ! sudo -u $user true 2>/dev/null; then
       if [ -n "$user" ]; then
         printf "\e[31;1mUser does not exist ($user).\e[0m\n"
@@ -31,7 +31,7 @@ arch)
   ;;
 fedora)
   # Load the Hyper-V kernel module
-  if ! [ -f "/etc/modules-load.d/hv_sock.conf" ] || [ "$(cat /etc/modules-load.d/hv_sock.conf | grep hv_sock)" = "" ]; then
+  if ! [ -f "/etc/modules-load.d/hv_sock.conf" ] || ! grep -q hv_sock /etc/modules-load.d/hv_sock.conf 2>/dev/null; then
     echo "hv_sock" >>/etc/modules-load.d/hv_sock.conf
   fi
   dnf -y install xrdp tigervnc-server

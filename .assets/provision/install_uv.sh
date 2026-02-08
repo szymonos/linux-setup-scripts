@@ -40,7 +40,7 @@ if [ -x "$HOME/.local/bin/uv" ]; then
     while [ $retry_count -le $max_retries ]; do
       $HOME/.local/bin/uv self update --native-tls >&2
       [ $? -eq 0 ] && break || true
-      ((retry_count++))
+      ((retry_count++)) || true
       echo "retrying... $retry_count/$max_retries" >&2
       if [ $retry_count -eq $max_retries ]; then
         printf "\e[31mFailed to update $APP after $max_retries attempts.\e[0m\n" >&2
@@ -62,7 +62,7 @@ if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
   retry_count=0
   while [ ! -x "$HOME/.local/bin/uv" ] && [ $retry_count -lt 10 ]; do
     sh "$TMP_DIR/install.sh"
-    ((retry_count++))
+    ((retry_count++)) || true
   done
 fi
 exit 0

@@ -68,7 +68,7 @@ login_gh_user() {
         while [[ $retries -lt 5 ]] && [ -z "$token" ]; do
           sudo -u "$user" gh auth refresh -s admin:public_key >&2
           token="$(sudo -u "$user" gh auth token 2>/dev/null)"
-          ((retries++))
+          ((retries++)) || true
         done
       fi
     else
@@ -83,7 +83,7 @@ login_gh_user() {
         sudo -u "$user" gh auth login >&2
       fi
       token="$(sudo -u "$user" gh auth token 2>/dev/null)"
-      ((retries++))
+      ((retries++)) || true
     done
 
     if [ -n "$token" ]; then
@@ -152,7 +152,7 @@ download_file() {
       return 1
       ;;
     *)
-      ((retry_count++))
+      ((retry_count++)) || true
       echo "retrying... $retry_count/$max_retries" >&2
       ;;
     esac
@@ -260,7 +260,7 @@ get_gh_release_latest() {
       fi
     else
       # increment the retry count
-      ((retry_count++))
+      ((retry_count++)) || true
       echo "retrying... $retry_count/$max_retries" >&2
     fi
   done
@@ -376,7 +376,7 @@ install_github_release_user() {
       [ -n "$latest_release" ] && break
     fi
 
-    ((retry_count++))
+    ((retry_count++)) || true
     if [ $retry_count -eq 5 ]; then
       printf "\e[31m5/5 failed to get latest release for \e[4m%s/%s\e[0m\n" "$gh_owner" "$gh_repo" >&2
       return 1
@@ -411,7 +411,7 @@ install_github_release_user() {
       break
     fi
 
-    ((retry_count++))
+    ((retry_count++)) || true
     if [ $retry_count -eq 5 ]; then
       printf "\e[31m5/5 failed to download \e[1m%s\e[22m v%s\e[0m\n" "$binary_name" "$latest_release" >&2
       return 1

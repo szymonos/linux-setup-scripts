@@ -24,7 +24,7 @@ retry_count=0
 # try 10 times to get latest release if not provided as a parameter
 while [ -z "$REL" ]; do
   REL=$(curl -sLk https://dl.k8s.io/release/stable.txt)
-  ((retry_count++))
+  ((retry_count++)) || true
   if [ $retry_count -eq 10 ]; then
     printf "\e[33m$APP version couldn't be retrieved\e[0m\n" >&2
     exit 0
