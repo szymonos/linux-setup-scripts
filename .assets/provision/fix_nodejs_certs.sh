@@ -2,6 +2,8 @@
 : '
 sudo .assets/provision/fix_nodejs_certs.sh
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1

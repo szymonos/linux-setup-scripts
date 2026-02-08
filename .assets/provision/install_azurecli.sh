@@ -3,6 +3,8 @@
 .assets/provision/install_azurecli.sh
 .assets/provision/install_azurecli.sh --fix_certify true
 '
+set -euo pipefail
+
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1
@@ -13,7 +15,7 @@ fix_certify=${fix_certify:-false}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
-    declare $param="$2"
+    declare $param="${2:-}"
   fi
   shift
 done

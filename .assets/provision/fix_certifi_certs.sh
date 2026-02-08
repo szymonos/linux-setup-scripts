@@ -2,6 +2,8 @@
 : '
 .assets/provision/fix_certifi_certs.sh
 '
+set -euo pipefail
+
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n' >&2
   exit 1

@@ -6,6 +6,8 @@ sudo .assets/provision/install_fonts_nerd.sh "RobotoMono"
 sudo .assets/provision/install_fonts_nerd.sh --uninstall "RobotoMono"
 sudo .assets/provision/install_fonts_nerd.sh --version
 '
+set -euo pipefail
+
 __ScriptVersion='0.1'
 
 if [ $EUID -ne 0 ]; then

@@ -5,6 +5,8 @@
 # :generate SSH key and print the public one
 ./setup_ssh.sh print_pub
 '
+set -euo pipefail
+
 
 # prepare clean $HOME/.ssh directory
 if [ -d "$HOME/.ssh" ]; then
@@ -32,7 +34,7 @@ if [ "${key_exist:-false}" != true ]; then
 fi
 
 # print the pub key if parameter provided
-if [ "$1" = "print_pub" ]; then
+if [ "${1:-}" = "print_pub" ]; then
   printf "\033[96mAdd the following key on: \033[34;4mhttps://github.com/settings/ssh/new\033[0m\n\n"
   cat "$HOME/.ssh/id_ed25519.pub"
 fi

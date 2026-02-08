@@ -2,12 +2,14 @@
 : '
 sudo .assets/provision/set_ulimits.sh
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
 fi
 
-cat << EOF > /etc/security/limits.d/k8slimits.conf
+cat <<EOF >/etc/security/limits.d/k8slimits.conf
 * soft nofile 120000
 * hard nofile 524288
 root soft nofile 120000

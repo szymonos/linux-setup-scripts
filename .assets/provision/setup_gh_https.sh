@@ -9,6 +9,8 @@ sudo .assets/provision/setup_gh_https.sh -u "$(id -un)" -c "$gh_auth"
 # set up GitHub CLI https authentication with admin:public_key scope and the provided token
 sudo .assets/provision/setup_gh_https.sh -u "$(id -un)" -c "$gh_auth" -k
 '
+set -euo pipefail
+
 if [ $EUID -ne 0 ]; then
   printf '\e[31;1mRun the script as root.\e[0m\n' >&2
   exit 1
@@ -20,8 +22,10 @@ fi
 # dotsource file with common functions
 . .assets/provision/source.sh
 
-# initialize local variable to the current user
+# initialize local variables
 user="$(id -un 1000 2>/dev/null || echo "unknown")"
+gh_cfg=''
+key=''
 # parse named parameters
 OPTIND=1
 while getopts ":u:c:k" opt; do

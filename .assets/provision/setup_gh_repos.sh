@@ -3,13 +3,15 @@
 .assets/provision/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules"
 .assets/provision/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules" --ws_suffix "scripts"
 '
+set -euo pipefail
+
 # parse named parameters
-repos=${repos}
+repos=${repos:-}
 ws_suffix=${ws_suffix:-devops}
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
     param="${1/--/}"
-    declare $param="$2"
+    declare $param="${2:-}"
   fi
   shift
 done
