@@ -297,7 +297,8 @@ find_file() {
 # *Function to download and install GitHub releases into user directory
 install_github_release_user() {
   local gh_owner gh_repo file_name binary_name current_version
-  local auth_header retry_count latest_release response http_code body file url tmp_dir binary_path
+  local auth_header retry_count latest_release response http_code body file url binary_path
+  local tmp_dir cleanup saved_return saved_exit
 
   # Parse arguments
   while [[ $# -gt 0 ]]; do
@@ -347,15 +348,16 @@ install_github_release_user() {
 
   # create temporary directory and set cleanup trap
   tmp_dir=$(mktemp -d -p "$HOME")
-
-  # Save existing traps to restore after cleanup
-  local saved_return=$(trap -p RETURN)
-  local saved_exit=$(trap -p EXIT)
-
-  # Create trap that cleans up and restores outer traps (if any)
-  local cleanup="rm -rf \"$tmp_dir\" >/dev/null 2>&1"
+  # save existing traps to restore after cleanup
+  saved_return="$(trap -p RETURN)"
+  saved_exit="$(trap -p EXIT)"
+  # create trap that cleans up and restores outer traps (if any)
+  # shellcheck disable=SC2016  # $tmp_dir should not expand here
+  cleanup='rm -fr "$tmp_dir"'
+  # restore saved traps if they exist, otherwise just remove the trap for that signal
   [ -n "$saved_return" ] && cleanup="$cleanup; $saved_return" || cleanup="$cleanup; trap - RETURN"
   [ -n "$saved_exit" ] && cleanup="$cleanup; $saved_exit" || cleanup="$cleanup; trap - EXIT"
+  # shellcheck disable=SC2064  # We want $cleanup to expand now
   trap "$cleanup" RETURN EXIT
   #endregion
 
