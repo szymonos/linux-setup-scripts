@@ -50,7 +50,7 @@ cert_count=0
 # track unique serials that have been added across all certify files
 declare -A added_serials=()
 # iterate over certify files
-for path in ${cert_paths[@]}; do
+for path in "${cert_paths[@]}"; do
   serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 | cut -d= -f2)
   if ! grep -qw "$serial" "$CERTIFY_CRT"; then
     echo "$(openssl x509 -in $path -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2

@@ -31,7 +31,7 @@ function sysinfo {
 
   # print user@host header
   printf "\e[1;34m$(id -un)\e[0m@\e[1;34m$([ -n "$HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")\e[0m\n"
-  USER_HOST="$(id -un)@$([ -n "HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")"
+  USER_HOST="$(id -un)@$([ -n "$HOSTNAME" ] && printf "$HOSTNAME" || printf "$NAME")"
   printf '%0.s-' $(seq 1 ${#USER_HOST})
   # print system properties
   printf "$SYS_PROP\n"

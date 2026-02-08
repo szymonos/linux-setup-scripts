@@ -37,7 +37,7 @@ fi
 
 # *clone repositories and add them to workspace file
 cd ~/source/repos
-for repo in ${gh_repos[@]}; do
+for repo in "${gh_repos[@]}"; do
   IFS='/' read -ra gh_path <<<"$repo"
   mkdir -p "${gh_path[0]}"
   pushd "${gh_path[0]}" >/dev/null
