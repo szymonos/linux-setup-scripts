@@ -53,7 +53,8 @@ fi
 # check if the binary is already installed
 printf "\e[92minstalling \e[1m$APP\e[22m v$REL\e[0m\n" >&2
 # create temporary dir for the downloaded binary
-TMP_DIR=$(mktemp -dp "$HOME")
+TMP_DIR=$(mktemp -d -p "$HOME")
+trap 'rm -fr "$TMP_DIR"' EXIT
 # calculate download uri
 URL="https://astral.sh/uv/install.sh"
 # download and install file
@@ -64,7 +65,4 @@ if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     ((retry_count++))
   done
 fi
-# remove temporary dir
-rm -fr "$TMP_DIR"
-
 exit 0

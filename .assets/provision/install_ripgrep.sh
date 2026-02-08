@@ -78,7 +78,8 @@ esac
 if [ "$binary" = true ] && [ -n "$REL" ]; then
   echo 'Installing from binary.' >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://github.com/BurntSushi/ripgrep/releases/download/${REL}/ripgrep-${REL}-aarch64-unknown-linux-gnu.tar.gz"
   # download and install file
@@ -88,6 +89,4 @@ if [ "$binary" = true ] && [ -n "$REL" ]; then
     install -m 0644 "$TMP_DIR/doc/rg.1" "$(manpath | cut -d : -f 1)/man1/"
     install -m 0644 "$TMP_DIR/complete/rg.bash" /etc/bash_completion.d/
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
 fi

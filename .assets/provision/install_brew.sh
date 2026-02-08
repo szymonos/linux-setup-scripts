@@ -42,13 +42,12 @@ else
   # skip tap cloning
   export HOMEBREW_INSTALL_FROM_API=1
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://raw.githubusercontent.com/Homebrew/install/master/install.sh"
   # download and install homebrew
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     bash -c "$TMP_DIR/$(basename $URL)"
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
 fi

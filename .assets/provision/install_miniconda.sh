@@ -43,16 +43,14 @@ else
   # dotsource file with common functions
   . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
   # download and install file
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     bash -C "$TMP_DIR/$(basename $URL)" -u -b -p "$HOME/miniconda3" >/dev/null
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
-
   # disable auto activation of the base conda environment
   conda_init
   # conda config --add channels defaults

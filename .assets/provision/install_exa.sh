@@ -78,7 +78,8 @@ esac
 if [ "$binary" = true ] && [ -n "$REL" ]; then
   echo 'Installing from binary.' >&2
   # create temporary dir for the downloaded binary
-  TMP_DIR=$(mktemp -dp "$HOME")
+  TMP_DIR=$(mktemp -d -p "$HOME")
+  trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://github.com/ogham/exa/releases/download/v${REL}/exa-linux-x86_64-v${REL}.zip"
   # download and install file
@@ -89,6 +90,4 @@ if [ "$binary" = true ] && [ -n "$REL" ]; then
     install -m 0644 "$TMP_DIR/man/exa_colors.5" "$(manpath | cut -d : -f 1)/man5/"
     install -m 0644 "$TMP_DIR/completions/exa.bash" /etc/bash_completion.d/
   fi
-  # remove temporary dir
-  rm -fr "$TMP_DIR"
 fi
