@@ -51,10 +51,11 @@ debian | ubuntu)
   URL="https://deb.nodesource.com/setup_lts.x"
   # download and install homebrew
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
+    chmod +x "$TMP_DIR/setup_lts.x"
     bash -c "$TMP_DIR/setup_lts.x"
   fi
   # install nodejs
-  apt-get update && apt-get install -y $APP npm
+  apt-get update && apt-get install -y $APP
   ;;
 opensuse)
   zypper --non-interactive in -y $APP npm
