@@ -110,6 +110,8 @@ debian | ubuntu)
   # install base packages
   pkgs="build-essential bash-completion ca-certificates curl gawk gnupg dnsutils git iputils-tracepath jq lsb-release man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
   install_pkgs apt "$pkgs"
+  # autoremove unnecessary packages and clean up apt cache
+  apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
   ;;
 opensuse)
   # refresh package index
