@@ -35,28 +35,6 @@ for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5;
     Install-PSResource -Name PSReadLine
 }
 
-# install kubectl autocompletion
-if (Test-Path /usr/bin/kubectl -PathType Leaf) {
-    $kubectlSet = try { Select-String 'kubecolor' -Path $PROFILE.CurrentUserCurrentHost -SimpleMatch -Quiet } catch { $false }
-    if (-not $kubectlSet) {
-        Write-Host 'adding kubectl auto-completion...'
-        # build completer text
-        $completer = [string]::Join("`n",
-            (/usr/bin/kubectl completion powershell) -join "`n",
-            "`n# setup autocompletion for the 'k' alias",
-            'Set-Alias -Name k -Value kubectl',
-            "Register-ArgumentCompleter -CommandName 'k' -ScriptBlock `${__kubectlCompleterBlock}",
-            "`n# setup autocompletion for the 'kubecolor' binary",
-            'if (Test-Path /usr/bin/kubecolor -PathType Leaf) {',
-            '    Set-Alias -Name kubectl -Value kubecolor',
-            "    Register-ArgumentCompleter -CommandName 'kubecolor' -ScriptBlock `${__kubectlCompleterBlock}",
-            '}'
-        )
-        # add additional ArgumentCompleter at the end of the profile
-        [System.IO.File]::WriteAllText($PROFILE, "$($completer.Trim())`n")
-    }
-}
-
 <# TODO uncomment once copilot-cli is added to the automation
 # add gh copilot aliases
 if (Test-Path /usr/bin/gh) {
@@ -71,7 +49,49 @@ if (Test-Path /usr/bin/gh) {
 }
 #>
 
-#region $PROFILE.CurrentUserAllHosts,
+#region $PROFILE.CurrentUserCurrentHost
+# load existing profile
+$profileContent = [System.Collections.Generic.List[string]]::new()
+if (Test-Path $PROFILE.CurrentUserCurrentHost -PathType Leaf) {
+    $profileContent.AddRange([System.IO.File]::ReadAllLines($PROFILE.CurrentUserCurrentHost))
+}
+# track if profile is modified
+$isProfileModified = $false
+
+# install kubectl autocompletion
+if (Test-Path /usr/bin/kubectl -PathType Leaf) {
+    if (-not ($profileContent | Select-String '__kubectlCompleterBlock' -SimpleMatch -Quiet)) {
+        Write-Host 'adding kubectl auto-completion...'
+        # build completer text
+        $profileContent.AddRange(
+            [string[]]@(
+                "`n#region kubectl completer"
+                (/usr/bin/kubectl completion powershell) -join "`n"
+                "`n# setup autocompletion for the 'k' alias"
+                'Set-Alias -Name k -Value kubectl'
+                "Register-ArgumentCompleter -CommandName 'k' -ScriptBlock `${__kubectlCompleterBlock}"
+                "`n# setup autocompletion for the 'kubecolor' binary"
+                'if (Test-Path /usr/bin/kubecolor -PathType Leaf) {'
+                '    Set-Alias -Name kubectl -Value kubecolor'
+                "    Register-ArgumentCompleter -CommandName 'kubecolor' -ScriptBlock `${__kubectlCompleterBlock}"
+                '}'
+                '#endregion'
+            )
+        )
+        $isProfileModified = $true
+    }
+}
+
+# save profile if modified
+if ($isProfileModified) {
+    [System.IO.File]::WriteAllText(
+        $PROFILE.CurrentUserCurrentHost,
+        "$(($profileContent -join "`n").Trim())`n"
+    )
+}
+#endregion
+
+#region $PROFILE.CurrentUserAllHosts
 # load existing profile
 $profileContent = [System.Collections.Generic.List[string]]::new()
 if (Test-Path $PROFILE.CurrentUserAllHosts -PathType Leaf) {
@@ -131,6 +151,23 @@ if (Test-Path "$HOME/$uvCli" -PathType Leaf) {
         } else {
             $profileContent.Add('#endregion')
         }
+    }
+}
+
+# set up make completer
+$completerFunction = 'Register-MakeCompleter'
+if (Get-Command $completerFunction -Module 'do-linux' -CommandType Function -ErrorAction SilentlyContinue) {
+    if (-not ($profileContent | Select-String $completerFunction -SimpleMatch -Quiet)) {
+        Write-Host 'adding make auto-completion...'
+        $profileContent.AddRange(
+            [string[]]@(
+                "`n#region make completer"
+                'Set-Alias -Name m -Value make'
+                $completerFunction
+                '#endregion'
+            )
+        )
+        $isProfileModified = $true
     }
 }
 

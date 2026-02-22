@@ -86,6 +86,15 @@ fi
 EOF
 fi
 
+# *set Makefile completer
+if ! grep -qw "Makefile" $HOME/.bashrc 2>/dev/null; then
+  cat <<'EOF' >>$HOME/.bashrc
+
+# initialize make autocompletion
+complete -W "\`if [ -f Makefile ]; then grep -oE '^[a-zA-Z0-9_-]+:([^=]|$)' Makefile | sed 's/[^a-zA-Z0-9_-]*$//'; elif [ -f makefile ]; then grep -oE '^[a-zA-Z0-9_-]+:([^=]|$)' makefile | sed 's/[^a-zA-Z0-9_-]*$//'; fi \`" make
+EOF
+fi
+
 # *set up pixi
 COMPLETION_CMD='pixi completion --shell bash'
 PIXI_PATH=".pixi/bin"
