@@ -232,7 +232,7 @@ for sc in "${scope_arr[@]}"; do
     printf "\e[96minstalling zsh...\e[0m\n"
     sudo .assets/provision/install_zsh.sh
     printf "\e[96msetting up zsh profile for current user...\e[0m\n"
-    .assets/provision/setup_profile_user_zsh.zsh
+    .assets/provision/setup_profile_user.zsh
     ;;
   esac
 done

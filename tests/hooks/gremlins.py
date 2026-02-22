@@ -2,13 +2,14 @@
 Scan staged text files for unwanted Unicode characters and fail if found.
 
 # :example
-python3 -m tests.gremlins wsl/wsl_setup.ps1
+python3 -m tests.hooks.gremlins wsl/wsl_setup.ps1
 """
 
 import os
 import sys
 import unicodedata
-from typing import Iterable, List, Tuple
+from collections.abc import Iterable
+from typing import Tuple
 
 FORBIDDEN_CHARS: Tuple[str, ...] = (
     # Zero-width / joiner
@@ -33,12 +34,30 @@ FORBIDDEN_CHARS: Tuple[str, ...] = (
     "\u201c",  # U+201C LEFT DOUBLE QUOTATION MARK
     "\u201d",  # U+201D RIGHT DOUBLE QUOTATION MARK
     "\u2026",  # U+2026 HORIZONTAL ELLIPSIS
+    # Misc common problematic characters
+    "\u00b7",  # U+00B7 MIDDLE DOT
 )
 
 
-def find_forbidden_in_text(content: str, filename: str) -> List[str]:
-    """Return list of human readable reports for forbidden characters in content."""
-    reports: List[str] = []
+def find_forbidden_in_text(content: str, filename: str) -> list[str]:
+    """
+    Scan the given text for forbidden Unicode characters and report their locations.
+
+    Parameters
+    ----------
+    content : str
+        The text content to scan for forbidden characters.
+    filename : str
+        The name of the file being scanned, used in the report output.
+
+    Returns
+    -------
+    list[str]
+        A list of human-readable report strings. Each string is formatted as:
+        "filename:lineno: contains <Unicode name> (<Unicode codepoint>)"
+        For example: "example.py:10: contains ZERO WIDTH SPACE (U+200B)"
+    """
+    reports: list[str] = []
     for lineno, line in enumerate(content.splitlines(), start=1):
         for ch in FORBIDDEN_CHARS:
             if ch in line:
@@ -63,9 +82,18 @@ def is_text_file(path: str) -> bool:
 
 
 def check_gremlins(argv: Iterable[str]) -> int:
-    """Entry point: argv should be list of filenames to check."""
+    """
+    Check a list of text files for forbidden Unicode characters.
+
+    Args:
+        argv (Iterable[str]): An iterable of file path strings to check.
+
+    Returns:
+        int: Returns 0 if no forbidden characters are found in any file,
+        or 1 if at least one forbidden character is found.
+    """
     files = list(argv)
-    problems: List[str] = []
+    problems: list[str] = []
     for path in files:
         if not os.path.exists(path) or not is_text_file(path):
             continue
