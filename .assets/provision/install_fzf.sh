@@ -26,6 +26,9 @@ fedora | opensuse)
 debian | ubuntu)
   dpkg -s $APP &>/dev/null && exit 0 || true
   ;;
+*)
+  true
+  ;;
 esac
 
 case $SYS_ID in
@@ -33,16 +36,19 @@ alpine)
   apk add --no-cache $APP >&2 2>/dev/null
   ;;
 arch)
-  pacman -Sy --needed --noconfirm $APP >&2 2>/dev/null || binary=true
+  pacman -Sy --needed --noconfirm $APP >&2 2>/dev/null
   ;;
 fedora)
-  dnf install -y $APP >&2 2>/dev/null || binary=true
+  dnf install -y $APP >&2 2>/dev/null
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null || binary=true
+  apt-get update >&2 && apt-get install -y $APP >&2 2>/dev/null
   ;;
 opensuse)
-  zypper --non-interactive in -y $APP >&2 2>/dev/null || binary=true
+  zypper --non-interactive in -y $APP >&2 2>/dev/null
+  ;;
+*)
+  true
   ;;
 esac

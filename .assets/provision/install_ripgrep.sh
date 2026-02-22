@@ -11,6 +11,8 @@ fi
 
 # determine system id
 SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
+# set binary flag if package manager is not supported
+binary=false
 # check if package installed already using package manager
 APP='ripgrep'
 case $SYS_ID in
