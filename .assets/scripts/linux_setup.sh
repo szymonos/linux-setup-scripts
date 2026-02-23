@@ -184,6 +184,7 @@ for sc in "${scope_arr[@]}"; do
   nodejs)
     printf "\e[96minstalling Node.js...\e[0m\n"
     sudo .assets/provision/install_nodejs.sh
+    .assets/provision/install_bun.sh
     ;;
   oh_my_posh)
     printf "\e[96minstalling oh-my-posh...\e[0m\n"
