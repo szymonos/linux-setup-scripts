@@ -44,6 +44,7 @@ if (-not $isWSL1) {
 # $env:PATH variable
 @(
     [IO.Path]::Combine($HOME, '.local', 'bin')
+    [IO.Path]::Combine($HOME, '.bun', 'bin')
     [IO.Path]::Combine($HOME, '.cargo', 'bin')
     [IO.Path]::Combine($HOME, '.pixi', 'bin')
 ) | ForEach-Object {

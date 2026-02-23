@@ -24,7 +24,7 @@ List of installation scopes. Valid values:
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
 - k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools; autoselects k8s_base scope
 - k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
-- nodejs: Node.js JavaScript runtime environment
+- nodejs: Node.js JavaScript runtime environment, bun, npm
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - python: uv, prek, pip, venv
 - rice: btop, cmatrix, cowsay, fastfetch
