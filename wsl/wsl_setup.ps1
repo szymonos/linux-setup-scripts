@@ -19,6 +19,7 @@ Name of the WSL distro to set up. If not specified, script will update all exist
 .PARAMETER Scope
 List of installation scopes. Valid values:
 - az: azure-cli, azcopy, Az PowerShell module if pwsh scope specified; autoselects python scope
+- bun: Bun - all-in-one JavaScript, TypeScript & JSX toolkit using JavaScriptCore engine
 - conda: miniforge
 - distrobox: (WSL2 only) - podman and distrobox
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
@@ -26,7 +27,7 @@ List of installation scopes. Valid values:
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
 - k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools; autoselects k8s_base scope
 - k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
-- nodejs: Node.js JavaScript runtime environment, bun, npm
+- nodejs: Node.js JavaScript runtime environment using V8 engine
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - python: uv, prek, pip, venv
 - rice: btop, cmatrix, cowsay, fastfetch
@@ -59,7 +60,7 @@ wsl/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
 $Scope = @('conda', 'pwsh')
 $Scope = @('conda', 'k8s_ext', 'pwsh', 'rice')
 $Scope = @('az', 'docker', 'shell')
-$Scope = @('az', 'k8s_base', 'pwsh', 'nodejs', 'terraform')
+$Scope = @('az', 'k8s_base', 'pwsh', 'bun', 'terraform')
 $Scope = @('az', 'gcloud', 'k8s_ext', 'pwsh')
 wsl/wsl_setup.ps1 $Distro -s $Scope
 wsl/wsl_setup.ps1 $Distro -s $Scope -AddCertificate
@@ -310,6 +311,7 @@ process {
         # *determine additional scopes from distro check
         switch ($chk) {
             { $_.az } { $scopeSet.Add('az') | Out-Null }
+            { $_.bun } { $scopeSet.Add('bun') | Out-Null }
             { $_.conda } { $scopeSet.Add('conda') | Out-Null }
             { $_.gcloud } { $scopeSet.Add('gcloud') | Out-Null }
             { $_.k8s_base } { $scopeSet.Add('k8s_base') | Out-Null }
@@ -351,15 +353,16 @@ process {
                 'conda' { 6 }
                 'az' { 7 }
                 'gcloud' { 8 }
-                'nodejs' { 9 }
-                'terraform' { 10 }
-                'oh_my_posh' { 11 }
-                'shell' { 12 }
-                'zsh' { 13 }
-                'pwsh' { 14 }
-                'distrobox' { 15 }
-                'rice' { 16 }
-                default { 17 }
+                'bun' { 9 }
+                'nodejs' { 10 }
+                'terraform' { 11 }
+                'oh_my_posh' { 12 }
+                'shell' { 13 }
+                'zsh' { 14 }
+                'pwsh' { 15 }
+                'distrobox' { 16 }
+                'rice' { 17 }
+                default { 18 }
             }
         }
         # display distro name and installed scopes
@@ -484,6 +487,11 @@ process {
                 $rel_azcopy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_azcopy.sh $Script:rel_azcopy
                 continue
             }
+            bun {
+                Show-LogContext 'installing bun'
+                wsl.exe --distribution $Distro --exec .assets/provision/install_bun.sh
+                continue
+            }
             conda {
                 Show-LogContext 'installing conda tools'
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
@@ -548,7 +556,6 @@ process {
                 if ($AddCertificate) {
                     wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_nodejs_certs.sh
                 }
-                wsl.exe --distribution $Distro --exec .assets/provision/install_bun.sh
                 continue
             }
             oh_my_posh {

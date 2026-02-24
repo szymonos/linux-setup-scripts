@@ -5,7 +5,7 @@
 # :set up the system using specified values
 scope="pwsh"
 scope="k8s_base pwsh python"
-scope="az docker k8s_base pwsh terraform nodejs"
+scope="az docker k8s_base pwsh terraform bun"
 scope="az distrobox k8s_ext rice pwsh"
 # :set up the system using the specified scope
 .assets/scripts/linux_setup.sh --scope "$scope"
@@ -74,6 +74,7 @@ order=(
   conda
   az
   gcloud
+  bun
   nodejs
   terraform
   oh_my_posh
@@ -140,6 +141,10 @@ for sc in "${scope_arr[@]}"; do
     .assets/provision/install_azurecli_uv.sh --fix_certify true
     sudo .assets/provision/install_azcopy.sh >/dev/null
     ;;
+  bun)
+    printf "\e[96minstalling bun...\e[0m\n"
+    .assets/provision/install_bun.sh
+    ;;
   conda)
     printf "\e[96minstalling python packages...\e[0m\n"
     .assets/provision/install_miniforge.sh --fix_certify true
@@ -184,7 +189,6 @@ for sc in "${scope_arr[@]}"; do
   nodejs)
     printf "\e[96minstalling Node.js...\e[0m\n"
     sudo .assets/provision/install_nodejs.sh
-    .assets/provision/install_bun.sh
     ;;
   oh_my_posh)
     printf "\e[96minstalling oh-my-posh...\e[0m\n"

@@ -12,6 +12,7 @@ declare -A state=(
   ["uid"]="$(id -u)"
   ["def_uid"]="$([ -f /etc/wsl-distribution.conf ] && grep 'defaultUid' /etc/wsl-distribution.conf | sed -E 's/defaultUid *= *([0-9]+)/\1/' || id -u)"
   ["az"]=$([ -x "$HOME/.local/bin/az" ] && echo true || echo false)
+  ["bun"]=$([ -x "$HOME/.bun/bin/bun" ] && echo true || echo false)
   ["conda"]=$([ -d "$HOME/miniforge3" ] && echo true || echo false)
   ["gcloud"]=$([ -x '/usr/bin/gcloud' ] && echo true || echo false)
   ["git_user"]=$([ -n "$(git config --global --get user.name 2>/dev/null)" ] && echo true || echo false)
