@@ -9,6 +9,56 @@ if [ $EUID -ne 0 ]; then
   exit 1
 fi
 
+# function to add user to docker group
+add_docker_user() {
+  local user="$1"
+  if ! sudo -u "$user" true 2>/dev/null; then
+    if [ -n "$user" ]; then
+      printf "\e[31;1mUser does not exist ($user).\e[0m\n"
+    else
+      printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
+    fi
+    return 1
+  fi
+  if grep -q "^docker:.*\b$user\b" /etc/group; then
+    printf "\e[34;1m::info:: $user is already in docker group\e[0m\n"
+  else
+    usermod -aG docker "$user" && printf "\e[34;1m::info:: added $user to docker group\e[0m\n" || {
+      printf "\e[31;1m::error:: failed to add $user to docker group\e[0m\n"
+      return 1
+    }
+  fi
+  return 0
+}
+
+# function to enable docker and containerd services
+enable_docker_service() {
+  local docker_service_failed=false
+  local containerd_service_failed=false
+
+  if systemctl is-active --quiet systemd-sysctl.service 2>/dev/null; then
+    systemctl is-active --quiet docker.service || {
+      systemctl enable --now docker.service || docker_service_failed=true
+    }
+    systemctl is-active --quiet containerd.service || {
+      systemctl enable --now containerd.service || containerd_service_failed=true
+    }
+    if [ "$docker_service_failed" = true ] || [ "$containerd_service_failed" = true ]; then
+      printf "\e[31;1m::error:: failed to start docker or containerd service\e[0m\n"
+      return 1
+    else
+      printf "\e[34;1m::info:: docker and containerd services running\e[0m\n"
+    fi
+  else
+    printf '\e[33;1m::warning:: systemd is not running\e[0m\n'
+    return 1
+  fi
+  return 0
+}
+
+# set user variable
+user=${1:-$(id -un 1000 2>/dev/null || true)}
+
 # determine system id
 SYS_ID="$(sed -En '/^ID.*(alpine|arch|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
 # check if package installed already using package manager
@@ -28,10 +78,14 @@ debian | ubuntu)
 opensuse)
   rpm -q docker &>/dev/null && installed=true || installed=false
   ;;
-esac
-if [ "$installed" = true ]; then
-  printf "\e[32mdocker is already installed\e[0m\n"
+*)
+  printf "\e[33;1mUnsupported distribution\e[0m\n"
   exit 0
+  ;;
+esac
+
+if [ "$installed" = true ]; then
+  enable_docker_service && add_docker_user "$user" && exit 0 || exit 1
 else
   printf "\e[92minstalling \e[1mdocker\e[0m\n"
 fi
@@ -73,25 +127,5 @@ opensuse)
   ;;
 esac
 
-# check provided user
-user=${1:-$(id -un 1000 2>/dev/null || true)}
-if ! sudo -u $user true 2>/dev/null; then
-  if [ -n "$user" ]; then
-    printf "\e[31;1mUser does not exist ($user).\e[0m\n"
-  else
-    printf "\e[31;1mUser ID 1000 not found.\e[0m\n"
-  fi
-  exit 1
-fi
-# add user to docker group
-if ! grep -q "^docker:.*\b$user\b" /etc/group; then
-  usermod -aG docker $user
-fi
-
-# start docker services if systemd is running
-if systemctl status 2>/dev/null | grep -qw systemd; then
-  systemctl enable --now docker.service
-  systemctl enable --now containerd.service
-else
-  printf '\e[33;1mWarning: systemd is not running.\e[0m\n'
-fi
+# start docker services and add user to docker group
+enable_docker_service && add_docker_user "$user" && exit 0 || exit 1
