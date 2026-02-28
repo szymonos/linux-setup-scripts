@@ -17,7 +17,7 @@ while [ $# -gt 0 ]; do
 done
 
 # *calculate variables
-gh_repos=($repos)
+read -ra gh_repos <<< "$repos"
 # calculate workspace name
 if [ -n "$WSL_DISTRO_NAME" ]; then
   ID="$WSL_DISTRO_NAME"

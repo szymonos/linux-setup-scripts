@@ -3,6 +3,8 @@
 : '
 .assets/docker/build_docker.sh
 '
+set -e
+
 # set script working directory to workspace folder
 cd "$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../../")"
 

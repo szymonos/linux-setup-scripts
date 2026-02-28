@@ -76,7 +76,7 @@ install_from_tarball() {
   fi
 
   tar -zxf "$tmp_dir/$archive_name" -C "$tmp_dir"
-  rm -rf "$install_dir/$gcloud_dir"
+  rm -rf "${install_dir:?}/${gcloud_dir:?}"
   mkdir -p "$install_dir"
   mv "$tmp_dir/$gcloud_dir" "$install_dir" >/dev/null
 

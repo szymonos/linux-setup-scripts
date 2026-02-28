@@ -58,7 +58,7 @@ arch)
   pacman -Sy --needed --noconfirm terraform >&2 2>/dev/null
   ;;
 fedora)
-  if [ "$(readlink $(which dnf))" = 'dnf5' ]; then
+  if [ "$(readlink "$(which dnf)")" = 'dnf5' ]; then
     dnf config-manager addrepo --from-repofile https://rpm.releases.hashicorp.com/fedora/hashicorp.repo
   else
     dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo

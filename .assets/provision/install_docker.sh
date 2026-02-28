@@ -95,12 +95,33 @@ case $SYS_ID in
 arch)
   pacman -Sy --needed --noconfirm docker docker-compose
   ;;
+debian)
+  export DEBIAN_FRONTEND=noninteractive
+  if dpkg -s docker &>/dev/null; then
+    apt-get remove docker docker-engine docker.io containerd runc 2>/dev/null
+  fi
+  if [ ! -f /etc/apt/sources.list.d/docker.sources ]; then
+    # add Docker's official GPG key
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+    # add the repository to Apt sources
+    cat <<EOF > /etc/apt/sources.list.d/docker.sources
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+  fi
+  apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  ;;
 fedora)
   if rpm -q docker &>/dev/null; then
     dnf remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine
   fi
   if [ ! -f /etc/yum.repos.d/docker-ce.repo ]; then
-    if [ "$(readlink $(which dnf))" = 'dnf5' ]; then
+    if [ "$(readlink "$(which dnf)")" = 'dnf5' ]; then
       dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
     else
       dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
@@ -108,19 +129,26 @@ fedora)
   fi
   dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   ;;
-debian | ubuntu)
+ubuntu)
   export DEBIAN_FRONTEND=noninteractive
   if dpkg -s docker &>/dev/null; then
     apt-get remove docker docker-engine docker.io containerd runc 2>/dev/null
   fi
-  if [ ! -f /etc/apt/sources.list.d/docker.list ]; then
-    mkdir -m 0755 -p /etc/apt/keyrings
-    curl -fsSLk "https://download.docker.com/linux/$SYS_ID/gpg" | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    echo \
-      "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$SYS_ID \
-      "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" >/etc/apt/sources.list.d/docker.list
+  if [ ! -f /etc/apt/sources.list.d/docker.sources ]; then
+    # add Docker's official GPG key
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+    # add the repository to Apt sources
+    cat <<EOF > /etc/apt/sources.list.d/docker.sources
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
   fi
-  apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
+  apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   ;;
 opensuse)
   zypper --non-interactive in -y docker containerd docker-compose

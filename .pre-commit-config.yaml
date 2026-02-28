@@ -25,5 +25,5 @@ repos:
     rev: v0.11.0
     hooks:
       - id: shellcheck
-        args: ["--severity=error", "--exclude=SC2148,SC2139"]
+        args: ["--severity=warning", "--exclude=SC1090,SC2139,SC2148,SC2155,SC2174"]
         exclude: \.zsh$

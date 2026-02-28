@@ -39,7 +39,7 @@ retry_count=0
 while
   curl -sk 'https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh' | bash >&2
   ((retry_count++)) || true
-  [[ $(k3d --version 2>/dev/null | sed -En 's/.*v([0-9\.]+)$/\1/p') != $REL && $retry_count -le 10 ]]
+  [[ $(k3d --version 2>/dev/null | sed -En 's/.*v([0-9\.]+)$/\1/p') != "$REL" && $retry_count -le 10 ]]
 do :; done
 
 exit 0
