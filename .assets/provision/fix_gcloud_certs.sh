@@ -25,7 +25,7 @@ opensuse)
   CERT_PATH='/usr/share/pki/trust/anchors'
 esac
 
-cert_files=($(find "$CERT_PATH" -maxdepth 1 -name '*.crt' 2>/dev/null || true))
+mapfile -t cert_files < <(find "$CERT_PATH" -maxdepth 1 -name '*.crt' 2>/dev/null || true)
 if [ "${#cert_files[@]}" -eq 0 ]; then
   printf '\nNo custom certificates found in %s\n' "$CERT_PATH" >&2
   exit 0

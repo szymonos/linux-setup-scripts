@@ -133,13 +133,13 @@ download_file() {
   [ -z "$target_dir" ] && target_dir='.' || true
 
   # define local variables
-  local file_name="$(basename $uri)"
+  local file_name="$(basename "$uri")"
   local max_retries=8
   local retry_count=0
 
   while [ $retry_count -le $max_retries ]; do
     # download file
-    status_code=$(curl -w %{http_code} -#Lko "$target_dir/$file_name" "$uri" 2>/dev/null)
+    status_code=$(curl -w '%{http_code}' -#Lko "$target_dir/$file_name" "$uri" 2>/dev/null)
 
     # check the HTTP status code
     case $status_code in

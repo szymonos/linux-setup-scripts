@@ -26,10 +26,10 @@ elif [ -z "$URL" ]; then
   printf "\e[31mError: The download URL is required.\e[0m\n" >&2
   exit 1
 else
-  response="{\"version\":\"$REL\",\"download_url\":\"$URL\"}"
+  response=$(printf '{"version":"%s","download_url":"%s"}' "$REL" "$URL")
 fi
 # return json response
-echo $response
+echo "$response"
 
 # exit if the URL is not set
 if [ -z "$URL" ]; then

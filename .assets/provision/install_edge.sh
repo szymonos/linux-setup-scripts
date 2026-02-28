@@ -32,7 +32,7 @@ arch)
 fedora)
   rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
   if [ ! -f /etc/yum.repos.d/microsoft-edge-stable.repo ]; then
-    if [ "$(readlink $(which dnf))" = 'dnf5' ]; then
+    if [ "$(readlink "$(which dnf)")" = 'dnf5' ]; then
       dnf config-manager addrepo --from-repofile https://packages.microsoft.com/yumrepos/edge
     else
       dnf config-manager --add-repo https://packages.microsoft.com/yumrepos/edge

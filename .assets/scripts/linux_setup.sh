@@ -19,6 +19,8 @@ omp_theme="nerd"
 # :skip GitHub authentication setup
 .assets/scripts/linux_setup.sh --skip_gh_auth true --scope "$scope" --omp_theme "$omp_theme"
 '
+set -e
+
 if [ $EUID -eq 0 ]; then
   printf '\e[31;1mDo not run the script as root.\e[0m\n'
   exit 1
@@ -48,7 +50,7 @@ pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
 distro_check=$(.assets/provision/distro_check.sh array)
 
 # initialize the scopes array
-array=($scope)
+read -ra array <<<"$scope"
 # populate the scopes array based on the output of distro_check.sh
 while IFS= read -r line; do
   array+=("$line")
@@ -98,7 +100,7 @@ done
 # get distro name from os-release
 . /etc/os-release
 # display distro name and scopes to install
-printf "\e[95m$NAME$([ -n "$scope_arr" ] && echo " : \e[3m${scope_arr[*]}" || true)\e[0m\n"
+printf "\e[95m$NAME$([ "${#scope_arr[@]}" -gt 0 ] && echo " : \e[3m${scope_arr[*]}" || true)\e[0m\n"
 
 # *Install packages and setup profiles
 if [ "$sys_upgrade" = true ]; then
@@ -249,7 +251,7 @@ printf "\e[96msetting up profile for current user...\e[0m\n"
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
   cmnd="Import-Module (Resolve-Path './modules/InstallUtils'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules'"
-  cloned=$(pwsh -nop -c $cmnd)
+  cloned=$(pwsh -nop -c "$cmnd")
   if [ $cloned -gt 0 ]; then
     printf "\e[96minstalling ps-modules...\e[0m\n"
     # install do-common module for all users

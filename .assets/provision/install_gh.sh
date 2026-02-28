@@ -52,7 +52,7 @@ fedora)
   if dnf info -y gh >/dev/null 2>&1; then
     dnf install -y gh >&2 2>/dev/null
   else
-    if [ "$(readlink $(which dnf))" = 'dnf5' ]; then
+    if [ "$(readlink "$(which dnf)")" = 'dnf5' ]; then
       dnf config-manager addrepo --from-repofile https://cli.github.com/packages/rpm/gh-cli.repo
     else
       dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo

@@ -28,8 +28,8 @@ debian | ubuntu)
 esac
 
 # get list of installed certificates
-cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
-if [ -z "$cert_paths" ]; then
+mapfile -t cert_paths < <(ls "$CERT_PATH"/*.crt 2>/dev/null || true)
+if [ "${#cert_paths[@]}" -eq 0 ]; then
   printf '\nThere are no certificate(s) to install.\n' >&2
   exit 0
 fi

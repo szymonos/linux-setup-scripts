@@ -32,12 +32,12 @@ function git_resolve_branch {
 
 function gsw {
   br=$(git_resolve_branch $1)
-  git switch $(git_resolve_branch $br)
+  git switch "$(git_resolve_branch "$br")"
 }
 
 function grmb {
   br=$(git_resolve_branch $1)
-  git reset $(git merge-base $(grt)/$br HEAD)
+  git reset "$(git merge-base "$(grt)"/"$br" HEAD)"
 }
 #endregion
 

@@ -29,8 +29,8 @@ opensuse)
 esac
 
 # get list of installed certificates
-cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
-if [ -z "$cert_paths" ]; then
+mapfile -t cert_paths < <(ls "$CERT_PATH"/*.crt 2>/dev/null || true)
+if [ "${#cert_paths[@]}" -eq 0 ]; then
   exit 0
 fi
 
@@ -59,7 +59,7 @@ if [ -n "$SHOW" ]; then
 fi
 
 # exit script if no certify cacert.pem found
-if [ -z "$certify_paths" ]; then
+if [ "${#certify_paths[@]}" -eq 0 ]; then
   printf '\e[33mcertifi/cacert.pem not found\e[0m\n' >&2
   exit 0
 fi

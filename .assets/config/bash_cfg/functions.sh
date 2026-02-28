@@ -9,7 +9,7 @@ function sysinfo {
   cpu_name="$(sed -En '/^model name\s*: (.+)/{s//\1/;p;q}' /proc/cpuinfo)"
   cpu_cores="$(sed -En '/^cpu cores\s*: ([0-9]+)/{s//\1/;p;q}' /proc/cpuinfo)"
   # calculate memory usage
-  mem_inf=($(awk -F ':|kB' '/MemTotal:|MemAvailable:/ {printf $2, " "}' /proc/meminfo))
+  mapfile -t mem_inf < <(awk -F ':|kB' '/MemTotal:|MemAvailable:/ {print $2}' /proc/meminfo)
   mem_total=${mem_inf[0]}
   mem_used=$((mem_total - mem_inf[1]))
   mem_perc=$(awk '{printf "%.0f", $1 * $2 / $3}' <<<"$mem_used 100 $mem_total")
@@ -37,7 +37,7 @@ function sysinfo {
   printf "$SYS_PROP\n"
 }
 # set alias
-alias sysinfo='gsi'
+alias gsi='sysinfo'
 
 # *Function for fixing Python SSL certificate issues by adding custom certificates to certifi's cacert.pem
 function fixcertpy {
@@ -65,8 +65,9 @@ function fixcertpy {
   esac
 
   # get list of installed certificates
-  cert_paths=($(ls $CERT_PATH/*.crt 2>/dev/null))
-  if [ -z "$cert_paths" ]; then
+  mapfile -t cert_paths < <(ls "$CERT_PATH"/*.crt 2>/dev/null || true)
+  if [ "${#cert_paths[@]}" -eq 0 ]; then
+    printf '\033[36mno custom certificates found in \033[4m%s\n\033[0m' "$CERT_PATH" >&2
     return 0
   fi
 
