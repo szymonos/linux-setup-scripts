@@ -16,7 +16,7 @@ repos:
       - id: trailing-whitespace
         exclude: \.md$
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.20.0
+    rev: v0.21.0
     hooks:
       - id: markdownlint-cli2
         files: \.md$
