@@ -388,6 +388,7 @@ process {
 
         # *install packages
         Show-LogContext 'updating system'
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_no_file.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh $chk.user
