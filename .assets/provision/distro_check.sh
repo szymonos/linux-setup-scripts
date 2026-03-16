@@ -5,7 +5,6 @@
 '
 set -euo pipefail
 
-
 # store the state in an associative array
 declare -A state=(
   ["user"]="$(id -un)"

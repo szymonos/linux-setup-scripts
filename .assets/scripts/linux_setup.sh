@@ -136,6 +136,10 @@ else
   .assets/provision/setup_gh_ssh.sh >/dev/null
 fi
 
+# *install copilot-cli
+printf "\e[96minstalling copilot-cli...\e[0m\n"
+.assets/provision/install_copilot.sh
+
 for sc in "${scope_arr[@]}"; do
   case $sc in
   az)
@@ -181,6 +185,7 @@ for sc in "${scope_arr[@]}"; do
     sudo .assets/provision/install_flux.sh >/dev/null
     sudo .assets/provision/install_helm.sh >/dev/null
     sudo .assets/provision/install_kustomize.sh >/dev/null
+    sudo .assets/provision/install_trivy.sh >/dev/null
     ;;
   k8s_ext)
     printf "\e[96minstalling local kubernetes tools...\e[0m\n"
