@@ -25,7 +25,7 @@ List of installation scopes. Valid values:
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
 - gcloud: google-cloud-cli
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
-- k8s_dev: argorollouts, cilium, helm, flux, kustomize cli tools; autoselects k8s_base scope
+- k8s_dev: argorollouts, cilium, helm, flux, kustomize and trivy cli tools; autoselects k8s_base scope
 - k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
 - nodejs: Node.js JavaScript runtime environment using V8 engine
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
@@ -371,13 +371,23 @@ process {
 
         #region perform base setup
         # *fix WSL networking
-        if ($FixNetwork) {
+        if (-not $PSBoundParameters.FixNetwork -and (wsl.exe --distribution $Distro -- bash -c 'getent hosts github.com >/dev/null 2>&1 || echo 1')) {
+            $PSBoundParameters['FixNetwork'] = $FixNetwork = [System.Management.Automation.SwitchParameter]::new($true)
+        }
+        if ($PSBoundParameters.FixNetwork) {
             Show-LogContext 'fixing network'
             wsl/wsl_network_fix.ps1 $Distro
         }
+        if (wsl.exe --distribution $Distro -- bash -c 'getent hosts github.com >/dev/null 2>&1 || echo 1') {
+            Show-LogContext 'DNS resolution failed. Cannot resolve github.com from WSL. Script execution halted.' -Level ERROR
+            exit 1
+        }
 
         # *install certificates
-        if ($AddCertificate) {
+        if (-not $PSBoundParameters.AddCertificate -and (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1')) {
+            $PSBoundParameters['AddCertificate'] = $AddCertificate = [System.Management.Automation.SwitchParameter]::new($true)
+        }
+        if ($PSBoundParameters.AddCertificate) {
             Show-LogContext 'adding certificates in chain'
             wsl/wsl_certs_add.ps1 $Distro
         }
@@ -404,7 +414,7 @@ process {
         }
         #endregion
 
-        #region setup GitHub authentication
+        #region setup GitHub
         # *setup GitHub CLI
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
         $cmdArgs = [System.Collections.Generic.List[string]]::new([string[]]@('-u', $chk.user))
@@ -478,6 +488,10 @@ process {
                 $sshStatus.sshKey = 'missing'
             }
         }
+
+        # *install copilot-cli
+        Show-LogContext 'installing copilot-cli'
+        wsl.exe --distribution $Distro --exec .assets/provision/install_copilot.sh
         #endregion
 
         #region install scopes
@@ -537,6 +551,7 @@ process {
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
                 $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
                 $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
+                $rel_trivy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_trivy.sh $Script:rel_trivy
                 continue
             }
             k8s_ext {

@@ -35,20 +35,6 @@ for ($i = 0; ((Get-Module PSReadLine -ListAvailable).Count -eq 1) -and $i -lt 5;
     Install-PSResource -Name PSReadLine
 }
 
-<# TODO uncomment once copilot-cli is added to the automation
-# add gh copilot aliases
-if (Test-Path /usr/bin/gh) {
-    if (gh extension list | Select-String 'github/gh-copilot' -SimpleMatch -Quiet) {
-        $USER_SCRIPTS_PATH = "$HOME/.config/powershell/Scripts"
-        if (-not (Test-Path $USER_SCRIPTS_PATH)) {
-            New-Item -Path $USER_SCRIPTS_PATH -ItemType Directory -Force | Out-Null
-        }
-        $GH_COPILOT_PROFILE = Join-Path -Path $USER_SCRIPTS_PATH -ChildPath '_aliases_copilot.ps1'
-        gh copilot alias -- pwsh | Out-File ( New-Item -Path $GH_COPILOT_PROFILE -Force )
-    }
-}
-#>
-
 #region $PROFILE.CurrentUserCurrentHost
 # load existing profile
 $profileContent = [System.Collections.Generic.List[string]]::new()
