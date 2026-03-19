@@ -136,10 +136,6 @@ else
   .assets/provision/setup_gh_ssh.sh >/dev/null
 fi
 
-# *install copilot-cli
-printf "\e[96minstalling copilot-cli...\e[0m\n"
-.assets/provision/install_copilot.sh
-
 for sc in "${scope_arr[@]}"; do
   case $sc in
   az)
@@ -232,6 +228,7 @@ for sc in "${scope_arr[@]}"; do
     sudo .assets/provision/install_bat.sh >/dev/null
     sudo .assets/provision/install_ripgrep.sh >/dev/null
     sudo .assets/provision/install_yq.sh >/dev/null
+    .assets/provision/install_copilot.sh
     ;;
   terraform)
     printf "\e[96minstalling terraform utils...\e[0m\n"

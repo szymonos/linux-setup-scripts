@@ -31,7 +31,7 @@ List of installation scopes. Valid values:
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
 - python: uv, prek, pip, venv
 - rice: btop, cmatrix, cowsay, fastfetch
-- shell: bat, eza, oh-my-posh, ripgrep, yq
+- shell: bat, eza, oh-my-posh, ripgrep, yq, copilot-cli
 - terraform: terraform, terrascan, tflint, tfswitch
 - zsh: zsh shell with plugins
 .PARAMETER OmpTheme
@@ -488,10 +488,6 @@ process {
                 $sshStatus.sshKey = 'missing'
             }
         }
-
-        # *install copilot-cli
-        Show-LogContext 'installing copilot-cli'
-        wsl.exe --distribution $Distro --exec .assets/provision/install_copilot.sh
         #endregion
 
         #region install scopes
@@ -674,6 +670,9 @@ process {
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
                 Show-LogContext 'setting up profile for current user'
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
+                # install copilot-cli
+                Show-LogContext 'installing copilot-cli'
+                wsl.exe --distribution $Distro --exec .assets/provision/install_copilot.sh
                 continue
             }
             terraform {
