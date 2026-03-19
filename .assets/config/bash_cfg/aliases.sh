@@ -53,7 +53,6 @@ else
   alias bsh='/usr/bin/env -i bash --noprofile --norc'
   alias ip='ip --color=auto'
   alias ls='ls -h --color=auto --group-directories-first --time-style=long-iso'
-  alias -- -='cd -'
 fi
 
 if [ -x /usr/bin/eza ]; then
