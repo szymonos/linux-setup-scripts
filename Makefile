@@ -25,7 +25,6 @@ lint: ## Run pre-commit hooks for changed files
 lint-diff: ## Run pre-commit hooks for files changed in this diff
 	@printf "🧭 Running pre-commit hooks for files changed in this diff...\n\n"
 	@[ "$$(git branch --show-current)" = "main" ] && printf "⚠️  You are on the main branch. Skipping lint-diff.\n" || prek run --from-ref main --to-ref HEAD
-
 lint-all: ## Run pre-commit hooks for all files
 	@printf "🧭 Running pre-commit hooks for all files...\n\n"
 	prek run --all-files
