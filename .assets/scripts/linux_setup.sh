@@ -46,12 +46,12 @@ SCRIPT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 pushd "$(cd "${SCRIPT_ROOT}/../../" && pwd)" >/dev/null
 
 # *Calculate and show installation scopes
-# run the distro_check.sh script and capture the output
-distro_check=$(.assets/provision/distro_check.sh array)
+# run the check_distro.sh script and capture the output
+distro_check=$(.assets/provision/check_distro.sh array)
 
 # initialize the scopes array
 read -ra array <<<"$scope"
-# populate the scopes array based on the output of distro_check.sh
+# populate the scopes array based on the output of check_distro.sh
 while IFS= read -r line; do
   array+=("$line")
 done <<<"$distro_check"

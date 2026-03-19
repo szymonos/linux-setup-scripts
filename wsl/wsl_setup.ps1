@@ -277,7 +277,7 @@ process {
         $Distro = $lx.Name
 
         #region distro checks
-        $chkStr = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh
+        $chkStr = wsl.exe -d $Distro --exec .assets/provision/check_distro.sh
         try {
             $chk = $chkStr | ConvertFrom-Json -AsHashtable -ErrorAction Stop
         } catch {
@@ -291,8 +291,17 @@ process {
             if ($chk.def_uid -ge 1000) {
                 Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
                 wsl.exe --distribution $Distro
-                # rerun distro_check to get updated user
-                $chk = wsl.exe -d $Distro --exec .assets/provision/distro_check.sh | ConvertFrom-Json -AsHashtable
+                # rerun check_distro to get updated user
+                $chkStr = wsl.exe -d $Distro --exec .assets/provision/check_distro.sh
+                try {
+                    $chk = $chkStr | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+                } catch {
+                    Show-LogContext $_
+                    Show-LogContext "Failed to check the distro '$Distro'." -Level WARNING
+                    Write-Host "`nThe WSL seems to be not responding correctly. Run the script again!"
+                    Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
+                    exit 1
+                }
             } else {
                 $msg = [string]::Join("`n",
                     "`n`e[93;1mWARNING: The '$Distro' WSL distro is set to use the root user.`e[0m`n",
@@ -371,27 +380,31 @@ process {
 
         #region perform base setup
         # *fix WSL networking
-        if (-not $PSBoundParameters.FixNetwork -and (wsl.exe --distribution $Distro -- bash -c 'getent hosts github.com >/dev/null 2>&1 || echo 1')) {
+        $dnsOk = wsl.exe --distribution $Distro --exec .assets/provision/check_dns.sh
+        if (-not $PSBoundParameters.FixNetwork -and $dnsOk -eq 'false') {
             $PSBoundParameters['FixNetwork'] = $FixNetwork = [System.Management.Automation.SwitchParameter]::new($true)
         }
         if ($PSBoundParameters.FixNetwork) {
             Show-LogContext 'fixing network'
             wsl/wsl_network_fix.ps1 $Distro
+            $dnsOk = wsl.exe --distribution $Distro --exec .assets/provision/check_dns.sh
         }
-        if (wsl.exe --distribution $Distro -- bash -c 'getent hosts github.com >/dev/null 2>&1 || echo 1') {
+        if ($dnsOk -eq 'false') {
             Show-LogContext 'DNS resolution failed. Cannot resolve github.com from WSL. Script execution halted.' -Level ERROR
             exit 1
         }
 
         # *install certificates
-        if (-not $PSBoundParameters.AddCertificate -and (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1')) {
+        $sslOk = wsl.exe --distribution $Distro --user root --exec .assets/provision/check_ssl.sh
+        if (-not $PSBoundParameters.AddCertificate -and $sslOk -ne 'true') {
             $PSBoundParameters['AddCertificate'] = $AddCertificate = [System.Management.Automation.SwitchParameter]::new($true)
         }
         if ($PSBoundParameters.AddCertificate) {
             Show-LogContext 'adding certificates in chain'
             wsl/wsl_certs_add.ps1 $Distro
+            $sslOk = wsl.exe --distribution $Distro --user root --exec .assets/provision/check_ssl.sh
         }
-        if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
+        if ($sslOk -eq 'false') {
             Show-LogContext 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.' -Level ERROR
             exit 1
         }
