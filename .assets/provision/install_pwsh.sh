@@ -14,14 +14,8 @@ fi
 
 # define variables
 APP='pwsh'
-# TODO: remove on GA release of PowerShell 7.6
-if grep -qw 'trixie' /etc/os-release 2>/dev/null; then
-  REL='7.6.0-rc.1'
-  libicu='libicu76'
-else
-  REL=${1:-}
-  libicu='libicu67'
-fi
+REL=${1:-}
+
 # get latest release if not provided as a parameter
 if [ -z "$REL" ]; then
   REL="$(get_gh_release_latest --owner 'PowerShell' --repo 'PowerShell')"
@@ -85,7 +79,7 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y "$libicu" >&2 2>/dev/null || true
+  [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu76 >&2 2>/dev/null || true
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -d -p "$HOME")
   trap 'rm -fr "$TMP_DIR"' EXIT
