@@ -1,4 +1,5 @@
 #Requires -RunAsAdministrator
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Install latest CascadaCode fonts.
@@ -16,7 +17,10 @@ param ()
 begin {
     $ErrorActionPreference = 'Stop'
 
-    $tmp = New-Item "tmp.$(Get-Random)" -ItemType Directory
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/../.."
+
+    $tmp = New-Item -Name ([System.IO.Path]::GetRandomFileName()) -ItemType Directory
     $fontArchive = [IO.Path]::Combine($tmp, 'CascadiaCode.zip')
 
     # latest release api endpoint for the cascadia-code repo
@@ -28,7 +32,7 @@ process {
     $rel = (Invoke-RestMethod $urlGHRel).tag_name -replace '^v'
     # download font
     try {
-        $uri = "https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
+        $uri = "https://github.com/microsoft/cascadia-code/releases/download/v${rel}/CascadiaCode-${rel}.zip"
         [Net.WebClient]::new().DownloadFile($uri, $fontArchive)
     } catch {
         Write-Warning "Font not found ($Font)."
@@ -40,9 +44,12 @@ process {
     # install fonts
     $shellApp = New-Object -ComObject shell.application
     $fonts = $shellApp.NameSpace(0x14)
-    $fontFiles.ForEach({ $fonts.CopyHere($_.FullName) })
+    $fontFiles.ForEach({ $fonts.CopyHere($_.FullName, 0x10) })
 }
 
-end {
-    Remove-Item $tmp -Recurse -Force
+clean {
+    if (Test-Path $tmp -PathType Container) {
+        Remove-Item $tmp -Recurse -Force
+    }
+    Pop-Location
 }
