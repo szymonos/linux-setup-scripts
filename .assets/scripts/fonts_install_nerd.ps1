@@ -1,4 +1,5 @@
 #Requires -RunAsAdministrator
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Install specified nerd font from ryanoasis/nerd-fonts GitHub repo.
@@ -36,7 +37,10 @@ param (
 begin {
     $ErrorActionPreference = 'Stop'
 
-    $tmp = New-Item "tmp.$(Get-Random)" -ItemType Directory
+    # set location to workspace folder
+    Push-Location "$PSScriptRoot/../.."
+
+    $tmp = New-Item -Name ([System.IO.Path]::GetRandomFileName()) -ItemType Directory
     $fontArchive = [IO.Path]::Combine($tmp, "${Font}.zip")
 }
 
@@ -68,6 +72,9 @@ process {
     $fontFiles.ForEach({ $fonts.CopyHere($_.FullName) })
 }
 
-end {
-    Remove-Item $tmp -Recurse -Force
+clean {
+    if (Test-Path $tmp -PathType Container) {
+        Remove-Item $tmp -Recurse -Force
+    }
+    Pop-Location
 }

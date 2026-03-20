@@ -105,8 +105,7 @@ begin {
     }
 
     # create temp folder for saving certificates
-    $tmpName = "tmp.$( -join ((0..9 + 'a'..'z') * 10 | Get-Random -Count 10))"
-    $tmpFolder = New-Item -Path . -Name $tmpName -ItemType Directory
+    $tmpFolder = New-Item -Name ([System.IO.Path]::GetRandomFileName()) -ItemType Directory
 
     # instantiate set for storing intercepted certificates
     $certSet = [System.Collections.Generic.HashSet[System.Security.Cryptography.X509Certificates.X509Certificate2]]::new()
@@ -141,7 +140,7 @@ process {
     }
 
     # copy certificates to the distro specific cert directory and install them
-    $cmnd = "mkdir -p $($crt.path) && install -m 0644 ${tmpName}/*.crt $($crt.path) && $($crt.cmnd)"
+    $cmnd = "mkdir -p $($crt.path) && install -m 0644 $($tmpFolder.Name)/*.crt $($crt.path) && $($crt.cmnd)"
     wsl -d $Distro -u root --exec bash -c $cmnd
 }
 
