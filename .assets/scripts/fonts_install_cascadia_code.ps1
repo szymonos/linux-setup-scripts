@@ -41,10 +41,27 @@ process {
     Expand-Archive $fontArchive -DestinationPath $tmp
     $fontFiles = Get-ChildItem "$tmp/ttf" -Filter '*.ttf' -File
 
-    # install fonts
+    # remove existing per-user fonts and install new ones
+    $userFontsDir = [IO.Path]::Combine($env:LOCALAPPDATA, 'Microsoft\Windows\Fonts')
+    $regKey = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
+    $regProps = Get-ItemProperty -Path $regKey -ErrorAction SilentlyContinue
+    foreach ($file in $fontFiles) {
+        try {
+            Remove-Item "$userFontsDir/$($file.Name)" -ErrorAction Stop
+            if ($regProps) {
+                $regProps.PSObject.Properties.Where({ $_.Value -like "*\$($file.Name)" }).ForEach(
+                    { Remove-ItemProperty -Path $regKey -Name $_.Name -ErrorAction SilentlyContinue }
+                )
+            }
+        } catch [System.Management.Automation.ItemNotFoundException] {
+            # font file doesn't exist, nothing to remove
+        } catch {
+            Write-Warning "Failed to remove existing font $($file.Name): $_"
+        }
+    }
     $shellApp = New-Object -ComObject shell.application
     $fonts = $shellApp.NameSpace(0x14)
-    $fontFiles.ForEach({ $fonts.CopyHere($_.FullName, 0x10) })
+    $fontFiles.ForEach({ $fonts.CopyHere($_.FullName) })
 }
 
 clean {
