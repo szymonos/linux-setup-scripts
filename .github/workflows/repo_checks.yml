@@ -6,7 +6,7 @@ on:
 jobs:
   preflight_checks:
     name: "pre-commit hooks"
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code

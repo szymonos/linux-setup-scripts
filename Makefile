@@ -9,11 +9,11 @@ help: ## Show this help message
 	@printf "\033[1;97mAvailable targets:\033[0m"
 	@awk 'BEGIN {FS = ":.*?## "} /^\.PHONY:/ {printf "\n"} /^[a-zA-Z_-]+:.*?## / {printf "  \033[1;94m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-.PHONY: install update
+.PHONY: install upgrade
 install: ## Install pre-commit hooks
 	@printf "🔧 Installing pre-commit hooks...\n"
 	prek install --overwrite
-update: ## Update prek and repositories versions
+upgrade: ## Upgrade prek and hooks versions
 	@printf "\n✅ All dependencies upgraded\n\n"
 	prek self update
 	prek auto-update

@@ -25,7 +25,7 @@ List of installation scopes. Valid values:
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
 - gcloud: google-cloud-cli
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
-- k8s_dev: argorollouts, cilium, helm, flux, kustomize and trivy cli tools; autoselects k8s_base scope
+- k8s_dev: argorollouts, cilium, hubble, helm, flux, kustomize and trivy cli tools; autoselects k8s_base scope
 - k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
 - nodejs: Node.js JavaScript runtime environment using V8 engine
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
@@ -559,6 +559,7 @@ process {
                 $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
                 $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
                 $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
+                $rel_hubble = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_hubble.sh $Script:rel_hubble
                 $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
                 $rel_trivy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_trivy.sh $Script:rel_trivy
                 continue
