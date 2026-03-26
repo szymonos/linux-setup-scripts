@@ -180,6 +180,7 @@ for sc in "${scope_arr[@]}"; do
     sudo .assets/provision/install_cilium.sh >/dev/null
     sudo .assets/provision/install_flux.sh >/dev/null
     sudo .assets/provision/install_helm.sh >/dev/null
+    sudo .assets/provision/install_hubble.sh >/dev/null
     sudo .assets/provision/install_kustomize.sh >/dev/null
     sudo .assets/provision/install_trivy.sh >/dev/null
     ;;
