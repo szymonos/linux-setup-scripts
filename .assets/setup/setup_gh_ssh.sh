@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/setup_gh_ssh.sh
+.assets/setup/setup_gh_ssh.sh
 '
 set -euo pipefail
 

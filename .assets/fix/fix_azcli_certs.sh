@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/fix_azcli_certs.sh
+.assets/fix/fix_azcli_certs.sh
 '
 set -euo pipefail
 

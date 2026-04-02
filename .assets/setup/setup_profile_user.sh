@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/setup_profile_user.sh
+.assets/setup/setup_profile_user.sh
 '
 set -euo pipefail
 

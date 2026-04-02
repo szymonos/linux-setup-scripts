@@ -90,17 +90,17 @@ There are three themes included in the repository:
 
 You can also specify any other theme name from [Themes | Oh My Posh](https://ohmyposh.dev/docs/themes) - it will be downloaded and installed automatically during the provisioning.
 
-It is also possible to easily change the oh-my-posh theme using the `.assets/provision/setup_omp.sh` script:
+It is also possible to easily change the oh-my-posh theme using the `.assets/setup/setup_omp.sh` script:
 
 ``` shell
 # setup oh-my-posh theme using default base fonts
-sudo .assets/provision/setup_omp.sh
+sudo .assets/setup/setup_omp.sh
 # setup oh-my-posh theme using powerline fonts
-sudo .assets/provision/setup_omp.sh --theme powerline
+sudo .assets/setup/setup_omp.sh --theme powerline
 # setup oh-my-posh theme using nerd fonts
-sudo .assets/provision/setup_omp.sh --theme nerd
+sudo .assets/setup/setup_omp.sh --theme nerd
 # specify any theme from https://ohmyposh.dev/docs/themes/ (e.g. atomic)
-sudo .assets/provision/setup_omp.sh --theme atomic
+sudo .assets/setup/setup_omp.sh --theme atomic
 ```
 
 ![omp_base.png](images/setup_omp.png)

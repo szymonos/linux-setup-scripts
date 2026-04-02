@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/check_distro.sh | jq
-.assets/provision/check_distro.sh array
+.assets/check/check_distro.sh | jq
+.assets/check/check_distro.sh array
 '
 set -euo pipefail
 

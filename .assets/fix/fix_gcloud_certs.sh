@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/fix_gcloud_certs.sh
+sudo .assets/fix/fix_gcloud_certs.sh
 '
 set -euo pipefail
 

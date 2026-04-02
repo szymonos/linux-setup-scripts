@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/setup_gnome.sh
+.assets/setup/setup_gnome.sh
 '
 set -euo pipefail
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 : '
 # set up GitHub CLI https authentication for the specified user
-sudo .assets/provision/setup_gh_https.sh -u "$(id -un)"
+sudo .assets/setup/setup_gh_https.sh -u "$(id -un)"
 # set up GitHub CLI https authentication with admin:public_key scope
-sudo .assets/provision/setup_gh_https.sh -u "$(id -un)" -k
+sudo .assets/setup/setup_gh_https.sh -u "$(id -un)" -k
 # set up GitHub CLI https authentication with the provided token
-sudo .assets/provision/setup_gh_https.sh -u "$(id -un)" -c "$gh_auth"
+sudo .assets/setup/setup_gh_https.sh -u "$(id -un)" -c "$gh_auth"
 # set up GitHub CLI https authentication with admin:public_key scope and the provided token
-sudo .assets/provision/setup_gh_https.sh -u "$(id -un)" -c "$gh_auth" -k
+sudo .assets/setup/setup_gh_https.sh -u "$(id -un)" -c "$gh_auth" -k
 '
 set -euo pipefail
 

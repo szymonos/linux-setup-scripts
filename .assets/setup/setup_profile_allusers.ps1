@@ -7,7 +7,7 @@ Setting up PowerShell for the all users.
 Default user name to run the script in context of.
 
 .EXAMPLE
-sudo .assets/provision/setup_profile_allusers.ps1 -UserName $(id -un)
+sudo .assets/setup/setup_profile_allusers.ps1 -UserName $(id -un)
 #>
 param (
     [Parameter(Position = 0)]
@@ -89,8 +89,8 @@ process {
             Install-PSResource -Name posh-git -Scope AllUsers
         }
         # update existing modules
-        if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
-            .assets/provision/update_psresources.ps1
+        if (Test-Path .assets/setup/update_psresources.ps1 -PathType Leaf) {
+            .assets/setup/update_psresources.ps1
         }
     }
 }

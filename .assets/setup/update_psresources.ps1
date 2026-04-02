@@ -5,7 +5,7 @@
 Script for updating PowerShell modules and cleaning-up old versions.
 
 .EXAMPLE
-.assets/provision/update_psresources.ps1
+.assets/setup/update_psresources.ps1
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 

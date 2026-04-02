@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/setup_profile_allusers.sh $(id -un)
+sudo .assets/setup/setup_profile_allusers.sh $(id -un)
 '
 set -euo pipefail
 

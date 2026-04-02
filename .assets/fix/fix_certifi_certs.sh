@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/fix_certifi_certs.sh
+.assets/fix/fix_certifi_certs.sh
 '
 set -euo pipefail
 

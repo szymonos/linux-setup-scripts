@@ -4,7 +4,7 @@
 Setting up PowerShell for the current user.
 
 .EXAMPLE
-.assets/provision/setup_profile_user.ps1
+.assets/setup/setup_profile_user.ps1
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningPreference = 'Ignore'
@@ -25,8 +25,8 @@ if (Get-Module -Name Microsoft.PowerShell.PSResourceGet -ListAvailable) {
         Update-Help -UICulture en-US
     }
     # update existing modules
-    if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
-        .assets/provision/update_psresources.ps1
+    if (Test-Path .assets/setup/update_psresources.ps1 -PathType Leaf) {
+        .assets/setup/update_psresources.ps1
     }
 }
 # install PSReadLine

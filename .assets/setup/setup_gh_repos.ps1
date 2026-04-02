@@ -13,16 +13,16 @@ Windows user name to copy ssh keys from.
 .EXAMPLE
 $Repos = 'szymonos/linux-setup-scripts szymonos/ps-modules'
 $User  = 'szymo'
-.assets/provision/setup_gh_repos.ps1 $Repos -u $User
-.assets/provision/setup_gh_repos.ps1 $Repos -u $User -WorkspaceSuffix 'scripts'
+.assets/setup/setup_gh_repos.ps1 $Repos -u $User
+.assets/setup/setup_gh_repos.ps1 $Repos -u $User -WorkspaceSuffix 'scripts'
 
 .NOTES
 # :save script example
-./scripts_egsave.ps1 .assets/provision/setup_gh_repos.ps1
+./scripts_egsave.ps1 .assets/setup/setup_gh_repos.ps1
 # :override the existing script example if exists
-./scripts_egsave.ps1 .assets/provision/setup_gh_repos.ps1 -Force
+./scripts_egsave.ps1 .assets/setup/setup_gh_repos.ps1 -Force
 # :open the example script in VSCode
-code -r (./scripts_egsave.ps1 .assets/provision/setup_gh_repos.ps1 -WriteOutput)
+code -r (./scripts_egsave.ps1 .assets/setup/setup_gh_repos.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (

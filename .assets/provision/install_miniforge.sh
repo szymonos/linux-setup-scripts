@@ -58,7 +58,7 @@ fi
 # *Add certificates to conda base certifi.
 if $fix_certify; then
   conda activate base
-  .assets/provision/fix_certifi_certs.sh
+  .assets/fix/fix_certifi_certs.sh
   conda deactivate
 fi
 
@@ -69,6 +69,6 @@ conda clean --yes --all
 # *Fix certificates after update.
 if $fix_certify; then
   conda activate base
-  .assets/provision/fix_certifi_certs.sh
+  .assets/fix/fix_certifi_certs.sh
   conda deactivate
 fi
