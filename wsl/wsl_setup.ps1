@@ -553,6 +553,10 @@ process {
             if ('pwsh' -in $scopes) {
                 Show-LogContext 'installing pwsh'
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
+                $pwshOk = wsl.exe --distribution $Distro --exec sh -c 'command -v pwsh >/dev/null && echo true || echo false'
+                if ($pwshOk -ne 'true') {
+                    Show-LogContext 'pwsh installation failed, skipping PowerShell setup' -Level WARNING
+                } else {
                 # setup profiles
                 $profileArgs = [System.Collections.Generic.List[string]]::new()
                 $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--user', 'root', '--exec', '.assets/setup/setup_profile_allusers.ps1', '-UserName', $chk.user))
@@ -616,6 +620,7 @@ process {
                     }
                     $pwshEnvSet = $false
                 }
+                } # else pwshOk
             }
         } else {
             switch ($scopes) {
@@ -709,6 +714,10 @@ process {
                 pwsh {
                     Show-LogContext 'installing pwsh'
                     $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
+                    $pwshOk = wsl.exe --distribution $Distro --exec sh -c 'command -v pwsh >/dev/null && echo true || echo false'
+                    if ($pwshOk -ne 'true') {
+                        Show-LogContext 'pwsh installation failed, skipping PowerShell setup' -Level WARNING
+                    } else {
                     # setup profiles
                     $profileArgs = [System.Collections.Generic.List[string]]::new()
                     $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--user', 'root', '--exec', '.assets/setup/setup_profile_allusers.ps1', '-UserName', $chk.user))
@@ -775,6 +784,7 @@ process {
                         }
                         $pwshEnvSet = $false
                     }
+                    } # else pwshOk
                     continue
                 }
                 python {

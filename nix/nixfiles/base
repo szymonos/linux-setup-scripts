@@ -1,15 +1,12 @@
 # Base packages - always installed
-bash
 bash-completion
 cacert
-curl
 coreutils
 findutils
 gawk
 gnupg
 git
 gh
-jq
 less
 nmap
 openssl

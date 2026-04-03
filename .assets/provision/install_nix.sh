@@ -14,6 +14,29 @@ fi
 
 APP='nix'
 
+# ensure minimal system dependencies needed by root-level provision scripts
+ensure_sys_deps() {
+  for cmd in curl jq; do
+    command -v "$cmd" &>/dev/null && continue
+    printf "\e[92minstalling system dependency: \e[1m%s\e[0m\n" "$cmd" >&2
+    if command -v apt-get &>/dev/null; then
+      apt-get update -qq && apt-get install -y -qq "$cmd"
+    elif command -v dnf &>/dev/null; then
+      dnf install -y -q "$cmd"
+    elif command -v zypper &>/dev/null; then
+      zypper --non-interactive --no-refresh in -y "$cmd"
+    elif command -v apk &>/dev/null; then
+      apk add --no-cache "$cmd"
+    elif command -v pacman &>/dev/null; then
+      pacman -Sy --needed --noconfirm "$cmd"
+    else
+      printf "\e[33mCannot install %s - unknown package manager\e[0m\n" "$cmd" >&2
+    fi
+  done
+}
+
+ensure_sys_deps
+
 # check if nix is already installed
 if [ -d /nix/store ] && [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
   VER=$(/nix/var/nix/profiles/default/bin/nix --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' || true)

@@ -257,6 +257,16 @@ else
 
   # always include base
   read_nixfile "$NIX_DIR/base"
+  # add packages that might not be system-installed (macOS, Coder, rootless Linux)
+  # skip when they already exist outside of nix (WSL/Linux with install_base/install_nix)
+  has_system_cmd() {
+    local cmd_path
+    cmd_path="$(command -v "$1" 2>/dev/null)" || return 1
+    [[ "$cmd_path" != /nix/* && "$cmd_path" != */.nix-profile/* ]]
+  }
+  if ! has_system_cmd jq || ! has_system_cmd curl; then
+    read_nixfile "$NIX_DIR/base_standalone"
+  fi
 
   for sc in "${sorted_scopes[@]}"; do
     nixfile="$NIX_DIR/$sc"
