@@ -115,6 +115,20 @@ You can specify the `-AddCertificate` parameter to the **wsl_setup** script to i
 wsl/wsl_setup.ps1 'Ubuntu' -AddCertificate
 ```
 
+### Using Nix package manager
+
+Instead of the traditional per-tool install scripts, you can use the [Nix](https://nixos.org/) package manager for a faster, reproducible setup. Pass the `-Nix` flag on first install - subsequent updates auto-detect Nix and use it automatically:
+
+``` powershell
+# first install: pass -Nix to install Nix and packages via nix profile
+wsl/wsl_setup.ps1 'Ubuntu' -Nix -Scope @('shell', 'pwsh')
+
+# updates: Nix is auto-detected, no need to pass -Nix again
+wsl/wsl_setup.ps1
+```
+
+Scopes not available in Nix (`bun`, `distrobox`, `docker`) are installed using traditional scripts automatically.
+
 ### Using other packages scopes
 
 Depending on the use case you can install many other package `scopes` to further customize the system.

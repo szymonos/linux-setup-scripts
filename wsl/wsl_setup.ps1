@@ -47,7 +47,7 @@ List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 Intercept and add certificates from chain into selected distro.
 .PARAMETER Nix
 Use Nix package manager instead of traditional per-tool install scripts.
-Requires Nix to be pre-installed (the script will install it if missing).
+When omitted, Nix mode is auto-detected from the distro (useful for updates).
 Scopes not available in Nix (bun, distrobox, docker) are installed traditionally.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
@@ -334,6 +334,9 @@ process {
             }
         }
 
+        # determine Nix mode: explicit -Nix flag or auto-detected from distro
+        $useNix = $PSBoundParameters.Nix -or $chk.nix
+
         $scopeSet = [System.Collections.Generic.HashSet[string]]::new()
         $Scope.ForEach({ $scopeSet.Add($_) | Out-Null })
         # *determine additional scopes from distro check
@@ -404,7 +407,7 @@ process {
         wsl.exe --distribution $Distro --user root --exec .assets/fix/fix_no_file.sh
         wsl.exe --distribution $Distro --user root --exec .assets/fix/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
-        if ($PSBoundParameters.Nix) {
+        if ($useNix) {
             wsl.exe --distribution $Distro --user root --exec .assets/provision/install_nix.sh
         } else {
             wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh $chk.user
@@ -498,7 +501,7 @@ process {
         #endregion
 
         #region install scopes
-        if ($PSBoundParameters.Nix) {
+        if ($useNix) {
             # -- docker: WSL-specific systemd + traditional install (nix doesn't install docker) --
             if ('docker' -in $scopes -and $lx.Version -eq 2) {
                 Show-LogContext 'installing docker'
