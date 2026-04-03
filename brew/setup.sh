@@ -79,6 +79,21 @@ omp_theme=""
 skip_gh_auth="false"
 skip_gh_ssh_key="false"
 update_modules="false"
+
+# -- Bootstrap Homebrew + jq (needed before scopes.sh) -----------------------
+if ! command -v brew &>/dev/null; then
+  for brew_path in /opt/homebrew/bin/brew /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew" /usr/local/bin/brew; do
+    if [[ -x "$brew_path" ]]; then
+      eval "$("$brew_path" shellenv)"
+      break
+    fi
+  done
+fi
+if command -v brew &>/dev/null && ! command -v jq &>/dev/null; then
+  info "bootstrapping jq via brew..."
+  brew install jq
+fi
+
 # -- Source shared scope library ----------------------------------------------
 # shellcheck source=../.assets/lib/scopes.sh
 source "$SCRIPT_ROOT/.assets/lib/scopes.sh"

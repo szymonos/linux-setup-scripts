@@ -92,6 +92,27 @@ skip_gh_ssh_key="false"
 skip_git_config="false"
 update_modules="false"
 quiet_summary="false"
+
+# -- Bootstrap Nix + jq (needed before scopes.sh) ---------------------------
+if ! command -v nix &>/dev/null; then
+  for nix_profile in "$HOME/.nix-profile/etc/profile.d/nix.sh" /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; do
+    if [[ -f "$nix_profile" ]]; then
+      # shellcheck source=/dev/null
+      . "$nix_profile"
+      break
+    fi
+  done
+fi
+if ! command -v nix &>/dev/null; then
+  err "Nix is not installed. Install it first (requires root, one-time):"
+  err "  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install"
+  exit 1
+fi
+if ! command -v jq &>/dev/null; then
+  info "bootstrapping jq via nix..."
+  nix profile add nixpkgs#jq
+fi
+
 # -- Source shared scope library ----------------------------------------------
 # shellcheck source=../.assets/lib/scopes.sh
 source "$SCRIPT_ROOT/.assets/lib/scopes.sh"
@@ -162,29 +183,7 @@ case "$OS" in
 esac
 
 # ============================================================================
-# 1. Detect Nix package manager (must be pre-installed)
-# ============================================================================
-if ! command -v nix &>/dev/null; then
-  # try common install paths before giving up
-  for nix_profile in "$HOME/.nix-profile/etc/profile.d/nix.sh" /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; do
-    if [[ -f "$nix_profile" ]]; then
-      # shellcheck source=/dev/null
-      . "$nix_profile"
-      break
-    fi
-  done
-fi
-
-if ! command -v nix &>/dev/null; then
-  err "Nix is not installed. Install it first (requires root, one-time):"
-  err "  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install"
-  exit 1
-else
-  ok "Nix is already installed"
-fi
-
-# ============================================================================
-# 2. Detect installed scopes from nix profile
+# 1. Detect installed scopes from nix profile
 # ============================================================================
 # Build a set of currently installed package names from nix profile
 installed_pkgs="$(nix profile list 2>/dev/null || true)"
