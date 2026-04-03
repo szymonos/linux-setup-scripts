@@ -1,0 +1,8 @@
+# Kubernetes dev - argo rollouts, cilium, flux, helm, kustomize, trivy
+brew "argoproj/tap/kubectl-argo-rollouts"
+brew "cilium-cli"
+brew "fluxcd/tap/flux"
+brew "helm"
+brew "hubble"
+brew "kustomize"
+brew "trivy"

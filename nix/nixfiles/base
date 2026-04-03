@@ -1,0 +1,19 @@
+# Base packages - always installed
+bash-completion
+cacert
+coreutils
+findutils
+gawk
+gnupg
+git
+gh
+less
+nmap
+openssl
+shfmt
+tig
+tree
+unzip
+vim
+wget
+whois

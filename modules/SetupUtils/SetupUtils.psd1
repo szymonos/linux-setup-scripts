@@ -82,6 +82,9 @@
         'Invoke-ExampleScriptSave'
         # logs
         'Show-LogContext'
+        # scopes
+        'Resolve-ScopeDeps'
+        'Get-SortedScopes'
         # wsl
         'Get-WslDistro'
         'Set-WslConf'

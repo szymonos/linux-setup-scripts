@@ -1,0 +1,4 @@
+# Extra base packages for standalone setups (macOS, Coder)
+# On WSL/Linux these are installed system-wide by install_nix.sh
+curl
+jq

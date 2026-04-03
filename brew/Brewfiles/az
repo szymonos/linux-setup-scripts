@@ -1,0 +1,3 @@
+# Azure CLI + azcopy
+brew "azure-cli"
+brew "azcopy"

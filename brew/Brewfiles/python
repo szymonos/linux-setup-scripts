@@ -1,0 +1,2 @@
+# Python tooling
+brew "python@3.13"

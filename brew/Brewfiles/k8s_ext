@@ -1,0 +1,4 @@
+# Kubernetes ext - local cluster tools
+brew "minikube"
+brew "k3d"
+brew "kind"

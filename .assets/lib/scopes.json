@@ -1,0 +1,80 @@
+{
+  "valid_scopes": [
+    "az",
+    "bun",
+    "conda",
+    "distrobox",
+    "docker",
+    "gcloud",
+    "k8s_base",
+    "k8s_dev",
+    "k8s_ext",
+    "nodejs",
+    "oh_my_posh",
+    "pwsh",
+    "python",
+    "rice",
+    "shell",
+    "terraform",
+    "zsh"
+  ],
+  "install_order": [
+    "docker",
+    "k8s_base",
+    "k8s_dev",
+    "k8s_ext",
+    "python",
+    "conda",
+    "az",
+    "gcloud",
+    "bun",
+    "nodejs",
+    "terraform",
+    "oh_my_posh",
+    "shell",
+    "zsh",
+    "pwsh",
+    "distrobox",
+    "rice"
+  ],
+  "dependency_rules": [
+    {
+      "if": "az",
+      "add": [
+        "python"
+      ]
+    },
+    {
+      "if": "k8s_dev",
+      "add": [
+        "k8s_base"
+      ]
+    },
+    {
+      "if": "k8s_ext",
+      "add": [
+        "docker",
+        "k8s_base",
+        "k8s_dev"
+      ]
+    },
+    {
+      "if": "pwsh",
+      "add": [
+        "shell"
+      ]
+    },
+    {
+      "if": "zsh",
+      "add": [
+        "shell"
+      ]
+    },
+    {
+      "if": "oh_my_posh",
+      "add": [
+        "shell"
+      ]
+    }
+  ]
+}

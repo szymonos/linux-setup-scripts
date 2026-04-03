@@ -1,3 +1,6 @@
+# guard: skip when sourced by non-bash shells (e.g. dash via /etc/profile.d/)
+[ -z "$BASH_VERSION" ] && return 0
+
 #region aliases
 export SWD=$(pwd)
 alias swd="echo $SWD"

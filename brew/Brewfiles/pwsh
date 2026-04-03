@@ -1,0 +1,3 @@
+# PowerShell
+cask "powershell" if OS.mac?
+brew "powershell" unless OS.mac?

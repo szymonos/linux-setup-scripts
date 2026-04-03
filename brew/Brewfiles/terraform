@@ -1,0 +1,3 @@
+# Terraform utilities
+brew "hashicorp/tap/terraform"
+brew "tflint"

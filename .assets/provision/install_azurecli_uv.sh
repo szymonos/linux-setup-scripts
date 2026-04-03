@@ -54,7 +54,7 @@ $HOME/.local/bin/uv sync --no-cache --upgrade --directory "$HOME/.azure"
 
 # add certificates to azurecli certify
 if $fix_certify; then
-  .assets/provision/fix_azcli_certs.sh
+  .assets/fix/fix_azcli_certs.sh
 fi
 
 # make symbolic link to az cli

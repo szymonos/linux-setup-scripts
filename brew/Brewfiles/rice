@@ -1,0 +1,5 @@
+# Rice - eye candy / fun tools
+brew "btop"
+brew "cmatrix"
+brew "cowsay"
+brew "fastfetch"
