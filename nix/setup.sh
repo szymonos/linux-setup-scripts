@@ -91,6 +91,7 @@ skip_gh_auth="false"
 skip_gh_ssh_key="false"
 skip_git_config="false"
 update_modules="false"
+quiet_summary="false"
 # -- Source shared scope library ----------------------------------------------
 # shellcheck source=../.assets/lib/scopes.sh
 source "$SCRIPT_ROOT/.assets/lib/scopes.sh"
@@ -130,6 +131,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --update-modules)
       update_modules="true"
+      ;;
+    --quiet-summary)
+      quiet_summary="true"
       ;;
     *)
       err "Unknown option: $1"
@@ -343,15 +347,17 @@ common_args=()
 # ============================================================================
 # 9. Summary
 # ============================================================================
-printf "\n\e[95;1m<< Setup completed successfully >>\e[0m\n"
-if [[ "$any_scope" == "false" ]]; then
-  printf "\e[90mPlatform: %s | Mode: upgrade | Scopes: %s\e[0m\n" "$platform" "${sorted_scopes[*]}"
-else
-  printf "\e[90mPlatform: %s | Mode: install | Scopes: %s\e[0m\n" "$platform" "${sorted_scopes[*]}"
+if [[ "$quiet_summary" != "true" ]]; then
+  printf "\n\e[95;1m<< Setup completed successfully >>\e[0m\n"
+  if [[ "$any_scope" == "false" ]]; then
+    printf "\e[90mPlatform: %s | Mode: upgrade | Scopes: %s\e[0m\n" "$platform" "${sorted_scopes[*]}"
+  else
+    printf "\e[90mPlatform: %s | Mode: install | Scopes: %s\e[0m\n" "$platform" "${sorted_scopes[*]}"
+  fi
+  current_shell="$(basename "$SHELL")"
+  case "$current_shell" in
+    zsh)  printf "\e[97mRestart your terminal or run \e[4msource ~/.zshrc\e[24m to apply changes.\e[0m\n\n" ;;
+    bash) printf "\e[97mRestart your terminal or run \e[4msource ~/.bashrc\e[24m to apply changes.\e[0m\n\n" ;;
+    *)    printf "\e[97mRestart your terminal to apply changes.\e[0m\n\n" ;;
+  esac
 fi
-current_shell="$(basename "$SHELL")"
-case "$current_shell" in
-  zsh)  printf "\e[97mRestart your terminal or run \e[4msource ~/.zshrc\e[24m to apply changes.\e[0m\n\n" ;;
-  bash) printf "\e[97mRestart your terminal or run \e[4msource ~/.bashrc\e[24m to apply changes.\e[0m\n\n" ;;
-  *)    printf "\e[97mRestart your terminal to apply changes.\e[0m\n\n" ;;
-esac

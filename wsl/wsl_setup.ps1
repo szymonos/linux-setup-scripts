@@ -511,7 +511,7 @@ process {
 
             # -- build nix/setup.sh arguments --
             $nixArgs = [System.Collections.Generic.List[string]]::new()
-            $nixArgs.AddRange([string[]]@('--skip-gh-auth', 'true', '--skip-gh-ssh-key', 'true', '--skip-git-config', 'true'))
+            $nixArgs.AddRange([string[]]@('--skip-gh-auth', 'true', '--skip-gh-ssh-key', 'true', '--skip-git-config', 'true', '--quiet-summary'))
             if (-not $PSBoundParameters.SkipModulesUpdate) {
                 $nixArgs.Add('--update-modules')
             }
@@ -551,16 +551,16 @@ process {
                 Show-LogContext 'installing pwsh'
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
                 # setup profiles
+                $profileArgs = [System.Collections.Generic.List[string]]::new()
+                $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--user', 'root', '--exec', '.assets/setup/setup_profile_allusers.ps1', '-UserName', $chk.user))
+                if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
                 Show-LogContext 'setting up profile for all users'
-                if (-not $PSBoundParameters.SkipModulesUpdate) {
-                    wsl.exe --distribution $Distro --user root --exec .assets/setup/setup_profile_allusers.ps1 -UserName $chk.user -UpdateModules
-                    Show-LogContext 'setting up profile for current user'
-                    wsl.exe --distribution $Distro --exec .assets/setup/setup_profile_user.ps1 -UpdateModules
-                } else {
-                    wsl.exe --distribution $Distro --user root --exec .assets/setup/setup_profile_allusers.ps1 -UserName $chk.user
-                    Show-LogContext 'setting up profile for current user'
-                    wsl.exe --distribution $Distro --exec .assets/setup/setup_profile_user.ps1
-                }
+                wsl.exe @profileArgs
+                $profileArgs = [System.Collections.Generic.List[string]]::new()
+                $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--exec', '.assets/setup/setup_profile_user.ps1'))
+                if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
+                Show-LogContext 'setting up profile for current user'
+                wsl.exe @profileArgs
 
                 # *install PowerShell modules from ps-modules repository
                 $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'
@@ -707,17 +707,16 @@ process {
                     Show-LogContext 'installing pwsh'
                     $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
                     # setup profiles
-                    if (-not $PSBoundParameters.SkipModulesUpdate) {
-                        Show-LogContext 'setting up profile for all users'
-                        wsl.exe --distribution $Distro --user root --exec .assets/setup/setup_profile_allusers.ps1 -UserName $chk.user -UpdateModules
-                        Show-LogContext 'setting up profile for current user'
-                        wsl.exe --distribution $Distro --exec .assets/setup/setup_profile_user.ps1 -UpdateModules
-                    } else {
-                        Show-LogContext 'setting up profile for all users'
-                        wsl.exe --distribution $Distro --user root --exec .assets/setup/setup_profile_allusers.ps1 -UserName $chk.user
-                        Show-LogContext 'setting up profile for current user'
-                        wsl.exe --distribution $Distro --exec .assets/setup/setup_profile_user.ps1
-                    }
+                    $profileArgs = [System.Collections.Generic.List[string]]::new()
+                    $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--user', 'root', '--exec', '.assets/setup/setup_profile_allusers.ps1', '-UserName', $chk.user))
+                    if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
+                    Show-LogContext 'setting up profile for all users'
+                    wsl.exe @profileArgs
+                    $profileArgs = [System.Collections.Generic.List[string]]::new()
+                    $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--exec', '.assets/setup/setup_profile_user.ps1'))
+                    if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
+                    Show-LogContext 'setting up profile for current user'
+                    wsl.exe @profileArgs
 
                     # *install PowerShell modules from ps-modules repository
                     # clone/refresh szymonos/ps-modules repository
