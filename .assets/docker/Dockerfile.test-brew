@@ -1,0 +1,55 @@
+FROM ubuntu:24.04
+
+# avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# copy repo into the container
+COPY . /home/ubuntu/source/lss
+
+# Stage 1: install system dependencies and intercepted root cert (as root)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        bash build-essential ca-certificates curl file git jq procps sudo \
+    # install intercepted MITM root cert if present
+    && if [ -f /home/ubuntu/source/lss/.assets/certs/ca-cert-root.crt ]; then \
+        cp /home/ubuntu/source/lss/.assets/certs/ca-cert-root.crt /usr/local/share/ca-certificates/ \
+        && update-ca-certificates; \
+    fi \
+    # allow ubuntu user to run sudo without password
+    && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu-nopasswd \
+    && chmod 0440 /etc/sudoers.d/ubuntu-nopasswd \
+    # change ownership to the ubuntu user
+    && chown -R ubuntu:ubuntu /home/ubuntu/source \
+    #
+    # clean up
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Stage 2: install Homebrew and packages (as user)
+USER ubuntu
+WORKDIR /home/ubuntu/source/lss
+
+# pre-set git identity to avoid interactive prompts
+RUN git config --global user.name "Test User" \
+    && git config --global user.email "test@example.com"
+
+RUN brew/setup.sh --shell --rice --python \
+    --skip-gh-auth true --skip-gh-ssh-key true
+
+# Source brew shellenv and verify key binaries
+SHELL ["/bin/bash", "-c"]
+RUN set -e \
+    && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" \
+    && echo "=== Verifying brew setup ===" \
+    && brew --version \
+    && command -v git \
+    && command -v jq \
+    && command -v rg \
+    && command -v eza \
+    && command -v bat \
+    && command -v fastfetch \
+    && $HOME/.local/bin/uv --version \
+    && echo "=== All brew checks passed ==="
+
+ENTRYPOINT [ "/bin/bash" ]

@@ -1,0 +1,48 @@
+FROM ubuntu:24.04
+
+# avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# copy repo into the container
+COPY .assets /home/ubuntu/source/lss/.assets
+COPY modules /home/ubuntu/source/lss/modules
+
+# install system dependencies and intercepted root cert
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends sudo ca-certificates \
+    # install intercepted MITM root cert if present
+    && if [ -f /home/ubuntu/source/lss/.assets/certs/ca-cert-root.crt ]; then \
+        cp /home/ubuntu/source/lss/.assets/certs/ca-cert-root.crt /usr/local/share/ca-certificates/ \
+        && update-ca-certificates; \
+    fi \
+    # allow ubuntu user to run sudo without password
+    && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu-nopasswd \
+    && chmod 0440 /etc/sudoers.d/ubuntu-nopasswd \
+    # change ownership to the ubuntu user
+    && chown -R ubuntu:ubuntu /home/ubuntu/source \
+    # run legacy setup as the ubuntu user
+    && su - ubuntu -c 'cd "$HOME/source/lss" && .assets/scripts/linux_setup.sh --skip_gh_auth true --scope "python shell rice" --omp_theme base' \
+    #
+    # clean up
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# switch to the 'ubuntu' user
+USER ubuntu
+WORKDIR /home/ubuntu/source/lss
+
+# verify key binaries exist
+RUN set -e \
+    && echo "=== Verifying legacy setup ===" \
+    && command -v git \
+    && command -v jq \
+    && command -v rg \
+    && command -v eza \
+    && command -v bat \
+    && command -v oh-my-posh \
+    && command -v fastfetch \
+    && $HOME/.local/bin/uv --version \
+    && echo "=== All legacy checks passed ==="
+
+ENTRYPOINT [ "/bin/bash" ]
