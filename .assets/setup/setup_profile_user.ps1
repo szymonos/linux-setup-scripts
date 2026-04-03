@@ -3,9 +3,17 @@
 .SYNOPSIS
 Setting up PowerShell for the current user.
 
+.PARAMETER UpdateModules
+Run update_psresources.ps1 to update all installed modules.
+
 .EXAMPLE
 .assets/setup/setup_profile_user.ps1
+# :update modules
+.assets/setup/setup_profile_user.ps1 -UpdateModules
 #>
+param (
+    [switch]$UpdateModules
+)
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningPreference = 'Ignore'
 
@@ -25,7 +33,7 @@ if (Get-Module -Name Microsoft.PowerShell.PSResourceGet -ListAvailable) {
         Update-Help -UICulture en-US
     }
     # update existing modules
-    if (Test-Path .assets/setup/update_psresources.ps1 -PathType Leaf) {
+    if ($PSBoundParameters.UpdateModules -and (Test-Path .assets/setup/update_psresources.ps1 -PathType Leaf)) {
         .assets/setup/update_psresources.ps1
     }
 }
