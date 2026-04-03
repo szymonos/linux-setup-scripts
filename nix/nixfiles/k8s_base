@@ -1,0 +1,6 @@
+# Kubernetes base - kubectl, kubelogin, k9s, kubecolor, kubectx/kubens
+kubectl
+kubelogin
+k9s
+kubecolor
+kubectx

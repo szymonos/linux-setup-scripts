@@ -1,0 +1,4 @@
+# Kubernetes ext - local cluster tools
+minikube
+k3d
+kind
