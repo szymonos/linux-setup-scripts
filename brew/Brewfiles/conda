@@ -1,0 +1,2 @@
+# Miniforge (conda) + Pixi
+cask "miniforge" if OS.mac?

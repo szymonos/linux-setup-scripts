@@ -1,0 +1,6 @@
+# Shell tools
+brew "fzf"
+brew "eza"
+brew "bat"
+brew "ripgrep"
+brew "yq"

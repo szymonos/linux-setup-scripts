@@ -1,0 +1,5 @@
+# Docker
+cask "docker" if OS.mac?
+brew "docker" unless OS.mac?
+brew "docker-compose"
+brew "docker-buildx"
