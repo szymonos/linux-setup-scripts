@@ -1,0 +1,56 @@
+FROM ubuntu:24.04
+
+# avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# copy repo into the container
+COPY . /home/ubuntu/source/lss
+
+# Stage 1: install system dependencies, Nix, and intercepted root cert (as root)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        bash ca-certificates curl sudo xz-utils \
+    # install intercepted MITM root cert if present
+    && if [ -f /home/ubuntu/source/lss/.assets/certs/ca-cert-root.crt ]; then \
+        cp /home/ubuntu/source/lss/.assets/certs/ca-cert-root.crt /usr/local/share/ca-certificates/ \
+        && update-ca-certificates; \
+    fi \
+    # allow ubuntu user to run sudo without password
+    && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu-nopasswd \
+    && chmod 0440 /etc/sudoers.d/ubuntu-nopasswd \
+    # change ownership to the ubuntu user
+    && chown -R ubuntu:ubuntu /home/ubuntu/source \
+    # install Nix (--init none: no systemd in Docker)
+    && /home/ubuntu/source/lss/.assets/provision/install_nix.sh \
+    #
+    # clean up
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Stage 2: run nix setup (as user)
+USER ubuntu
+WORKDIR /home/ubuntu/source/lss
+
+# start the nix daemon in background, then run setup
+SHELL ["/bin/bash", "-c"]
+RUN . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh \
+    && sudo /nix/var/nix/profiles/default/bin/nix daemon &>/dev/null & \
+    for _ in $(seq 1 30); do [ -S /nix/var/nix/daemon-socket/socket ] && break; sleep 0.1; done \
+    && nix/setup.sh --shell --rice --python \
+        --skip-gh-auth true --skip-gh-ssh-key true --skip-git-config true
+
+# Source nix profile and verify key binaries
+RUN set -e \
+    && . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh \
+    && echo "=== Verifying nix setup ===" \
+    && command -v git \
+    && command -v jq \
+    && command -v rg \
+    && command -v eza \
+    && command -v bat \
+    && command -v fastfetch \
+    && command -v uv \
+    && echo "=== All nix checks passed ==="
+
+ENTRYPOINT [ "/bin/bash" ]

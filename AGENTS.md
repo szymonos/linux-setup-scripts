@@ -11,7 +11,7 @@ Automation scripts for provisioning Linux systems, primarily **WSL** (Windows Su
 - `wsl/wsl_setup.ps1` - main orchestration script, runs on Windows host, calls `.assets/provision/` scripts inside WSL
 - `.assets/scripts/linux_setup.sh` - provisioning from Linux host (bare-metal, VMs, WSL)
 - `.assets/provision/install_*.sh` - individual tool installers (most require root)
-- `.assets/provision/setup_*.sh` - configuration scripts (typically run as user)
+- `.assets/setup/setup_*.sh` - configuration scripts (typically run as user)
 - `.assets/provision/source.sh` - shared functions (dotsourced by other scripts)
 
 ## Tooling

@@ -27,13 +27,13 @@ RUN cd "$HOME/source/lss" \
     && sudo apk add --no-cache bind-tools ca-certificates iputils curl jq lsb-release-minimal nmap openssh-client openssl tar tree unzip vim whois \
     # install and setup oh-my-posh
     && sudo .assets/provision/install_omp.sh \
-    && sudo .assets/provision/setup_omp.sh --theme base --user alpine \
+    && sudo .assets/setup/setup_omp.sh --theme base --user alpine \
     # setup shell
     && sudo .assets/provision/install_eza.sh \
     && sudo .assets/provision/install_bat.sh \
     && sudo .assets/provision/install_ripgrep.sh \
-    && sudo .assets/provision/setup_profile_allusers.sh alpine \
-    && .assets/provision/setup_profile_user.sh \
+    && sudo .assets/setup/setup_profile_allusers.sh alpine \
+    && .assets/setup/setup_profile_user.sh \
     #
     # clean up
     && sudo rm -rf /var/cache/apk/* /home/alpine/source

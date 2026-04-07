@@ -15,6 +15,13 @@
 /tmp.*/
 /logs/*.log
 
+# Intercepted MITM root certificates
+.assets/certs/
+
+# Nix (user-specific, generated at runtime)
+nix/config.nix
+nix/flake.lock
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

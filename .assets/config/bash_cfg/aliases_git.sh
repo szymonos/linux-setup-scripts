@@ -1,3 +1,6 @@
+# guard: skip when sourced by non-bash shells (e.g. dash via /etc/profile.d/)
+[ -z "$BASH_VERSION" ] && return 0
+
 #region functions
 function git_current_branch {
   git branch --show-current

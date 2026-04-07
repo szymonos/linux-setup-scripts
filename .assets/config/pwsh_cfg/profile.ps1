@@ -61,18 +61,6 @@ if (Test-Path $env:USER_SCRIPTS_PATH -PathType Container) {
 }
 #endregion
 
-#region initializations
-# brew
-foreach ($path in @('/home/linuxbrew/.linuxbrew', "$HOME/.linuxbrew")) {
-    if (Test-Path $path/bin/brew -PathType Leaf) {
-        (& $path/bin/brew 'shellenv') | Out-String | Invoke-Expression
-        $env:HOMEBREW_NO_ENV_HINTS = 1
-        continue
-    }
-}
-Remove-Variable path
-#endregion
-
 #region prompt
 if (-not $isWSL1 -and (Test-Path /usr/bin/oh-my-posh -PathType Leaf) -and (Test-Path "$env:OMP_PATH/theme.omp.json" -PathType Leaf)) {
     oh-my-posh init pwsh --config "$env:OMP_PATH/theme.omp.json" | Invoke-Expression | Out-Null

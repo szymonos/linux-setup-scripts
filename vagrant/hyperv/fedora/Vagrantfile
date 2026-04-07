@@ -105,7 +105,7 @@ Vagrant.configure("2") do |config|
     end
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
-    node.vm.provision "shell", name: "fix secure_path in sudoers", path: "../../../.assets/provision/fix_secure_path.sh"
+    node.vm.provision "shell", name: "fix secure_path in sudoers", path: "../../../.assets/fix/fix_secure_path.sh"
     node.vm.provision "shell", name: "install base...", path: "../../../.assets/provision/install_base.sh"
     # copy source file with bash helper functions
     node.vm.provision "file", source: "../../../.assets/provision/source.sh", destination: ".assets/provision/"
@@ -117,7 +117,7 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "install miniforge...", path: "../../../.assets/provision/install_miniforge.sh", privileged: false
     end
     if install_kubernetes
-      node.vm.provision "shell", name: "set ulimits on systemd", path: "../../../.assets/provision/set_ulimits.sh"
+      node.vm.provision "shell", name: "set ulimits on systemd", path: "../../../.assets/setup/set_ulimits.sh"
       node.vm.provision "shell", name: "install yq...", path: "../../../.assets/provision/install_yq.sh", :args => '>/dev/null'
       node.vm.provision "shell", name: "install docker...", path: "../../../.assets/provision/install_docker.sh"
       node.vm.provision "shell", name: "install kubectl...", path: "../../../.assets/provision/install_kubectl.sh", :args => '>/dev/null'
@@ -135,7 +135,7 @@ Vagrant.configure("2") do |config|
     end
     if install_gnome
       node.vm.provision "shell", name: "install Gnome...", path: "../../../.assets/provision/install_gnome.sh"
-      node.vm.provision "shell", name: "set up Gnome...", path: "../../../.assets/provision/setup_gnome.sh", privileged: false
+      node.vm.provision "shell", name: "set up Gnome...", path: "../../../.assets/setup/setup_gnome.sh", privileged: false
       node.vm.provision "shell", name: "install xrdp...", path: "../../../.assets/provision/install_xrdp.sh"
     end
     if install_kde
@@ -148,17 +148,17 @@ Vagrant.configure("2") do |config|
     if setup_bash || setup_pwsh
       node.vm.provision "file", source: "../../../.assets/config", destination: "tmp/"
       node.vm.provision "shell", name: "install oh-my-posh...", path: "../../../.assets/provision/install_omp.sh", :args => '>/dev/null'
-      node.vm.provision "shell", name: "set up oh-my-posh...", path: "../../../.assets/provision/setup_omp.sh"
+      node.vm.provision "shell", name: "set up oh-my-posh...", path: "../../../.assets/setup/setup_omp.sh"
     end
     if setup_bash
-      node.vm.provision "shell", name: "set up bash for all users...", path: "../../../.assets/provision/setup_profile_allusers.sh"
-      node.vm.provision "shell", name: "set up bash for current user...", path: "../../../.assets/provision/setup_profile_user.sh", privileged: false
+      node.vm.provision "shell", name: "set up bash for all users...", path: "../../../.assets/setup/setup_profile_allusers.sh"
+      node.vm.provision "shell", name: "set up bash for current user...", path: "../../../.assets/setup/setup_profile_user.sh", privileged: false
     end
     if setup_pwsh
       node.vm.provision "shell", name: "install pwsh...", path: "../../../.assets/provision/install_pwsh.sh", :args => '>/dev/null'
-      node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../../.assets/provision/setup_profile_allusers.ps1"
-      node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../../.assets/provision/setup_profile_user.ps1", privileged: false
-      node.vm.provision "shell", name: "clone ps-modules repo...", path: "../../../.assets/provision/setup_gh_repos.sh", :args => ['--repos', 'szymonos/linux-setup-scripts szymonos/ps-modules'], privileged: false
+      node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../../.assets/setup/setup_profile_allusers.ps1"
+      node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../../.assets/setup/setup_profile_user.ps1", privileged: false
+      node.vm.provision "shell", name: "clone ps-modules repo...", path: "../../../.assets/setup/setup_gh_repos.sh", :args => ['--repos', 'szymonos/linux-setup-scripts szymonos/ps-modules'], privileged: false
       node.vm.provision "shell", name: "install ps-modules...", inline: script_install_psmodules, privileged: false
     end
     if copy_ssh_key

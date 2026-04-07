@@ -6,6 +6,12 @@ repos:
         entry: python3 -m tests.hooks.gremlins
         language: system
         types: [text]
+      - id: validate-scopes
+        name: Validate scope definitions consistency
+        entry: python3 -m tests.hooks.validate_scopes
+        language: system
+        files: (\.assets/lib/scopes\.json)
+        pass_filenames: false
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
