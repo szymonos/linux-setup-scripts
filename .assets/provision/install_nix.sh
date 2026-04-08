@@ -35,7 +35,31 @@ ensure_sys_deps() {
   done
 }
 
+# install system-level build tools that cannot be satisfied by user-scope Nix
+# (make, gcc etc. need to integrate with the system linker/libc)
+ensure_build_tools() {
+  # skip on macOS - Xcode Command Line Tools provide these (xcode-select --install)
+  [ "$(uname -s)" = "Darwin" ] && return 0
+  # skip if make is already present
+  command -v make &>/dev/null && return 0
+  printf "\e[92minstalling system build tools (make, gcc, ...)\e[0m\n" >&2
+  if command -v apt-get &>/dev/null; then
+    apt-get update -qq && apt-get install -y -qq build-essential
+  elif command -v dnf &>/dev/null; then
+    dnf group install -y -q "development tools" 2>/dev/null || dnf install -y -q make gcc
+  elif command -v zypper &>/dev/null; then
+    zypper --non-interactive --no-refresh in -yt pattern devel_basis 2>/dev/null || zypper --non-interactive --no-refresh in -y make gcc
+  elif command -v apk &>/dev/null; then
+    apk add --no-cache build-base
+  elif command -v pacman &>/dev/null; then
+    pacman -Sy --needed --noconfirm base-devel
+  else
+    printf "\e[33mCannot install build tools - unknown package manager\e[0m\n" >&2
+  fi
+}
+
 ensure_sys_deps
+ensure_build_tools
 
 # check if nix is already installed
 if [ -d /nix/store ] && [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then

@@ -568,6 +568,10 @@ process {
                 if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
                 Show-LogContext 'setting up profile for current user'
                 wsl.exe @profileArgs
+                # run nix-specific PowerShell profile setup (Nix PATH + devenv aliases)
+                # must run after pwsh install since nix/setup.sh skips it when pwsh is absent
+                Show-LogContext 'configuring nix PowerShell profile'
+                wsl.exe --distribution $Distro --exec pwsh -nop -f nix/configure/profiles.ps1
 
                 # *install PowerShell modules from ps-modules repository
                 $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'

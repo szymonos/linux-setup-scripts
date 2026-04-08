@@ -3,11 +3,13 @@
   bash-completion
   cacert
   coreutils
+  fd
   findutils
   gawk
   gnupg
   git
   gh
+  bind          # provides dig, nslookup, host
   less
   nmap
   openssl

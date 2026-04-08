@@ -47,39 +47,24 @@ for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
   fi
 done
 
-# -- Aliases -----------------------------------------------------------------
-# source repo-provided aliases if they exist, otherwise add inline defaults
+# -- Dev environment aliases -------------------------------------------------
 BASH_CFG="$REPO_ROOT/.assets/config/bash_cfg"
-if [[ -d "$BASH_CFG" ]]; then
+DEVENV_ALIASES_SRC="$BASH_CFG/aliases_devenv.sh"
+DEVENV_ALIASES_DST="$HOME/.config/bash/aliases_devenv.sh"
+if [[ -f "$DEVENV_ALIASES_SRC" ]]; then
+  if ! cmp -s "$DEVENV_ALIASES_SRC" "$DEVENV_ALIASES_DST" 2>/dev/null; then
+    mkdir -p "$(dirname "$DEVENV_ALIASES_DST")"
+    cp -f "$DEVENV_ALIASES_SRC" "$DEVENV_ALIASES_DST"
+    ok "installed dev environment aliases for bash/zsh"
+  fi
   for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
-    if [[ -f "$rc" ]] && ! grep -q 'aliases (setup)' "$rc"; then
+    if [[ -f "$rc" ]] && ! grep -q 'aliases_devenv' "$rc"; then
       {
         echo ""
-        echo "# -- aliases (setup) --"
-        # determine eza flags based on capabilities
-        eza_param=''
-        command -v eza &>/dev/null && eza --version 2>/dev/null | grep -Fqw '+git' && eza_param+='--git ' || true
-        command -v oh-my-posh &>/dev/null && eza_param+='--icons ' || true
-
-        echo 'alias ll="eza -lah '"$eza_param"'--group-directories-first"'
-        echo 'alias ls="eza '"$eza_param"'--group-directories-first"'
-        echo 'alias la="eza -a '"$eza_param"'--group-directories-first"'
-        echo 'alias lt="eza --tree '"$eza_param"'--group-directories-first"'
-        echo 'alias cat="bat --paging=never"'
+        echo "# dev environment aliases"
+        echo ". \"$DEVENV_ALIASES_DST\""
       } >> "$rc"
-      ok "added aliases to $(basename "$rc")"
-    fi
-  done
-else
-  # fallback: minimal aliases without config dir
-  for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
-    if [[ -f "$rc" ]] && ! grep -q 'aliases (setup)' "$rc"; then
-      {
-        echo ""
-        echo "# -- aliases (setup) --"
-        echo 'command -v eza &>/dev/null && alias ls="eza --group-directories-first" && alias ll="eza -lah --group-directories-first"'
-        echo 'command -v bat &>/dev/null && alias cat="bat --paging=never"'
-      } >> "$rc"
+      ok "added dev environment aliases to $(basename "$rc")"
     fi
   done
 fi
@@ -105,16 +90,19 @@ if [[ -f "$NIX_ALIASES_SRC" ]] && command -v nix &>/dev/null; then
   done
 fi
 
-# -- nix aliases for PowerShell ----------------------------------------------
+# -- PowerShell alias files --------------------------------------------------
 PWSH_CFG="$REPO_ROOT/.assets/config/pwsh_cfg"
-NIX_ALIASES_PS1_SRC="$PWSH_CFG/_aliases_nix.ps1"
-NIX_ALIASES_PS1_DST="$HOME/.config/powershell/Scripts/_aliases_nix.ps1"
-if [[ -f "$NIX_ALIASES_PS1_SRC" ]] && command -v nix &>/dev/null && command -v pwsh &>/dev/null; then
-  if ! cmp -s "$NIX_ALIASES_PS1_SRC" "$NIX_ALIASES_PS1_DST" 2>/dev/null; then
-    mkdir -p "$(dirname "$NIX_ALIASES_PS1_DST")"
-    cp -f "$NIX_ALIASES_PS1_SRC" "$NIX_ALIASES_PS1_DST"
-    ok "installed nix aliases for PowerShell"
-  fi
+PWSH_SCRIPTS="$HOME/.config/powershell/Scripts"
+if command -v pwsh &>/dev/null; then
+  mkdir -p "$PWSH_SCRIPTS"
+  for ps1 in _aliases_nix.ps1 _aliases_devenv.ps1; do
+    src="$PWSH_CFG/$ps1"
+    dst="$PWSH_SCRIPTS/$ps1"
+    if [[ -f "$src" ]] && ! cmp -s "$src" "$dst" 2>/dev/null; then
+      cp -f "$src" "$dst"
+      ok "installed $ps1 for PowerShell"
+    fi
+  done
 fi
 
 # -- fzf shell integration --------------------------------------------------

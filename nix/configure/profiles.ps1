@@ -14,20 +14,21 @@ $scriptRoot = $PSScriptRoot
 $repoRoot = (Resolve-Path "$scriptRoot/../..").Path
 $pwshCfg = [IO.Path]::Combine($repoRoot, '.assets/config/pwsh_cfg')
 
-# -- nix aliases (nx wrapper) ------------------------------------------------
-$nixAliasesSrc = [IO.Path]::Combine($pwshCfg, '_aliases_nix.ps1')
+# -- install user-scope alias files ------------------------------------------
 $userScriptsPath = [IO.Path]::Combine([Environment]::GetFolderPath('UserProfile'), '.config/powershell/Scripts')
-$nixAliasesDst = [IO.Path]::Combine($userScriptsPath, '_aliases_nix.ps1')
-
-if ([IO.File]::Exists($nixAliasesSrc)) {
-    $needsCopy = -not [IO.File]::Exists($nixAliasesDst) -or
-        [IO.File]::ReadAllText($nixAliasesSrc) -ne [IO.File]::ReadAllText($nixAliasesDst)
-    if ($needsCopy) {
-        if (-not [IO.Directory]::Exists($userScriptsPath)) {
-            [IO.Directory]::CreateDirectory($userScriptsPath) | Out-Null
+if (-not [IO.Directory]::Exists($userScriptsPath)) {
+    [IO.Directory]::CreateDirectory($userScriptsPath) | Out-Null
+}
+foreach ($aliasFile in @('_aliases_nix.ps1', '_aliases_devenv.ps1')) {
+    $src = [IO.Path]::Combine($pwshCfg, $aliasFile)
+    $dst = [IO.Path]::Combine($userScriptsPath, $aliasFile)
+    if ([IO.File]::Exists($src)) {
+        $needsCopy = -not [IO.File]::Exists($dst) -or
+            [IO.File]::ReadAllText($src) -ne [IO.File]::ReadAllText($dst)
+        if ($needsCopy) {
+            [IO.File]::Copy($src, $dst, $true)
+            Write-Host "`e[32minstalled $aliasFile for PowerShell`e[0m"
         }
-        [IO.File]::Copy($nixAliasesSrc, $nixAliasesDst, $true)
-        Write-Host "`e[32minstalled nix aliases for PowerShell`e[0m"
     }
 }
 
