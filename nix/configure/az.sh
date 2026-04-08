@@ -11,7 +11,8 @@ info() { printf "\e[96m%s\e[0m\n" "$*"; }
 
 info "installing azure-cli via uv..."
 install_args=()
-# on Linux/WSL, patch the certifi bundle to include system CA certificates
+# on Linux/WSL, patch the certifi bundle with system CA certificates so az
+# commands work behind a MITM proxy; macOS keychain integration is not supported
 if [ "$(uname -s)" = "Linux" ]; then
   install_args+=(--fix_certify true)
 fi
