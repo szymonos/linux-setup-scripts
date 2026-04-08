@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Post-install Azure CLI configuration (cross-platform, Nix variant)
+# Azure CLI is installed via uv (not Nix) for better cross-platform compatibility.
+# macOS uses native TLS (system keychain) - no certifi patching needed.
 set -euo pipefail
 
-info()  { printf "\e[96m%s\e[0m\n" "$*"; }
-ok()    { printf "\e[32m%s\e[0m\n" "$*"; }
-warn()  { printf "\e[33m%s\e[0m\n" "$*" >&2; }
+SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_ROOT/../.." && pwd)"
 
-info "configuring Azure CLI defaults..."
-if command -v az &>/dev/null; then
-  az config set core.output=jsonc 2>/dev/null || true
-  az config set extension.dynamic_install_allow_preview=true 2>/dev/null || true
-  ok "Azure CLI configured"
-else
-  warn "az binary not found; ensure Nix profile bin is in PATH"
+info() { printf "\e[96m%s\e[0m\n" "$*"; }
+
+info "installing azure-cli via uv..."
+install_args=()
+# on Linux/WSL, patch the certifi bundle to include system CA certificates
+if [ "$(uname -s)" = "Linux" ]; then
+  install_args+=(--fix_certify true)
 fi
+"$REPO_ROOT/.assets/provision/install_azurecli_uv.sh" "${install_args[@]}"
