@@ -110,7 +110,7 @@ if (Test-Path "$HOME/$condaCli" -PathType Leaf) {
         $isProfileModified = $true
     }
     # hide conda env in shell prompt if oh-my-posh is installed
-    if (Test-Path /usr/bin/oh-my-posh -PathType Leaf) {
+    if (Get-Command oh-my-posh -CommandType Application -ErrorAction SilentlyContinue) {
         $changeps1 = & "$HOME/$condaCli" config --show | Select-String 'changeps1: False' -SimpleMatch -Quiet
         if (-not $changeps1) {
             & "$HOME/$condaCli" config --set changeps1 false
@@ -181,7 +181,7 @@ if (Test-Path "$HOME/$pixiCli" -PathType Leaf) {
         $isProfileModified = $true
     }
     # hide pixi env in shell prompt if oh-my-posh is installed
-    if (Test-Path /usr/bin/oh-my-posh -PathType Leaf) {
+    if (Get-Command oh-my-posh -CommandType Application -ErrorAction SilentlyContinue) {
         $changeps1 = & "$HOME/$pixiCli" config list | Select-String 'change-ps1 = false' -SimpleMatch -Quiet
         if (-not $changeps1) {
             & "$HOME/$pixiCli" config set --global shell.change-ps1 false

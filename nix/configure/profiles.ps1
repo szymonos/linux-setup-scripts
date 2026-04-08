@@ -32,6 +32,37 @@ foreach ($aliasFile in @('_aliases_nix.ps1', '_aliases_devenv.ps1')) {
     }
 }
 
+# -- kubectl completion in PowerShell profile --------------------------------
+$nixBin = [IO.Path]::Combine([Environment]::GetFolderPath('UserProfile'), '.nix-profile/bin')
+$kubectlBin = [IO.Path]::Combine($nixBin, 'kubectl')
+if ([IO.File]::Exists($kubectlBin)) {
+    $profilePath = $PROFILE.CurrentUserCurrentHost
+    $kubectlProfileContent = [System.Collections.Generic.List[string]]::new()
+    if ([IO.File]::Exists($profilePath)) {
+        $kubectlProfileContent.AddRange([IO.File]::ReadAllLines($profilePath))
+    }
+    if (-not ($kubectlProfileContent | Select-String '__kubectlCompleterBlock' -SimpleMatch -Quiet)) {
+        Write-Host "`e[32madding kubectl auto-completion for PowerShell`e[0m"
+        $kubectlProfileContent.AddRange([string[]]@(
+            "`n#region kubectl completer"
+            (& $kubectlBin completion powershell) -join "`n"
+            "`n# setup autocompletion for the 'k' alias"
+            'Set-Alias -Name k -Value kubectl'
+            "Register-ArgumentCompleter -CommandName 'k' -ScriptBlock `${__kubectlCompleterBlock}"
+            "`n# setup autocompletion for the 'kubecolor' binary"
+            'if (Test-Path "$HOME/.nix-profile/bin/kubecolor" -PathType Leaf) {'
+            '    Set-Alias -Name kubectl -Value kubecolor'
+            "    Register-ArgumentCompleter -CommandName 'kubecolor' -ScriptBlock `${__kubectlCompleterBlock}"
+            '}'
+            '#endregion'
+        ))
+        [IO.File]::WriteAllText(
+            $profilePath,
+            "$(($kubectlProfileContent -join "`n").Trim())`n"
+        )
+    }
+}
+
 # -- nix PATH in PowerShell profile ------------------------------------------
 $profilePath = $PROFILE.CurrentUserAllHosts
 $profileContent = [System.Collections.Generic.List[string]]::new()
