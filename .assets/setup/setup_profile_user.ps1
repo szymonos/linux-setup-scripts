@@ -207,6 +207,29 @@ if (Test-Path "$HOME/$openCodePath/opencode" -PathType Leaf) {
     }
 }
 
+# set up custom CA certs environment variables for MITM proxy certificates
+$certCustom = [IO.Path]::Combine($HOME, '.config', 'certs', 'ca-custom.crt')
+$certFull = [IO.Path]::Combine($HOME, '.config', 'certs', 'ca-bundle.crt')
+if (Test-Path $certCustom -PathType Leaf) {
+    if (-not ($profileContent | Select-String 'NODE_EXTRA_CA_CERTS' -SimpleMatch -Quiet)) {
+        Write-Verbose 'adding custom CA certs env vars...'
+        $envVars = [System.Collections.Generic.List[string]]@(
+            "`n#region certs"
+            "if (Test-Path `"$certCustom`" -PathType Leaf) {"
+            "    [Environment]::SetEnvironmentVariable('NODE_EXTRA_CA_CERTS', `"$certCustom`")"
+        )
+        if ((Test-Path /usr/bin/gcloud -PathType Leaf) -or (Test-Path "$HOME/.nix-profile/bin/gcloud" -PathType Leaf)) {
+            $envVars.Add("    if (Test-Path `"$certFull`" -PathType Leaf) {")
+            $envVars.Add("        [Environment]::SetEnvironmentVariable('CLOUDSDK_CORE_CUSTOM_CA_CERTS_FILE', `"$certFull`")")
+            $envVars.Add("    }")
+        }
+        $envVars.Add('}')
+        $envVars.Add('#endregion')
+        $profileContent.AddRange([string[]]$envVars)
+        $isProfileModified = $true
+    }
+}
+
 # save profile if modified
 if ($isProfileModified) {
     [System.IO.File]::WriteAllText(

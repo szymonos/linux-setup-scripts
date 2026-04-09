@@ -58,6 +58,22 @@ if ! grep -q '^bindkey .* autosuggest-accept' "$HOME/.zshrc"; then
   echo "bindkey '^ ' autosuggest-accept\n" >>"$HOME/.zshrc"
 fi
 
+# *deploy functions.sh to user-scope if system-wide not available
+if [ ! -f "$PROFILE_PATH/functions.sh" ] && [ -f .assets/config/bash_cfg/functions.sh ]; then
+  mkdir -p "$HOME/.config/bash"
+  install -m 0644 .assets/config/bash_cfg/functions.sh "$HOME/.config/bash/"
+fi
+
+# *add custom functions
+grep -qw 'd/functions.sh' "$HOME/.zshrc" 2>/dev/null || cat <<EOF >>"$HOME/.zshrc"
+# custom functions
+if [ -f "$PROFILE_PATH/functions.sh" ]; then
+  source "$PROFILE_PATH/functions.sh"
+elif [ -f "\$HOME/.config/bash/functions.sh" ]; then
+  source "\$HOME/.config/bash/functions.sh"
+fi
+EOF
+
 # *aliases
 # add common zsh aliases
 grep -qw 'd/aliases.sh' "$HOME/.zshrc" 2>/dev/null || cat <<EOF >>"$HOME/.zshrc"
@@ -118,6 +134,24 @@ if ! grep -qw "$COMPLETION_CMD" "$HOME/.zshrc" 2>/dev/null && [ -x "$HOME/$PIXI_
 if [ -x "\$HOME/$PIXI_PATH/pixi" ]; then
   autoload -Uz compinit && compinit
   eval "\$(\$HOME/$PIXI_PATH/$COMPLETION_CMD)"
+fi
+EOF
+fi
+
+# *set custom CA certs environment variables for MITM proxy certificates
+if ! grep -qw 'NODE_EXTRA_CA_CERTS' "$HOME/.zshrc" 2>/dev/null; then
+  cat <<'EOF' >>"$HOME/.zshrc"
+
+# set custom CA certs for MITM proxy certificates
+if [ -f "$HOME/.config/certs/ca-custom.crt" ]; then
+  export NODE_EXTRA_CA_CERTS="$HOME/.config/certs/ca-custom.crt"
+fi
+EOF
+fi
+if ! grep -qw 'CLOUDSDK_CORE_CUSTOM_CA_CERTS_FILE' "$HOME/.zshrc" 2>/dev/null && { [ -f /usr/bin/gcloud ] || [ -f "$HOME/.nix-profile/bin/gcloud" ]; }; then
+  cat <<'EOF' >>"$HOME/.zshrc"
+if [ -f "$HOME/.config/certs/ca-bundle.crt" ]; then
+  export CLOUDSDK_CORE_CUSTOM_CA_CERTS_FILE="$HOME/.config/certs/ca-bundle.crt"
 fi
 EOF
 fi

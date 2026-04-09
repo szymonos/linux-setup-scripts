@@ -1,32 +1,32 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/fix/fix_nodejs_certs.sh
+.assets/fix/fix_nodejs_certs.sh
+Run as root for system-wide npm cafile, or as user for user-scope config.
 '
 set -euo pipefail
 
-if [ $EUID -ne 0 ]; then
-  printf '\e[31;1mRun the script as root.\e[0m\n' >&2
-  exit 1
-fi
-
-# determine system id
-SYS_ID="$(sed -En '/^ID.*(alpine|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
-
-# specify path for installed custom certificates
-case $SYS_ID in
-arch | alpine | fedora | opensuse)
-  exit 0
-  ;;
-debian | ubuntu)
-  CERT_PATH='/etc/ssl/certs/ca-certificates.crt'
-  ;;
-*)
-  printf '\e[1;33mWarning: Unsupported system id (%s).\e[0m\n' "$SYS_ID" >&2
-  exit 0
-  ;;
-esac
-
-# set the system wide cafile for nodejs
-if ! (npm config get | grep -q 'cafile'); then
-  npm config set -g cafile "$CERT_PATH"
+if [ $EUID -eq 0 ]; then
+  # *root: set global cafile to the system CA bundle
+  SYS_ID="$(sed -En '/^ID.*(alpine|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
+  case $SYS_ID in
+  arch | alpine | fedora | opensuse)
+    exit 0
+    ;;
+  debian | ubuntu)
+    CERT_PATH='/etc/ssl/certs/ca-certificates.crt'
+    ;;
+  *)
+    printf '\e[1;33mWarning: Unsupported system id (%s).\e[0m\n' "$SYS_ID" >&2
+    exit 0
+    ;;
+  esac
+  if ! (npm config get | grep -q 'cafile'); then
+    npm config set -g cafile "$CERT_PATH"
+  fi
+else
+  # *non-root: set user-scope cafile to the full trust store bundle
+  CERT_BUNDLE="$HOME/.config/certs/ca-bundle.crt"
+  if [ -f "$CERT_BUNDLE" ] && ! (npm config get | grep -q 'cafile'); then
+    npm config set cafile "$CERT_BUNDLE"
+  fi
 fi

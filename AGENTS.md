@@ -22,7 +22,12 @@ Automation scripts for provisioning Linux systems, primarily **WSL** (Windows Su
 
 ## Before Committing
 
-Run `make lint` and fix any failures. Pre-commit hooks are configured in `.pre-commit-config.yaml`.
+**IMPORTANT**: Always run `make lint` before every commit and fix any failures. Do not skip this step. Pre-commit hooks are configured in `.pre-commit-config.yaml`.
+
+## Writing Style
+
+- Never use em-dashes (U+2014) or double dashes (`--`) as punctuation; use a single dash (`-`) instead.
+- The gremlins pre-commit hook rejects Unicode characters like em-dashes.
 
 ## Bash Style (`.sh`)
 

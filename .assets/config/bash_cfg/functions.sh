@@ -5,7 +5,7 @@
 [ -z "$BASH_VERSION" ] && return 0
 
 # *Function to display system information in a user-friendly format
-function sysinfo {
+sysinfo() {
   # dot-source os-release file
   . /etc/os-release
   # get cpu info
@@ -43,96 +43,133 @@ function sysinfo {
 alias gsi='sysinfo'
 
 # *Function for fixing Python SSL certificate issues by adding custom certificates to certifi's cacert.pem
-function fixcertpy {
-  # check if pip and openssl are available
-  type pip &>/dev/null && true || return 1
-  type openssl &>/dev/null && true || return 1
+# Usage: fixcertpy [path ...]
+#   If paths are provided, patches only those cacert.pem files.
+#   If no paths are given, auto-discovers Python certifi bundles (venv, pip).
+fixcertpy() {
+  # openssl is always needed for serial/fingerprint extraction
+  type openssl &>/dev/null || return 1
 
-  # determine system id
-  SYS_ID="$(sed -En '/^ID.*(fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release)"
+  # load custom certificates into in-memory PEM array
+  local cert_pems=()
+  local CERT_BUNDLE="$HOME/.config/certs/ca-custom.crt"
+  if [ -f "$CERT_BUNDLE" ]; then
+    # parse individual PEM certs from bundle into array
+    local current_pem=""
+    while IFS= read -r line; do
+      if [[ "$line" == "-----BEGIN CERTIFICATE-----" ]]; then
+        current_pem="$line"
+      elif [[ "$line" == "-----END CERTIFICATE-----" ]]; then
+        current_pem+=$'\n'"$line"
+        cert_pems+=("$current_pem")
+        current_pem=""
+      elif [[ -n "$current_pem" ]]; then
+        current_pem+=$'\n'"$line"
+      fi
+    done < "$CERT_BUNDLE"
+  else
+    # fall back to distro-specific cert paths
+    local SYS_ID
+    SYS_ID="$(sed -En '/^ID.*(alpine|fedora|debian|ubuntu|opensuse).*/{s//\1/;p;q}' /etc/os-release 2>/dev/null)"
+    local CERT_PATH
+    case ${SYS_ID:-} in
+    alpine)
+      return 0
+      ;;
+    fedora)
+      CERT_PATH='/etc/pki/ca-trust/source/anchors'
+      ;;
+    debian | ubuntu)
+      CERT_PATH='/usr/local/share/ca-certificates'
+      ;;
+    opensuse)
+      CERT_PATH='/usr/share/pki/trust/anchors'
+      ;;
+    *)
+      return 0
+      ;;
+    esac
+    # read each .crt file into the PEM array
+    for f in "$CERT_PATH"/*.crt; do
+      [ -f "$f" ] && cert_pems+=("$(cat "$f")") || true
+    done
+  fi
 
-  # specify path for installed custom certificates
-  case $SYS_ID in
-  fedora)
-    CERT_PATH='/etc/pki/ca-trust/source/anchors'
-    ;;
-  debian | ubuntu)
-    CERT_PATH='/usr/local/share/ca-certificates'
-    ;;
-  opensuse)
-    CERT_PATH='/usr/share/pki/trust/anchors'
-    ;;
-  *)
-    return 0
-    ;;
-  esac
-
-  # get list of installed certificates
-  mapfile -t cert_paths < <(ls "$CERT_PATH"/*.crt 2>/dev/null || true)
-  if [ "${#cert_paths[@]}" -eq 0 ]; then
-    printf '\033[36mno custom certificates found in \033[4m%s\n\033[0m' "$CERT_PATH" >&2
+  if [ "${#cert_pems[@]}" -eq 0 ]; then
+    printf '\033[36mno custom certificates found\033[0m\n' >&2
     return 0
   fi
 
-  certify_paths=()
-  # determine venv certifi cacert.pem path
-  if . .venv/bin/activate 2>/dev/null; then
-    [ -x $HOME/.local/bin/uv ] && SHOW=$(uv pip show -f certifi 2>/dev/null) || true
-    [ -n "$SHOW" ] && true || SHOW=$(pip show -f certifi 2>/dev/null)
+  # discover certifi cacert.pem bundles
+  local certifi_paths=()
+  if [ $# -gt 0 ]; then
+    # use explicitly provided paths
+    for p in "$@"; do
+      [ -f "$p" ] && certifi_paths+=("$p")
+    done
+  else
+    # auto-discover Python certifi bundles
+    type pip &>/dev/null || return 1
+    local SHOW location cacert
+    # check venv certifi
+    if . .venv/bin/activate 2>/dev/null; then
+      SHOW=""
+      [ -x "$HOME/.local/bin/uv" ] && SHOW=$(uv pip show -f certifi 2>/dev/null) || true
+      [ -n "$SHOW" ] || SHOW=$(pip show -f certifi 2>/dev/null) || true
+      if [ -n "$SHOW" ]; then
+        location=$(echo "$SHOW" | grep -oP '^Location: \K.+')
+        if [ -n "$location" ]; then
+          cacert=$(echo "$SHOW" | grep -oE '\S+cacert\.pem$')
+          [ -n "$cacert" ] && certifi_paths+=("${location}/${cacert}")
+        fi
+      fi
+    fi
+    # check pip certifi
+    SHOW=$(pip show -f certifi 2>/dev/null) || true
     if [ -n "$SHOW" ]; then
       location=$(echo "$SHOW" | grep -oP '^Location: \K.+')
       if [ -n "$location" ]; then
         cacert=$(echo "$SHOW" | grep -oE '\S+cacert\.pem$')
-        if [ -n "$cacert" ]; then
-          certify_paths+=("${location}/${cacert}")
-        fi
+        [ -n "$cacert" ] && certifi_paths+=("${location}/${cacert}")
       fi
     fi
-  fi
-  # determine pip cacert.pem path
-  SHOW=$(pip show -f pip 2>/dev/null)
-  if [ -n "$SHOW" ]; then
-    location=$(echo "$SHOW" | grep -oP '^Location: \K.+')
-    if [ -n "$location" ]; then
-      cacert=$(echo "$SHOW" | grep -oE '\S+cacert\.pem$')
-      if [ -n "$cacert" ]; then
-        certify_paths+=("${location}/${cacert}")
+    # check pip's own cacert.pem
+    SHOW=$(pip show -f pip 2>/dev/null) || true
+    if [ -n "$SHOW" ]; then
+      location=$(echo "$SHOW" | grep -oP '^Location: \K.+')
+      if [ -n "$location" ]; then
+        cacert=$(echo "$SHOW" | grep -oE '\S+cacert\.pem$')
+        [ -n "$cacert" ] && certifi_paths+=("${location}/${cacert}")
       fi
     fi
   fi
 
-  # print notification about cacert.pem file(s) update
-  if [ ${#certify_paths[@]} -gt 0 ]; then
-    printf '\e[36madding custom certificates to the following files:\e[0m\n' >&2
-  else
-    printf '\e[33mno certify/cacert.pem files found to be updated\e[0m\n' >&2
+  # exit if no target bundles found
+  if [ ${#certifi_paths[@]} -eq 0 ]; then
+    printf '\e[33mno certifi/cacert.pem bundles found\e[0m\n' >&2
     return 0
   fi
-  # instantiate variable about number of certificates added
-  cert_count=0
-  # track unique serials that have been added across all certify files
+
+  # append custom certificates to each target bundle
+  local cert_count=0
   declare -A added_serials=()
-  # iterate over certify files
-  for certify in "${certify_paths[@]}"; do
-    echo "${certify//$HOME/\~}" >&2
-    # iterate over installed certificates
-    for path in "${cert_paths[@]}"; do
-      serial=$(openssl x509 -in "$path" -noout -serial -nameopt RFC2253 2>/dev/null | cut -d= -f2)
-      # skip if openssl didn't produce a serial
+  local certifi pem serial CERT
+  for certifi in "${certifi_paths[@]}"; do
+    echo "${certifi//$HOME/\~}" >&2
+    for pem in "${cert_pems[@]}"; do
+      serial=$(openssl x509 -noout -serial -nameopt RFC2253 <<< "$pem" 2>/dev/null | cut -d= -f2)
       [ -n "$serial" ] || continue
-      if ! grep -qw "$serial" "$certify"; then
-        # add certificate to array (print subject)
-        echo " - $(openssl x509 -in "$path" -noout -subject -nameopt RFC2253 | sed 's/\\//g')" >&2
+      if ! grep -qw "$serial" "$certifi"; then
+        echo " - $(openssl x509 -noout -subject -nameopt RFC2253 <<< "$pem" | sed 's/\\//g')" >&2
         CERT="
-$(openssl x509 -in "$path" -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 | sed 's/\\//g' | xargs -I {} echo "# {}")
-$(openssl x509 -in "$path" -outform PEM)"
-        # append new certificates to certify cacert.pem
-        if [ -w "$certify" ]; then
-          echo "$CERT" >>"$certify"
+$(openssl x509 -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 <<< "$pem" | sed 's/\\//g' | xargs -I {} echo "# {}")
+$(openssl x509 -outform PEM <<< "$pem")"
+        if [ -w "$certifi" ]; then
+          echo "$CERT" >>"$certifi"
         else
-          echo "$CERT" | sudo tee -a "$certify" >/dev/null
+          printf '\e[33minsufficient permissions to write to %s, run the script as root.\e[0m\n' "$certifi" >&2
+          break
         fi
-        # increment unique certificate count only once per serial
         if [ -z "${added_serials[$serial]+x}" ]; then
           added_serials[$serial]=1
           cert_count=$((cert_count + 1))
@@ -141,7 +178,7 @@ $(openssl x509 -in "$path" -outform PEM)"
     done
   done
   if [ $cert_count -gt 0 ]; then
-    printf "\e[34madded $cert_count certificate(s) to certifi/cacert.pem file(s)\e[0m\n" >&2
+    printf "\e[34madded $cert_count certificate(s) to certifi bundle(s)\e[0m\n" >&2
   else
     printf '\e[34mno new certificates to add\e[0m\n' >&2
   fi
@@ -149,3 +186,109 @@ $(openssl x509 -in "$path" -outform PEM)"
 
 # alias for backward compatibility
 alias fxcertpy='fixcertpy'
+
+# *Function for intercepting MITM proxy certificates from TLS chain and saving to user cert bundle
+cert_intercept() {
+  # check if openssl is available
+  if ! type openssl &>/dev/null; then
+    printf '\e[31mopenssl is required but not installed.\e[0m\n' >&2
+    return 1
+  fi
+
+  # use provided URIs or default to www.google.com
+  local uris=("${@:-www.google.com}")
+  local cert_bundle="$HOME/.config/certs/ca-custom.crt"
+  local cert_count=0
+  local skip_count=0
+
+  # ensure cert directory exists
+  mkdir -p "$HOME/.config/certs"
+
+  # read existing serials from bundle for deduplication
+  declare -A existing_serials=()
+  if [ -f "$cert_bundle" ]; then
+    while IFS= read -r serial; do
+      [ -n "$serial" ] && existing_serials[$serial]=1
+    done < <(openssl storeutl -noout -text -certs "$cert_bundle" 2>/dev/null | sed -n 's/.*Serial Number: *//p' || true)
+    # fallback: parse PEM blocks and extract serials individually
+    if [ ${#existing_serials[@]} -eq 0 ]; then
+      local current_pem=""
+      while IFS= read -r line; do
+        if [[ "$line" == "-----BEGIN CERTIFICATE-----" ]]; then
+          current_pem="$line"
+        elif [[ "$line" == "-----END CERTIFICATE-----" ]]; then
+          current_pem+=$'\n'"$line"
+          local ser
+          ser=$(openssl x509 -noout -serial <<< "$current_pem" 2>/dev/null | cut -d= -f2)
+          [ -n "$ser" ] && existing_serials[$ser]=1
+          current_pem=""
+        elif [[ -n "$current_pem" ]]; then
+          current_pem+=$'\n'"$line"
+        fi
+      done < "$cert_bundle"
+    fi
+  fi
+
+  for uri in "${uris[@]}"; do
+    printf '\e[36mintercepting certificates from %s...\e[0m\n' "$uri" >&2
+
+    # get full TLS chain
+    local chain_pem
+    chain_pem=$(openssl s_client -showcerts -connect "${uri}:443" </dev/null 2>/dev/null) || {
+      printf '\e[33mfailed to connect to %s\e[0m\n' "$uri" >&2
+      continue
+    }
+
+    # parse individual PEM blocks from chain, skip the first (leaf) cert
+    local pem_blocks=()
+    local current_pem=""
+    local cert_index=0
+    while IFS= read -r line; do
+      if [[ "$line" == "-----BEGIN CERTIFICATE-----" ]]; then
+        current_pem="$line"
+      elif [[ "$line" == "-----END CERTIFICATE-----" ]]; then
+        current_pem+=$'\n'"$line"
+        cert_index=$((cert_index + 1))
+        # skip the first cert (leaf/server cert)
+        if [ $cert_index -gt 1 ]; then
+          pem_blocks+=("$current_pem")
+        fi
+        current_pem=""
+      elif [[ -n "$current_pem" ]]; then
+        current_pem+=$'\n'"$line"
+      fi
+    done <<< "$chain_pem"
+
+    # process each intermediate/root cert
+    for pem in "${pem_blocks[@]}"; do
+      local serial
+      serial=$(openssl x509 -noout -serial -nameopt RFC2253 <<< "$pem" 2>/dev/null | cut -d= -f2)
+      [ -n "$serial" ] || continue
+
+      # check for duplicate
+      if [ -n "${existing_serials[$serial]+x}" ]; then
+        skip_count=$((skip_count + 1))
+        continue
+      fi
+
+      # format cert with header comments and append to bundle
+      local header
+      header=$(openssl x509 -noout -issuer -subject -serial -fingerprint -nameopt RFC2253 <<< "$pem" 2>/dev/null | sed 's/\\//g' | xargs -I {} echo "# {}")
+      local cert_pem
+      cert_pem=$(openssl x509 -outform PEM <<< "$pem" 2>/dev/null)
+
+      printf '%s\n%s\n' "$header" "$cert_pem" >> "$cert_bundle"
+      existing_serials[$serial]=1
+      cert_count=$((cert_count + 1))
+      printf ' \e[32m+ %s\e[0m\n' "$(openssl x509 -noout -subject -nameopt RFC2253 <<< "$pem" 2>/dev/null | sed 's/\\//g')" >&2
+    done
+  done
+
+  # print summary
+  if [ $cert_count -gt 0 ]; then
+    printf '\e[34madded %d certificate(s) to %s\e[0m\n' "$cert_count" "${cert_bundle/$HOME/\~}" >&2
+  else
+    printf '\e[34mno new certificates to add\e[0m\n' >&2
+  fi
+  [ $skip_count -gt 0 ] && printf '\e[90m(%d already existing, skipped)\e[0m\n' "$skip_count" >&2
+}

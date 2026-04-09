@@ -10,6 +10,11 @@ if [ $EUID -eq 0 ]; then
   exit 1
 fi
 
+# resolve repo root dir
+SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$SCRIPT_ROOT/.assets/provision/source.sh"
+. "$SCRIPT_ROOT/.assets/config/bash_cfg/functions.sh"
+
 # parse named parameters
 fix_certify=${fix_certify:-false}
 while [ $# -gt 0 ]; do
@@ -21,7 +26,7 @@ while [ $# -gt 0 ]; do
 done
 
 # *conda init function.
-function conda_init {
+conda_init() {
   if __conda_setup="$("$HOME/miniconda3/bin/conda" 'shell.bash' 'hook' 2>/dev/null)"; then
     eval "$__conda_setup"
   else
@@ -39,8 +44,6 @@ if [ -x "$HOME/miniconda3/bin/conda" ]; then
   conda_init
 else
   printf "\e[92minstalling \e[1mminiconda\e[0m\n"
-  # dotsource file with common functions
-  . .assets/provision/source.sh
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -d -p "$HOME")
   trap 'rm -fr "$TMP_DIR"' EXIT
@@ -59,7 +62,7 @@ fi
 # *Add certificates to conda base certifi.
 if $fix_certify; then
   conda activate base
-  .assets/provision/fix_certifi_certs.sh
+  fixcertpy
   conda deactivate
 fi
 
@@ -74,6 +77,6 @@ conda clean --yes --all
 # *Fix certificates after update.
 if $fix_certify; then
   conda activate base
-  .assets/provision/fix_certifi_certs.sh
+  fixcertpy
   conda deactivate
 fi

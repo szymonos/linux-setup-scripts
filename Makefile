@@ -3,7 +3,14 @@ SHELL := /bin/bash
 # Default target
 .DEFAULT_GOAL := help
 
-# -- Root certificate interception for MITM proxy ---------------------------
+# MITM proxy support: use native TLS (OpenSSL) in prek to trust system CA certificates
+export PREK_NATIVE_TLS := 1
+# tell Node.js/npm to trust custom MITM proxy certificates (for prek-managed node hooks)
+CA_CUSTOM := $(wildcard $(HOME)/.config/certs/ca-custom.crt)
+ifdef CA_CUSTOM
+export NODE_EXTRA_CA_CERTS := $(CA_CUSTOM)
+endif
+# root certificate interception
 define ROOT_CERT_CMD
 command -v openssl >/dev/null 2>&1 || { printf '\e[31;1mopenssl not found, aborting.\e[0m\n' >&2; exit 1; }; \
 openssl s_client -showcerts -connect google.com:443 </dev/null 2>/dev/null \

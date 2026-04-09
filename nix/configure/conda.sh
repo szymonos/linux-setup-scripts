@@ -4,6 +4,7 @@
 set -euo pipefail
 
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$SCRIPT_ROOT/.assets/config/bash_cfg/functions.sh"
 
 info()  { printf "\e[96m%s\e[0m\n" "$*"; }
 ok()    { printf "\e[32m%s\e[0m\n" "$*"; }
@@ -47,11 +48,11 @@ fi
 conda_bin="$(find_conda || true)"
 if [[ -n "$conda_bin" ]]; then
   # fix certifi certificates before update (handles MITM proxy certs)
-  "$SCRIPT_ROOT/.assets/fix/fix_certifi_certs.sh" || true
+  fixcertpy || true
   info "updating conda..."
   "$conda_bin" update --name base --channel conda-forge conda --yes --update-all 2>/dev/null || warn "conda update failed"
   # fix certifi certificates after update (update may replace cacert.pem)
-  "$SCRIPT_ROOT/.assets/fix/fix_certifi_certs.sh" || true
+  fixcertpy || true
   "$conda_bin" clean --yes --all 2>/dev/null || true
   # initialize shell integration and disable auto-activate
   "$conda_bin" init bash zsh 2>/dev/null || true

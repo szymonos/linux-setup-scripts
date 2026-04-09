@@ -190,4 +190,32 @@ complete -W "\`if [ -f Makefile ]; then grep -oE '^[a-zA-Z0-9_-]+:([^=]|$)' Make
 EOF
 fi
 
+# -- CA bundle for tools that need a full trust store (e.g. gcloud) ----------
+# On Linux, symlink to the system bundle (which already includes custom certs).
+# On macOS, merge the nix CA bundle with custom MITM certs.
+CERT_DIR="$HOME/.config/certs"
+CUSTOM_CERTS="$CERT_DIR/ca-custom.crt"
+BUNDLE_LINK="$CERT_DIR/ca-bundle.crt"
+if [[ -f "$CUSTOM_CERTS" ]] && [[ ! -e "$BUNDLE_LINK" ]]; then
+  mkdir -p "$CERT_DIR"
+  case "$(uname -s)" in
+    Linux)
+      for sys_bundle in /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt; do
+        if [[ -f "$sys_bundle" ]]; then
+          ln -sf "$sys_bundle" "$BUNDLE_LINK"
+          ok "symlinked ca-bundle.crt -> $sys_bundle"
+          break
+        fi
+      done
+      ;;
+    Darwin)
+      nix_bundle="$HOME/.nix-profile/etc/ssl/certs/ca-bundle.crt"
+      if [[ -f "$nix_bundle" ]]; then
+        cat "$nix_bundle" "$CUSTOM_CERTS" > "$BUNDLE_LINK"
+        ok "created merged ca-bundle.crt (nix CAs + custom certs)"
+      fi
+      ;;
+  esac
+fi
+
 ok "shell profiles configured"

@@ -1,5 +1,5 @@
 # Cross-platform dev environment aliases for tools installed via Nix.
-# Checks ~/.nix-profile/bin/ — works on macOS, Linux, WSL, and Coder.
+# Checks ~/.nix-profile/bin/ - works on macOS, Linux, WSL, and Coder.
 # Sourced from ~/.bashrc and ~/.zshrc by nix/configure/profiles.sh.
 
 _nb="$HOME/.nix-profile/bin"
