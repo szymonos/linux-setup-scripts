@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/setup_profile_user.sh
+.assets/setup/setup_profile_user.sh
 '
 set -euo pipefail
 
@@ -8,11 +8,19 @@ set -euo pipefail
 PROFILE_PATH='/etc/profile.d'
 OMP_PATH='/usr/local/share/oh-my-posh'
 
+# *deploy functions.sh to user-scope if system-wide not available
+if [ ! -f "$PROFILE_PATH/functions.sh" ] && [ -f .assets/config/bash_cfg/functions.sh ]; then
+  mkdir -p "$HOME/.config/bash"
+  install -m 0644 .assets/config/bash_cfg/functions.sh "$HOME/.config/bash/"
+fi
+
 # *add custom functions
 grep -qw 'd/functions.sh' $HOME/.bashrc 2>/dev/null || cat <<EOF >>$HOME/.bashrc
 # custom functions
 if [ -f "$PROFILE_PATH/functions.sh" ]; then
   source "$PROFILE_PATH/functions.sh"
+elif [ -f "\$HOME/.config/bash/functions.sh" ]; then
+  source "\$HOME/.config/bash/functions.sh"
 fi
 EOF
 
@@ -65,7 +73,7 @@ if ! grep -qw "$COMPLETION_CMD" $HOME/.bashrc 2>/dev/null && [ -x "$HOME/$UV_PAT
 
 # initialize uv autocompletion
 if [ -x "\$HOME/$UV_PATH/uv" ]; then
-  export UV_NATIVE_TLS=true
+  export UV_SYSTEM_CERTS=true
   eval "\$(\$HOME/$UV_PATH/$COMPLETION_CMD)"
 fi
 EOF
@@ -80,18 +88,21 @@ complete -W "\`if [ -f Makefile ]; then grep -oE '^[a-zA-Z0-9_-]+:([^=]|$)' Make
 EOF
 fi
 
-# *set up pixi
-COMPLETION_CMD='pixi completion --shell bash'
-PIXI_PATH=".pixi/bin"
-if ! grep -qw "$COMPLETION_CMD" $HOME/.bashrc 2>/dev/null && [ -x "$HOME/$PIXI_PATH/pixi" ]; then
-  cat <<EOF >>$HOME/.bashrc
-
-# initialize pixi autocompletion
-if [ -x "\$HOME/$PIXI_PATH/pixi" ]; then
-  eval "\$(\$HOME/$PIXI_PATH/$COMPLETION_CMD)"
-fi
-EOF
-fi
+# *set up managed env block (local path + MITM proxy cert env vars)
+_setup_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+ok() { printf "\e[32m%s\e[0m\n" "$*"; }
+# shellcheck source=../lib/profile_block.sh
+source "$_setup_lib/profile_block.sh"
+# shellcheck source=../lib/env_block.sh
+source "$_setup_lib/env_block.sh"
+# shellcheck source=../lib/certs.sh
+source "$_setup_lib/certs.sh"
+build_ca_bundle
+setup_vscode_certs
+_env_tmp="$(mktemp)"
+render_env_block >"$_env_tmp"
+manage_block "$HOME/.bashrc" "$ENV_BLOCK_MARKER" upsert "$_env_tmp"
+rm -f "$_env_tmp"
 
 # *add oh-my-posh invocation
 if ! grep -qw 'oh-my-posh' $HOME/.bashrc 2>/dev/null && type oh-my-posh &>/dev/null; then

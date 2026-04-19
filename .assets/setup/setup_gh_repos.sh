@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules"
-.assets/provision/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules" --ws_suffix "scripts"
+.assets/setup/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules"
+.assets/setup/setup_gh_repos.sh --repos "szymonos/linux-setup-scripts szymonos/ps-modules" --ws_suffix "scripts"
 '
 set -euo pipefail
 

@@ -1,11 +1,11 @@
-#!/usr/bin/pwsh -nop
+#!/usr/bin/env pwsh
 #Requires -Module Microsoft.PowerShell.PSResourceGet
 <#
 .SYNOPSIS
 Script for updating PowerShell modules and cleaning-up old versions.
 
 .EXAMPLE
-.assets/provision/update_psresources.ps1
+.assets/setup/update_psresources.ps1
 #>
 $ErrorActionPreference = 'SilentlyContinue'
 

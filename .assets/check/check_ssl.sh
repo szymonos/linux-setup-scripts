@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/check_ssl.sh
+sudo .assets/check/check_ssl.sh
 '
 
 # install curl if not available

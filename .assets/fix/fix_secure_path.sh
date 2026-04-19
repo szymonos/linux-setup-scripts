@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 : '
-sudo .assets/provision/fix_secure_path.sh
+sudo .assets/fix/fix_secure_path.sh
 '
 set -eu
 

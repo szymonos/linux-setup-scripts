@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/set_ulimits.sh
+sudo .assets/setup/set_ulimits.sh
 '
 set -euo pipefail
 

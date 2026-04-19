@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 : '
 # :generate new SSH key if missing
-.assets/provision/setup_ssh.sh
+.assets/setup/setup_ssh.sh
 # :generate SSH key and print the public one
 ./setup_ssh.sh print_pub
 '

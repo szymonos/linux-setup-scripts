@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 : '
-.assets/provision/check_distro.sh | jq
-.assets/provision/check_distro.sh array
+.assets/check/check_distro.sh | jq
+.assets/check/check_distro.sh array
 '
 set -euo pipefail
 
@@ -18,11 +18,11 @@ declare -A state=(
   ["git_email"]=$([ -n "$(git config --global --get user.email 2>/dev/null)" ] && echo true || echo false)
   ["gtkd"]=$(grep -Fqw "dark" /etc/profile.d/gtk_theme.sh 2>/dev/null && echo true || echo false)
   ["k8s_base"]=$([ -x '/usr/bin/kubectl' ] && echo true || echo false)
+  ["nix"]=$([ -d /nix/store ] && echo true || echo false)
   ["k8s_dev"]=$([ -x '/usr/local/bin/helm' ] && echo true || echo false)
   ["k8s_ext"]=$([ -x '/usr/local/bin/k3d' ] && echo true || echo false)
   ["oh_my_posh"]=$([ -x '/usr/bin/oh-my-posh' ] && echo true || echo false)
-  ["pixi"]=$([ -x "$HOME/.pixi/bin/pixi" ] && echo true || echo false)
-  ["python"]=$([ -x "$HOME/.local/bin/uv" ] && echo true || echo false)
+  ["python"]=$({ [ -x "$HOME/.local/bin/uv" ] || [ -x "$HOME/.nix-profile/bin/uv" ]; } && echo true || echo false)
   ["pwsh"]=$([ -x '/usr/bin/pwsh' ] && echo true || echo false)
   ["shell"]=$([ -x '/usr/bin/rg' ] && echo true || echo false)
   ["ssh_key"]=$([ -f "$HOME/.ssh/id_ed25519" ] && [ -f "$HOME/.ssh/id_ed25519.pub" ] && echo true || echo false)
@@ -47,7 +47,7 @@ is_excluded() {
 # check if array parameter is provided
 if [ "${1:-}" = 'array' ]; then
   # keys to exclude
-  exclude_keys=('git_user' 'git_email' 'ssh_key' 'systemd' 'wslg' 'wsl_boot' 'gtkd')
+  exclude_keys=('git_user' 'git_email' 'nix' 'ssh_key' 'systemd' 'wslg' 'wsl_boot' 'gtkd')
   # print only the keys with true values, excluding specified keys
   for key in "${!state[@]}"; do
     if [ "${state[$key]}" = true ] && ! is_excluded "$key"; then

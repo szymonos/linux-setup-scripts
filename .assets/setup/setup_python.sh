@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/setup_python.sh
+sudo .assets/setup/setup_python.sh
 '
 set -euo pipefail
 

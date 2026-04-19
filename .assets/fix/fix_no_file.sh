@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 : '
 # Fixes the "Too many open files" error.
-sudo .assets/provision/fix_no_file.sh
+sudo .assets/fix/fix_no_file.sh
 '
 set -eu
 

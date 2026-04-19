@@ -1,4 +1,4 @@
-#!/usr/bin/pwsh -nop
+#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
 Setting up PowerShell for the all users.
@@ -6,12 +6,19 @@ Setting up PowerShell for the all users.
 .PARAMETER UserName
 Default user name to run the script in context of.
 
+.PARAMETER UpdateModules
+Run update_psresources.ps1 to update all installed modules.
+
 .EXAMPLE
-sudo .assets/provision/setup_profile_allusers.ps1 -UserName $(id -un)
+sudo .assets/setup/setup_profile_allusers.ps1 -UserName $(id -un)
+# :update modules
+sudo .assets/setup/setup_profile_allusers.ps1 -UserName $(id -un) -UpdateModules
 #>
 param (
     [Parameter(Position = 0)]
-    [string]$UserName
+    [string]$UserName,
+
+    [switch]$UpdateModules
 )
 
 begin {
@@ -89,8 +96,8 @@ process {
             Install-PSResource -Name posh-git -Scope AllUsers
         }
         # update existing modules
-        if (Test-Path .assets/provision/update_psresources.ps1 -PathType Leaf) {
-            .assets/provision/update_psresources.ps1
+        if ($PSBoundParameters.UpdateModules -and (Test-Path .assets/setup/update_psresources.ps1 -PathType Leaf)) {
+            .assets/setup/update_psresources.ps1
         }
     }
 }

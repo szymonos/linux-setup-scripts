@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 : '
 # :setup oh-my-posh theme using default base fonts
-sudo .assets/provision/setup_omp.sh --user $(id -un)
+sudo .assets/setup/setup_omp.sh --user $(id -un)
 # :setup oh-my-posh theme using powerline fonts
-sudo .assets/provision/setup_omp.sh --user $(id -un) --theme powerline
+sudo .assets/setup/setup_omp.sh --user $(id -un) --theme powerline
 # :setup oh-my-posh theme using nerd fonts
-sudo .assets/provision/setup_omp.sh --user $(id -un) --theme nerd
+sudo .assets/setup/setup_omp.sh --user $(id -un) --theme nerd
 # :you can specify any themes from https://ohmyposh.dev/docs/themes/ (e.g. atomic)
-sudo .assets/provision/setup_omp.sh --user $(id -un) --theme atomic
+sudo .assets/setup/setup_omp.sh --user $(id -un) --theme atomic
 '
 set -euo pipefail
 
