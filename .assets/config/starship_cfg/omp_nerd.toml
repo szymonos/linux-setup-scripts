@@ -1,0 +1,292 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+# Starship port of omp_nerd theme.
+# Matches oh-my-posh nerd.omp.json: Nerd Font icons, diamond-style path badge,
+# OS icon, and nerd symbols throughout.
+# Right prompt (right_format) requires zsh, fish, or bash+ble.sh.
+
+format = """\
+$python\
+$os\
+$cmd_duration\
+$character\
+$username\
+$directory\
+$git_branch\
+$git_status\
+$shell"""
+
+right_format = '$kubernetes'
+
+add_newline = false
+
+# -- Arrow prompt symbol -------------------------------------------------------
+[character]
+success_symbol = '[→](bold fg:#23D18B)'
+error_symbol   = '[→](bold fg:#F14C4C)'
+
+# -- Execution time: [123ms] ---------------------------------------------------
+[cmd_duration]
+min_time          = 1
+show_milliseconds = true
+format            = '[\[](fg:#CCCCCC)[$duration](fg:#F5F543)[\]](fg:#CCCCCC) '
+
+# -- Path: pill/badge with blue background (diamond style) --------------------
+# OMP uses leading_diamond + background + trailing_diamond.
+# Starship replicates this with powerline arc characters (Nerd Fonts U+E0B6/E0B4).
+[directory]
+style             = 'bold fg:white bg:#3B8EEA'
+format            = '[](fg:#3B8EEA)[$path ](bold fg:white bg:#3B8EEA)[](fg:#3B8EEA) '
+truncation_length = 1
+truncate_to_repo  = false
+
+# -- Git: nerd font branch icon, purple; orange status indicators -------------
+[git_branch]
+style  = 'bold fg:#D4AAFC'
+symbol = ' '
+format = '[$symbol$branch]($style) '
+
+[git_status]
+style     = 'fg:#FF9248'
+format    = '[$all_status$ahead_behind]($style) '
+modified  = '!'
+staged    = '+'
+deleted   = '-'
+renamed   = '»'
+untracked = '?'
+conflicted = '~'
+ahead    = '↑${count}'
+behind   = '↓${count}'
+diverged = '↕'
+
+# -- Kubernetes (right prompt): ⎈ context::namespace --------------------------
+[kubernetes]
+style    = 'fg:#2E6CE6'
+symbol   = '⎈ '
+format   = '[$symbol$context([::$namespace](italic $style))]($style)'
+disabled = false
+
+# -- OS icon: cyan (matches OMP os segment; WSL color change not replicable) --
+[os]
+style    = 'fg:#26C6DA'
+format   = '[$symbol]($style)'
+disabled = false
+
+[python]
+style  = 'fg:#23D18B'
+symbol = " "
+format = '\([$virtualenv]($style)\) '
+
+# -- Shell indicator: $/%/❭ in green ------------------------------------------
+[shell]
+style                = 'fg:#23D18B'
+bash_indicator       = '\$'
+zsh_indicator        = '%'
+powershell_indicator = '❭'
+fish_indicator       = '❭'
+format               = '[$indicator ]($style)'
+disabled             = false
+
+# -- SSH / root: yellow username on SSH, bold red when root -------------------
+# OMP nerd shows  icon on SSH; starship shows username instead.
+[username]
+style_root  = 'bold fg:#FF6666'
+style_user  = 'fg:#FFE082'
+format      = '[$user ]($style)'
+show_always = false
+
+# -- Suppress unused default modules ------------------------------------------
+[hostname]
+disabled = true
+
+[sudo]
+disabled = true
+
+# base
+[aws]
+symbol = " "
+
+[buf]
+symbol = " "
+
+[bun]
+symbol = " "
+
+[c]
+symbol = " "
+
+[cpp]
+symbol = " "
+
+[cmake]
+symbol = " "
+
+[conda]
+symbol = " "
+
+[crystal]
+symbol = " "
+
+[dart]
+symbol = " "
+
+[deno]
+symbol = " "
+
+[docker_context]
+symbol = " "
+
+[elixir]
+symbol = " "
+
+[elm]
+symbol = " "
+
+[fennel]
+symbol = " "
+
+[fortran]
+symbol = " "
+
+[fossil_branch]
+symbol = " "
+
+[gcloud]
+symbol = " "
+
+[git_commit]
+tag_symbol = '  '
+
+[golang]
+symbol = " "
+
+[gradle]
+symbol = " "
+
+[guix_shell]
+symbol = " "
+
+[haskell]
+symbol = " "
+
+[haxe]
+symbol = " "
+
+[hg_branch]
+symbol = " "
+
+[java]
+symbol = " "
+
+[julia]
+symbol = " "
+
+[kotlin]
+symbol = " "
+
+[lua]
+symbol = " "
+
+[memory_usage]
+symbol = "󰍛 "
+
+[meson]
+symbol = "󰔷 "
+
+[nim]
+symbol = "󰆥 "
+
+[nix_shell]
+symbol = " "
+
+[nodejs]
+symbol = " "
+
+[ocaml]
+symbol = " "
+
+[os.symbols]
+Alpaquita = " "
+Alpine = " "
+AlmaLinux = " "
+Amazon = " "
+Android = " "
+AOSC = " "
+Arch = " "
+Artix = " "
+CachyOS = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Elementary = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
+Ios = "󰀷 "
+Kali = " "
+Linux = " "
+Mabox = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+Nobara = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Redox = "󰀘 "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = " "
+Windows = "󰍲 "
+Zorin = " "
+
+[package]
+symbol = "󰏗 "
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[pijul_channel]
+symbol = " "
+
+[rlang]
+symbol = "󰟔 "
+
+[ruby]
+symbol = " "
+
+[rust]
+symbol = "󱘗 "
+
+[scala]
+symbol = " "
+
+[status]
+symbol = " "
+
+[swift]
+symbol = " "
+
+[xmake]
+symbol = " "
+
+[zig]
+symbol = " "

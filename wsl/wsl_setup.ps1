@@ -45,8 +45,14 @@ Default: automatically detects based on the system theme.
 List of GitHub repositories in format "Owner/RepoName" to clone into the WSL.
 .PARAMETER AddCertificate
 Intercept and add certificates from chain into selected distro.
+.PARAMETER Nix
+Use Nix package manager instead of traditional per-tool install scripts.
+When omitted, Nix mode is auto-detected from the distro (useful for updates).
+Scopes not available in Nix (bun, distrobox, docker) are installed traditionally.
 .PARAMETER FixNetwork
 Set network settings from the selected network interface in Windows.
+.PARAMETER SkipModulesUpdate
+Skip updating installed PowerShell modules (Az, PSReadLine, etc.).
 .PARAMETER SkipRepoUpdate
 Skip updating current repository before running the setup.
 
@@ -72,6 +78,10 @@ wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme -AddCertificate
 $Repos = @('szymonos/linux-setup-scripts', 'szymonos/ps-modules')
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
+# :set up WSL distro using Nix package manager
+wsl/wsl_setup.ps1 $Distro -Nix -s @('shell', 'pwsh')
+wsl/wsl_setup.ps1 $Distro -Nix -s @('az', 'k8s_base', 'pwsh', 'docker')
+wsl/wsl_setup.ps1 $Distro -Nix -s $Scope -o $OmpTheme
 # :update all existing WSL distros
 wsl/wsl_setup.ps1
 
@@ -95,8 +105,11 @@ param (
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateScript(
-        { $_.ForEach({ $_ -in @('az', 'bun', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az conda distrobox docker gcloud k8s_base k8s_dev k8s_ext nodejs pwsh python rice shell terraform zsh')
+        {
+            $valid = ([System.IO.File]::ReadAllText("$PSScriptRoot/../.assets/lib/scopes.json") | ConvertFrom-Json).valid_scopes
+            $_.ForEach({ $_ -in $valid }) -notcontains $false
+        },
+        ErrorMessage = 'Wrong scope provided. Run with -? to see valid values.')
     ]
     [string[]]$Scope,
 
@@ -127,13 +140,19 @@ param (
     [Parameter(ParameterSetName = 'GitHub')]
     [switch]$FixNetwork,
 
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [switch]$Nix,
+
+    [switch]$SkipModulesUpdate,
+
     [switch]$SkipRepoUpdate
 )
 
 begin {
     $ErrorActionPreference = 'Stop'
     # check if the script is running on Windows
-    if ($IsLinux) {
+    if ($IsLinux -and -not $env:WSL_SETUP_TESTING) {
         Write-Warning 'This script is intended to be run on Windows only (outside of WSL).'
         exit 1
     }
@@ -142,7 +161,7 @@ begin {
     Push-Location "$PSScriptRoot/.."
     # import InstallUtils for the Invoke-GhRepoClone function
     Import-Module (Convert-Path './modules/InstallUtils') -Force
-    # import SetupUtils for the Set-WslConf function
+    # import SetupUtils for scope resolution, Set-WslConf, etc.
     Import-Module (Convert-Path './modules/SetupUtils') -Force
 
     if (-not $SkipRepoUpdate) {
@@ -244,7 +263,7 @@ begin {
         $defDistro = $lxss.Where({ $_.Default }).Name
         if ($defDistro -ne $Distro) {
             $cmdArgs = @('-u', (wsl.exe --distribution $defDistro -- id -un), '-k')
-            $gh_cfg = wsl.exe --distribution $defDistro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
+            $gh_cfg = wsl.exe --distribution $defDistro --user root --exec .assets/setup/setup_gh_https.sh @cmdArgs
         }
         # get installed distro details
         $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro
@@ -270,14 +289,23 @@ begin {
     # sets to track success and failed distros
     $script:successDistros = [System.Collections.Generic.SortedSet[string]]::new()
     $script:failDistros = [System.Collections.Generic.SortedSet[string]]::new()
+    # per-distro state for install provenance records
+    $script:distroRecords = @{}
 }
 
 process {
     foreach ($lx in $lxss) {
         $Distro = $lx.Name
+        $script:distroRecords[$Distro] = @{
+            phase  = 'distro-check'
+            scopes = @()
+            useNix = $false
+            mode   = $PsCmdlet.ParameterSetName -eq 'Update' ? 'update' : 'install'
+            error  = ''
+        }
 
         #region distro checks
-        $chkStr = wsl.exe -d $Distro --exec .assets/provision/check_distro.sh
+        $chkStr = wsl.exe -d $Distro --exec .assets/check/check_distro.sh
         try {
             $chk = $chkStr | ConvertFrom-Json -AsHashtable -ErrorAction Stop
         } catch {
@@ -285,6 +313,7 @@ process {
             Show-LogContext "Failed to check the distro '$Distro'." -Level WARNING
             Write-Host "`nThe WSL seems to be not responding correctly. Run the script again!"
             Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
+            $script:distroRecords[$Distro].error = 'distro check failed'
             exit 1
         }
         if ($chk.uid -eq 0) {
@@ -292,7 +321,7 @@ process {
                 Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
                 wsl.exe --distribution $Distro
                 # rerun check_distro to get updated user
-                $chkStr = wsl.exe -d $Distro --exec .assets/provision/check_distro.sh
+                $chkStr = wsl.exe -d $Distro --exec .assets/check/check_distro.sh
                 try {
                     $chk = $chkStr | ConvertFrom-Json -AsHashtable -ErrorAction Stop
                 } catch {
@@ -300,6 +329,7 @@ process {
                     Show-LogContext "Failed to check the distro '$Distro'." -Level WARNING
                     Write-Host "`nThe WSL seems to be not responding correctly. Run the script again!"
                     Write-Host 'If the problem persists, run the wsl/wsl_restart.ps1 script as administrator and try again.'
+                    $script:distroRecords[$Distro].error = 'distro check failed'
                     exit 1
                 }
             } else {
@@ -310,10 +340,14 @@ process {
                 )
                 Write-Host $msg
                 # mark distro as failed
+                $script:distroRecords[$Distro].error = 'distro uses root user'
                 $failDistros.Add($Distro) | Out-Null
                 continue
             }
         }
+
+        # determine Nix mode: explicit -Nix flag or auto-detected from distro
+        $useNix = $PSBoundParameters.Nix -or $chk.nix
 
         $scopeSet = [System.Collections.Generic.HashSet[string]]::new()
         $Scope.ForEach({ $scopeSet.Add($_) | Out-Null })
@@ -331,18 +365,10 @@ process {
             { $_.shell } { $scopeSet.Add('shell') | Out-Null }
             { $_.terraform } { $scopeSet.Add('terraform') | Out-Null }
         }
-        # add corresponding scopes
-        switch (@($scopeSet)) {
-            az { $scopeSet.Add('python') | Out-Null }
-            k8s_dev { $scopeSet.Add('k8s_base') | Out-Null }
-            k8s_ext { @('docker', 'k8s_base', 'k8s_dev').ForEach({ $scopeSet.Add($_) | Out-Null }) }
-            pwsh { $scopeSet.Add('shell') | Out-Null }
-            zsh { $scopeSet.Add('shell') | Out-Null }
-        }
-        # determine 'oh_my_posh' scope
-        if ($lx.Version -eq 2 -and ($chk.oh_my_posh -or $OmpTheme)) {
-            @('oh_my_posh', 'shell').ForEach({ $scopeSet.Add($_) | Out-Null })
-        }
+        # resolve dependencies using shared library
+        Resolve-ScopeDeps -ScopeSet $scopeSet -OmpTheme $(
+            if ($lx.Version -eq 2 -and ($chk.oh_my_posh -or $OmpTheme)) { $OmpTheme ? $OmpTheme : 'detect' } else { '' }
+        )
         # remove scopes unavailable in WSL1
         if ($lx.Version -eq 1) {
             $scopeSet.Remove('distrobox') | Out-Null
@@ -351,82 +377,68 @@ process {
             $scopeSet.Remove('oh_my_posh') | Out-Null
         }
 
-        # sort scopes for the specific installation order
-        [string[]]$scopes = $scopeSet | Sort-Object -Unique {
-            switch ($_) {
-                'docker' { 1 }
-                'k8s_base' { 2 }
-                'k8s_dev' { 3 }
-                'k8s_ext' { 4 }
-                'python' { 5 }
-                'conda' { 6 }
-                'az' { 7 }
-                'gcloud' { 8 }
-                'bun' { 9 }
-                'nodejs' { 10 }
-                'terraform' { 11 }
-                'oh_my_posh' { 12 }
-                'shell' { 13 }
-                'zsh' { 14 }
-                'pwsh' { 15 }
-                'distrobox' { 16 }
-                'rice' { 17 }
-                default { 18 }
-            }
-        }
+        # sort scopes using shared install order
+        [string[]]$scopes = Get-SortedScopes -ScopeSet $scopeSet
         # display distro name and installed scopes
         Write-Host "`n`e[95;1m${Distro}$($scopes.Count ? " :`e[0;90m $($scopes -join ', ')`e[0m" : "`e[0m")"
+        $script:distroRecords[$Distro].scopes = $scopes
+        $script:distroRecords[$Distro].useNix = $useNix
+        $script:distroRecords[$Distro].phase = 'base-setup'
         #endregion
 
         #region perform base setup
         # *fix WSL networking
-        $dnsOk = wsl.exe --distribution $Distro --exec .assets/provision/check_dns.sh
+        $dnsOk = wsl.exe --distribution $Distro --exec .assets/check/check_dns.sh
         if (-not $PSBoundParameters.FixNetwork -and $dnsOk -eq 'false') {
             $PSBoundParameters['FixNetwork'] = $FixNetwork = [System.Management.Automation.SwitchParameter]::new($true)
         }
         if ($PSBoundParameters.FixNetwork) {
             Show-LogContext 'fixing network'
             wsl/wsl_network_fix.ps1 $Distro
-            $dnsOk = wsl.exe --distribution $Distro --exec .assets/provision/check_dns.sh
+            $dnsOk = wsl.exe --distribution $Distro --exec .assets/check/check_dns.sh
         }
         if ($dnsOk -eq 'false') {
+            $script:distroRecords[$Distro].error = 'DNS resolution failed'
             Show-LogContext 'DNS resolution failed. Cannot resolve github.com from WSL. Script execution halted.' -Level ERROR
             exit 1
         }
 
         # *install certificates
-        $sslOk = wsl.exe --distribution $Distro --user root --exec .assets/provision/check_ssl.sh
+        $sslOk = wsl.exe --distribution $Distro --user root --exec .assets/check/check_ssl.sh
         if (-not $PSBoundParameters.AddCertificate -and $sslOk -ne 'true') {
             $PSBoundParameters['AddCertificate'] = $AddCertificate = [System.Management.Automation.SwitchParameter]::new($true)
         }
         if ($PSBoundParameters.AddCertificate) {
             Show-LogContext 'adding certificates in chain'
             wsl/wsl_certs_add.ps1 $Distro
-            $sslOk = wsl.exe --distribution $Distro --user root --exec .assets/provision/check_ssl.sh
+            $sslOk = wsl.exe --distribution $Distro --user root --exec .assets/check/check_ssl.sh
         }
         if ($sslOk -eq 'false') {
+            $script:distroRecords[$Distro].error = 'SSL certificate verification failed'
             Show-LogContext 'SSL certificate problem: self-signed certificate in certificate chain. Script execution halted.' -Level ERROR
             exit 1
         }
 
         # *install packages
         Show-LogContext 'updating system'
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_no_file.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
+        wsl.exe --distribution $Distro --user root --exec .assets/fix/fix_no_file.sh
+        wsl.exe --distribution $Distro --user root --exec .assets/fix/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh $chk.user
-        if ($PsCmdlet.ParameterSetName -eq 'Update' -and $chk.pixi) {
-            Show-LogContext 'updating pixi packages'
-            wsl.exe --distribution $Distro --cd ~ --exec .pixi/bin/pixi global update
+        if ($useNix) {
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base_nix.sh
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_nix.sh
+        } else {
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh $chk.user
         }
 
         # *boot setup
-        wsl.exe --distribution $Distro --user root install -m 0755 .assets/provision/autoexec.sh /etc
+        wsl.exe --distribution $Distro --user root install -m 0755 .assets/setup/autoexec.sh /etc
         if (-not $chk.wsl_boot) {
             Set-WslConf -Distro $Distro -ConfDict ([ordered]@{ boot = @{ command = '"[ -x /etc/autoexec.sh ] && /etc/autoexec.sh || true"' } })
         }
         #endregion
 
+        $script:distroRecords[$Distro].phase = 'github'
         #region setup GitHub
         # *setup GitHub CLI
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
@@ -437,16 +449,18 @@ process {
         if ($Script:gh_cfg -match 'github\.com') {
             $cmdArgs.AddRange([string[]]@('-c', ($gh_cfg -join "`n")))
         }
-        $gh_cfg = wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
+        $gh_cfg = wsl.exe --distribution $Distro --user root --exec .assets/setup/setup_gh_https.sh @cmdArgs
         if (-not $?) {
+            $script:distroRecords[$Distro].error = 'GitHub authentication failed'
             Write-Host "`nRun the script again to reconfigure GitHub authentication!`n" -ForegroundColor Yellow
             exit 1
         }
 
         # *check SSH keys and create if necessary
         $sshKey = 'id_ed25519'
-        $winKey = "$HOME\.ssh\$sshKey"
-        $winKeyPub = "$HOME\.ssh\$sshKey.pub"
+        $sshDir = [System.IO.Path]::Combine($HOME, '.ssh')
+        $winKey = [System.IO.Path]::Combine($sshDir, $sshKey)
+        $winKeyPub = [System.IO.Path]::Combine($sshDir, "$sshKey.pub")
         $sshWinPath = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))/.ssh"
 
         $winKeyExists = (Test-Path $winKey) -and (Test-Path $winKeyPub)
@@ -460,10 +474,10 @@ process {
             wsl.exe --distribution $Distro --exec sh -c $cmnd
         } elseif (-not $winKeyExists) {
             # copy WSL SSH keys to Windows
-            if (Test-Path "$HOME\.ssh") {
+            if (Test-Path $sshDir) {
                 Remove-Item $winKey, $winKeyPub -ErrorAction SilentlyContinue
             } else {
-                New-Item "$HOME\.ssh" -ItemType Directory | Out-Null
+                New-Item $sshDir -ItemType Directory | Out-Null
             }
             # build bash command to generate SSH key if needed and copy to Windows
             $cmnd = [string]::Join("`n",
@@ -475,7 +489,7 @@ process {
                 # generate new SSH key inside WSL if it does not exist
                 $cmnd = [string]::Join("`n",
                     '# generate SSH key if missing',
-                    '.assets/provision/setup_ssh.sh',
+                    '.assets/setup/setup_ssh.sh',
                     $cmnd
                 )
             }
@@ -485,7 +499,7 @@ process {
         # *add SSH key to GitHub if needed
         if ($sshStatus.sshKey -eq 'missing') {
             try {
-                $sshStatus = wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+                $sshStatus = wsl.exe --distribution $Distro --exec .assets/setup/setup_gh_ssh.sh | ConvertFrom-Json -AsHashtable -ErrorAction Stop
                 if ($sshStatus.sshKey -eq 'added') {
                     Clear-Host
                     # display message asking to authorize the SSH key
@@ -503,106 +517,83 @@ process {
         }
         #endregion
 
+        $script:distroRecords[$Distro].phase = 'scopes'
         #region install scopes
-        switch ($scopes) {
-            az {
-                Show-LogContext 'installing azure-cli'
-                wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
-                $rel_azcopy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_azcopy.sh $Script:rel_azcopy
-                continue
-            }
-            bun {
-                Show-LogContext 'installing bun'
-                wsl.exe --distribution $Distro --exec .assets/provision/install_bun.sh
-                continue
-            }
-            conda {
-                Show-LogContext 'installing conda tools'
-                wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
-                wsl.exe --distribution $Distro --exec .assets/provision/install_pixi.sh
-                continue
-            }
-            distrobox {
-                Show-LogContext 'installing distrobox'
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_podman.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_distrobox.sh $chk.user
-                continue
-            }
-            docker {
+        if ($useNix) {
+            # -- docker: WSL-specific systemd + traditional install (nix doesn't install docker) --
+            if ('docker' -in $scopes -and $lx.Version -eq 2) {
                 Show-LogContext 'installing docker'
                 if (-not $chk.systemd) {
-                    # turn on systemd for docker autostart
                     wsl/wsl_systemd.ps1 $Distro -Systemd 'true'
                     wsl.exe --shutdown
                 }
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/install_docker.sh $chk.user
-                continue
             }
-            gcloud {
-                Show-LogContext 'installing google-cloud-cli'
-                $rel_gcloud = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gcloud.sh $Script:rel_gcloud
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_gcloud_certs.sh
-                continue
+
+            # -- build nix/setup.sh arguments --
+            $nixArgs = [System.Collections.Generic.List[string]]::new()
+            $nixArgs.AddRange([string[]]@('--skip-gh-auth', 'true', '--skip-gh-ssh-key', 'true', '--skip-git-config', 'true', '--quiet-summary'))
+            if (-not $PSBoundParameters.SkipModulesUpdate) {
+                $nixArgs.Add('--update-modules')
             }
-            k8s_base {
-                Show-LogContext 'installing kubernetes base packages'
-                $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl && $($chk.k8s_base = $true)
-                $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
-                $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
-                $rel_kubecolor = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubecolor.sh $Script:rel_kubecolor
-                $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
-                continue
-            }
-            k8s_dev {
-                Show-LogContext 'installing kubernetes dev packages'
-                $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
-                $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
-                $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
-                $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
-                $rel_hubble = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_hubble.sh $Script:rel_hubble
-                $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
-                $rel_trivy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_trivy.sh $Script:rel_trivy
-                continue
-            }
-            k8s_ext {
-                wsl.exe --distribution $Distro --exec sh -c '[ -f /usr/bin/docker ] && true || false'
-                if ($?) {
-                    Show-LogContext 'installing local kubernetes tools'
-                    $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
-                    $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
-                    $rel_kind = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kind.sh $Script:rel_kind
-                } else {
-                    Show-LogContext 'docker not found, skipping local kubernetes tools installation' -Level WARNING
+            # map scopes to nix flags (exclude distrobox, docker, pwsh - installed system-wide;
+            # oh_my_posh/starship - handled via --omp-theme/--starship-theme)
+            foreach ($sc in $scopes) {
+                if ($sc -notin @('distrobox', 'docker', 'oh_my_posh', 'pwsh', 'starship')) {
+                    $nixArgs.Add("--$($sc -replace '_', '-')")
                 }
+            }
+            if ($OmpTheme) {
+                $nixArgs.AddRange([string[]]@('--omp-theme', $OmpTheme))
+            }
+
+            # -- run nix setup (packages + configure scripts + profiles) --
+            Show-LogContext 'running nix setup'
+            wsl.exe --distribution $Distro --exec nix/setup.sh @nixArgs
+            if (-not $?) {
+                Show-LogContext 'nix/setup.sh failed' -Level ERROR
+                $script:distroRecords[$Distro].error = 'nix/setup.sh failed'
+                $failDistros.Add($Distro) | Out-Null
                 continue
             }
-            nodejs {
-                Show-LogContext 'installing Node.js'
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_nodejs.sh
-                if ($AddCertificate) {
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_nodejs_certs.sh
-                }
-                continue
+
+            # -- scopes not available in nix (traditional install) --
+            if ('distrobox' -in $scopes -and $lx.Version -eq 2) {
+                Show-LogContext 'installing distrobox'
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_podman.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_distrobox.sh $chk.user
             }
-            oh_my_posh {
-                Show-LogContext 'installing oh-my-posh'
-                $rel_omp = try { wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp.version $Script:rel_omp.download_url | ConvertFrom-Json } catch { $null }
-                if ($OmpTheme) {
-                    wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme --user $chk.user
-                }
-                continue
+
+            # -- nodejs cert fix (WSL-specific, after nix installs nodejs) --
+            if ('nodejs' -in $scopes -and $AddCertificate) {
+                wsl.exe --distribution $Distro --user root --exec .assets/fix/fix_nodejs_certs.sh
             }
-            pwsh {
+
+            # -- pwsh: system-wide install + ps-modules + Az modules + WSLENV --
+            if ('pwsh' -in $scopes) {
                 Show-LogContext 'installing pwsh'
                 $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
+                $pwshOk = wsl.exe --distribution $Distro --exec sh -c 'command -v pwsh >/dev/null && echo true || echo false'
+                if ($pwshOk -ne 'true') {
+                    Show-LogContext 'pwsh installation failed, skipping PowerShell setup' -Level WARNING
+                } else {
                 # setup profiles
+                $profileArgs = [System.Collections.Generic.List[string]]::new()
+                $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--user', 'root', '--exec', '.assets/setup/setup_profile_allusers.ps1', '-UserName', $chk.user))
+                if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
                 Show-LogContext 'setting up profile for all users'
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
+                wsl.exe @profileArgs
+                $profileArgs = [System.Collections.Generic.List[string]]::new()
+                $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--exec', '.assets/setup/setup_profile_user.ps1'))
+                if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
                 Show-LogContext 'setting up profile for current user'
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
+                wsl.exe @profileArgs
+                # run nix-specific PowerShell profile setup (Nix PATH + devenv aliases)
+                # must run after pwsh install since nix/setup.sh skips it when pwsh is absent
+                Show-LogContext 'configuring nix PowerShell profile'
+                wsl.exe --distribution $Distro --exec pwsh -nop -f nix/configure/profiles.ps1
 
                 # *install PowerShell modules from ps-modules repository
-                # clone/refresh szymonos/ps-modules repository
                 $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'
                 if ($repoClone) {
                     Write-Verbose "Repository `"ps-modules`" $($repoClone -eq 1 ? 'cloned': 'refreshed') successfully."
@@ -611,10 +602,8 @@ process {
                 }
                 Show-LogContext 'installing ps-modules'
                 Write-Host "`e[32mAllUsers    :`e[0;90m do-common`e[0m"
-                wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
-                # instantiate psmodules generic lists
+                wsl.exe --distribution $Distro --user root -- ../ps-modules/module_manage.ps1 'do-common' -CleanUp
                 $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
-                # determine modules to install
                 if ('az' -in $scopes) {
                     $modules.Add('do-az') | Out-Null
                     Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
@@ -625,7 +614,7 @@ process {
                 }
                 Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
                 $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
-                wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+                wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 # *install PowerShell Az modules
                 if ('az' -in $scopes) {
                     $cmd = [string]::Join("`n",
@@ -655,59 +644,225 @@ process {
                     }
                     $pwshEnvSet = $false
                 }
-                continue
+                } # else pwshOk
             }
-            python {
-                Show-LogContext 'installing python tools'
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_python.sh
-                $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
-                $rel_prek = wsl.exe --distribution $Distro --exec .assets/provision/install_prek.sh $Script:rel_prek
-                continue
-            }
-            rice {
-                Show-LogContext 'ricing distro '
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_btop.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cmatrix.sh
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cowsay.sh
-                $rel_ff = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fastfetch.sh $Script:rel_ff
-                continue
-            }
-            shell {
-                Show-LogContext 'installing shell packages'
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fzf.sh
-                $rel_eza = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_eza.sh $Script:rel_eza
-                $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
-                $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
-                $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
-                # setup bash profiles
-                Show-LogContext 'setting up profile for all users'
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh $chk.user
-                Show-LogContext 'setting up profile for current user'
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
-                # install copilot-cli
-                Show-LogContext 'installing copilot-cli'
-                wsl.exe --distribution $Distro --exec .assets/provision/install_copilot.sh
-                continue
-            }
-            terraform {
-                Show-LogContext 'installing terraform utils'
-                $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
-                $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
-                $rel_tfl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tflint.sh $Script:rel_tfl
-                $rel_tfs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh $Script:rel_tfs
-                continue
-            }
-            zsh {
-                Show-LogContext 'installing zsh'
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/install_zsh.sh
-                # setup profiles
-                Show-LogContext 'setting up zsh profile for current user'
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.zsh
-                continue
+        } else {
+            switch ($scopes) {
+                az {
+                    Show-LogContext 'installing azure-cli'
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_azurecli_uv.sh --fix_certify true
+                    $rel_azcopy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_azcopy.sh $Script:rel_azcopy
+                    continue
+                }
+                bun {
+                    Show-LogContext 'installing bun'
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_bun.sh
+                    continue
+                }
+                conda {
+                    Show-LogContext 'installing conda tools'
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_miniforge.sh --fix_certify true
+                    continue
+                }
+                distrobox {
+                    Show-LogContext 'installing distrobox'
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_podman.sh
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_distrobox.sh $chk.user
+                    continue
+                }
+                docker {
+                    Show-LogContext 'installing docker'
+                    if (-not $chk.systemd) {
+                        # turn on systemd for docker autostart
+                        wsl/wsl_systemd.ps1 $Distro -Systemd 'true'
+                        wsl.exe --shutdown
+                    }
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_docker.sh $chk.user
+                    continue
+                }
+                gcloud {
+                    Show-LogContext 'installing google-cloud-cli'
+                    $rel_gcloud = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gcloud.sh $Script:rel_gcloud
+                    wsl.exe --distribution $Distro --user root --exec .assets/fix/fix_gcloud_certs.sh
+                    continue
+                }
+                k8s_base {
+                    Show-LogContext 'installing kubernetes base packages'
+                    $rel_kubectl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectl.sh $Script:rel_kubectl && $($chk.k8s_base = $true)
+                    $rel_kubelogin = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubelogin.sh $Script:rel_kubelogin
+                    $rel_k9s = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k9s.sh $Script:rel_k9s
+                    $rel_kubecolor = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubecolor.sh $Script:rel_kubecolor
+                    $rel_kubectx = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kubectx.sh $Script:rel_kubectx
+                    continue
+                }
+                k8s_dev {
+                    Show-LogContext 'installing kubernetes dev packages'
+                    $rel_argoroll = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_argorolloutscli.sh $Script:rel_argoroll
+                    $rel_cilium = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cilium.sh $Script:rel_cilium
+                    $rel_flux = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_flux.sh $Script:rel_flux
+                    $rel_helm = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_helm.sh $Script:rel_helm
+                    $rel_hubble = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_hubble.sh $Script:rel_hubble
+                    $rel_kustomize = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kustomize.sh $Script:rel_kustomize
+                    $rel_trivy = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_trivy.sh $Script:rel_trivy
+                    continue
+                }
+                k8s_ext {
+                    wsl.exe --distribution $Distro --exec sh -c '[ -f /usr/bin/docker ] && true || false'
+                    if ($?) {
+                        Show-LogContext 'installing local kubernetes tools'
+                        $rel_minikube = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_minikube.sh $Script:rel_minikube
+                        $rel_k3d = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_k3d.sh $Script:rel_k3d
+                        $rel_kind = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_kind.sh $Script:rel_kind
+                    } else {
+                        Show-LogContext 'docker not found, skipping local kubernetes tools installation' -Level WARNING
+                    }
+                    continue
+                }
+                nodejs {
+                    Show-LogContext 'installing Node.js'
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_nodejs.sh
+                    if ($AddCertificate) {
+                        wsl.exe --distribution $Distro --user root --exec .assets/fix/fix_nodejs_certs.sh
+                    }
+                    continue
+                }
+                oh_my_posh {
+                    Show-LogContext 'installing oh-my-posh'
+                    $rel_omp = try { wsl.exe --distribution $Distro --user root --exec .assets/provision/install_omp.sh $Script:rel_omp.version $Script:rel_omp.download_url | ConvertFrom-Json } catch { $null }
+                    if ($OmpTheme) {
+                        wsl.exe --distribution $Distro --user root --exec .assets/setup/setup_omp.sh --theme $OmpTheme --user $chk.user
+                    }
+                    continue
+                }
+                pwsh {
+                    Show-LogContext 'installing pwsh'
+                    $rel_pwsh = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_pwsh.sh $Script:rel_pwsh && $($chk.pwsh = $true)
+                    $pwshOk = wsl.exe --distribution $Distro --exec sh -c 'command -v pwsh >/dev/null && echo true || echo false'
+                    if ($pwshOk -ne 'true') {
+                        Show-LogContext 'pwsh installation failed, skipping PowerShell setup' -Level WARNING
+                    } else {
+                    # setup profiles
+                    $profileArgs = [System.Collections.Generic.List[string]]::new()
+                    $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--user', 'root', '--exec', '.assets/setup/setup_profile_allusers.ps1', '-UserName', $chk.user))
+                    if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
+                    Show-LogContext 'setting up profile for all users'
+                    wsl.exe @profileArgs
+                    $profileArgs = [System.Collections.Generic.List[string]]::new()
+                    $profileArgs.AddRange([string[]]@('--distribution', $Distro, '--exec', '.assets/setup/setup_profile_user.ps1'))
+                    if (-not $PSBoundParameters.SkipModulesUpdate) { $profileArgs.Add('-UpdateModules') }
+                    Show-LogContext 'setting up profile for current user'
+                    wsl.exe @profileArgs
+
+                    # *install PowerShell modules from ps-modules repository
+                    # clone/refresh szymonos/ps-modules repository
+                    $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'
+                    if ($repoClone) {
+                        Write-Verbose "Repository `"ps-modules`" $($repoClone -eq 1 ? 'cloned': 'refreshed') successfully."
+                    } else {
+                        Write-Error 'Cloning ps-modules repository failed.'
+                    }
+                    Show-LogContext 'installing ps-modules'
+                    Write-Host "`e[32mAllUsers    :`e[0;90m do-common`e[0m"
+                    wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+                    # instantiate psmodules generic lists
+                    $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
+                    # determine modules to install
+                    if ('az' -in $scopes) {
+                        $modules.Add('do-az') | Out-Null
+                        Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
+                    }
+                    if ('k8s_base' -in $scopes) {
+                        $modules.Add('aliases-kubectl') | Out-Null
+                        Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
+                    }
+                    Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
+                    $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
+                    wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+                    # *install PowerShell Az modules
+                    if ('az' -in $scopes) {
+                        $cmd = [string]::Join("`n",
+                            'if (-not (Get-Module -ListAvailable "Az")) {',
+                            "`tWrite-Host 'installing Az...'",
+                            "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
+                            'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
+                            "`tWrite-Host 'installing Az.ResourceGraph...'",
+                            "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
+                        )
+                        wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
+                    }
+                    # *set persistent environment variables for pwsh
+                    if ($pwshEnvSet) {
+                        $envVars = @{
+                            POWERSHELL_TELEMETRY_OPTOUT = '1'
+                            POWERSHELL_UPDATECHECK      = 'Off'
+                        }
+                        foreach ($key in $envVars.Keys) {
+                            if ([System.Environment]::GetEnvironmentVariable($key, 'User') -ne $envVars[$key]) {
+                                [System.Environment]::SetEnvironmentVariable($key, $envVars[$key], 'User')
+                            }
+                            $wslEnv = [System.Environment]::GetEnvironmentVariable('WSLENV', 'User')
+                            if ($wslEnv -notmatch "\b$key\b") {
+                                [System.Environment]::SetEnvironmentVariable('WSLENV', "${wslEnv}$($wslEnv ? ':' : '')${key}/u", 'User')
+                            }
+                        }
+                        $pwshEnvSet = $false
+                    }
+                    } # else pwshOk
+                    continue
+                }
+                python {
+                    Show-LogContext 'installing python tools'
+                    wsl.exe --distribution $Distro --user root --exec .assets/setup/setup_python.sh
+                    $rel_uv = wsl.exe --distribution $Distro --exec .assets/provision/install_uv.sh $Script:rel_uv
+                    $rel_prek = wsl.exe --distribution $Distro --exec .assets/provision/install_prek.sh $Script:rel_prek
+                    continue
+                }
+                rice {
+                    Show-LogContext 'ricing distro '
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_btop.sh
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cmatrix.sh
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_cowsay.sh
+                    $rel_ff = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fastfetch.sh $Script:rel_ff
+                    continue
+                }
+                shell {
+                    Show-LogContext 'installing shell packages'
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_fzf.sh
+                    $rel_eza = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_eza.sh $Script:rel_eza
+                    $rel_bat = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_bat.sh $Script:rel_bat
+                    $rel_rg = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_ripgrep.sh $Script:rel_rg
+                    $rel_yq = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_yq.sh $Script:rel_yq
+                    # setup bash profiles
+                    Show-LogContext 'setting up profile for all users'
+                    wsl.exe --distribution $Distro --user root --exec .assets/setup/setup_profile_allusers.sh $chk.user
+                    Show-LogContext 'setting up profile for current user'
+                    wsl.exe --distribution $Distro --exec .assets/setup/setup_profile_user.sh
+                    # install copilot-cli
+                    Show-LogContext 'installing copilot-cli'
+                    wsl.exe --distribution $Distro --exec .assets/provision/install_copilot.sh
+                    continue
+                }
+                terraform {
+                    Show-LogContext 'installing terraform utils'
+                    $rel_tf = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terraform.sh $Script:rel_tf
+                    $rel_trs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_terrascan.sh $Script:rel_trs
+                    $rel_tfl = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tflint.sh $Script:rel_tfl
+                    $rel_tfs = wsl.exe --distribution $Distro --user root --exec .assets/provision/install_tfswitch.sh $Script:rel_tfs
+                    continue
+                }
+                zsh {
+                    Show-LogContext 'installing zsh'
+                    wsl.exe --distribution $Distro --user root --exec .assets/provision/install_zsh.sh
+                    # setup profiles
+                    Show-LogContext 'setting up zsh profile for current user'
+                    wsl.exe --distribution $Distro --exec .assets/setup/setup_profile_user.zsh
+                    continue
+                }
             }
         }
         #endregion
 
+        $script:distroRecords[$Distro].phase = 'post-install'
         #region set gtk theme for wslg
         if ($lx.Version -eq 2 -and $chk.wslg) {
             $GTK_THEME = if ($GtkTheme -eq 'light') {
@@ -776,12 +931,13 @@ process {
         #endregion
 
         # mark distro as successfully set up
+        $script:distroRecords[$Distro].phase = 'complete'
         $successDistros.Add($Distro) | Out-Null
     }
     #region clone GitHub repositories
     if ($PsCmdlet.ParameterSetName -eq 'GitHub' -and $Distro -notin $failDistros) {
         Show-LogContext 'cloning GitHub repositories'
-        wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos"
+        wsl.exe --distribution $Distro --exec .assets/setup/setup_gh_repos.sh --repos "$Repos"
     }
     #endregion
 }
@@ -806,5 +962,25 @@ end {
 }
 
 clean {
+    # write install provenance record inside each processed WSL distro
+    foreach ($name in $script:distroRecords.Keys) {
+        $rec = $script:distroRecords[$name]
+        $status = if ($name -in $script:successDistros) { 'success' } else { 'failed' }
+        $irScopes = ($rec.scopes -join ' ').Trim()
+        $bashCmd = [string]::Join("`n",
+            "source .assets/lib/install_record.sh",
+            "_IR_ENTRY_POINT='wsl/$($rec.useNix ? 'nix' : 'legacy')'",
+            "_IR_SCRIPT_ROOT='`$(pwd)'",
+            "_IR_SCOPES='$irScopes'",
+            "_IR_MODE='$($rec.mode)'",
+            "_IR_PLATFORM='WSL'",
+            "write_install_record '$status' '$($rec.phase)' '$($rec.error)'"
+        )
+        try {
+            wsl.exe --distribution $name --exec bash -c $bashCmd 2>$null
+        } catch {
+            # best-effort: don't fail cleanup if WSL distro is unreachable
+        }
+    }
     Pop-Location
 }
