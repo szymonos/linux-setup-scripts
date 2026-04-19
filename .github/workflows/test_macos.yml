@@ -1,0 +1,190 @@
+name: macOS Integration Test
+
+# Triggers:
+#   1. Manual: Actions tab -> "Run workflow" button (pick runner + scopes)
+#   2. PR label: add "test:macos" label to a PR to trigger automatically
+#   3. Push to PR: runs on push if the PR already has the "test:macos" label
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: "macOS runner"
+        type: choice
+        default: macos-15
+        options:
+          - macos-15
+          - macos-26
+      scopes:
+        description: "Scope flags for setup.sh (space-separated)"
+        type: string
+        default: "--shell --python"
+
+  pull_request:
+    types: [labeled, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event.label.name || 'push' }}
+  cancel-in-progress: true
+
+jobs:
+  test-macos:
+    # Scenario: Apple Silicon macOS via Determinate installer.
+    # Validates the nix-path under its tightest constraints: bash 3.2 (system
+    # default on macOS), BSD sed, single-user Nix install. Passing this job is
+    # the macOS compatibility guarantee.
+    #
+    # Runner choice:
+    #   - macos-15 (default) - Sequoia. Current broadly-deployed corporate
+    #                          baseline; tests what most fleets actually run.
+    #   - macos-26           - Tahoe (released Sept 2025, year-based versioning).
+    #                          Forward-signal runner - opt-in via
+    #                          workflow_dispatch. Flip to default when org
+    #                          enforcement date is <=3 months out.
+    # Re-evaluate default every ~6 months or on macOS enforcement changes.
+    # See ARCHITECTURE.md "CI pipelines and validated targets" for the full map.
+    #
+    # Run on label trigger only when the label is "test:macos"
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'test:macos') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'test:macos'))
+    name: "nix/setup.sh on ${{ github.event.inputs.runner || 'macos-15' }}"
+    runs-on: ${{ github.event.inputs.runner || 'macos-15' }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Verify nix is working
+        run: |
+          nix --version
+          nix store info
+
+      - name: Run setup.sh
+        env:
+          # skip interactive prompts in CI
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          nix/setup.sh \
+            ${{ github.event.inputs.scopes || '--shell --python' }} \
+            --skip-gh-auth true \
+            --skip-gh-ssh-key true \
+            --skip-git-config true \
+            --quiet-summary
+
+      - name: Verify core binaries on PATH
+        run: |
+          echo "--- Verifying binaries ---"
+          failed=0
+          for cmd in git gh jq curl openssl; do
+            if command -v "$cmd" &>/dev/null; then
+              printf "\e[32m%-20s %s\e[0m\n" "$cmd" "$(command -v "$cmd")"
+            else
+              printf "\e[31m%-20s MISSING\e[0m\n" "$cmd"
+              failed=1
+            fi
+          done
+          [ "$failed" -eq 0 ] || exit 1
+
+      - name: Verify scope binaries on PATH
+        run: |
+          echo "--- Verifying scope binaries ---"
+          failed=0
+          scopes="${{ github.event.inputs.scopes || '--shell --python' }}"
+          bins=""
+          # map scopes to expected binaries
+          [[ "$scopes" == *"--shell"* ]] && bins="$bins fzf eza bat rg yq"
+          [[ "$scopes" == *"--python"* ]] && bins="$bins uv"
+          [[ "$scopes" == *"--pwsh"* ]] && bins="$bins pwsh"
+          [[ "$scopes" == *"--nodejs"* ]] && bins="$bins node"
+          [[ "$scopes" == *"--k8s-base"* ]] && bins="$bins kubectl k9s"
+          [[ "$scopes" == *"--terraform"* ]] && bins="$bins terraform"
+          [[ "$scopes" == *"--bun"* ]] && bins="$bins bun"
+          for cmd in $bins; do
+            if command -v "$cmd" &>/dev/null; then
+              printf "\e[32m%-20s %s\e[0m\n" "$cmd" "$(command -v "$cmd")"
+            else
+              printf "\e[31m%-20s MISSING\e[0m\n" "$cmd"
+              failed=1
+            fi
+          done
+          [ "$failed" -eq 0 ] || exit 1
+
+      - name: Verify managed block in shell profile
+        run: |
+          echo "--- Checking managed block in ~/.bashrc ---"
+          if grep -c '# >>> nix-env managed >>>' ~/.bashrc; then
+            echo "managed block present"
+          else
+            echo "ERROR: managed block not found in ~/.bashrc"
+            exit 1
+          fi
+
+      - name: Verify idempotency (second run)
+        run: |
+          echo "--- Running setup.sh a second time (idempotency check) ---"
+          nix/setup.sh \
+            --skip-gh-auth true \
+            --skip-gh-ssh-key true \
+            --skip-git-config true \
+            --quiet-summary
+          # managed block should appear exactly once
+          count=$(grep -c '# >>> nix-env managed >>>' ~/.bashrc)
+          if [ "$count" -ne 1 ]; then
+            echo "ERROR: expected 1 managed block, found $count"
+            exit 1
+          fi
+          echo "idempotency check passed"
+
+      - name: Verify install provenance record
+        run: |
+          echo "--- Checking install.json ---"
+          test -f "$HOME/.config/dev-env/install.json"
+          jq -e '.status == "success"' "$HOME/.config/dev-env/install.json"
+          echo "install.json check passed"
+
+      - name: Run bats unit tests
+        run: |
+          echo "--- Running bats tests ---"
+          bats tests/bats/test_nix_setup.bats
+
+      - name: Verify uninstaller (env-only)
+        run: |
+          echo "--- Running nix/uninstall.sh --env-only ---"
+          nix/uninstall.sh --env-only
+
+          echo "--- Checking nix-env managed block removed ---"
+          if grep -qF '# >>> nix-env managed >>>' ~/.bashrc; then
+            echo "ERROR: nix-env managed block still present"
+            exit 1
+          fi
+
+          echo "--- Checking managed env block preserved ---"
+          if ! grep -qF '# >>> managed env >>>' ~/.bashrc; then
+            echo "ERROR: managed env block missing"
+            exit 1
+          fi
+
+          echo "--- Checking nix-env config removed ---"
+          if [ -d "$HOME/.config/nix-env" ]; then
+            echo "ERROR: ~/.config/nix-env still exists"
+            exit 1
+          fi
+
+          echo "--- Checking nix-specific aliases removed ---"
+          if [ -f "$HOME/.config/bash/aliases_nix.sh" ]; then
+            echo "ERROR: aliases_nix.sh still exists"
+            exit 1
+          fi
+
+          echo "--- Checking generic config preserved ---"
+          test -f "$HOME/.config/bash/functions.sh"
+
+          echo "--- Checking Nix still installed ---"
+          test -d /nix/store
+          echo "uninstall checks passed"
