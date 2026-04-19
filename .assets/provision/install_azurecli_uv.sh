@@ -21,7 +21,11 @@ while [ $# -gt 0 ]; do
 done
 
 # check if uv installed
-[ -x "$HOME/.local/bin/uv" ] || exit 0
+[ -x "$HOME/.local/bin/uv" ] || [ -x "$HOME/.nix-profile/bin/uv" ] || exit 0
+# ensure uv is in PATH (non-login shells may not have user bin paths)
+for _p in "$HOME/.local/bin" "$HOME/.nix-profile/bin"; do
+  [[ -d "$_p" && ":$PATH:" != *":$_p:"* ]] && PATH="$_p:$PATH"
+done
 
 # create pyproject.toml in the $HOME/.azure directory
 mkdir -p "$HOME/.azure"
@@ -50,11 +54,11 @@ prerelease = "allow"
 EOF
 
 # install azure-cli
-$HOME/.local/bin/uv sync --no-cache --upgrade --directory "$HOME/.azure"
+uv sync --no-cache --upgrade --directory "$HOME/.azure"
 
 # add certificates to azurecli certify
 if $fix_certify; then
-  .assets/provision/fix_azcli_certs.sh
+  .assets/fix/fix_azcli_certs.sh
 fi
 
 # make symbolic link to az cli

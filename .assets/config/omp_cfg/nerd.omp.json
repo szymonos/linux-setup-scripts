@@ -50,9 +50,9 @@
           "type": "status"
         },
         {
-          "foreground": "#2CC7EE",
+          "foreground": "#FFE082",
           "style": "plain",
-          "template": "{{ if .SSHSession }}{{ .UserName }}<#4CD7FF>@</>{{ .HostName }} {{ end }}",
+          "template": "{{ if .SSHSession }} {{ end }}",
           "type": "session"
         },
         {

@@ -49,7 +49,7 @@ debian | ubuntu)
   trap 'rm -fr "$TMP_DIR"' EXIT
   # calculate download uri
   URL="https://deb.nodesource.com/setup_lts.x"
-  # download and install homebrew
+  # download and install nodejs setup script
   if download_file --uri "$URL" --target_dir "$TMP_DIR"; then
     chmod +x "$TMP_DIR/setup_lts.x"
     bash -c "$TMP_DIR/setup_lts.x"

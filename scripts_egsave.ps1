@@ -1,4 +1,4 @@
-#!/usr/bin/pwsh -nop
+#!/usr/bin/env pwsh
 #Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS

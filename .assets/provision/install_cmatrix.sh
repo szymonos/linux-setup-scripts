@@ -43,6 +43,7 @@ fedora)
   dnf install -y $APP
   ;;
 debian | ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update && apt-get install -y $APP
   ;;
 esac

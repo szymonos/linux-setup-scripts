@@ -43,7 +43,7 @@
         {
           "foreground": "#FFE082",
           "style": "plain",
-          "template": "{{ if .SSHSession }}{{ .UserName }}@{{ .HostName }} {{ end }}",
+          "template": "{{ if .SSHSession }}ssh {{ end }}",
           "type": "session"
         },
         {

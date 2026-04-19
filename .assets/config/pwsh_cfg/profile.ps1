@@ -34,6 +34,12 @@ if (-not $isWSL1) {
 #endregion
 
 #region environment variables and aliases
+# fast multi-location check: /usr/bin, ~/.local/bin, ~/.nix-profile/bin
+function _HasCmd ([string]$Name) {
+    (Test-Path "/usr/bin/$Name" -PathType Leaf) -or
+    (Test-Path "$HOME/.local/bin/$Name" -PathType Leaf) -or
+    (Test-Path "$HOME/.nix-profile/bin/$Name" -PathType Leaf)
+}
 [Environment]::SetEnvironmentVariable('OMP_PATH', '/usr/local/share/oh-my-posh')
 [Environment]::SetEnvironmentVariable('SCRIPTS_PATH', '/usr/local/share/powershell/Scripts')
 [Environment]::SetEnvironmentVariable('USER_SCRIPTS_PATH', "$HOME/.config/powershell/Scripts")
@@ -46,7 +52,6 @@ if (-not $isWSL1) {
     [IO.Path]::Combine($HOME, '.local', 'bin')
     [IO.Path]::Combine($HOME, '.bun', 'bin')
     [IO.Path]::Combine($HOME, '.cargo', 'bin')
-    [IO.Path]::Combine($HOME, '.pixi', 'bin')
 ) | ForEach-Object {
     if ((Test-Path $_ -PathType Container) -and $_ -notin $env:PATH.Split([IO.Path]::PathSeparator)) {
         [Environment]::SetEnvironmentVariable('PATH', [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH))
@@ -61,20 +66,8 @@ if (Test-Path $env:USER_SCRIPTS_PATH -PathType Container) {
 }
 #endregion
 
-#region initializations
-# brew
-foreach ($path in @('/home/linuxbrew/.linuxbrew', "$HOME/.linuxbrew")) {
-    if (Test-Path $path/bin/brew -PathType Leaf) {
-        (& $path/bin/brew 'shellenv') | Out-String | Invoke-Expression
-        $env:HOMEBREW_NO_ENV_HINTS = 1
-        continue
-    }
-}
-Remove-Variable path
-#endregion
-
 #region prompt
-if (-not $isWSL1 -and (Test-Path /usr/bin/oh-my-posh -PathType Leaf) -and (Test-Path "$env:OMP_PATH/theme.omp.json" -PathType Leaf)) {
+if (-not $isWSL1 -and (_HasCmd 'oh-my-posh') -and (Test-Path "$env:OMP_PATH/theme.omp.json" -PathType Leaf)) {
     oh-my-posh init pwsh --config "$env:OMP_PATH/theme.omp.json" | Invoke-Expression | Out-Null
     # disable venv prompt as it is handled in oh-my-posh theme
     [Environment]::SetEnvironmentVariable('VIRTUAL_ENV_DISABLE_PROMPT', $true)

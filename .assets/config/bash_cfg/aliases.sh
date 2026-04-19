@@ -1,3 +1,6 @@
+# guard: skip when sourced by non-bash shells (e.g. dash via /etc/profile.d/)
+[ -z "$BASH_VERSION" ] && return 0
+
 #region aliases
 export SWD=$(pwd)
 alias swd="echo $SWD"
@@ -99,5 +102,4 @@ fi
 
 [ -x /usr/bin/rg ] && alias rg='rg --ignore-case' || true
 [ -x /usr/bin/fastfetch ] && alias ff='fastfetch' || true
-[ -x /usr/local/bin/tfswitch ] && alias tfswitch="tfswitch --bin='$HOME/.local/bin/terraform'" || true
 #endregion
