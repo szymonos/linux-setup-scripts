@@ -58,8 +58,7 @@ Enterprise fit is **7/10**. Coder is validated (no-daemon CI matrix), macOS is v
 
 ### Operations
 
-- **Silent flake-update failure on network issues** (`phase_nix_profile_update_flake`). Swallows `nix flake update` errors and uses stale lock in corporate networks with flaky egress. `nix profile upgrade` is fatal (correct). This inconsistency can produce mysterious scope-resolution bugs on first run.
-- **Mutation of `~/.config/nix-env/` from transient repo.** If the repo is deleted after setup, the user's environment is orphaned but `nx doctor` still works (provenance and `uninstall.sh` survive). This is fine once documented, but the "durable state in HOME" design choice should be explicit in README.
+No open items. Previous concerns (flake-update failure on first run, env-dir mutation) resolved - see "Resolved since initial review."
 
 ### Coverage & Clarity
 
@@ -153,6 +152,8 @@ Items from the first-pass review that have since been addressed in the repo:
 - **`--unattended` flag.** Replaces the earlier `--skip-gh-auth` / `--skip-gh-ssh-key` / `--skip-git-config` trio with a single discoverable flag suitable for MDM/Ansible/Terraform.
 - **Configurable TLS probe URL.** `NIX_ENV_TLS_PROBE_URL` (default `https://www.google.com`, rationale in `ARCHITECTURE.md`). Override to use an internal endpoint on air-gapped networks.
 - **WSL-from-Windows CI gap.** Documented as a scope boundary in `ARCHITECTURE.md`: all Nix-path components are covered by the `test_linux.yml` matrix; the orchestrator layer (`wsl_setup.ps1`) remains uncovered by design.
+- **Silent flake-update on first run.** Removed the redundant `nix flake update` from first run - `nix profile add` creates `flake.lock` implicitly. `should_update_flake` now only triggers on `--upgrade`.
+- **Bootstrapper model documented.** `~/.config/nix-env/` as self-contained durable state is now an explicit design decision in `ARCHITECTURE.md`, not an undocumented side effect. Repo clone is optional after first run.
 
 ---
 

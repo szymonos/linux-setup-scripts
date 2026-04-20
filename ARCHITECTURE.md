@@ -318,6 +318,17 @@ an already-labeled PR.
 
 ## Design decisions
 
+### Bootstrapper model (repo is disposable)
+
+The tool is a bootstrapper, not a daemon or agent. A single `nix/setup.sh` run provisions a fully self-contained environment in `~/.config/nix-env/` - flake declarations, scope definitions, shell configs, health checks, and the uninstaller. After setup, the repo clone is disposable:
+
+- `nx upgrade` / `nx scope` / `nx install` operate on `~/.config/nix-env/` directly (no repo needed).
+- `nx doctor` runs health checks from the copied `nx_doctor.sh`.
+- `nix/uninstall.sh` is self-contained (removes nix-env state, preserves generic config).
+- `devenv` / `nx version` reads `~/.config/dev-env/install.json` for provenance.
+
+Keeping the repo clone is a user choice, not a requirement. It simplifies adding new scopes (`setup.sh --k8s-base`), upgrading declarations to newer versions, and re-running the full setup after OS reinstalls. Users who don't need that can delete the clone - the environment continues to work and is fully manageable via `nx` commands.
+
 ### nixpkgs-unstable with explicit upgrade semantics
 
 The flake input is `nixpkgs-unstable` - intentional, not an oversight. The target audience values "reasonably
