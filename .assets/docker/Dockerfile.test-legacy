@@ -21,7 +21,7 @@ RUN apt-get update \
     # change ownership to the ubuntu user
     && chown -R ubuntu:ubuntu /home/ubuntu/source \
     # run legacy setup as the ubuntu user
-    && su --whitelist-environment=DEBIAN_FRONTEND - ubuntu -c 'cd "$HOME/source/lss" && .assets/scripts/linux_setup.sh --skip_gh_auth true --scope "python shell rice" --omp_theme base' \
+    && su --whitelist-environment=DEBIAN_FRONTEND - ubuntu -c 'cd "$HOME/source/lss" && .assets/scripts/linux_setup.sh --unattended true --scope "python shell rice" --omp_theme base' \
     #
     # clean up
     && apt-get autoremove -y \

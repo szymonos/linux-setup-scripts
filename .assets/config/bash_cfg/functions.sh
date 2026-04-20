@@ -243,8 +243,10 @@ cert_intercept() {
     return 1
   fi
 
-  # use provided URIs or default to www.google.com
-  local uris=("${@:-www.google.com}")
+  local _default_host="${NIX_ENV_TLS_PROBE_URL:-https://www.google.com}"
+  _default_host="${_default_host#https://}"
+  _default_host="${_default_host#http://}"
+  local uris=("${@:-$_default_host}")
   local cert_bundle="$HOME/.config/certs/ca-custom.crt"
   local cert_count=0
   local skip_count=0

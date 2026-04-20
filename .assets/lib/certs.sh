@@ -8,6 +8,9 @@
 #
 # Requires: ok() helper defined by caller (printf green line).
 
+# Default TLS probe URL for MITM detection and cert interception.
+: "${NIX_ENV_TLS_PROBE_URL:=https://www.google.com}"
+
 # build_ca_bundle
 # Creates ~/.config/certs/ca-bundle.crt when ca-custom.crt is present.
 # Linux: symlinks to system CA bundle (which already contains custom certs

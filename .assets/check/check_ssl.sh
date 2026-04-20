@@ -27,12 +27,13 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 # check SSL connectivity
+: "${NIX_ENV_TLS_PROBE_URL:=https://www.google.com}"
 if command -v curl >/dev/null 2>&1; then
-  curl -sS https://www.google.com >/dev/null 2>&1 && echo true || echo false
+  curl -sS "$NIX_ENV_TLS_PROBE_URL" >/dev/null 2>&1 && echo true || echo false
 elif command -v wget >/dev/null 2>&1; then
-  wget -q --spider https://www.google.com 2>&1 && echo true || echo false
+  wget -q --spider "$NIX_ENV_TLS_PROBE_URL" 2>&1 && echo true || echo false
 elif command -v python3 >/dev/null 2>&1; then
-  python3 -c "import urllib.request; urllib.request.urlopen('https://www.google.com')" 2>/dev/null && echo true || echo false
+  python3 -c "import urllib.request; urllib.request.urlopen('$NIX_ENV_TLS_PROBE_URL')" 2>/dev/null && echo true || echo false
 else
   echo unknown
 fi

@@ -4,9 +4,8 @@
 #
 # Reads:  BASH_SOURCE (for path resolution)
 # Writes: SCRIPT_ROOT, NIX_ENV_VERSION, NIX_SRC, CONFIGURE_DIR, ENV_DIR,
-#         CONFIG_NIX, omp_theme, starship_theme, skip_gh_auth, skip_gh_ssh_key,
-#         skip_git_config, update_modules, upgrade_packages, quiet_summary,
-#         remove_scopes, any_scope, _scope_set, _ir_error, _ir_skip
+#         CONFIG_NIX, omp_theme, starship_theme, unattended, update_modules,
+#         upgrade_packages, quiet_summary, remove_scopes, any_scope, _scope_set
 
 phase_bootstrap_check_root() {
   if [[ $EUID -eq 0 ]]; then
@@ -115,9 +114,7 @@ Options:
   --upgrade                 Update flake.lock to latest nixpkgs and upgrade all packages
   --omp-theme <name>        Install oh-my-posh with theme (base, nerd, powerline, ...)
   --starship-theme <name>   Install starship with theme (base, nerd)
-  --skip-gh-auth <bool>     Skip GitHub auth setup (default: false)
-  --skip-gh-ssh-key <bool>  Skip adding SSH key to GitHub (default: false)
-  --skip-git-config <bool>  Skip interactive git config setup (default: false)
+  --unattended              Skip all interactive steps (gh auth, SSH key, git config)
   --update-modules          Update installed PowerShell modules
   -h, --help                Show this help
 EOF
@@ -126,9 +123,7 @@ EOF
 phase_bootstrap_parse_args() {
   omp_theme=""
   starship_theme=""
-  skip_gh_auth="false"
-  skip_gh_ssh_key="false"
-  skip_git_config="false"
+  unattended="false"
   update_modules="false"
   quiet_summary="false"
   upgrade_packages="false"
@@ -180,17 +175,8 @@ phase_bootstrap_parse_args() {
       fi
       continue
       ;;
-    --skip-gh-auth)
-      skip_gh_auth="${2:-false}"
-      shift
-      ;;
-    --skip-gh-ssh-key)
-      skip_gh_ssh_key="${2:-false}"
-      shift
-      ;;
-    --skip-git-config)
-      skip_git_config="${2:-false}"
-      shift
+    --unattended)
+      unattended="true"
       ;;
     --update-modules)
       update_modules="true"

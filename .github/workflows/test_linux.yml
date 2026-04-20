@@ -74,10 +74,7 @@ jobs:
         run: |
           nix/setup.sh \
             ${{ github.event.inputs.scopes || '--shell --python' }} \
-            --skip-gh-auth true \
-            --skip-gh-ssh-key true \
-            --skip-git-config true \
-            --quiet-summary
+            --unattended --quiet-summary
 
       - name: Verify core binaries on PATH
         run: |
@@ -129,11 +126,7 @@ jobs:
       - name: Verify idempotency (second run)
         run: |
           echo "--- Running setup.sh a second time (idempotency check) ---"
-          nix/setup.sh \
-            --skip-gh-auth true \
-            --skip-gh-ssh-key true \
-            --skip-git-config true \
-            --quiet-summary
+          nix/setup.sh --unattended --quiet-summary
           count=$(grep -c '# >>> nix-env managed >>>' ~/.bashrc)
           if [ "$count" -ne 1 ]; then
             echo "ERROR: expected 1 managed block, found $count"

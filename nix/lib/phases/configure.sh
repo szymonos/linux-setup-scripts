@@ -6,8 +6,8 @@
 # Writes: GITHUB_TOKEN
 
 phase_configure_gh() {
-  local skip_auth="${1:-false}" skip_ssh="${2:-false}"
-  _io_run "$CONFIGURE_DIR/gh.sh" "$skip_auth" "$skip_ssh"
+  local unattended="${1:-false}"
+  _io_run "$CONFIGURE_DIR/gh.sh" "$unattended"
   if [[ -z "${GITHUB_TOKEN:-}" ]] && command -v gh &>/dev/null && gh auth token &>/dev/null; then
     GITHUB_TOKEN="$(gh auth token 2>/dev/null)"
     export GITHUB_TOKEN
@@ -15,8 +15,8 @@ phase_configure_gh() {
 }
 
 phase_configure_git() {
-  local skip="${1:-false}"
-  if [[ "$skip" != "true" ]]; then
+  local unattended="${1:-false}"
+  if [[ "$unattended" != "true" ]]; then
     _io_run "$CONFIGURE_DIR/git.sh"
   fi
 }

@@ -54,8 +54,9 @@ phase_nix_profile_apply() {
 }
 
 phase_nix_profile_mitm_probe() {
-  local probe_url="${NIX_ENV_TLS_PROBE_URL:-https://www.google.com}"
-  if ! _io_curl_probe "$probe_url" && command -v openssl &>/dev/null; then
+  # shellcheck source=../../../.assets/lib/certs.sh
+  source "$SCRIPT_ROOT/.assets/lib/certs.sh"
+  if ! _io_curl_probe "$NIX_ENV_TLS_PROBE_URL" && command -v openssl &>/dev/null; then
     warn "SSL verification failed - MITM proxy detected, intercepting certificates..."
     # shellcheck source=../../../.assets/config/bash_cfg/functions.sh
     source "$SCRIPT_ROOT/.assets/config/bash_cfg/functions.sh"

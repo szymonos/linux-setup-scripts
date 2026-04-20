@@ -21,10 +21,8 @@ nix/setup.sh --shell --omp-theme "base"
 nix/setup.sh --shell --starship-theme "nerd"
 # :remove a scope
 nix/setup.sh --remove oh_my_posh
-# :skip GitHub authentication
-nix/setup.sh --az --skip-gh-auth true
-# :skip GitHub SSH key registration
-nix/setup.sh --az --skip-gh-ssh-key true
+# :unattended mode (skip all interactive steps - for MDM/Ansible/CI)
+nix/setup.sh --all --unattended
 # :install everything
 nix/setup.sh --all
 # :show help
@@ -103,8 +101,8 @@ phase_nix_profile_apply
 phase_nix_profile_mitm_probe
 
 _ir_phase="configure"
-phase_configure_gh "$skip_gh_auth" "$skip_gh_ssh_key"
-phase_configure_git "$skip_git_config"
+phase_configure_gh "$unattended"
+phase_configure_git "$unattended"
 phase_configure_per_scope
 
 _ir_phase="profiles"

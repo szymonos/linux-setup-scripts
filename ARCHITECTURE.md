@@ -242,10 +242,11 @@ details.
 
 Variables exported by `nix/setup.sh` for use by hooks, downstream scripts, and diagnostic tools (`nx doctor`).
 
-| Variable          | Set by     | When                         | Purpose                         |
-| ----------------- | ---------- | ---------------------------- | ------------------------------- |
-| `NIX_ENV_VERSION` | `setup.sh` | After script root resolution | Tool version (git tag/tarball)  |
-| `NIX_ENV_SCOPES`  | `setup.sh` | After scope resolution       | Space-separated resolved scopes |
+| Variable                | Set by     | When                         | Purpose                                      |
+| ----------------------- | ---------- | ---------------------------- | -------------------------------------------- |
+| `NIX_ENV_VERSION`       | `setup.sh` | After script root resolution | Tool version (git tag/tarball)               |
+| `NIX_ENV_SCOPES`        | `setup.sh` | After scope resolution       | Space-separated resolved scopes              |
+| `NIX_ENV_TLS_PROBE_URL` | `certs.sh` | On source                    | TLS probe URL for MITM detection (see below) |
 
 `NIX_ENV_VERSION` uses a three-step fallback: `git describe --tags --dirty`, then a `VERSION` file (present in
 release tarballs, absent in the repo), then `"unknown"`. The same chain is used by `install_record.sh` for
@@ -375,6 +376,14 @@ Linux-only scripts may use `set -euo pipefail` since they run bash 5.x where emp
 Many enterprise environments use MITM TLS inspection proxies that replace upstream certificates. The solution
 intercepts proxy certificates at setup time and configures tools via environment variables (`NODE_EXTRA_CA_CERTS`,
 `REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`, `UV_SYSTEM_CERTS`). See `docs/corporate_proxy.md` for operational details.
+
+**TLS probe URL** (`NIX_ENV_TLS_PROBE_URL`, default `https://www.google.com`): used by MITM detection
+(`phase_nix_profile_mitm_probe`), SSL connectivity checks (`check_ssl.sh`), and certificate interception
+(`cert_intercept`). The default is defined in `.assets/lib/certs.sh` as the single source of truth. Override via
+environment variable to use an internal endpoint. The default was chosen because `www.google.com` is (a) reachable
+from virtually every network that has internet access, (b) almost universally subject to MITM TLS inspection when a
+proxy is present, and (c) does not depend on any project-specific infrastructure (e.g. `nixos.org` could be
+allowlisted or unreachable on air-gapped networks that still have filtered internet).
 
 Alternatives considered and why they were not adopted:
 

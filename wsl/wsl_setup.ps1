@@ -532,7 +532,7 @@ process {
 
             # -- build nix/setup.sh arguments --
             $nixArgs = [System.Collections.Generic.List[string]]::new()
-            $nixArgs.AddRange([string[]]@('--skip-gh-auth', 'true', '--skip-gh-ssh-key', 'true', '--skip-git-config', 'true', '--quiet-summary'))
+            $nixArgs.AddRange([string[]]@('--unattended', '--quiet-summary'))
             if (-not $PSBoundParameters.SkipModulesUpdate) {
                 $nixArgs.Add('--update-modules')
             }

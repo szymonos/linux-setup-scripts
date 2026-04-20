@@ -251,9 +251,7 @@ Describe 'wsl_setup.ps1 orchestration' {
             $nixArgs = $nixCall -join ' '
             $nixArgs | Should -Match '--shell'
             $nixArgs | Should -Match '--python'
-            $nixArgs | Should -Match '--skip-gh-auth true'
-            $nixArgs | Should -Match '--skip-gh-ssh-key true'
-            $nixArgs | Should -Match '--skip-git-config true'
+            $nixArgs | Should -Match '--unattended'
         }
     }
 

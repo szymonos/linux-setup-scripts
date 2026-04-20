@@ -16,8 +16,8 @@ omp_theme="nerd"
 .assets/scripts/linux_setup.sh --omp_theme "$omp_theme" --scope "$scope"
 # :upgrade system first and then set up the system
 .assets/scripts/linux_setup.sh --sys_upgrade true --scope "$scope" --omp_theme "$omp_theme"
-# :skip GitHub authentication setup
-.assets/scripts/linux_setup.sh --skip_gh_auth true --scope "$scope" --omp_theme "$omp_theme"
+# :unattended mode (skip all interactive steps)
+.assets/scripts/linux_setup.sh --unattended true --scope "$scope" --omp_theme "$omp_theme"
 # :set up the system using Nix package manager
 .assets/scripts/linux_setup.sh --nix true --scope "$scope"
 .assets/scripts/linux_setup.sh --nix true --scope "$scope" --omp_theme "$omp_theme"
@@ -36,7 +36,7 @@ scope=${scope}
 omp_theme=${omp_theme}
 nix=${nix:-false}
 sys_upgrade=${sys_upgrade:-false}
-skip_gh_auth=${skip_gh_auth:-false}
+unattended=${unattended:-false}
 update_modules="${update_modules:-false}"
 while [ $# -gt 0 ]; do
   if [[ $1 == *"--"* ]]; then
@@ -125,7 +125,7 @@ printf "\e[95m$NAME$([ "${#scope_arr[@]}" -gt 0 ] && echo " : \e[3m${scope_arr[*
 
 _ir_phase="github"
 # *setup GitHub CLI
-if [ "$skip_gh_auth" = true ]; then
+if [ "$unattended" = true ]; then
   printf "\e[32mSkipping gh installation and authentication setup.\e[0m\n" >&2
 else
   sudo .assets/provision/install_gh.sh
@@ -162,7 +162,7 @@ if [ "$nix" = true ]; then
     esac
   done
   # build nix/setup.sh arguments
-  nix_args=(--skip-gh-auth true --skip-gh-ssh-key true --quiet-summary)
+  nix_args=(--unattended --quiet-summary)
   [ "$update_modules" = true ] && nix_args+=(--update-modules)
   for sc in "${scope_arr[@]}"; do
     # exclude scopes handled traditionally above or not available in nix

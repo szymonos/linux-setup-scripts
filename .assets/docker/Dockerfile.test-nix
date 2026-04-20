@@ -38,8 +38,7 @@ SHELL ["/bin/bash", "-c"]
 
 RUN curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon
 
-RUN nix/setup.sh --shell --rice --python \
-        --skip-gh-auth true --skip-gh-ssh-key true --skip-git-config true
+RUN nix/setup.sh --shell --rice --python --unattended
 
 # Verify key binaries are in the nix profile
 RUN set -e \

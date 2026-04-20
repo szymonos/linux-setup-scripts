@@ -463,14 +463,16 @@ _scope_pkgs() {
   [[ "$upgrade_packages" == "true" ]]
 }
 
-@test "parse_args: --skip-gh-auth sets flag" {
-  phase_bootstrap_parse_args --skip-gh-auth true
-  [[ "$skip_gh_auth" == "true" ]]
+@test "parse_args: --unattended sets flag" {
+  phase_bootstrap_parse_args --unattended
+  [[ "$unattended" == "true" ]]
 }
 
-@test "parse_args: --skip-git-config sets flag" {
-  phase_bootstrap_parse_args --skip-git-config true
-  [[ "$skip_git_config" == "true" ]]
+@test "parse_args: --unattended combines with scope flags" {
+  phase_bootstrap_parse_args --shell --python --unattended
+  [[ "$unattended" == "true" ]]
+  scope_has "shell"
+  scope_has "python"
 }
 
 @test "parse_args: --update-modules sets flag" {
@@ -494,7 +496,7 @@ _scope_pkgs() {
   phase_bootstrap_parse_args
   [[ "$any_scope" == "false" ]]
   [[ "$upgrade_packages" == "false" ]]
-  [[ "$skip_gh_auth" == "false" ]]
+  [[ "$unattended" == "false" ]]
   [[ "$update_modules" == "false" ]]
   [[ "$omp_theme" == "" ]]
   [[ "$starship_theme" == "" ]]

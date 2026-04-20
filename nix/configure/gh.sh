@@ -2,22 +2,19 @@
 # Configure GitHub CLI authentication and SSH key (cross-platform)
 : '
 nix/configure/gh.sh
-# skip gh authentication
+# skip all interactive steps (unattended mode)
 nix/configure/gh.sh true
-# skip both gh authentication and SSH key registration
-nix/configure/gh.sh true true
 '
 set -eo pipefail
 
-skip_gh_auth="${1:-false}"
-skip_gh_ssh_key="${2:-false}"
+unattended="${1:-false}"
 
 info()  { printf "\e[96m%s\e[0m\n" "$*"; }
 ok()    { printf "\e[32m%s\e[0m\n" "$*"; }
 warn()  { printf "\e[33m%s\e[0m\n" "$*" >&2; }
 
-if [[ "$skip_gh_auth" == "true" ]]; then
-  info "skipping GitHub authentication setup."
+if [[ "$unattended" == "true" ]]; then
+  info "skipping GitHub authentication setup (unattended)."
   exit 0
 fi
 
@@ -37,11 +34,6 @@ if [[ ! -f "$SSH_KEY" ]]; then
   info "generating SSH key..."
   mkdir -p "$HOME/.ssh"
   ssh-keygen -t ed25519 -f "$SSH_KEY" -N "" -q
-fi
-
-if [[ "$skip_gh_ssh_key" == "true" ]]; then
-  info "skipping GitHub SSH key registration."
-  exit 0
 fi
 
 # determine hostname label
