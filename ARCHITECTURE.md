@@ -327,9 +327,9 @@ than ~6 weeks risks cold source builds anyway.
 To avoid silent breakage, `setup.sh` does **not** implicitly run `nix flake update` on scope-only changes. The
 upgrade path is explicit:
 
-- `nix/setup.sh` (first run) - resolves `unstable` HEAD, writes `$ENV_DIR/flake.lock`.
+- `nix/setup.sh` (first run) - `nix profile add` resolves `unstable` HEAD and writes `$ENV_DIR/flake.lock` implicitly.
 - `nix/setup.sh` (subsequent) - re-uses existing lock, applies scope changes only.
-- `nix/setup.sh --upgrade` - explicit: updates `flake.lock` to latest nixpkgs, then upgrades.
+- `nix/setup.sh --upgrade` - explicit: runs `nix flake update` to refresh `flake.lock`, then upgrades.
 - `nx upgrade` - same as above but from the shell alias (runs `nix flake update` + `nix profile upgrade`).
 - `nx rollback` - wraps `nix profile rollback`.
 

@@ -6,9 +6,8 @@
 # Writes: PINNED_REV, _ir_error
 
 should_update_flake() {
-  local env_dir="$1" upgrade_flag="$2"
+  local upgrade_flag="${1:-false}"
   [[ "$upgrade_flag" == "true" ]] && return 0
-  [[ ! -f "$env_dir/flake.lock" ]] && return 0
   return 1
 }
 
@@ -20,10 +19,10 @@ phase_nix_profile_load_pinned_rev() {
 }
 
 phase_nix_profile_print_mode() {
-  if should_update_flake "$ENV_DIR" "$upgrade_packages"; then
-    if [[ ! -f "$ENV_DIR/flake.lock" ]]; then
-      info "first run - resolving nixpkgs and installing..."
-    elif [[ -n "$PINNED_REV" ]]; then
+  if [[ ! -f "$ENV_DIR/flake.lock" ]]; then
+    info "first run - resolving nixpkgs and installing..."
+  elif should_update_flake "$upgrade_packages"; then
+    if [[ -n "$PINNED_REV" ]]; then
       info "pinning nixpkgs to $PINNED_REV..."
     else
       info "upgrading all packages to latest (nix flake update + profile upgrade)..."
@@ -35,7 +34,7 @@ phase_nix_profile_print_mode() {
 
 phase_nix_profile_update_flake() {
   SECONDS=0
-  if should_update_flake "$ENV_DIR" "$upgrade_packages"; then
+  if should_update_flake "$upgrade_packages"; then
     if [[ -n "$PINNED_REV" ]]; then
       _io_nix flake lock --override-input nixpkgs "github:nixos/nixpkgs/$PINNED_REV" --flake "$ENV_DIR" 2>/dev/null ||
         warn "flake lock failed - using existing lock"

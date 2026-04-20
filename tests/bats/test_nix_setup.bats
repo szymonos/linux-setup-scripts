@@ -383,24 +383,12 @@ _scope_pkgs() {
 # Upgrade path (should_update_flake)
 # =============================================================================
 
-@test "upgrade: first run (no flake.lock) triggers update" {
-  rm -f "$TEST_ENV_DIR/flake.lock"
-  should_update_flake "$TEST_ENV_DIR" "false"
+@test "upgrade: --upgrade flag triggers update" {
+  should_update_flake "true"
 }
 
-@test "upgrade: --upgrade flag triggers update even with existing lock" {
-  touch "$TEST_ENV_DIR/flake.lock"
-  should_update_flake "$TEST_ENV_DIR" "true"
-}
-
-@test "upgrade: subsequent run without --upgrade skips update" {
-  touch "$TEST_ENV_DIR/flake.lock"
-  ! should_update_flake "$TEST_ENV_DIR" "false"
-}
-
-@test "upgrade: --upgrade with no flake.lock still triggers update" {
-  rm -f "$TEST_ENV_DIR/flake.lock"
-  should_update_flake "$TEST_ENV_DIR" "true"
+@test "upgrade: without --upgrade skips update" {
+  ! should_update_flake "false"
 }
 
 # =============================================================================
