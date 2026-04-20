@@ -8,11 +8,11 @@
 
 ## Executive Summary
 
-**Verdict: Strong engineering. Enterprise distribution layer is the gap, not the code.**
+**Verdict: Strong engineering. Enterprise distribution layer is the remaining gap.**
 
-Code quality is **8/10** - above-average for ops tooling with proper error handling, test coverage, explicit design trade-offs in `ARCHITECTURE.md`, and deliberate multi-language schema design (`scopes.json` consumed natively by bash/PowerShell/Python). Engineering decisions show genuine enterprise experience (MITM proxy handling, install provenance, managed blocks, portable bash 3.2). Ceiling is ~9/10 after end-to-end integration tests and phase extraction from `setup.sh`.
+Code quality is **9/10** - above-average for ops tooling with proper error handling, test coverage, explicit design trade-offs in `ARCHITECTURE.md`, deliberate multi-language schema design (`scopes.json` consumed natively by bash/PowerShell/Python), and a slim phase-based orchestrator (`nix/setup.sh` ~120 lines sourcing `nix/lib/phases/`) that isolates side effects behind testable `_io_*` stubs. Ceiling is ~9.5/10 after adding an end-to-end integration test spanning all three platforms.
 
-Enterprise fit is **6/10** because **the entire solution is contingent on Nix being approvable in the target organization**. Coder compatibility is validated (no-daemon CI matrix), macOS is validated (Determinate installer workflow), but the enterprise distribution layer - fleet pinning, unattended mode, MDM integration, telemetry contract - is absent by design (deferred to downstream fork per `enterprise_notes.md`). Reaches 7/10 after the four Must-do items, 8/10 after Phase 1 + MDM PoC. Ceiling is ~8/10 for the base repo; the enterprise fork is where 9-10 lives.
+Enterprise fit is **7/10**. Coder is validated (no-daemon CI matrix), macOS is validated (Determinate installer workflow), `--unattended` mode and configurable TLS probe URL (`NIX_ENV_TLS_PROBE_URL`) are in place. The remaining in-repo gap is defaulting to a pinned nixpkgs revision; downstream items (MDM integration, telemetry contract, fleet IDP) are deferred to the enterprise fork by design. Ceiling is ~8/10 for the base repo; 9-10 lives in the enterprise fork.
 
 ---
 
@@ -35,11 +35,14 @@ Enterprise fit is **6/10** because **the entire solution is contingent on Nix be
 
 - **Bash 3.2 constraint enforced via pre-commit** (`check_bash32.py`). Most projects claim "portable bash" and drift silently. This one actually stays true.
 - **Test coverage exists** (13 bats test files, 9 Pester suites). Uncommon for ops tooling. CI validates daemon + no-daemon on Linux, Determinate installer on macOS.
+- **Coder compatibility via the `no-daemon` CI matrix** (`.github/workflows/test_linux.yml`). The rootless single-user Nix install is exactly the Coder/devcontainer scenario (no systemd, no root in the runtime image), so passing that job is the compatibility guarantee. No dedicated Coder runner needed.
+- **Slim phase-based orchestrator.** `nix/setup.sh` (~120 lines) reads as a phase-by-phase narrative; each phase lives in `nix/lib/phases/` and is independently sourceable by bats. Side-effecting operations (`nix`, `curl`, external scripts) are routed through `nix/lib/io.sh` wrappers (`_io_nix`, `_io_nix_eval`, `_io_curl_probe`, `_io_run`) that tests override by function redefinition - no PATH tricks.
 - **Explicit design rationale**: `set -eo pipefail` without `-u` (bash 3.2 array handling), dual prompt engines (oh-my-posh for latency-insensitive macOS/WSL, starship for Coder), dual Python managers (conda for binary packages, uv for venv workflows), corporate proxy MITM detection with tool-specific env vars.
 
 ### Enterprise Readiness
 
-- **MITM proxy handling** (`setup.sh:474-479`, `docs/corporate_proxy.md`) shows real corporate network experience. Intercepts certificates, sets `NODE_EXTRA_CA_CERTS`, `REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`, `UV_SYSTEM_CERTS`, and VS Code Server `~/.vscode-server/server-env-setup`.
+- **MITM proxy handling** (`phase_nix_profile_mitm_probe`, `docs/corporate_proxy.md`) shows real corporate network experience. Intercepts certificates, sets `NODE_EXTRA_CA_CERTS`, `REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`, `UV_SYSTEM_CERTS`, and VS Code Server `~/.vscode-server/server-env-setup`. Probe URL configurable via `NIX_ENV_TLS_PROBE_URL`; default rationale documented in `ARCHITECTURE.md`.
+- **`--unattended` mode** is a first-class flag. MDM/Ansible/Terraform rollouts work without TTY (`phase_configure_gh`/`phase_configure_git` receive the flag and skip interactive paths).
 - **Version identity** (`NIX_ENV_VERSION` from git tags → VERSION file in tarballs → `devenv` function) enables fleet tracking.
 - **Structured planning** (`implementation_plan.md`) breaks remaining work (Distribution + Docs) into sized phases. Phase 3 (Enterprise/IDP) defers to downstream fork without over-engineering the base.
 
@@ -47,28 +50,20 @@ Enterprise fit is **6/10** because **the entire solution is contingent on Nix be
 
 ## Weaknesses
 
-### Design
-
-- **`setup.sh` is 590 lines.** Readable now but crossing 500-line threshold suggests extracting phases into `lib/phases/{bootstrap,scope,profile,post}.sh` or porting the orchestrator to a typed language (Go/Rust).
-
 ### Enterprise Distribution
 
-- **`nixpkgs-unstable` by default.** The rationale in `ARCHITECTURE.md:279-298` is honest ("target audience values current tooling") but conflicts with "aimed for big company." Enterprise needs SBOMs, reproducibility, supply-chain attestation, staged upgrade cadences. The `pinned_rev` opt-in per-user is not a fleet-level control. **Recommendation:** Default to a pinned revision shipped in the repo; make `unstable` opt-in via `NIX_ENV_UNPIN=1`. Flip the current default.
+- **`nixpkgs-unstable` by default.** The rationale in `ARCHITECTURE.md` is honest ("target audience values current tooling") but conflicts with "aimed for big company." Enterprise needs SBOMs, reproducibility, supply-chain attestation, staged upgrade cadences. The `pinned_rev` opt-in per-user is not a fleet-level control. **Recommendation:** Default to a pinned revision shipped in the repo; make `unstable` opt-in via `NIX_ENV_UNPIN=1`. Flip the current default.
 - **No fleet-level pinning enforcement.** Each user can pin independently (`pinned_rev`), but there's no org-tier pinning. Enterprise rollouts need a "all machines on nixpkgs revision X until signed by IT" contract.
-- **Mutation without version guard.** `setup.sh` copies repo files to `~/.config/nix-env/` via `cp` without checking if an older version is already installed. If two repo clones run on one machine, last one wins silently. `NIX_ENV_VERSION` is recorded but not compared on disk.
-- **Interactive auth gates unattended rollout.** `gh.sh` and `git.sh` require TTY input by default. `--skip-gh-auth` and `--skip-git-config` exist but are not discoverable. **Recommendation:** Add `--unattended` flag that enables all `--skip-*` flags and fails loudly if anything requires TTY. This is table stakes for MDM/Ansible/Terraform rollouts.
 - **No fleet telemetry scaffold.** `install.json` is per-machine. For corporate scale, document a standard `post-setup.d/99-report.sh` pattern that POSTs to an internal endpoint. Don't build telemetry, but make the contract explicit.
 
 ### Operations
 
-- **MITM probe uses `curl https://www.google.com`** (`setup.sh:474`). Unreliable: google.com can be blocked independent of TLS inspection, DNS-dependent, ties behavior to a US public domain. **Recommendation:** Make it configurable via `NIX_ENV_TLS_PROBE_URL` with a fallback to `https://nixos.org` (functionally relevant to the user).
-- **Silent flake-update failure on network issues** (`setup.sh:462`). Swallows `nix flake update` errors and uses stale lock in corporate networks with flaky egress. `nix profile upgrade` is fatal (correct). This inconsistency can produce mysterious scope-resolution bugs on first run.
-- **Mutation of `~/.config/nix-env/` from transient repo.** If repo is deleted after setup, the user's environment is orphaned but `nx doctor` still works (provenance and uninstall.sh survive). This is actually fine once documented, but the "durable state in HOME" design choice should be explicit in README.
+- **Silent flake-update failure on network issues** (`phase_nix_profile_update_flake`). Swallows `nix flake update` errors and uses stale lock in corporate networks with flaky egress. `nix profile upgrade` is fatal (correct). This inconsistency can produce mysterious scope-resolution bugs on first run.
+- **Mutation of `~/.config/nix-env/` from transient repo.** If the repo is deleted after setup, the user's environment is orphaned but `nx doctor` still works (provenance and `uninstall.sh` survive). This is fine once documented, but the "durable state in HOME" design choice should be explicit in README.
 
 ### Coverage & Clarity
 
-- **Coder coverage is implicit via the `no-daemon` CI matrix** (`.github/workflows/test_linux.yml`). The rootless single-user Nix install is exactly the Coder/devcontainer scenario (no systemd, no root in the runtime image), so passing that job implies Coder compatibility. A comment has been added to the workflow making this explicit. No dedicated Coder runner is needed - this was initially flagged as a gap in the first-pass review and is retracted.
-- **Platform matrix (WSL/macOS/Coder) + Language matrix (bash/PowerShell/Nix) + Constraint matrix (bash 3.2/4+/5+) is high cognitive load.** The `ARCHITECTURE.md` mitigates this, but the matrix itself is the real risk. Simplifying would help (e.g., "bash 5+ everywhere except macOS system sh," "PowerShell only on WSL host").
+- **Platform matrix (WSL/macOS/Coder) + Language matrix (bash/PowerShell/Nix) + Constraint matrix (bash 3.2/4+/5+) is high cognitive load.** `ARCHITECTURE.md` mitigates this, but the matrix itself is the real risk. Simplifying would help (e.g., "bash 5+ everywhere except macOS system sh," "PowerShell only on WSL host").
 - **Legacy path still shipped.** Coexistence increases surface. The `entry_point` taxonomy (`legacy/nix`, `wsl/legacy`) signals it will live longer than "until migrated." Every month it lives doubles the test matrix and maintenance burden.
 
 ### Testing
@@ -124,21 +119,16 @@ Supporting Fedora/Debian/Ubuntu/Arch/OpenSUSE/Alpine is generous but pays a main
 
 1. **Validate Nix assumption.** Confirm with InfoSec/Platform that Nix is acceptable and `install.determinate.systems` is reachable. Nothing else matters if this fails.
 2. **Default to pinned nixpkgs.** Add `nix/default_rev` (or bake the SHA into `flake.nix`). Make unstable opt-in via flag. Flip the current default.
-3. **First-class `--unattended` mode.** Sets all `--skip-*`, fails on TTY requirement. Required for MDM/Ansible/Terraform.
-4. **Replace MITM probe URL.** Make `NIX_ENV_TLS_PROBE_URL` configurable; default to a functionally relevant target (not google.com).
 
 ### Should-do (unblocks enterprise patterns)
 
 1. **Add fleet telemetry scaffold.** Document `post-setup.d/99-report.sh` pattern. Don't implement, but standardize the contract.
-2. **Version-on-disk check.** Refuse to overwrite `~/.config/nix-env/` from an older `NIX_ENV_VERSION` without `--force-downgrade`.
-3. **Extract `setup.sh` phases.** Once crossing 600 lines, move to `lib/phases/{bootstrap,scope,profile,post}.sh` or typed language.
-4. **End-to-end integration test.** CI should run `nix/setup.sh --all` across macOS, Linux, and WSL.
+2. **End-to-end integration test.** CI should run `nix/setup.sh --all` across macOS, Linux, and WSL.
 
 ### Nice-to-have (quality)
 
 1. **Simplify the platform/language matrix.** Document which combinations are actually tested: macOS via Determinate installer, Linux daemon mode, Linux no-daemon mode (which covers Coder / rootless containers). PowerShell only on WSL host. Kill unnecessary branches.
 2. **Migrate legacy path to separate repo or tag it for deletion.** Every month it lives doubles maintenance.
-3. **Close the WSL-from-Windows end-to-end gap.** `test_linux.yml` already validates Linux daemon + rootless/Coder; macOS has its own workflow. The remaining untested path is `wsl_setup.ps1` orchestrating from a Windows host.
 
 ---
 
@@ -155,27 +145,38 @@ Do not change these:
 
 ---
 
+## Resolved since initial review
+
+Items from the first-pass review that have since been addressed in the repo:
+
+- **`setup.sh` phase extraction.** Orchestrator is now ~120 lines sourcing `nix/lib/phases/{bootstrap,platform,scopes,nix_profile,configure,profiles,post_install,summary}.sh`, with `nix/lib/io.sh` providing stubbable side-effect wrappers. Pattern documented in `ARCHITECTURE.md`.
+- **`--unattended` flag.** Replaces the earlier `--skip-gh-auth` / `--skip-gh-ssh-key` / `--skip-git-config` trio with a single discoverable flag suitable for MDM/Ansible/Terraform.
+- **Configurable TLS probe URL.** `NIX_ENV_TLS_PROBE_URL` (default `https://www.google.com`, rationale in `ARCHITECTURE.md`). Override to use an internal endpoint on air-gapped networks.
+- **WSL-from-Windows CI gap.** Documented as a scope boundary in `ARCHITECTURE.md`: all Nix-path components are covered by the `test_linux.yml` matrix; the orchestrator layer (`wsl_setup.ps1`) remains uncovered by design.
+
+---
+
 ## Implementation Roadmap
 
 Based on `implementation_plan.md`, the path to enterprise readiness is:
 
-| Phase    | Work                                                            | Effort | Blocker?                         |
-| -------- | --------------------------------------------------------------- | ------ | -------------------------------- |
-| Pre-work | Validate Nix approval                                           | 0.5 d  | YES                              |
-| 1        | Release tarball + CI                                            | 1.5 d  | No (but needed for distribution) |
-| 2        | User/ops docs + README                                          | 1 d    | No (helps adoption)              |
-| 3        | Enterprise fork work (IDP, overlay fetch, telemetry, policy)    | TBD    | No (deferred to downstream)      |
-| Gaps     | Fleet pinning, unattended mode, MITM URL, version-on-disk guard | ~2 d   | No (but improves enterprise UX)  |
+| Phase    | Work                                                         | Effort | Blocker?                         |
+| -------- | ------------------------------------------------------------ | ------ | -------------------------------- |
+| Pre-work | Validate Nix approval                                        | 0.5 d  | YES                              |
+| 1        | Release tarball + CI                                         | 1.5 d  | No (but needed for distribution) |
+| 2        | User/ops docs + README                                       | 1 d    | No (helps adoption)              |
+| 3        | Enterprise fork work (IDP, overlay fetch, telemetry, policy) | TBD    | No (deferred to downstream)      |
+| Gaps     | Pinned nixpkgs default, telemetry scaffold, e2e test         | ~1.5 d | No (but improves enterprise UX)  |
 
 **Recommended order:**
 
 1. Nix approval validation (decision-gate)
-2. Gaps above (enterprise UX improvements, ~2 days)
+2. Gaps above (enterprise UX improvements, ~1.5 days)
 3. Phase 1 (distribution, ~1.5 days)
 4. Phase 2 (docs, ~1 day)
 5. Enterprise fork starts (reference implementation in `enterprise_notes.md`)
 
-Total: ~5.5 days of work if Nix is approved.
+Total: ~4.5 days of work if Nix is approved.
 
 ---
 
