@@ -27,11 +27,13 @@ Homebrew installs packages. Nix provisions environments - declaratively, atomica
 
 Golden images are the default enterprise answer to environment standardization. They fail in developer workstation contexts for several reasons:
 
-**WSL cannot be golden-imaged.** Microsoft does not support creating or distributing custom WSL disk images through MDM. WSL is the most popular development environment on enterprise Windows - any solution that cannot provision it is incomplete by definition.
+**WSL golden images require disproportionate effort.** Building a custom WSL disk image is technically possible, but it demands a custom build pipeline, manual distribution, and ongoing maintenance - significantly more effort than a bootstrapper that provisions WSL in minutes from a single PowerShell command. WSL is the most popular development environment on enterprise Windows; any solution that cannot provision it easily is incomplete in practice.
 
 **Images go stale immediately.** A golden image is a snapshot. The day after distribution, packages are outdated. Every update requires a new build-test-distribute cycle through the MDM pipeline. Developers either wait for the next image refresh or install tools manually on top - re-creating the inconsistency the image was supposed to prevent.
 
-**Images cannot handle MITM proxy certificates.** Corporate TLS inspection proxies issue certificates that are per-network and per-site. A golden image baked in a build environment without proxy inspection will fail when a developer connects through the corporate VPN. The proxy certificates must be detected and configured at runtime, on the developer's actual network - not at image build time.
+**Images solve certificates at the wrong layer.** A golden image can ship with corporate CA certificates pre-installed, covering the OS trust store and some frameworks. But certificates expire - when they do, every deployed image needs a rebuild or a separate automation to rotate certs, which is exactly the tooling this solution already provides. More fundamentally, golden images resolve certificate trust at the system level and for some framework-level paths, but not all execution paths. An application not launched via bash will not see environment variables set in a bash profile. Different frameworks consult different certificate stores. This tool resolves MITM certificate issues at runtime, independently of how each framework is launched, covering execution paths that images cannot reach.
+
+**Images cannot handle diverse network environments.** Vendors and contractors typically cannot receive golden images - they work on their own hardware. This solution is far more accessible: clone the repo, run the setup. Additionally, contractors connecting through external networks often encounter different MITM certificate chains than internal employees. A golden image baked against the internal proxy will fail on a contractor's network. Runtime certificate interception handles both scenarios transparently.
 
 **Images are all-or-nothing.** A data scientist and a platform engineer need different toolchains. Golden images either ship everything (bloated, slow to distribute) or require multiple image variants (multiplied maintenance). Scopes solve this: `--shell --python` for the data scientist, `--shell --k8s-dev --terraform` for the platform engineer, from the same base.
 
@@ -80,4 +82,4 @@ This tool is a **bootstrapper**: it runs once, provisions a self-contained envir
 - `nx doctor` runs health checks - no monitoring agent needed
 - The repository clone is disposable - all state is local
 
-The bootstrapper model means zero operational overhead: no agent to monitor, no server to maintain, no network dependency for day-to-day use. The tool provisions the environment and gets out of the way.
+The bootstrapper model means zero operational overhead: no agent to monitor, no server to maintain, no network dependency for day-to-day use. The tool provisions the environment and gets out of the way. From there, developers can continue using the repo individually to manage their environment, or teams and organizations can distribute overlays to extend and customize capabilities - without contributing to the upstream repository.

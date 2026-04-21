@@ -146,17 +146,34 @@ See [Architecture](architecture.md) for the full reference and [Design Decisions
 
 ## Getting started
 
-```bash
-# 1. Install Nix (one-time, requires root/admin)
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+=== "WSL (Windows)"
 
-# 2. Clone and run
-git clone https://github.com/szymonos/linux-setup-scripts.git
-cd linux-setup-scripts
-nix/setup.sh --shell --python --pwsh
+    Run from **PowerShell on the Windows host**. The script installs the WSL distro if needed, sets up Nix inside it, and provisions the environment end-to-end - including certificate propagation from Windows:
 
-# 3. Restart your shell
-exec $SHELL
-```
+    ```powershell
+    git clone https://github.com/szymonos/linux-setup-scripts.git
+    cd linux-setup-scripts
+    wsl/wsl_setup.ps1 'Ubuntu' -Nix -s @('shell', 'python', 'pwsh')
+    ```
+
+=== "macOS"
+
+    Nix is installed automatically by `nix/setup.sh` via the [Determinate Systems](https://determinate.systems/) installer if not already present - no manual pre-installation needed:
+
+    ```bash
+    git clone https://github.com/szymonos/linux-setup-scripts.git
+    cd linux-setup-scripts
+    nix/setup.sh --shell --python --pwsh
+    ```
+
+=== "Coder / containers"
+
+    For rootless environments where Nix is pre-installed (no daemon, no root). The same `nix/setup.sh` works without any special flags using the upstream installer with `--no-daemon` flag:
+
+    ```bash
+    git clone https://github.com/szymonos/linux-setup-scripts.git
+    cd linux-setup-scripts
+    nix/setup.sh --shell --python --pwsh
+    ```
 
 After setup, the repository clone can be removed - the environment is fully self-contained in `~/.config/nix-env/`.
