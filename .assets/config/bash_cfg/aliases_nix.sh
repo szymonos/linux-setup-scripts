@@ -1,6 +1,3 @@
-# guard: skip when sourced by non-bash shells (e.g. dash via /etc/profile.d/)
-[ -z "$BASH_VERSION" ] && return 0
-
 #region common aliases
 # navigation
 alias ..='cd ../'
@@ -1012,24 +1009,26 @@ EOF
     esac
   }
 
-  # bash completion for nx
-  _nx_completions() {
-    local cur prev
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD - 1]}"
+  # bash completion for nx (bash-only builtins: COMP_WORDS, compgen, complete)
+  if [ -n "$BASH_VERSION" ]; then
+    _nx_completions() {
+      local cur prev
+      cur="${COMP_WORDS[COMP_CWORD]}"
+      prev="${COMP_WORDS[COMP_CWORD - 1]}"
 
-    if [ "$COMP_CWORD" -eq 1 ]; then
-      while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "search install remove upgrade rollback pin list scope overlay profile doctor prune gc version help" -- "$cur")
-    elif [ "$COMP_CWORD" -eq 2 ] && [ "$prev" = "scope" ]; then
-      while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "list show tree add edit remove" -- "$cur")
-    elif [ "$COMP_CWORD" -eq 2 ] && [ "$prev" = "overlay" ]; then
-      while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "list status help" -- "$cur")
-    elif [ "$COMP_CWORD" -eq 2 ] && [ "$prev" = "pin" ]; then
-      while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "set remove show help" -- "$cur")
-    elif [ "$COMP_CWORD" -eq 2 ] && [ "$prev" = "profile" ]; then
-      while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "doctor migrate uninstall help" -- "$cur")
-    fi
-  }
-  complete -F _nx_completions nx
+      if [ "$COMP_CWORD" -eq 1 ]; then
+        while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "search install remove upgrade rollback pin list scope overlay profile doctor prune gc version help" -- "$cur")
+      elif [ "$COMP_CWORD" -eq 2 ] && [ "$prev" = "scope" ]; then
+        while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "list show tree add edit remove" -- "$cur")
+      elif [ "$COMP_CWORD" -eq 2 ] && [ "$prev" = "overlay" ]; then
+        while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "list status help" -- "$cur")
+      elif [ "$COMP_CWORD" -eq 2 ] && [ "$prev" = "pin" ]; then
+        while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "set remove show help" -- "$cur")
+      elif [ "$COMP_CWORD" -eq 2 ] && [ "$prev" = "profile" ]; then
+        while IFS= read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "doctor migrate uninstall help" -- "$cur")
+      fi
+    }
+    complete -F _nx_completions nx
+  fi
 fi
 #endregion

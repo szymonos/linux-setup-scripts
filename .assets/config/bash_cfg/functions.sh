@@ -1,8 +1,6 @@
 : '
 . .assets/config/bash_cfg/functions.sh
 '
-# guard: skip when sourced by non-bash shells (e.g. dash via /etc/profile.d/)
-[ -z "$BASH_VERSION" ] && return 0
 
 # *Function to display system information in a user-friendly format
 sysinfo() {
