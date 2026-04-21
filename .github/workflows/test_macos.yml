@@ -73,6 +73,19 @@ jobs:
             ${{ github.event.inputs.scopes || '--shell --python --pwsh --k8s-dev --terraform --omp-theme base' }} \
             --unattended --quiet-summary
 
+      - name: Source nix profile for subsequent steps
+        run: |
+          for p in "$HOME/.nix-profile/etc/profile.d/nix.sh" \
+                   /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; do
+            if [ -f "$p" ]; then
+              # shellcheck source=/dev/null
+              . "$p"
+              break
+            fi
+          done
+          echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+          printenv PATH | tr ':' '\n' | grep nix >> "$GITHUB_PATH" || true
+
       - name: Verify nix is working
         run: |
           nix --version
@@ -233,18 +246,9 @@ jobs:
           echo "Verification results:"
           any_failed=false
 
-          steps='
-            core-bins:Core binaries
-            scope-bins:Scope binaries
-            nx-doctor:nx doctor
-            managed-block:Managed block
-            idempotency:Idempotency
-            provenance:Install provenance
-            bats:Bats unit tests
-            uninstaller:Uninstaller
-          '
-
-          for entry in $steps; do
+          while IFS= read -r entry; do
+            entry="${entry#"${entry%%[![:space:]]*}"}"
+            [ -z "$entry" ] && continue
             id="${entry%%:*}"
             label="${entry#*:}"
             outcome=""
@@ -260,7 +264,16 @@ jobs:
             esac
             echo "$(gh_to_emoji "$outcome") $label : $outcome"
             [ "$outcome" = "failure" ] && any_failed=true
-          done
+          done <<'STEPS'
+            core-bins:Core binaries
+            scope-bins:Scope binaries
+            nx-doctor:nx doctor
+            managed-block:Managed block
+            idempotency:Idempotency
+            provenance:Install provenance
+            bats:Bats unit tests
+            uninstaller:Uninstaller
+          STEPS
 
           echo ""
           if [ "$any_failed" = "true" ]; then

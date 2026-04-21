@@ -225,18 +225,9 @@ jobs:
           echo "Verification results:"
           any_failed=false
 
-          steps='
-            core-bins:Core binaries
-            scope-bins:Scope binaries
-            nx-doctor:nx doctor
-            managed-block:Managed block
-            idempotency:Idempotency
-            provenance:Install provenance
-            bats:Bats unit tests
-            uninstaller:Uninstaller
-          '
-
-          for entry in $steps; do
+          while IFS= read -r entry; do
+            entry="${entry#"${entry%%[![:space:]]*}"}"
+            [ -z "$entry" ] && continue
             id="${entry%%:*}"
             label="${entry#*:}"
             outcome=""
@@ -252,7 +243,16 @@ jobs:
             esac
             echo "$(gh_to_emoji "$outcome") $label : $outcome"
             [ "$outcome" = "failure" ] && any_failed=true
-          done
+          done <<'STEPS'
+            core-bins:Core binaries
+            scope-bins:Scope binaries
+            nx-doctor:nx doctor
+            managed-block:Managed block
+            idempotency:Idempotency
+            provenance:Install provenance
+            bats:Bats unit tests
+            uninstaller:Uninstaller
+          STEPS
 
           echo ""
           if [ "$any_failed" = "true" ]; then

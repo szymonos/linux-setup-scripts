@@ -57,7 +57,7 @@ _install_nix_darwin() {
   local candidate
   # prefer < 500 (macOS system band - hidden from login screen by default)
   # 300/400 are commonly reserved by macOS system services
-  for candidate in 350 450 4000; do
+  for candidate in 350 450 460 470 480 490 4000; do
     if _darwin_id_range_free "$candidate"; then
       id_base=$candidate
       break
