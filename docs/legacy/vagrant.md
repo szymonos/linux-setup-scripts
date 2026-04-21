@@ -93,7 +93,7 @@ vagrant plugin install vagrant-reload
 ## Vagrant home location
 
 The Vagrant home directory is where things such as boxes are stored, so it can actually become quite large on disk.  
-To change it, set the `VAGRANT_HOME` enviroment variable to some other location:
+To change it, set the `VAGRANT_HOME` environment variable to some other location:
 
 ```PowerShell
 [Environment]::SetEnvironmentVariable('VAGRANT_HOME', 'F:/Virtual Machines/.vagrant.d', 'Machine')

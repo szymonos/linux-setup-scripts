@@ -23,7 +23,7 @@ wsl/pwsh_setup.ps1
 # Git distributed version control system
 winget install --id Git.Git
 
-# Other usefull tools/applications
+# Other useful tools/applications
 winget install --id Microsoft.WindowsTerminal
 winget install --id Microsoft.VisualStudioCode
 winget install --id gerardog.gsudo

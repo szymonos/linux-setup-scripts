@@ -12,6 +12,12 @@ repos:
         entry: python3 -m tests.hooks.gremlins
         language: system
         types: [text]
+      - id: validate-docs-words
+        name: validate docs words
+        entry: python3 -m tests.hooks.validate_docs_words
+        language: system
+        pass_filenames: false
+        files: (README|docs/.+)\.md$
       - id: align-tables
         name: align markdown tables
         entry: python3 -m tests.hooks.align_tables
@@ -67,6 +73,18 @@ repos:
       - id: markdownlint-cli2
         files: \.md$
         exclude: /copilot-instructions\.md
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v9.7.0
+    hooks:
+      - id: cspell
+        files: (README|docs/.+)\.md$
+      - id: cspell
+        name: check commit message spelling
+        args:
+          - --no-must-find-files
+          - --no-progress
+          - --no-summary
+        stages: [commit-msg]
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.11.0
     hooks:
