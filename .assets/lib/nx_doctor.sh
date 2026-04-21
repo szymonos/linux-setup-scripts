@@ -2,7 +2,9 @@
 : '
 # run health check
 bash .assets/lib/nx_doctor.sh
-# run with JSON output
+# :strict mode (warnings are failures)
+bash .assets/lib/nx_doctor.sh --strict
+# :JSON output
 bash .assets/lib/nx_doctor.sh --json
 '
 set -eo pipefail
@@ -12,9 +14,16 @@ DEV_ENV_DIR="${DEV_ENV_DIR:-$HOME/.config/dev-env}"
 
 _dr_pass=0 _dr_fail=0 _dr_warn=0
 _dr_json="false"
+_dr_strict="false"
 _dr_checks=""
 
-[ "${1:-}" = "--json" ] && _dr_json="true"
+while [ $# -gt 0 ]; do
+  case "$1" in
+  --json) _dr_json="true" ;;
+  --strict) _dr_strict="true" ;;
+  esac
+  shift
+done
 
 _check() {
   local name="$1" status="$2" detail="${3:-}"
@@ -202,4 +211,8 @@ else
   fi
 fi
 
-[ "$_dr_fail" -eq 0 ] || exit 1
+if [ "$_dr_strict" = "true" ]; then
+  [ $((_dr_fail + _dr_warn)) -eq 0 ] || exit 1
+else
+  [ "$_dr_fail" -eq 0 ] || exit 1
+fi

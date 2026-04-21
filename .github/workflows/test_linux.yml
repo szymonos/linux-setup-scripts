@@ -40,14 +40,17 @@ jobs:
         include:
           - name: daemon     # WSL / bare-metal Linux / managed macOS scenario
             nix-method: determinate
+            default-scopes: "--shell --python --pwsh --k8s-dev --terraform --omp-theme base"
           - name: no-daemon  # Coder / rootless container scenario
             nix-method: no-daemon
+            default-scopes: "--shell --python --pwsh --k8s-dev --terraform --starship-theme base"
 
     name: "nix/setup.sh (${{ matrix.name }})"
     runs-on: ubuntu-slim
     timeout-minutes: 30
 
     steps:
+      # ---- critical steps (fail-fast) ----------------------------------------
       - name: Checkout code
         uses: actions/checkout@v6
 
@@ -73,10 +76,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           nix/setup.sh \
-            ${{ github.event.inputs.scopes || '--shell --python' }} \
+            ${{ github.event.inputs.scopes || matrix.default-scopes }} \
             --unattended --quiet-summary
 
+      # ---- verification steps (continue-on-error, summary at end) ------------
       - name: Verify core binaries on PATH
+        id: core-bins
+        continue-on-error: true
         run: |
           echo "--- Verifying binaries ---"
           failed=0
@@ -91,16 +97,19 @@ jobs:
           [ "$failed" -eq 0 ] || exit 1
 
       - name: Verify scope binaries on PATH
+        id: scope-bins
+        continue-on-error: true
         run: |
           echo "--- Verifying scope binaries ---"
           failed=0
-          scopes="${{ github.event.inputs.scopes || '--shell --python' }}"
+          scopes="${{ github.event.inputs.scopes || matrix.default-scopes }}"
           bins=""
           [[ "$scopes" == *"--shell"* ]] && bins="$bins fzf eza bat rg yq"
           [[ "$scopes" == *"--python"* ]] && bins="$bins uv"
           [[ "$scopes" == *"--pwsh"* ]] && bins="$bins pwsh"
           [[ "$scopes" == *"--nodejs"* ]] && bins="$bins node"
           [[ "$scopes" == *"--k8s-base"* ]] && bins="$bins kubectl k9s"
+          [[ "$scopes" == *"--k8s-dev"* ]] && bins="$bins helm kustomize trivy"
           [[ "$scopes" == *"--terraform"* ]] && bins="$bins terraform"
           [[ "$scopes" == *"--bun"* ]] && bins="$bins bun"
           for cmd in $bins; do
@@ -113,7 +122,14 @@ jobs:
           done
           [ "$failed" -eq 0 ] || exit 1
 
+      - name: Run nx doctor
+        id: nx-doctor
+        continue-on-error: true
+        run: bash "$HOME/.config/nix-env/nx_doctor.sh" --strict
+
       - name: Verify managed block in shell profile
+        id: managed-block
+        continue-on-error: true
         run: |
           echo "--- Checking managed block in ~/.bashrc ---"
           if grep -c '# >>> nix-env managed >>>' ~/.bashrc; then
@@ -124,6 +140,8 @@ jobs:
           fi
 
       - name: Verify idempotency (second run)
+        id: idempotency
+        continue-on-error: true
         run: |
           echo "--- Running setup.sh a second time (idempotency check) ---"
           nix/setup.sh --unattended --quiet-summary
@@ -135,6 +153,8 @@ jobs:
           echo "idempotency check passed"
 
       - name: Verify install provenance record
+        id: provenance
+        continue-on-error: true
         run: |
           echo "--- Checking install.json ---"
           test -f "$HOME/.config/dev-env/install.json"
@@ -142,11 +162,15 @@ jobs:
           echo "install.json check passed"
 
       - name: Run bats unit tests
+        id: bats
+        continue-on-error: true
         run: |
           echo "--- Running bats tests ---"
           bats tests/bats/test_nix_setup.bats
 
       - name: Verify uninstaller (env-only)
+        id: uninstaller
+        continue-on-error: true
         run: |
           echo "--- Running nix/uninstall.sh --env-only ---"
           nix/uninstall.sh --env-only
@@ -181,3 +205,59 @@ jobs:
           echo "--- Checking Nix still installed ---"
           test -d /nix/store
           echo "uninstall checks passed"
+
+      # ---- summary -----------------------------------------------------------
+      - name: Show verification summary
+        if: always()
+        run: |
+          set -euo pipefail
+
+          gh_to_emoji() {
+            case "$1" in
+              success) echo "✅" ;;
+              failure) echo "❌" ;;
+              skipped) echo "⏭️" ;;
+              *) echo "❓" ;;
+            esac
+          }
+
+          echo ""
+          echo "Verification results:"
+          any_failed=false
+
+          steps='
+            core-bins:Core binaries
+            scope-bins:Scope binaries
+            nx-doctor:nx doctor
+            managed-block:Managed block
+            idempotency:Idempotency
+            provenance:Install provenance
+            bats:Bats unit tests
+            uninstaller:Uninstaller
+          '
+
+          for entry in $steps; do
+            id="${entry%%:*}"
+            label="${entry#*:}"
+            outcome=""
+            case "$id" in
+              core-bins)     outcome="${{ steps.core-bins.outcome }}" ;;
+              scope-bins)    outcome="${{ steps.scope-bins.outcome }}" ;;
+              nx-doctor)     outcome="${{ steps.nx-doctor.outcome }}" ;;
+              managed-block) outcome="${{ steps.managed-block.outcome }}" ;;
+              idempotency)   outcome="${{ steps.idempotency.outcome }}" ;;
+              provenance)    outcome="${{ steps.provenance.outcome }}" ;;
+              bats)          outcome="${{ steps.bats.outcome }}" ;;
+              uninstaller)   outcome="${{ steps.uninstaller.outcome }}" ;;
+            esac
+            echo "$(gh_to_emoji "$outcome") $label : $outcome"
+            [ "$outcome" = "failure" ] && any_failed=true
+          done
+
+          echo ""
+          if [ "$any_failed" = "true" ]; then
+            echo "❌ Some verification steps failed"
+            exit 1
+          else
+            echo "✅ All verification steps passed"
+          fi

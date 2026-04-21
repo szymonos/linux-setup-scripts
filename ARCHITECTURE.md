@@ -279,7 +279,8 @@ Useful for reproducible builds or fleet-wide cohort pinning without shipping a r
 
 `nx doctor` runs read-only health checks against the nix-env managed environment. Implemented in
 `.assets/lib/nx_doctor.sh`, copied to `~/.config/nix-env/nx_doctor.sh` during setup so it remains available after
-the repo is removed.
+the repo is removed. By default only FAILs produce a non-zero exit; `--strict` treats warnings as failures too (used
+in CI).
 
 **Checks:**
 
@@ -307,15 +308,17 @@ scenario.
 | ------------------ | -------------------------- | ----------------------------------------------------------------------------------------------- |
 | `test_linux.yml`   | `ubuntu-slim`, `daemon`    | Multi-user Nix install (WSL, bare-metal Linux, managed macOS via equivalent path).              |
 | `test_linux.yml`   | `ubuntu-slim`, `no-daemon` | Single-user rootless Nix install. Covers Coder / devcontainer (no systemd, no root at runtime). |
-| `test_macos.yml`   | `macos-14` (default), `15` | Apple Silicon macOS via Determinate installer. Validates bash 3.2 + BSD sed constraints.        |
+| `test_macos.yml`   | `macos-15` (default), `26` | Apple Silicon macOS via Determinate installer. Validates bash 3.2 + BSD sed constraints.        |
 | `repo_checks.yml`  | pre-commit hooks           | `check_bash32`, `validate_scopes`, ShellCheck, lint.                                            |
 | `build_docker.yml` | container build            | Docker image for legacy path (not nix).                                                         |
 
 **Test-per-run assertions** (both integration workflows):
 
-- `setup.sh` completes with requested scope flags (`--shell --python` default).
+- `setup.sh` completes with requested scope flags (defaults include `--shell --python --pwsh --k8s-dev --terraform`
+  plus a prompt engine: `--omp-theme base` on daemon/macOS, `--starship-theme base` on no-daemon).
 - Core binaries (`git`, `gh`, `jq`, `curl`, `openssl`) resolve on PATH.
 - Scope-specific binaries resolve (mapped from scope flags).
+- `nx doctor --strict` passes (warnings and failures both break the build).
 - `# >>> nix-env managed >>>` block exists in `~/.bashrc` exactly once.
 - Second `setup.sh` invocation produces exactly one managed block (idempotency).
 - `install.json` written with `status = "success"`.
