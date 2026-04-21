@@ -2,8 +2,9 @@ name: Linux Integration Test
 
 # Triggers:
 #   1. Manual: Actions tab -> "Run workflow" button (pick mode + scopes)
-#   2. PR label: add "test:linux" label to a PR to trigger automatically
+#   2. PR label: add "test:linux" label to a PR (runs with --shell only)
 #   3. Push to PR: runs on push if the PR already has the "test:linux" label
+# Use manual dispatch for full scope coverage; label triggers are fast smoke tests.
 
 on:
   workflow_dispatch:
@@ -11,7 +12,7 @@ on:
       scopes:
         description: "Scope flags for setup.sh (space-separated)"
         type: string
-        default: "--shell --python"
+        default: "--shell --python --pwsh --k8s-dev --terraform --omp-theme base"
 
   pull_request:
     types: [labeled, synchronize]
@@ -40,10 +41,10 @@ jobs:
         include:
           - name: daemon     # WSL / bare-metal Linux / managed macOS scenario
             nix-method: determinate
-            default-scopes: "--shell --python --pwsh --k8s-dev --terraform --omp-theme base"
+            default-scopes: "--shell --omp-theme base"
           - name: no-daemon  # Coder / rootless container scenario
             nix-method: no-daemon
-            default-scopes: "--shell --python --pwsh --k8s-dev --terraform --starship-theme base"
+            default-scopes: "--shell --starship-theme base"
 
     name: "nix/setup.sh (${{ matrix.name }})"
     runs-on: ubuntu-slim

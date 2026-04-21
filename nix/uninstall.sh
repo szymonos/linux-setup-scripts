@@ -224,18 +224,7 @@ run_phase1() {
   _clean_ps_nix_regions "$HOME/.config/powershell/profile.ps1"
   _clean_ps_nix_regions "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1"
 
-  # 1e. Remove nix profile entry
-  if command -v nix &>/dev/null; then
-    if nix profile list 2>/dev/null | grep -q 'nix-env'; then
-      if [[ "$DRY_RUN" == "true" ]]; then
-        printf "\e[90m  would remove nix profile entry 'nix-env'\e[0m\n"
-      else
-        nix profile remove nix-env 2>/dev/null && ok "  removed nix profile entry 'nix-env'"
-      fi
-    fi
-  fi
-
-  # 1f. Remove durable state directories and nix-specific config files
+  # 1e. Remove durable state directories and nix-specific config files
   info "removing nix-env config and state files..."
   _rm "$ENV_DIR"
   _rm "$HOME/.config/bash/aliases_nix.sh"
@@ -243,7 +232,7 @@ run_phase1() {
   _rm "$HOME/.config/powershell/Scripts/_aliases_nix.ps1"
   _rm "$HOME/.config/starship.toml"
 
-  # 1g. Remove zsh plugins installed by profiles.zsh
+  # 1f. Remove zsh plugins installed by profiles.zsh
   info "removing zsh plugins..."
   for plugin in zsh-autocomplete zsh-make-complete zsh-autosuggestions zsh-syntax-highlighting; do
     _rm "$HOME/.zsh/$plugin"
@@ -252,10 +241,22 @@ run_phase1() {
     rmdir "$HOME/.zsh" 2>/dev/null && removed "$HOME/.zsh (empty)" || true
   fi
 
-  # 1h. Remove miniforge/conda if installed
+  # 1g. Remove miniforge/conda if installed
   if [[ -d "$HOME/miniforge3" ]]; then
     info "removing miniforge3..."
     _rm "$HOME/miniforge3"
+  fi
+
+  # 1h. Remove nix profile entry (after all _rm calls - removing the profile
+  #     earlier would break tools resolved through ~/.nix-profile/bin).
+  if command -v nix &>/dev/null; then
+    if nix profile list 2>/dev/null | grep -q 'nix-env'; then
+      if [[ "$DRY_RUN" == "true" ]]; then
+        printf "\e[90m  would remove nix profile entry 'nix-env'\e[0m\n"
+      else
+        nix profile remove nix-env 2>/dev/null && ok "  removed nix profile entry 'nix-env'"
+      fi
+    fi
   fi
 
   # 1i. Remove nix profile symlink and local state

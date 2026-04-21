@@ -2,8 +2,9 @@ name: macOS Integration Test
 
 # Triggers:
 #   1. Manual: Actions tab -> "Run workflow" button (pick runner + scopes)
-#   2. PR label: add "test:macos" label to a PR to trigger automatically
+#   2. PR label: add "test:macos" label to a PR (runs with --shell only)
 #   3. Push to PR: runs on push if the PR already has the "test:macos" label
+# Use manual dispatch for full scope coverage; label triggers are fast smoke tests.
 
 on:
   workflow_dispatch:
@@ -70,7 +71,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           nix/setup.sh \
-            ${{ github.event.inputs.scopes || '--shell --python --pwsh --k8s-dev --terraform --omp-theme base' }} \
+            ${{ github.event.inputs.scopes || '--shell --omp-theme base' }} \
             --unattended --quiet-summary
 
       - name: Source nix profile for subsequent steps
@@ -121,7 +122,7 @@ jobs:
         run: |
           echo "--- Verifying scope binaries ---"
           failed=0
-          scopes="${{ github.event.inputs.scopes || '--shell --python --pwsh --k8s-dev --terraform --omp-theme base' }}"
+          scopes="${{ github.event.inputs.scopes || '--shell --omp-theme base' }}"
           bins=""
           # map scopes to expected binaries
           [[ "$scopes" == *"--shell"* ]] && bins="$bins fzf eza bat rg yq"
