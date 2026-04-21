@@ -136,14 +136,24 @@ _render_zsh_block() {
     printf '[ -f "$HOME/.config/bash/aliases_kubectl.sh" ] && . "$HOME/.config/bash/aliases_kubectl.sh"\n'
   fi
 
-  # 5. fzf integration
-  if command -v fzf &>/dev/null; then
+  # 5. zsh plugins (must come before completions - zsh-autocomplete calls compinit
+  #    which defines compdef, needed by uv/kubectl/fzf completions below)
+  printf '\n# :zsh plugins\n'
+  for plugin in "${ZSH_PLUGIN_ORDER[@]}"; do
+    local file="${ZSH_PLUGIN_FILES[$plugin]}"
+    if [[ -f "$ZSH_PLUGIN_DIR/$plugin/$file" ]]; then
+      printf 'source "$HOME/.zsh/%s/%s"\n' "$plugin" "$file"
+    fi
+  done
+
+  # 6. fzf integration
+  if [[ -x "$HOME/.nix-profile/bin/fzf" ]]; then
     printf '\n# :fzf\n'
     printf '[ -x "$HOME/.nix-profile/bin/fzf" ] && eval "$(fzf --zsh)"\n'
   fi
 
-  # 6. uv / uvx completion
-  if command -v uv &>/dev/null; then
+  # 7. uv / uvx completion
+  if [[ -x "$HOME/.nix-profile/bin/uv" ]]; then
     printf '\n# :uv\n'
     printf 'if [ -x "$HOME/.nix-profile/bin/uv" ]; then\n'
     printf '  export UV_SYSTEM_CERTS=true\n'
@@ -152,34 +162,25 @@ _render_zsh_block() {
     printf 'fi\n'
   fi
 
-  # 7. kubectl completion
-  if command -v kubectl &>/dev/null; then
+  # 8. kubectl completion
+  if [[ -x "$HOME/.nix-profile/bin/kubectl" ]]; then
     printf '\n# :kubectl\n'
     printf 'if [ -x "$HOME/.nix-profile/bin/kubectl" ]; then\n'
     printf '  source <(kubectl completion zsh)\n'
     printf 'fi\n'
   fi
 
-  # 8. oh-my-posh prompt
-  if command -v oh-my-posh &>/dev/null && [[ -f "$HOME/.config/nix-env/omp/theme.omp.json" ]]; then
+  # 9. oh-my-posh prompt
+  if [[ -x "$HOME/.nix-profile/bin/oh-my-posh" ]] && [[ -f "$HOME/.config/nix-env/omp/theme.omp.json" ]]; then
     printf '\n# :oh-my-posh\n'
     printf '[ -x "$HOME/.nix-profile/bin/oh-my-posh" ] && eval "$(oh-my-posh init zsh --config $HOME/.config/nix-env/omp/theme.omp.json)"\n'
   fi
 
-  # 9. starship prompt
-  if command -v starship &>/dev/null; then
+  # 10. starship prompt
+  if [[ -x "$HOME/.nix-profile/bin/starship" ]]; then
     printf '\n# :starship\n'
     printf '[ -x "$HOME/.nix-profile/bin/starship" ] && eval "$(starship init zsh)"\n'
   fi
-
-  # 10. zsh plugins
-  printf '\n# :zsh plugins\n'
-  for plugin in "${ZSH_PLUGIN_ORDER[@]}"; do
-    local file="${ZSH_PLUGIN_FILES[$plugin]}"
-    if [[ -f "$ZSH_PLUGIN_DIR/$plugin/$file" ]]; then
-      printf 'source "$HOME/.zsh/%s/%s"\n' "$plugin" "$file"
-    fi
-  done
 
   # 11. keybindings
   printf '\n# :keybindings\n'

@@ -101,13 +101,13 @@ _render_bash_block() {
   fi
 
   # 5. fzf integration
-  if command -v fzf &>/dev/null; then
+  if [ -x "$HOME/.nix-profile/bin/fzf" ]; then
     printf '\n# :fzf\n'
     printf '[ -x "$HOME/.nix-profile/bin/fzf" ] && eval "$(fzf --bash)"\n'
   fi
 
   # 6. uv / uvx completion
-  if command -v uv &>/dev/null; then
+  if [ -x "$HOME/.nix-profile/bin/uv" ]; then
     printf '\n# :uv\n'
     printf 'if [ -x "$HOME/.nix-profile/bin/uv" ]; then\n'
     printf '  export UV_SYSTEM_CERTS=true\n'
@@ -117,7 +117,7 @@ _render_bash_block() {
   fi
 
   # 7. kubectl completion
-  if command -v kubectl &>/dev/null; then
+  if [ -x "$HOME/.nix-profile/bin/kubectl" ]; then
     printf '\n# :kubectl\n'
     printf 'if [ -x "$HOME/.nix-profile/bin/kubectl" ]; then\n'
     printf '  source <(kubectl completion bash)\n'
@@ -133,14 +133,14 @@ elif [ -f makefile ]; then grep -oE '\''^[a-zA-Z0-9_-]+:([^=]|$)'\'' makefile | 
 fi)" make\n'
 
   # 9. oh-my-posh prompt
-  if command -v oh-my-posh &>/dev/null && [ -f "$HOME/.config/nix-env/omp/theme.omp.json" ]; then
+  if [ -x "$HOME/.nix-profile/bin/oh-my-posh" ] && [ -f "$HOME/.config/nix-env/omp/theme.omp.json" ]; then
     printf '\n# :oh-my-posh\n'
     # shellcheck disable=SC2016
     printf '[ -x "$HOME/.nix-profile/bin/oh-my-posh" ] && eval "$(oh-my-posh init bash --config $HOME/.config/nix-env/omp/theme.omp.json)"\n'
   fi
 
   # 10. starship prompt
-  if command -v starship &>/dev/null; then
+  if [ -x "$HOME/.nix-profile/bin/starship" ]; then
     printf '\n# :starship\n'
     # shellcheck disable=SC2016
     printf '[ -x "$HOME/.nix-profile/bin/starship" ] && eval "$(starship init bash)"\n'
