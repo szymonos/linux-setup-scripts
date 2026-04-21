@@ -73,7 +73,7 @@ _install_nix_darwin() {
     exit 1
   fi
 
-  local install_args=(install)
+  local install_args=(install --no-confirm)
   if [ "$id_base" -ne 350 ]; then
     install_args+=(--nix-build-group-id "$id_base" --nix-build-user-id-base "$id_base")
     info "using custom GID $id_base and UID base $id_base"
