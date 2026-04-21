@@ -79,3 +79,8 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Architecture: architecture.md
+  - Design Decisions: decisions.md
+  - Quality & Testing: standards.md
+  - Enterprise Readiness: enterprise.md
+  - Corporate Proxy: proxy.md
+  - Customization: customization.md
