@@ -170,7 +170,9 @@ fi
 
 # -- 7. nix_profile -----------------------------------------------------------
 if command -v nix >/dev/null 2>&1; then
-  if nix profile list 2>/dev/null | grep -q 'nix-env'; then
+  if nix profile list --json 2>/dev/null | grep -q 'nix-env'; then
+    _check "nix_profile" "pass"
+  elif nix profile list 2>/dev/null | grep -q 'nix-env'; then
     _check "nix_profile" "pass"
   else
     _check "nix_profile" "fail" "nix-env not found in nix profile list"

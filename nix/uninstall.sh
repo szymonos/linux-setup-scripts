@@ -250,7 +250,8 @@ run_phase1() {
   # 1h. Remove nix profile entry (after all _rm calls - removing the profile
   #     earlier would break tools resolved through ~/.nix-profile/bin).
   if command -v nix &>/dev/null; then
-    if nix profile list 2>/dev/null | grep -q 'nix-env'; then
+    if nix profile list --json 2>/dev/null | grep -q 'nix-env' \
+       || nix profile list 2>/dev/null | grep -q 'nix-env'; then
       if [[ "$DRY_RUN" == "true" ]]; then
         printf "\e[90m  would remove nix profile entry 'nix-env'\e[0m\n"
       else

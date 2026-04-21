@@ -144,7 +144,9 @@ phase_bootstrap_install_jq() {
   scopes = [];
 }
 BOOTSTRAP
-    _io_nix profile add "path:$ENV_DIR" 2>/dev/null || true
+    if ! _io_nix profile add "path:$ENV_DIR" 2>&1; then
+      warn "nix profile add failed (may already exist) - continuing with upgrade"
+    fi
     _io_nix profile upgrade nix-env ||
       { _ir_error="nix bootstrap failed"; err "$_ir_error"; exit 1; }
   fi
