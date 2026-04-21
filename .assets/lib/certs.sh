@@ -12,23 +12,24 @@
 : "${NIX_ENV_TLS_PROBE_URL:=https://www.google.com}"
 
 # build_ca_bundle
-# Creates ~/.config/certs/ca-bundle.crt when ca-custom.crt is present.
-# Linux: symlinks to system CA bundle (which already contains custom certs
-#        after update-ca-certificates).
-# macOS: merges nix CA bundle with custom certs (system store not available
-#        as a PEM file).
+# Creates ~/.config/certs/ca-bundle.crt as a PEM bundle for nix-installed tools.
+# Linux: symlinks to system CA bundle (requires ca-custom.crt to exist, since
+#        the system bundle already includes custom certs after update-ca-certificates).
+# macOS: exports all trusted certificates from macOS Keychains (system roots +
+#        admin-installed corporate/proxy certs). No ca-custom.crt required -
+#        the Keychain is the authoritative trust store on macOS.
 # Idempotent: skips if ca-bundle.crt already exists.
 build_ca_bundle() {
   local cert_dir="$HOME/.config/certs"
   local custom_certs="$cert_dir/ca-custom.crt"
   local bundle_link="$cert_dir/ca-bundle.crt"
 
-  [ -f "$custom_certs" ] || return 0
   [ ! -e "$bundle_link" ] || return 0
 
   mkdir -p "$cert_dir"
   case "$(uname -s)" in
   Linux)
+    [ -f "$custom_certs" ] || return 0
     for sys_bundle in \
       /etc/ssl/certs/ca-certificates.crt \
       /etc/pki/tls/certs/ca-bundle.crt; do
@@ -40,28 +41,18 @@ build_ca_bundle() {
     done
     ;;
   Darwin)
-    local nix_bundle=""
-    for _candidate in \
-      "$HOME/.nix-profile/etc/ssl/certs/ca-bundle.crt" \
-      /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt; do
-      if [ -f "$_candidate" ]; then
-        nix_bundle="$_candidate"
-        break
-      fi
-    done
-    if [ -n "$nix_bundle" ]; then
-      cat "$nix_bundle" "$custom_certs" >"$bundle_link"
-      ok "  created merged ca-bundle.crt (nix CAs + custom certs)"
+    local bundle_tmp
+    bundle_tmp="$(mktemp)"
+    # Export all trusted certs from macOS Keychains (includes corporate/proxy CAs)
+    security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain >"$bundle_tmp" 2>/dev/null
+    security find-certificate -a -p /Library/Keychains/System.keychain >>"$bundle_tmp" 2>/dev/null
+    # Append any manually intercepted certs
+    [ -f "$custom_certs" ] && cat "$custom_certs" >>"$bundle_tmp"
+    if [ -s "$bundle_tmp" ]; then
+      mv -f "$bundle_tmp" "$bundle_link"
+      ok "  created ca-bundle.crt from macOS Keychain"
     else
-      # Fallback: export system root CAs from macOS Keychain
-      security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain >"$bundle_link" 2>/dev/null
-      if [ -s "$bundle_link" ]; then
-        cat "$custom_certs" >>"$bundle_link"
-        ok "  created merged ca-bundle.crt (macOS Keychain CAs + custom certs)"
-      else
-        rm -f "$bundle_link"
-        warn "  could not create ca-bundle.crt (no nix or system CA bundle found)"
-      fi
+      rm -f "$bundle_tmp"
     fi
     ;;
   esac
