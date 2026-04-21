@@ -62,5 +62,12 @@ phase_nix_profile_mitm_probe() {
     # shellcheck source=../../../.assets/config/bash_cfg/functions.sh
     source "$SCRIPT_ROOT/.assets/config/bash_cfg/functions.sh"
     cert_intercept
+    build_ca_bundle
+    local ca_bundle="$HOME/.config/certs/ca-bundle.crt"
+    if [[ -f "$ca_bundle" ]]; then
+      export GIT_SSL_CAINFO="$ca_bundle"
+      git config --global http.sslCAInfo "$ca_bundle"
+      ok "configured git to use custom CA bundle"
+    fi
   fi
 }
