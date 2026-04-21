@@ -1,0 +1,693 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Universal, cross-platform developer environment provisioning with Nix" name="description"/>
+<link href="https://szymonos.github.io/linux-setup-scripts/architecture/" rel="canonical"/>
+<link href=".." rel="prev"/>
+<link href="../decisions/" rel="next"/>
+<link href="../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.6" name="generator"/>
+<title>Architecture - Dev Environment Setup</title>
+<link href="../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../assets/stylesheets/layout-wide-screen.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/mermaid-lightbox.css" rel="stylesheet"/>
+<script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="blue" data-md-color-primary="indigo" data-md-color-scheme="slate" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#architecture">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="Dev Environment Setup" class="md-header__button md-logo" data-md-component="logo" href=".." title="Dev Environment Setup">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            Dev Environment Setup
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/szymonos/linux-setup-scripts" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    szymonos/linux-setup-scripts
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="Dev Environment Setup" class="md-nav__button md-logo" data-md-component="logo" href=".." title="Dev Environment Setup">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+    Dev Environment Setup
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/szymonos/linux-setup-scripts" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    szymonos/linux-setup-scripts
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="..">
+<span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#setup-paths">
+<span class="md-ellipsis">
+      
+        Setup paths
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-pipeline">
+<span class="md-ellipsis">
+      
+        Phase pipeline
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#package-composition">
+<span class="md-ellipsis">
+      
+        Package composition
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#durable-state">
+<span class="md-ellipsis">
+      
+        Durable state
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overlay-and-hook-system">
+<span class="md-ellipsis">
+      
+        Overlay and hook system
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#health-checks">
+<span class="md-ellipsis">
+      
+        Health checks
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#shell-profile-management">
+<span class="md-ellipsis">
+      
+        Shell profile management
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ci-validation-matrix">
+<span class="md-ellipsis">
+      
+        CI validation matrix
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#design-principles">
+<span class="md-ellipsis">
+      
+        Design principles
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../decisions/">
+<span class="md-ellipsis">
+    
+  
+    Design Decisions
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../standards/">
+<span class="md-ellipsis">
+    
+  
+    Quality &amp; Testing
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../enterprise/">
+<span class="md-ellipsis">
+    
+  
+    Enterprise Readiness
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../proxy/">
+<span class="md-ellipsis">
+    
+  
+    Corporate Proxy
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../customization/">
+<span class="md-ellipsis">
+    
+  
+    Customization
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#setup-paths">
+<span class="md-ellipsis">
+      
+        Setup paths
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-pipeline">
+<span class="md-ellipsis">
+      
+        Phase pipeline
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#package-composition">
+<span class="md-ellipsis">
+      
+        Package composition
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#durable-state">
+<span class="md-ellipsis">
+      
+        Durable state
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overlay-and-hook-system">
+<span class="md-ellipsis">
+      
+        Overlay and hook system
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#health-checks">
+<span class="md-ellipsis">
+      
+        Health checks
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#shell-profile-management">
+<span class="md-ellipsis">
+      
+        Shell profile management
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ci-validation-matrix">
+<span class="md-ellipsis">
+      
+        CI validation matrix
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#design-principles">
+<span class="md-ellipsis">
+      
+        Design principles
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¤</a></h1>
+<p>This page provides a condensed view of the system's design - how the phases connect, where state lives, and how the extensibility model works. For the full implementation reference, see <a href="https://github.com/szymonos/linux-setup-scripts/blob/main/ARCHITECTURE.md">ARCHITECTURE.md</a> in the repository.</p>
+<h2 id="setup-paths">Setup paths<a class="headerlink" href="#setup-paths" title="Permanent link">¤</a></h2>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Entry point</th>
+<th>Platforms</th>
+<th>Requirements</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nix (primary)</td>
+<td><code>nix/setup.sh</code></td>
+<td>macOS, Linux, WSL, Coder</td>
+<td>User-scope, bash 3.2 compatible</td>
+</tr>
+<tr>
+<td>Legacy</td>
+<td><code>.assets/scripts/linux_setup.sh</code></td>
+<td>Linux</td>
+<td>Root, bash 4+</td>
+</tr>
+<tr>
+<td>WSL</td>
+<td><code>wsl/wsl_setup.ps1</code></td>
+<td>Windows host</td>
+<td>Admin, PowerShell 7.4+</td>
+</tr>
+</tbody>
+</table>
+<p>The Nix path is the recommended entry point for all platforms. It runs entirely in user scope after the one-time Nix installation and works identically on macOS (including bash 3.2 and BSD sed), Linux, WSL, and rootless container environments.</p>
+<h2 id="phase-pipeline">Phase pipeline<a class="headerlink" href="#phase-pipeline" title="Permanent link">¤</a></h2>
+<p><code>nix/setup.sh</code> is a slim orchestrator (~110 lines) that sources phase libraries and executes them in sequence. Each phase is a separate file with documented inputs and outputs.</p>
+<div class="mermaid">flowchart TD
+    B["Bootstrap
+    Root guard, Nix detect/install,
+    jq bootstrap, arg parsing"] --&gt; PL["Platform
+    OS detect, overlay discovery,
+    pre-setup hooks"]
+    PL --&gt; SC["Scopes
+    Load existing, apply removes,
+    resolve deps, write config.nix"]
+    SC --&gt; NP["Nix Profile
+    Flake update, profile upgrade,
+    MITM probe + CA bundle"]
+    NP --&gt; CF["Configure
+    gh auth, git config,
+    per-scope configure scripts"]
+    CF --&gt; PR["Profiles
+    bash, zsh, PowerShell
+    managed block rendering"]
+    PR --&gt; PI["Post-install
+    setup_common, GC,
+    summary output"]</div>
+<p>Side-effecting operations (nix commands, git clones, curl probes) are called through thin wrappers defined in <code>io.sh</code>. Tests override these wrappers to assert behaviour without executing real side effects - no mocking frameworks needed.</p>
+<h2 id="package-composition">Package composition<a class="headerlink" href="#package-composition" title="Permanent link">¤</a></h2>
+<p>Packages are assembled from four layers, evaluated bottom-up by the Nix flake. Each layer serves a different purpose and audience:</p>
+<div class="mermaid">graph TD
+    subgraph "Nix buildEnv (single profile entry)"
+        L4["Layer 4: Extra packages
+        (packages.nix - nx install/remove)"]
+        L3["Layer 3: Overlay scopes
+        (local_*.nix - team/org overlays)"]
+        L2["Layer 2: Repo scopes
+        (shell.nix, python.nix - nix/setup.sh flags)"]
+        L1["Layer 1: Base
+        (base.nix - always installed)"]
+    end
+
+    L4 --&gt; L3 --&gt; L2 --&gt; L1</div>
+<p>All four layers merge into a single <code>buildEnv</code> - one nix profile entry, one <code>nix profile upgrade</code> to apply. No layer can shadow or break another.</p>
+<h2 id="durable-state">Durable state<a class="headerlink" href="#durable-state" title="Permanent link">¤</a></h2>
+<p>After setup, all state lives in the user's home directory. The repository clone is disposable.</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Purpose</th>
+<th>Managed by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~/.config/nix-env/</code></td>
+<td>Flake, scopes, config, theme files</td>
+<td><code>nix/setup.sh</code>, <code>nx</code> CLI</td>
+</tr>
+<tr>
+<td><code>~/.config/bash/</code></td>
+<td>Shell aliases and functions</td>
+<td><code>nix/configure/profiles.sh</code></td>
+</tr>
+<tr>
+<td><code>~/.config/certs/</code></td>
+<td>CA bundles for proxy environments</td>
+<td><code>build_ca_bundle</code>, <code>cert_intercept</code></td>
+</tr>
+<tr>
+<td><code>~/.config/dev-env/install.json</code></td>
+<td>Install provenance record</td>
+<td>EXIT trap in setup scripts</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>nx</code> CLI operates entirely on <code>~/.config/nix-env/</code> - no network access, no server dependency, no repository clone required for day-to-day operations.</p>
+<h2 id="overlay-and-hook-system">Overlay and hook system<a class="headerlink" href="#overlay-and-hook-system" title="Permanent link">¤</a></h2>
+<p>The overlay mechanism supports customization at multiple organizational levels without forking:</p>
+<div class="mermaid">flowchart LR
+    subgraph "Source"
+        OR["Org repo
+        (NIX_ENV_OVERLAY_DIR)"]
+        TR["Team hooks
+        (pre-setup.d/)"]
+        UR["User local
+        (~/.config/nix-env/local/)"]
+    end
+
+    subgraph "Runtime (~/.config/nix-env/)"
+        SC["scopes/local_*.nix"]
+        BC["~/.config/bash/*.sh"]
+        HK["hooks/pre-setup.d/
+        hooks/post-setup.d/"]
+    end
+
+    OR --&gt; SC
+    OR --&gt; BC
+    TR --&gt; HK
+    UR --&gt; SC</div>
+<ul>
+<li><strong>Scopes</strong> in the overlay directory are copied with a <code>local_</code> prefix, preventing name collisions with base scopes.</li>
+<li><strong>Shell configs</strong> are sourced alongside standard configs at login.</li>
+<li><strong>Hooks</strong> run at defined phases (<code>pre-setup</code>, <code>post-setup</code>) with access to environment variables like <code>NIX_ENV_SCOPES</code> and <code>NIX_ENV_PLATFORM</code>.</li>
+</ul>
+<h2 id="health-checks">Health checks<a class="headerlink" href="#health-checks" title="Permanent link">¤</a></h2>
+<p><code>nx doctor</code> runs read-only diagnostic checks against the managed environment. It is copied to <code>~/.config/nix-env/</code> during setup so it remains available after the repository is removed.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>What it verifies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nix_available</code></td>
+<td>Nix is in PATH</td>
+</tr>
+<tr>
+<td><code>flake_lock</code></td>
+<td>Lock file exists and is valid</td>
+</tr>
+<tr>
+<td><code>install_record</code></td>
+<td>Last setup completed successfully</td>
+</tr>
+<tr>
+<td><code>scope_binaries</code></td>
+<td>All declared binaries are on PATH</td>
+</tr>
+<tr>
+<td><code>shell_profile</code></td>
+<td>Exactly one managed block per rc file</td>
+</tr>
+<tr>
+<td><code>cert_bundle</code></td>
+<td>CA bundle and VS Code env configured</td>
+</tr>
+<tr>
+<td><code>nix_profile</code></td>
+<td>Profile entry exists</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>--strict</code> flag treats warnings as failures, suitable for CI validation. The <code>--json</code> flag produces machine-readable output for fleet monitoring.</p>
+<h2 id="shell-profile-management">Shell profile management<a class="headerlink" href="#shell-profile-management" title="Permanent link">¤</a></h2>
+<p>Shell profiles (<code>.bashrc</code>, <code>.zshrc</code>, PowerShell <code>$PROFILE</code>) use a <strong>managed block</strong> pattern - a delimited section that is fully regenerated on each setup run. This replaces the fragile <code>grep -q &amp;&amp; echo &gt;&gt;</code> append pattern.</p>
+<p>Two blocks are written to each file:</p>
+<ul>
+<li><strong><code>nix-env managed</code></strong> - nix-specific configuration (PATH, aliases, completions, prompt). Removed by <code>nix/uninstall.sh</code>.</li>
+<li><strong><code>managed env</code></strong> - generic environment (local PATH, cert env vars, shared functions). Survives uninstall.</li>
+</ul>
+<p><code>nx profile doctor</code> detects issues (missing blocks, duplicates, legacy injections). <code>nx profile migrate</code> converts legacy append-style configurations to managed blocks.</p>
+<h2 id="ci-validation-matrix">CI validation matrix<a class="headerlink" href="#ci-validation-matrix" title="Permanent link">¤</a></h2>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Runner</th>
+<th>Scenario</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test_linux.yml</code></td>
+<td>Ubuntu (daemon)</td>
+<td>Multi-user Nix install</td>
+</tr>
+<tr>
+<td><code>test_linux.yml</code></td>
+<td>Ubuntu (no-daemon)</td>
+<td>Rootless Nix (Coder/devcontainer)</td>
+</tr>
+<tr>
+<td><code>test_macos.yml</code></td>
+<td>macOS 15</td>
+<td>Apple Silicon, bash 3.2 + BSD sed</td>
+</tr>
+<tr>
+<td><code>repo_checks.yml</code></td>
+<td>Ubuntu</td>
+<td>Pre-commit, ShellCheck, bats, Pester</td>
+</tr>
+</tbody>
+</table>
+<p>Each test run validates: setup completion with requested scopes, binary resolution, <code>nx doctor --strict</code>, managed block idempotency, install provenance, and clean uninstall.</p>
+<h2 id="design-principles">Design principles<a class="headerlink" href="#design-principles" title="Permanent link">¤</a></h2>
+<p><strong>Bootstrapper, not agent</strong> - the tool runs once, provisions a self-contained environment, and exits. No daemon, no background process, no runtime dependency on infrastructure.</p>
+<p><strong>Explicit upgrades</strong> - <code>nix/setup.sh</code> without <code>--upgrade</code> re-applies configuration using existing package versions. Package updates require explicit <code>--upgrade</code> or <code>nx upgrade</code>. No silent breakage from upstream changes.</p>
+<p><strong>Additive scopes</strong> - adding a scope never removes existing tools. Scope dependencies are resolved automatically (e.g., <code>k8s_dev</code> pulls in <code>k8s_base</code>). Removing a scope is an explicit <code>--remove</code> action.</p>
+<p><strong>Tested constraints</strong> - bash 3.2 and BSD sed compatibility is enforced by a pre-commit hook, not by convention. ShellCheck runs on every change. Scope definitions are validated by a Python script that ensures every scope declares its expected binaries.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "navigation.sections", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+<script src="../assets/javascripts/diagram-zoom.js"></script>
+<script type="module">import mermaid from "https://unpkg.com/mermaid@10.4.0/dist/mermaid.esm.min.mjs";
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "dark",
+    securityLevel: "loose",
+    themeVariables: {
+        clusterBkg: "#263238",
+        darkMode: true,
+        edgeLabelBackground: "#263238",
+        fontFamily: "Roboto, sans-serif",
+        lineColor: "#90a4ae",
+        mainBkg: "#2c3e50",
+        nodeBorder: "#5c6bc0",
+        secondBkg: "#34495e",
+        tertiaryColor: "#455a64",
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: "basis"
+    },
+    sequence: {
+        useMaxWidth: true
+    },
+    gantt: {
+        useMaxWidth: true
+    },
+    flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: "basis"
+    }
+});</script></body>
+</html>

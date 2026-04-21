@@ -1,0 +1,777 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Universal, cross-platform developer environment provisioning with Nix" name="description"/>
+<link href="https://szymonos.github.io/linux-setup-scripts/customization/" rel="canonical"/>
+<link href="../proxy/" rel="prev"/>
+<link href="../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.6" name="generator"/>
+<title>Customization - Dev Environment Setup</title>
+<link href="../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../assets/stylesheets/layout-wide-screen.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/mermaid-lightbox.css" rel="stylesheet"/>
+<script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="blue" data-md-color-primary="indigo" data-md-color-scheme="slate" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#customization">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="Dev Environment Setup" class="md-header__button md-logo" data-md-component="logo" href=".." title="Dev Environment Setup">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            Dev Environment Setup
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Customization
+            
+          </span>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/szymonos/linux-setup-scripts" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    szymonos/linux-setup-scripts
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="Dev Environment Setup" class="md-nav__button md-logo" data-md-component="logo" href=".." title="Dev Environment Setup">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+    Dev Environment Setup
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/szymonos/linux-setup-scripts" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    szymonos/linux-setup-scripts
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="..">
+<span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../architecture/">
+<span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../decisions/">
+<span class="md-ellipsis">
+    
+  
+    Design Decisions
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../standards/">
+<span class="md-ellipsis">
+    
+  
+    Quality &amp; Testing
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../enterprise/">
+<span class="md-ellipsis">
+    
+  
+    Enterprise Readiness
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../proxy/">
+<span class="md-ellipsis">
+    
+  
+    Corporate Proxy
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    
+  
+    Customization
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    
+  
+    Customization
+  
+
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#package-layers">
+<span class="md-ellipsis">
+      
+        Package layers
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#adding-packages-layer-4">
+<span class="md-ellipsis">
+      
+        Adding packages (layer 4)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#creating-custom-scopes-layer-3">
+<span class="md-ellipsis">
+      
+        Creating custom scopes (layer 3)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overlay-directory">
+<span class="md-ellipsis">
+      
+        Overlay directory
+      
+    </span>
+</a>
+<nav aria-label="Overlay directory" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#structure">
+<span class="md-ellipsis">
+      
+        Structure
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sharing-with-a-team">
+<span class="md-ellipsis">
+      
+        Sharing with a team
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#managing-overlays">
+<span class="md-ellipsis">
+      
+        Managing overlays
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#hooks">
+<span class="md-ellipsis">
+      
+        Hooks
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pinning-package-versions">
+<span class="md-ellipsis">
+      
+        Pinning package versions
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#upgrades-and-rollback">
+<span class="md-ellipsis">
+      
+        Upgrades and rollback
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-reference">
+<span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#package-layers">
+<span class="md-ellipsis">
+      
+        Package layers
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#adding-packages-layer-4">
+<span class="md-ellipsis">
+      
+        Adding packages (layer 4)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#creating-custom-scopes-layer-3">
+<span class="md-ellipsis">
+      
+        Creating custom scopes (layer 3)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overlay-directory">
+<span class="md-ellipsis">
+      
+        Overlay directory
+      
+    </span>
+</a>
+<nav aria-label="Overlay directory" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#structure">
+<span class="md-ellipsis">
+      
+        Structure
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sharing-with-a-team">
+<span class="md-ellipsis">
+      
+        Sharing with a team
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#managing-overlays">
+<span class="md-ellipsis">
+      
+        Managing overlays
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#hooks">
+<span class="md-ellipsis">
+      
+        Hooks
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pinning-package-versions">
+<span class="md-ellipsis">
+      
+        Pinning package versions
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#upgrades-and-rollback">
+<span class="md-ellipsis">
+      
+        Upgrades and rollback
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-reference">
+<span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="customization">Customization<a class="headerlink" href="#customization" title="Permanent link">¤</a></h1>
+<p>The tool is designed for customization at three levels - from individual developers adding a package to organizations distributing standardized environments - without forking the base repository.</p>
+<h2 id="package-layers">Package layers<a class="headerlink" href="#package-layers" title="Permanent link">¤</a></h2>
+<p>Packages are assembled from four layers, evaluated bottom-up by the Nix flake. All layers merge into a single <code>buildEnv</code> - one nix profile entry, one <code>nix profile upgrade</code> to apply. No layer can shadow or break another.</p>
+<div class="mermaid">graph TD
+    subgraph "Nix buildEnv (single profile entry)"
+        L4["Layer 4: Extra packages
+        packages.nix - nx install/remove"]
+        L3["Layer 3: Overlay scopes
+        local_*.nix - team/org overlays"]
+        L2["Layer 2: Repo scopes
+        shell.nix, python.nix - nix/setup.sh flags"]
+        L1["Layer 1: Base
+        base.nix - always installed"]
+    end
+
+    L4 --&gt; L3 --&gt; L2 --&gt; L1</div>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>What</th>
+<th>How</th>
+<th>Who</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Base</strong></td>
+<td>Core tools (git, jq, curl, coreutils)</td>
+<td>Always included, cannot be disabled</td>
+<td>Base repo</td>
+</tr>
+<tr>
+<td><strong>Repo scopes</strong></td>
+<td>Curated groups (shell, python, k8s, terraform)</td>
+<td><code>nix/setup.sh --shell --python</code></td>
+<td>Base repo</td>
+</tr>
+<tr>
+<td><strong>Overlay scopes</strong></td>
+<td>Custom groups (team CLIs, org utilities)</td>
+<td><code>nx scope add</code> or overlay directory</td>
+<td>Team / org</td>
+</tr>
+<tr>
+<td><strong>Extra packages</strong></td>
+<td>Individual tools</td>
+<td><code>nx install httpie</code></td>
+<td>Individual</td>
+</tr>
+</tbody>
+</table>
+<h2 id="adding-packages-layer-4">Adding packages (layer 4)<a class="headerlink" href="#adding-packages-layer-4" title="Permanent link">¤</a></h2>
+<p>The simplest way - no scopes, no files to edit:</p>
+<div class="highlight"><pre><span></span><code>nx<span class="w"> </span>install<span class="w"> </span>httpie<span class="w"> </span>jq<span class="w">       </span><span class="c1"># validates against nixpkgs, installs immediately</span>
+nx<span class="w"> </span>remove<span class="w"> </span>httpie<span class="w">           </span><span class="c1"># remove a package</span>
+nx<span class="w"> </span>list<span class="w">                    </span><span class="c1"># see everything installed, annotated by layer</span>
+</code></pre></div>
+<p>Package names are validated against nixpkgs before being added. Typos and non-existent packages are caught immediately. Changes apply without needing <code>nx upgrade</code>.</p>
+<p>Use this for one-off tools. If you find yourself adding many related packages, consider creating a scope instead.</p>
+<h2 id="creating-custom-scopes-layer-3">Creating custom scopes (layer 3)<a class="headerlink" href="#creating-custom-scopes-layer-3" title="Permanent link">¤</a></h2>
+<p>Scopes group related packages with a meaningful name:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create a scope and add packages in one step</span>
+nx<span class="w"> </span>scope<span class="w"> </span>add<span class="w"> </span>devtools<span class="w"> </span>httpie<span class="w"> </span>jq<span class="w"> </span>bat
+
+<span class="c1"># Add more packages to an existing scope</span>
+nx<span class="w"> </span>scope<span class="w"> </span>add<span class="w"> </span>devtools<span class="w"> </span>fd
+
+<span class="c1"># Open a scope in your editor</span>
+nx<span class="w"> </span>scope<span class="w"> </span>edit<span class="w"> </span>devtools
+
+<span class="c1"># Apply changes after manual edits</span>
+nx<span class="w"> </span>upgrade
+</code></pre></div>
+<p>The scope file is standard Nix:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span> pkgs <span class="p">}:</span> <span class="k">with</span> pkgs<span class="p">;</span> <span class="p">[</span>
+  bat
+  fd
+  httpie
+  jq
+<span class="p">]</span>
+</code></pre></div>
+<p>Scopes created via <code>nx scope add</code> live in the overlay directory and are copied into <code>~/.config/nix-env/scopes/</code> with a <code>local_</code> prefix - preventing name collisions with base repo scopes.</p>
+<h2 id="overlay-directory">Overlay directory<a class="headerlink" href="#overlay-directory" title="Permanent link">¤</a></h2>
+<p>The overlay directory is where custom scopes, shell configs, and hooks live. It supports three usage patterns:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Overlay location</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Solo developer</td>
+<td><code>~/.config/nix-env/local/</code> (default)</td>
+<td>Personal tools and aliases</td>
+</tr>
+<tr>
+<td>Team</td>
+<td>Shared git repo via <code>NIX_ENV_OVERLAY_DIR</code></td>
+<td>Team-specific scopes and config</td>
+</tr>
+<tr>
+<td>Organization</td>
+<td>Org-managed repo via <code>NIX_ENV_OVERLAY_DIR</code></td>
+<td>Org-wide standards and hooks</td>
+</tr>
+</tbody>
+</table>
+<h3 id="structure">Structure<a class="headerlink" href="#structure" title="Permanent link">¤</a></h3>
+<div class="highlight"><pre><span></span><code>overlay-dir/
+├── scopes/                       # custom scope files (copied as local_*.nix)
+│   └── devtools.nix
+├── bash_cfg/                     # extra shell config (sourced on login)
+│   └── aliases_custom.sh
+└── hooks/
+    ├── pre-setup.d/              # run before scope resolution
+    │   └── check_vpn.sh
+    └── post-setup.d/             # run after setup completes
+        └── notify_slack.sh
+</code></pre></div>
+<ul>
+<li><strong>Scopes</strong> are copied with <code>local_</code> prefix during <code>nix/setup.sh</code> or <code>nx scope add</code></li>
+<li><strong>Shell configs</strong> in <code>bash_cfg/</code> are sourced alongside standard configs at login</li>
+<li><strong>Hooks</strong> run during <code>nix/setup.sh</code> at the indicated phase, with access to <code>NIX_ENV_PHASE</code>, <code>NIX_ENV_SCOPES</code>, and <code>NIX_ENV_PLATFORM</code></li>
+</ul>
+<h3 id="sharing-with-a-team">Sharing with a team<a class="headerlink" href="#sharing-with-a-team" title="Permanent link">¤</a></h3>
+<p>Point everyone at a shared overlay directory:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># In ~/.bashrc or ~/.zshenv, before the managed block</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NIX_ENV_OVERLAY_DIR</span><span class="o">=</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/src/team-nix-overlay"</span>
+</code></pre></div>
+<p>The shared repo can contain team-specific scopes, shell aliases, and setup hooks. Individual users can still use <code>nx install</code> for personal additions on top.</p>
+<h3 id="managing-overlays">Managing overlays<a class="headerlink" href="#managing-overlays" title="Permanent link">¤</a></h3>
+<div class="highlight"><pre><span></span><code>nx<span class="w"> </span>overlay<span class="w"> </span>list<span class="w">      </span><span class="c1"># show overlay directory contents</span>
+nx<span class="w"> </span>overlay<span class="w"> </span>status<span class="w">    </span><span class="c1"># show sync status (synced / modified / source missing)</span>
+</code></pre></div>
+<h2 id="hooks">Hooks<a class="headerlink" href="#hooks" title="Permanent link">¤</a></h2>
+<p>Hook scripts (<code>*.sh</code>) run at defined phases during <code>nix/setup.sh</code>, with access to environment variables:</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Directory</th>
+<th>Variables available</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pre-setup</td>
+<td><code>hooks/pre-setup.d/</code></td>
+<td><code>NIX_ENV_VERSION</code>, <code>NIX_ENV_PLATFORM</code>, <code>ENV_DIR</code></td>
+</tr>
+<tr>
+<td>Post-setup</td>
+<td><code>hooks/post-setup.d/</code></td>
+<td>All above + <code>NIX_ENV_SCOPES</code></td>
+</tr>
+</tbody>
+</table>
+<p>Example use cases:</p>
+<ul>
+<li><strong>VPN check</strong> - verify VPN is connected before setup downloads packages</li>
+<li><strong>Fleet telemetry</strong> - POST <code>install.json</code> to a monitoring endpoint after setup</li>
+<li><strong>Team pinning</strong> - write <code>pinned_rev</code> to lock package versions across a team</li>
+<li><strong>Compliance</strong> - verify required scopes are present, block setup if missing</li>
+</ul>
+<h2 id="pinning-package-versions">Pinning package versions<a class="headerlink" href="#pinning-package-versions" title="Permanent link">¤</a></h2>
+<p>By default, <code>nx upgrade</code> resolves the latest <code>nixpkgs-unstable</code> - a deterministic snapshot of 100k+ packages at specific versions. Each commit is a reproducible state, not a rolling release.</p>
+<p>For teams that need coordinated versions:</p>
+<div class="highlight"><pre><span></span><code>nx<span class="w"> </span>upgrade<span class="w">           </span><span class="c1"># upgrade and verify everything works</span>
+nx<span class="w"> </span>pin<span class="w"> </span><span class="nb">set</span><span class="w">           </span><span class="c1"># pin the current (tested) revision</span>
+nx<span class="w"> </span>pin<span class="w"> </span>show<span class="w">          </span><span class="c1"># show current pin</span>
+nx<span class="w"> </span>pin<span class="w"> </span>remove<span class="w">        </span><span class="c1"># go back to latest unstable</span>
+</code></pre></div>
+<p>The pin is stored in <code>~/.config/nix-env/pinned_rev</code>. When present, <code>nx upgrade</code> locks to that commit instead of resolving the latest. Distribute the pin via a pre-setup hook:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># overlay-dir/hooks/pre-setup.d/pin_nixpkgs.sh</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"abc123..."</span><span class="w"> </span>&gt;<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.config/nix-env/pinned_rev"</span>
+</code></pre></div>
+<p>When IT validates a new nixpkgs revision, they update the hook - everyone gets the tested baseline on next upgrade.</p>
+<h2 id="upgrades-and-rollback">Upgrades and rollback<a class="headerlink" href="#upgrades-and-rollback" title="Permanent link">¤</a></h2>
+<div class="highlight"><pre><span></span><code>nx<span class="w"> </span>upgrade<span class="w">                    </span><span class="c1"># upgrade all packages to latest (or pinned) versions</span>
+nx<span class="w"> </span>rollback<span class="w">                   </span><span class="c1"># revert to the previous package set</span>
+nix<span class="w"> </span>profile<span class="w"> </span>diff-closures<span class="w">     </span><span class="c1"># see exactly what changed</span>
+nx<span class="w"> </span>gc<span class="w">                         </span><span class="c1"># clean up old generations</span>
+</code></pre></div>
+<p>Upgrades are atomic - all packages upgrade together through a single <code>buildEnv</code>. Rollback reverts the entire environment to the previous state, not individual packages. This eliminates partial upgrade states.</p>
+<h2 id="quick-reference">Quick reference<a class="headerlink" href="#quick-reference" title="Permanent link">¤</a></h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add a package</td>
+<td><code>nx install &lt;pkg&gt;</code></td>
+</tr>
+<tr>
+<td>Remove a package</td>
+<td><code>nx remove &lt;pkg&gt;</code></td>
+</tr>
+<tr>
+<td>List all packages</td>
+<td><code>nx list</code></td>
+</tr>
+<tr>
+<td>Search nixpkgs</td>
+<td><code>nx search &lt;term&gt;</code></td>
+</tr>
+<tr>
+<td>Create a scope with packages</td>
+<td><code>nx scope add &lt;name&gt; &lt;pkg&gt; [pkg...]</code></td>
+</tr>
+<tr>
+<td>Edit a scope file</td>
+<td><code>nx scope edit &lt;name&gt;</code></td>
+</tr>
+<tr>
+<td>Show scope tree</td>
+<td><code>nx scope tree</code></td>
+</tr>
+<tr>
+<td>List overlay contents</td>
+<td><code>nx overlay list</code></td>
+</tr>
+<tr>
+<td>Check overlay sync status</td>
+<td><code>nx overlay status</code></td>
+</tr>
+<tr>
+<td>Upgrade packages</td>
+<td><code>nx upgrade</code></td>
+</tr>
+<tr>
+<td>Pin current revision</td>
+<td><code>nx pin set</code></td>
+</tr>
+<tr>
+<td>Show / remove pin</td>
+<td><code>nx pin show</code> / <code>nx pin remove</code></td>
+</tr>
+<tr>
+<td>Roll back last upgrade</td>
+<td><code>nx rollback</code></td>
+</tr>
+<tr>
+<td>See what changed</td>
+<td><code>nix profile diff-closures</code></td>
+</tr>
+<tr>
+<td>Clean up old generations</td>
+<td><code>nx gc</code></td>
+</tr>
+<tr>
+<td>Run health checks</td>
+<td><code>nx doctor</code></td>
+</tr>
+</tbody>
+</table>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "navigation.sections", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+<script src="../assets/javascripts/diagram-zoom.js"></script>
+<script type="module">import mermaid from "https://unpkg.com/mermaid@10.4.0/dist/mermaid.esm.min.mjs";
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "dark",
+    securityLevel: "loose",
+    themeVariables: {
+        clusterBkg: "#263238",
+        darkMode: true,
+        edgeLabelBackground: "#263238",
+        fontFamily: "Roboto, sans-serif",
+        lineColor: "#90a4ae",
+        mainBkg: "#2c3e50",
+        nodeBorder: "#5c6bc0",
+        secondBkg: "#34495e",
+        tertiaryColor: "#455a64",
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: "basis"
+    },
+    sequence: {
+        useMaxWidth: true
+    },
+    gantt: {
+        useMaxWidth: true
+    },
+    flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: "basis"
+    }
+});</script></body>
+</html>

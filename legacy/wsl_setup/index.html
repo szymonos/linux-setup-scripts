@@ -1,0 +1,470 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Universal, cross-platform developer environment provisioning with Nix" name="description"/>
+<link href="https://szymonos.github.io/linux-setup-scripts/legacy/wsl_setup/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.6" name="generator"/>
+<title>WSL Setup Guideline - Dev Environment Setup</title>
+<link href="../../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
+<link href="../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/stylesheets/layout-wide-screen.css" rel="stylesheet"/>
+<link href="../../assets/stylesheets/mermaid-lightbox.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="blue" data-md-color-primary="indigo" data-md-color-scheme="slate" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#wsl-setup-guideline">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="Dev Environment Setup" class="md-header__button md-logo" data-md-component="logo" href="../.." title="Dev Environment Setup">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            Dev Environment Setup
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              WSL Setup Guideline
+            
+          </span>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/szymonos/linux-setup-scripts" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    szymonos/linux-setup-scripts
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="Dev Environment Setup" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="Dev Environment Setup">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+    Dev Environment Setup
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/szymonos/linux-setup-scripts" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    szymonos/linux-setup-scripts
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../architecture/">
+<span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../decisions/">
+<span class="md-ellipsis">
+    
+  
+    Design Decisions
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../standards/">
+<span class="md-ellipsis">
+    
+  
+    Quality &amp; Testing
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../enterprise/">
+<span class="md-ellipsis">
+    
+  
+    Enterprise Readiness
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../proxy/">
+<span class="md-ellipsis">
+    
+  
+    Corporate Proxy
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../customization/">
+<span class="md-ellipsis">
+    
+  
+    Customization
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#prerequisites">
+<span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#setting-up-the-wsl-distro">
+<span class="md-ellipsis">
+      
+        Setting up the WSL distro
+      
+    </span>
+</a>
+<nav aria-label="Setting up the WSL distro" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#setup-script">
+<span class="md-ellipsis">
+      
+        Setup script
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#set-up-distro-with-oh-my-posh-prompt-theme-engine">
+<span class="md-ellipsis">
+      
+        Set up distro with oh-my-posh prompt theme engine
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fixing-self-signed-certificate-in-the-chain">
+<span class="md-ellipsis">
+      
+        Fixing self-signed certificate in the chain
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#using-nix-package-manager">
+<span class="md-ellipsis">
+      
+        Using Nix package manager
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#using-other-packages-scopes">
+<span class="md-ellipsis">
+      
+        Using other packages scopes
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#update-all-wsl-distros">
+<span class="md-ellipsis">
+      
+        Update all WSL distros
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#other-wsl-distros">
+<span class="md-ellipsis">
+      
+        Other WSL distros
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="wsl-setup-guideline">WSL Setup Guideline<a class="headerlink" href="#wsl-setup-guideline" title="Permanent link">¤</a></h1>
+<p>Windows Subsystem for Linux is a very convenient technology to use Linux OS on Windows. It offers many advantages over classic VMs:</p>
+<ul>
+<li>system interop - it offers running Windows programs from the WSL and vice-versa when used on WSLg,</li>
+<li>GPU and CUDA acceleration on WSLg,</li>
+<li>close to bare-metal performance thanks to using Hyper-V type 1 hypervisor,</li>
+<li>automount - direct access to Windows filesystem from WSL and vice-versa,  </li>
+<li>port forwarding to the Windows host - web applications running inside WSL can be accessed directly from Windows web browsers.</li>
+<li>ease of use and fast provisioning times measured in seconds.</li>
+</ul>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¤</a></h2>
+<p>You can install all the required features/tools by running below commands in terminal:</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Windows Subsystem for Linux - may require rebooting the system afterwards</span>
+<span class="n">wsl</span> <span class="p">-</span><span class="n">-install</span>
+
+<span class="c"># PowerShell Core - WSL provisioning scripts need to be executed in PowerShell Core</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">pwsh_setup</span><span class="p">.</span><span class="n">ps1</span>
+
+<span class="c"># Git distributed version control system</span>
+<span class="n">winget</span> <span class="n">install</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Git</span><span class="p">.</span><span class="n">Git</span>
+
+<span class="c"># Other useful tools/applications</span>
+<span class="n">winget</span> <span class="n">install</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Microsoft</span><span class="p">.</span><span class="n">WindowsTerminal</span>
+<span class="n">winget</span> <span class="n">install</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Microsoft</span><span class="p">.</span><span class="n">VisualStudioCode</span>
+<span class="n">winget</span> <span class="n">install</span> <span class="p">-</span><span class="n">-id</span> <span class="n">gerardog</span><span class="p">.</span><span class="n">gsudo</span>
+</code></pre></div>
+<h2 id="setting-up-the-wsl-distro">Setting up the WSL distro<a class="headerlink" href="#setting-up-the-wsl-distro" title="Permanent link">¤</a></h2>
+<h3 id="setup-script">Setup script<a class="headerlink" href="#setup-script" title="Permanent link">¤</a></h3>
+<p>To set up specified WSL distro you can use the <a href="wsl/wsl_setup.ps1">wsl/wsl_setup.ps1</a> script. Assuming, that you're using the default <em>Ubuntu</em> distro, you can run the script using the command:</p>
+<div class="highlight"><pre><span></span><code><span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span>
+</code></pre></div>
+<p>It will just update the distro, install developer tools, other base packages (e.g. git, jq, tar, vim) and other determined <strong>setup scopes</strong>.</p>
+<p>To install other <em>features</em> you need to specify the list of <strong>setup scopes</strong> using <code>-Scope</code> parameter. Available scopes are:</p>
+<ul>
+<li>
+<p><code>az</code>: azure-cli if python scope specified, do-az from ps-modules if shell scope specified.</p>
+</li>
+<li>
+<p><code>distrobox</code>: podman, distrobox</p>
+</li>
+<li>
+<p><code>docker</code>: docker, containerd, buildx, docker-compose</p>
+<blockquote>
+<p>enables systemd on distros where it is not enabled by default</p>
+</blockquote>
+</li>
+<li>
+<p><code>k8s_base</code>: kubectl, helm, minikube, k3d, k9s, yq</p>
+</li>
+<li>
+<p><code>k8s_ext</code>: flux, kubeseal, kustomize, argorollouts-cli</p>
+</li>
+<li>
+<p><code>python</code>: python-pip, python-venv, miniforge</p>
+</li>
+<li>
+<p><code>shell</code>: bat, exa, oh-my-posh, pwsh, ripgrep; bash and pwsh profiles, aliases and PS modules</p>
+</li>
+</ul>
+<p>To set up distro using the specified scopes you need to run the command:</p>
+<div class="highlight"><pre><span></span><code><span class="c"># use the recommended 'shell' scope</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-Scope</span> <span class="s1">'shell'</span>
+<span class="c"># use list of scopes for the setup</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-Scope</span> <span class="p">@(</span><span class="s1">'python'</span><span class="p">,</span> <span class="s1">'shell'</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="set-up-distro-with-oh-my-posh-prompt-theme-engine">Set up distro with oh-my-posh prompt theme engine<a class="headerlink" href="#set-up-distro-with-oh-my-posh-prompt-theme-engine" title="Permanent link">¤</a></h3>
+<p>You can opt to use a very powerful oh-my-posh prompt theme engine, by specifying <code>-OmpTheme</code> parameter with the name of the theme.</p>
+<p>To utilize oh-my-posh theme, the <code>shell</code> scope is required to modify shell profiles, but you don't have to specify it, as it will be
+automatically added for the <strong>full shell experience</strong>.</p>
+<div class="highlight"><pre><span></span><code><span class="c"># you can omit the shell scope, as it will be added automatically when OmpTheme is specified</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-OmpTheme</span> <span class="s1">'base'</span>
+</code></pre></div>
+<p>There are three themes included in the repository:</p>
+<ul>
+<li><code>base</code> - using standard, preinstalled fonts<br/>
+<img alt="omp_base.png" src="../images/omp_base.png"/></li>
+<li><code>powerline</code> - using extended, powerline fonts, e.g. <strong>Cascadia Code PL</strong> fonts, to be downloaded from <a href="https://github.com/microsoft/cascadia-code">microsoft/cascadia-code</a><br/>
+<img alt="omp_base.png" src="../images/omp_powerline.png"/></li>
+<li><code>nerd</code> - using nerd fonts - can be downloaded manually from <a href="https://github.com/ryanoasis/nerd-fonts">ryanoasis/nerd-fonts</a> or installed using the script <a href="../.assets/scripts/fonts_install_nerd.ps1">install_fonts_nerd.ps1</a><br/>
+<img alt="omp_base.png" src="../images/omp_nerd.png"/></li>
+</ul>
+<p>You can also specify any other theme name from <a href="https://ohmyposh.dev/docs/themes">Themes | Oh My Posh</a> - it will be downloaded and installed automatically during the provisioning.</p>
+<p>It is also possible to easily change the oh-my-posh theme using the <code>.assets/setup/setup_omp.sh</code> script:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># setup oh-my-posh theme using default base fonts</span>
+sudo<span class="w"> </span>.assets/setup/setup_omp.sh
+<span class="c1"># setup oh-my-posh theme using powerline fonts</span>
+sudo<span class="w"> </span>.assets/setup/setup_omp.sh<span class="w"> </span>--theme<span class="w"> </span>powerline
+<span class="c1"># setup oh-my-posh theme using nerd fonts</span>
+sudo<span class="w"> </span>.assets/setup/setup_omp.sh<span class="w"> </span>--theme<span class="w"> </span>nerd
+<span class="c1"># specify any theme from https://ohmyposh.dev/docs/themes/ (e.g. atomic)</span>
+sudo<span class="w"> </span>.assets/setup/setup_omp.sh<span class="w"> </span>--theme<span class="w"> </span>atomic
+</code></pre></div>
+<p><img alt="omp_base.png" src="../images/setup_omp.png"/></p>
+<h3 id="fixing-self-signed-certificate-in-the-chain">Fixing self-signed certificate in the chain<a class="headerlink" href="#fixing-self-signed-certificate-in-the-chain" title="Permanent link">¤</a></h3>
+<p>Many companies are using corporate MITM proxies with self-signed certificates which causes a lot of connectivity issues.</p>
+<p>You can specify the <code>-AddCertificate</code> parameter to the <strong>wsl_setup</strong> script to intercept self-signed certificates from the SSL chain and install them in the WSL and eventually other installed packages, e.g. azure-cli, which requires it to be set up independently.</p>
+<div class="highlight"><pre><span></span><code><span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-AddCertificate</span>
+</code></pre></div>
+<p>For detailed information about certificate handling, troubleshooting, and the shell helper functions (<code>cert_intercept</code>, <code>fixcertpy</code>), see <a href="../corporate_proxy/">Corporate Proxy and Certificate Handling</a>.</p>
+<h3 id="using-nix-package-manager">Using Nix package manager<a class="headerlink" href="#using-nix-package-manager" title="Permanent link">¤</a></h3>
+<p>Instead of the traditional per-tool install scripts, you can use the <a href="https://nixos.org/">Nix</a> package manager for a faster, reproducible setup. Pass the <code>-Nix</code> flag on first install - subsequent updates auto-detect Nix and use it automatically:</p>
+<div class="highlight"><pre><span></span><code><span class="c"># first install: pass -Nix to install Nix and packages via nix profile</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-Nix</span> <span class="n">-Scope</span> <span class="p">@(</span><span class="s1">'shell'</span><span class="p">,</span> <span class="s1">'pwsh'</span><span class="p">)</span>
+
+<span class="c"># updates: Nix is auto-detected, no need to pass -Nix again</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span>
+</code></pre></div>
+<p>Scopes not available in Nix (<code>bun</code>, <code>distrobox</code>, <code>docker</code>) are installed using traditional scripts automatically.</p>
+<h3 id="using-other-packages-scopes">Using other packages scopes<a class="headerlink" href="#using-other-packages-scopes" title="Permanent link">¤</a></h3>
+<p>Depending on the use case you can install many other package <code>scopes</code> to further customize the system.
+Examples of the most common setup scopes:</p>
+<div class="highlight"><pre><span></span><code><span class="c"># generic setup with omp theme, 'az' scope for the Azure Cloud and Python virtual environments management.</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-OmpTheme</span> <span class="s1">'base'</span> <span class="n">-Scope</span> <span class="p">@(</span><span class="s1">'az'</span><span class="p">,</span> <span class="s1">'python'</span><span class="p">)</span>
+
+<span class="c"># above setup with tools for interacting with externally hosted kubernetes clusters</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-OmpTheme</span> <span class="s1">'base'</span> <span class="n">-Scope</span> <span class="p">@(</span><span class="s1">'az'</span><span class="p">,</span> <span class="s1">'k8s_base'</span><span class="p">,</span> <span class="s1">'python'</span><span class="p">)</span>
+
+<span class="c"># setup with docker and kubernetes stack to experiment with kubernetes clusters using minikube or k3d.</span>
+<span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-OmpTheme</span> <span class="s1">'base'</span> <span class="n">-Scope</span> <span class="p">@(</span><span class="s1">'docker'</span><span class="p">,</span> <span class="s1">'k8s_base'</span><span class="p">,</span> <span class="s1">'k8s_ext'</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="update-all-wsl-distros">Update all WSL distros<a class="headerlink" href="#update-all-wsl-distros" title="Permanent link">¤</a></h2>
+<p>To update all existing WSL distros just run the command:</p>
+<div class="highlight"><pre><span></span><code><span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span>
+</code></pre></div>
+<p>It will find all installed WSL distros, detect installed <strong>setup scopes</strong> and update them.</p>
+<h2 id="other-wsl-distros">Other WSL distros<a class="headerlink" href="#other-wsl-distros" title="Permanent link">¤</a></h2>
+<p>By default, the command <code>wsl --install</code> installs the Ubuntu distro but there are many other WSL distributions available.<br/>
+You can find many of them, like <em>Debian</em>, <em>OpenSUSE</em>, <em>AlmaLinux</em>, <em>OracleLinux</em>, <em>Kali</em>... in the <strong>Microsoft Store</strong>.  </p>
+<p>Other distros can be found on GitHub, e.g. my favorite <a href="https://github.com/WhitewaterFoundry/Fedora-Remix-for-WSL">WhitewaterFoundry/Fedora-Remix-for-WSL</a> or <a href="https://github.com/sileshn/ArchWSL2">sileshn/ArchWSL2</a>.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "navigation.sections", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+<script src="../../assets/javascripts/diagram-zoom.js"></script>
+</body>
+</html>

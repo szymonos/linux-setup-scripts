@@ -1,0 +1,723 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Universal, cross-platform developer environment provisioning with Nix" name="description"/>
+<link href="https://szymonos.github.io/linux-setup-scripts/proxy/" rel="canonical"/>
+<link href="../enterprise/" rel="prev"/>
+<link href="../customization/" rel="next"/>
+<link href="../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.6" name="generator"/>
+<title>Corporate Proxy - Dev Environment Setup</title>
+<link href="../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../assets/stylesheets/layout-wide-screen.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/mermaid-lightbox.css" rel="stylesheet"/>
+<script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="blue" data-md-color-primary="indigo" data-md-color-scheme="slate" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#corporate-proxy-certificates">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="Dev Environment Setup" class="md-header__button md-logo" data-md-component="logo" href=".." title="Dev Environment Setup">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            Dev Environment Setup
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Corporate Proxy
+            
+          </span>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/szymonos/linux-setup-scripts" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    szymonos/linux-setup-scripts
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="Dev Environment Setup" class="md-nav__button md-logo" data-md-component="logo" href=".." title="Dev Environment Setup">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+    Dev Environment Setup
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/szymonos/linux-setup-scripts" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    szymonos/linux-setup-scripts
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="..">
+<span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../architecture/">
+<span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../decisions/">
+<span class="md-ellipsis">
+    
+  
+    Design Decisions
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../standards/">
+<span class="md-ellipsis">
+    
+  
+    Quality &amp; Testing
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../enterprise/">
+<span class="md-ellipsis">
+    
+  
+    Enterprise Readiness
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    
+  
+    Corporate Proxy
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    
+  
+    Corporate Proxy
+  
+
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#the-problem-in-detail">
+<span class="md-ellipsis">
+      
+        The problem in detail
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#how-it-works">
+<span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+</a>
+<nav aria-label="How it works" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#automatic-detection">
+<span class="md-ellipsis">
+      
+        Automatic detection
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#what-gets-configured">
+<span class="md-ellipsis">
+      
+        What gets configured
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#certificate-storage">
+<span class="md-ellipsis">
+      
+        Certificate storage
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vs-code-server">
+<span class="md-ellipsis">
+      
+        VS Code Server
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#shell-functions-for-ongoing-management">
+<span class="md-ellipsis">
+      
+        Shell functions for ongoing management
+      
+    </span>
+</a>
+<nav aria-label="Shell functions for ongoing management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cert_intercept">
+<span class="md-ellipsis">
+      
+        cert_intercept
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fixcertpy">
+<span class="md-ellipsis">
+      
+        fixcertpy
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#wsl-integration">
+<span class="md-ellipsis">
+      
+        WSL integration
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#build-system-support">
+<span class="md-ellipsis">
+      
+        Build system support
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pre-commit-hooks-fail-with-ssl-errors">
+<span class="md-ellipsis">
+      
+        Pre-commit hooks fail with SSL errors
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../customization/">
+<span class="md-ellipsis">
+    
+  
+    Customization
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#the-problem-in-detail">
+<span class="md-ellipsis">
+      
+        The problem in detail
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#how-it-works">
+<span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+</a>
+<nav aria-label="How it works" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#automatic-detection">
+<span class="md-ellipsis">
+      
+        Automatic detection
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#what-gets-configured">
+<span class="md-ellipsis">
+      
+        What gets configured
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#certificate-storage">
+<span class="md-ellipsis">
+      
+        Certificate storage
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vs-code-server">
+<span class="md-ellipsis">
+      
+        VS Code Server
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#shell-functions-for-ongoing-management">
+<span class="md-ellipsis">
+      
+        Shell functions for ongoing management
+      
+    </span>
+</a>
+<nav aria-label="Shell functions for ongoing management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cert_intercept">
+<span class="md-ellipsis">
+      
+        cert_intercept
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fixcertpy">
+<span class="md-ellipsis">
+      
+        fixcertpy
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#wsl-integration">
+<span class="md-ellipsis">
+      
+        WSL integration
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#build-system-support">
+<span class="md-ellipsis">
+      
+        Build system support
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pre-commit-hooks-fail-with-ssl-errors">
+<span class="md-ellipsis">
+      
+        Pre-commit hooks fail with SSL errors
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="corporate-proxy-certificates">Corporate Proxy &amp; Certificates<a class="headerlink" href="#corporate-proxy-certificates" title="Permanent link">¤</a></h1>
+<p>Corporate MITM (man-in-the-middle) TLS inspection proxies are the single biggest source of developer friction in enterprise environments. Every tool that makes HTTPS requests - git, curl, pip, npm, az, terraform - breaks with cryptic SSL errors. Developers lose hours searching for tool-specific workarounds, and the solutions they find are fragile and incomplete.</p>
+<p>This tool detects and resolves MITM proxy issues automatically during setup. No manual <code>openssl s_client</code> debugging required.</p>
+<h2 id="the-problem-in-detail">The problem in detail<a class="headerlink" href="#the-problem-in-detail" title="Permanent link">¤</a></h2>
+<p>TLS inspection proxies replace upstream SSL certificates with ones signed by a corporate CA. This works transparently for browsers (which trust the system CA store), but breaks developer tools in three ways:</p>
+<ol>
+<li>
+<p><strong>Nix-installed binaries</strong> are built against Nix's own OpenSSL and ship with an isolated Mozilla CA bundle. They do not consult the macOS Keychain or the Linux system CA store. A proxy cert trusted by the OS is invisible to nix-installed git, curl, and every other tool.</p>
+</li>
+<li>
+<p><strong>Python tools</strong> (pip, requests, azure-cli) use <code>certifi</code>, a vendored CA bundle that ignores the system store. Each virtualenv gets its own copy.</p>
+</li>
+<li>
+<p><strong>Node.js tools</strong> (npm, pre-commit hooks) use Node's built-in CA bundle by default, separate from the system store.</p>
+</li>
+</ol>
+<p>The result: the same certificate must be configured in multiple places, through different mechanisms, for different tools - and the configuration must survive shell restarts, virtualenv creation, and environment upgrades.</p>
+<h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">¤</a></h2>
+<h3 id="automatic-detection">Automatic detection<a class="headerlink" href="#automatic-detection" title="Permanent link">¤</a></h3>
+<p>When <code>nix/setup.sh</code> runs, it probes a TLS endpoint (default: <code>https://www.google.com</code>). If the connection fails due to SSL verification, a MITM proxy is assumed and the certificate interception flow runs automatically:</p>
+<div class="mermaid">flowchart TD
+    P["TLS probe fails"] --&gt; I["cert_intercept
+    Extract intermediate + root certs
+    from TLS chain, deduplicate"]
+    I --&gt; S["Save to
+    ~/.config/certs/ca-custom.crt"]
+    S --&gt; B["build_ca_bundle
+    Merge nix CAs + custom certs"]
+    B --&gt; F["Write
+    ~/.config/certs/ca-bundle.crt"]
+    F --&gt; E["Export NIX_SSL_CERT_FILE
+    (immediate, covers remaining setup)"]
+    E --&gt; PR["Profile setup
+    Persist env vars to shell profiles"]</div>
+<p>On macOS, certificates are exported directly from the Keychain - capturing any corporate CA certificates that IT has already deployed via MDM.</p>
+<h3 id="what-gets-configured">What gets configured<a class="headerlink" href="#what-gets-configured" title="Permanent link">¤</a></h3>
+<p>The profile setup scripts automatically export environment variables into bash, zsh, and PowerShell profiles. Each variable targets a specific tool ecosystem:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Used by</th>
+<th>Points to</th>
+<th>Why this file</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NIX_SSL_CERT_FILE</code></td>
+<td>All nix-built tools</td>
+<td><code>ca-bundle.crt</code></td>
+<td>Nix tools ignore the OS store; need a complete replacement bundle</td>
+</tr>
+<tr>
+<td><code>NODE_EXTRA_CA_CERTS</code></td>
+<td>Node.js, npm</td>
+<td><code>ca-custom.crt</code></td>
+<td>Node already trusts system CAs; only needs the additional proxy certs</td>
+</tr>
+<tr>
+<td><code>REQUESTS_CA_BUNDLE</code></td>
+<td>Python requests, pip</td>
+<td><code>ca-bundle.crt</code></td>
+<td>Python replaces (not extends) its default store with this variable</td>
+</tr>
+<tr>
+<td><code>SSL_CERT_FILE</code></td>
+<td>OpenSSL-based tools</td>
+<td><code>ca-bundle.crt</code></td>
+<td>Same replacement behavior as Python</td>
+</tr>
+<tr>
+<td><code>UV_SYSTEM_CERTS</code></td>
+<td>uv, uvx</td>
+<td>n/a (flag)</td>
+<td>Tells uv to use the platform's native certificate store</td>
+</tr>
+<tr>
+<td><code>CLOUDSDK_CORE_CUSTOM_CA_CERTS_FILE</code></td>
+<td>Google Cloud CLI</td>
+<td><code>ca-bundle.crt</code></td>
+<td>gcloud has its own cert configuration</td>
+</tr>
+</tbody>
+</table>
+<p>All exports are guarded at runtime - variables are only set if the cert file still exists when the shell starts.</p>
+<h3 id="certificate-storage">Certificate storage<a class="headerlink" href="#certificate-storage" title="Permanent link">¤</a></h3>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Purpose</th>
+<th>Created by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~/.config/certs/ca-custom.crt</code></td>
+<td>Intercepted proxy certs only</td>
+<td><code>cert_intercept</code></td>
+</tr>
+<tr>
+<td><code>~/.config/certs/ca-bundle.crt</code></td>
+<td>Full CA bundle (system CAs + custom certs)</td>
+<td><code>build_ca_bundle</code></td>
+</tr>
+</tbody>
+</table>
+<p>On Linux, <code>ca-bundle.crt</code> symlinks to the system bundle (which includes any custom certs added via <code>update-ca-certificates</code>). On macOS, it is a merged file combining the nix-provided CA bundle with Keychain-exported and intercepted proxy certs.</p>
+<h3 id="vs-code-server">VS Code Server<a class="headerlink" href="#vs-code-server" title="Permanent link">¤</a></h3>
+<p>VS Code Server (remote-SSH, WSL) does not source <code>~/.bashrc</code> on startup, so shell-profile environment variables are invisible to extensions. This causes <code>SELF_SIGNED_CERT_IN_CHAIN</code> errors in extensions that call HTTPS APIs (GitHub Actions, GitHub Pull Requests, etc.).</p>
+<p>The setup automatically writes <code>NODE_EXTRA_CA_CERTS</code> to <code>~/.vscode-server/server-env-setup</code> - a file VS Code Server sources before launching. This handles the bootstrapping problem where setup runs before the first VS Code remote session.</p>
+<h2 id="shell-functions-for-ongoing-management">Shell functions for ongoing management<a class="headerlink" href="#shell-functions-for-ongoing-management" title="Permanent link">¤</a></h2>
+<p>After setup, two functions are available for ongoing certificate management:</p>
+<h3 id="cert_intercept"><code>cert_intercept</code><a class="headerlink" href="#cert_intercept" title="Permanent link">¤</a></h3>
+<p>Connects to hosts, extracts intermediate and root certificates from the TLS chain (skipping the leaf cert), deduplicates by serial number, and appends new certs to <code>~/.config/certs/ca-custom.crt</code>.</p>
+<div class="highlight"><pre><span></span><code>cert_intercept<span class="w">                                      </span><span class="c1"># default host (www.google.com)</span>
+cert_intercept<span class="w"> </span>login.microsoftonline.com<span class="w"> </span>pypi.org<span class="w">   </span><span class="c1"># specific hosts</span>
+</code></pre></div>
+<p>Useful when different proxies serve different certificate chains (e.g., VPN vs. office network).</p>
+<h3 id="fixcertpy"><code>fixcertpy</code><a class="headerlink" href="#fixcertpy" title="Permanent link">¤</a></h3>
+<p>Patches Python's <code>certifi</code> CA bundle(s) with certs from <code>~/.config/certs/ca-custom.crt</code>. Needed because each Python virtualenv gets its own copy of certifi's CA bundle.</p>
+<div class="highlight"><pre><span></span><code>fixcertpy<span class="w">                        </span><span class="c1"># auto-discover and patch all certifi bundles</span>
+fixcertpy<span class="w"> </span>/path/to/cacert.pem<span class="w">    </span><span class="c1"># patch a specific bundle</span>
+</code></pre></div>
+<p>Idempotent - running it twice does not duplicate certificates.</p>
+<h2 id="wsl-integration">WSL integration<a class="headerlink" href="#wsl-integration" title="Permanent link">¤</a></h2>
+<p>When provisioning WSL via PowerShell, the <code>-AddCertificate</code> flag intercepts proxy certificates and installs them into the distro's system CA store:</p>
+<div class="highlight"><pre><span></span><code><span class="n">wsl</span><span class="p">/</span><span class="n">wsl_setup</span><span class="p">.</span><span class="n">ps1</span> <span class="s1">'Ubuntu'</span> <span class="n">-AddCertificate</span>
+</code></pre></div>
+<p>This installs the intercepted root cert system-wide (<code>/usr/local/share/ca-certificates/</code> on Debian/Ubuntu, <code>/etc/pki/ca-trust/source/anchors/</code> on Fedora), so both system tools and nix tools trust it.</p>
+<h2 id="build-system-support">Build system support<a class="headerlink" href="#build-system-support" title="Permanent link">¤</a></h2>
+<p>The <code>Makefile</code> handles MITM proxies for development workflows:</p>
+<ul>
+<li><code>PREK_NATIVE_TLS=1</code> - tells the pre-commit runner to use the system's OpenSSL (which trusts the proxy cert)</li>
+<li><code>NODE_EXTRA_CA_CERTS</code> - automatically set for Node.js-based hooks (markdownlint, cspell) when a custom CA certificate is present</li>
+<li>Docker test targets (<code>make test-nix</code>, <code>make test-legacy</code>) - auto-intercept the root cert and inject it into the build context</li>
+</ul>
+<p>Developers behind corporate proxies don't need special configuration - the build system handles it.</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¤</a></h2>
+<p><strong>"unable to get local issuer certificate"</strong> (curl, git)</p>
+<p>Run <code>cert_intercept</code> and verify the cert was added. For system-wide trust (requires root):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Debian/Ubuntu</span>
+sudo<span class="w"> </span>cp<span class="w"> </span>~/.config/certs/ca-custom.crt<span class="w"> </span>/usr/local/share/ca-certificates/proxy-ca.crt
+sudo<span class="w"> </span>update-ca-certificates
+
+<span class="c1"># Fedora/RHEL</span>
+sudo<span class="w"> </span>cp<span class="w"> </span>~/.config/certs/ca-custom.crt<span class="w"> </span>/etc/pki/ca-trust/source/anchors/proxy-ca.crt
+sudo<span class="w"> </span>update-ca-trust
+</code></pre></div>
+<p><strong>"CERTIFICATE_VERIFY_FAILED"</strong> (Python, pip, az)</p>
+<p>Run <code>fixcertpy</code> or verify <code>REQUESTS_CA_BUNDLE</code> is set:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="nv">$REQUESTS_CA_BUNDLE</span><span class="w">    </span><span class="c1"># should point to ~/.config/certs/ca-bundle.crt</span>
+fixcertpy<span class="w">                    </span><span class="c1"># auto-patch all certifi bundles</span>
+</code></pre></div>
+<h3 id="pre-commit-hooks-fail-with-ssl-errors">Pre-commit hooks fail with SSL errors<a class="headerlink" href="#pre-commit-hooks-fail-with-ssl-errors" title="Permanent link">¤</a></h3>
+<p>Run hooks via <code>make lint</code> - the Makefile sets the required environment variables automatically. If running hooks outside of <code>make</code>, set <code>PREK_NATIVE_TLS=1</code> and <code>NODE_EXTRA_CA_CERTS</code> manually.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "navigation.sections", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+<script src="../assets/javascripts/diagram-zoom.js"></script>
+<script type="module">import mermaid from "https://unpkg.com/mermaid@10.4.0/dist/mermaid.esm.min.mjs";
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "dark",
+    securityLevel: "loose",
+    themeVariables: {
+        clusterBkg: "#263238",
+        darkMode: true,
+        edgeLabelBackground: "#263238",
+        fontFamily: "Roboto, sans-serif",
+        lineColor: "#90a4ae",
+        mainBkg: "#2c3e50",
+        nodeBorder: "#5c6bc0",
+        secondBkg: "#34495e",
+        tertiaryColor: "#455a64",
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: "basis"
+    },
+    sequence: {
+        useMaxWidth: true
+    },
+    gantt: {
+        useMaxWidth: true
+    },
+    flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: "basis"
+    }
+});</script></body>
+</html>
