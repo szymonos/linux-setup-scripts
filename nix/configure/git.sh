@@ -24,4 +24,10 @@ git config --global core.autocrlf input
 git config --global core.longpaths true
 git config --global push.autoSetupRemote true
 
+ca_bundle="$HOME/.config/certs/ca-bundle.crt"
+if [ -f "$ca_bundle" ]; then
+  git config --global http.sslCAInfo "$ca_bundle"
+  ok "git http.sslCAInfo set to $ca_bundle"
+fi
+
 ok "git configured"
