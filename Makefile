@@ -67,6 +67,10 @@ test-nix: ## Run Docker smoke test for nix path
 		&& docker rmi lss-test-nix >/dev/null 2>&1; \
 		$(CLEANUP_ROOT_CERT)
 
+.PHONY: mkdocs-serve
+mkdocs-serve: ## Serve mkdocs documentation with live reload
+	uv run --extra docs mkdocs serve --livereload
+
 .PHONY: lint lint-diff lint-all
 lint: ## Run pre-commit hooks for changed files
 	@printf "🧭 Running pre-commit hooks for changed files...\n\n"

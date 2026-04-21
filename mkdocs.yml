@@ -79,6 +79,3 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Architecture: architecture.md
-  - Customization: customization.md
-  - Corporate Proxy: corporate_proxy.md
-  - WSL Setup: wsl_setup.md
