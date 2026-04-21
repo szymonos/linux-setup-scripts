@@ -256,13 +256,13 @@ run_phase1() {
         printf "\e[90m  would remove nix profile entry 'nix-env'\e[0m\n"
       else
         nix profile remove nix-env 2>/dev/null && ok "  removed nix profile entry 'nix-env'"
+        hash -r
       fi
     fi
   fi
 
   # 1i. Remove nix profile symlink and local state
   _rm "$HOME/.nix-profile"
-  hash -r
   _rm "$HOME/.local/state/nix"
 
   # 1j. Clean up nixenv backup files from shell rc files

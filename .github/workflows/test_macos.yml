@@ -53,6 +53,8 @@ jobs:
     name: "nix/setup.sh on ${{ github.event.inputs.runner || 'macos-15' }}"
     runs-on: ${{ github.event.inputs.runner || 'macos-15' }}
     timeout-minutes: 30
+    env:
+      NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
 
     steps:
       # ---- critical steps (fail-fast) ----------------------------------------
@@ -67,8 +69,6 @@ jobs:
           dscl . -list /Groups PrimaryGroupID | awk '$NF == 350'
 
       - name: Run setup.sh (auto-installs Nix)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           nix/setup.sh \
             ${{ github.event.inputs.scopes || '--shell --omp-theme base' }} \

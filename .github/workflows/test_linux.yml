@@ -49,6 +49,8 @@ jobs:
     name: "nix/setup.sh (${{ matrix.name }})"
     runs-on: ubuntu-slim
     timeout-minutes: 30
+    env:
+      NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
 
     steps:
       # ---- critical steps (fail-fast) ----------------------------------------
@@ -73,8 +75,6 @@ jobs:
           nix store info
 
       - name: Run setup.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           nix/setup.sh \
             ${{ github.event.inputs.scopes || matrix.default-scopes }} \
