@@ -57,26 +57,38 @@ phase_nix_profile_apply() {
 phase_nix_profile_mitm_probe() {
   # shellcheck source=../../../.assets/lib/certs.sh
   source "$SCRIPT_ROOT/.assets/lib/certs.sh"
-  # Use nix curl for the probe - system curl on macOS uses Keychain and
-  # passes behind MITM proxies that nix tools (isolated OpenSSL) reject.
-  local _probe_failed=false
-  if [[ -x "$HOME/.nix-profile/bin/curl" ]]; then
-    "$HOME/.nix-profile/bin/curl" -sS "$NIX_ENV_TLS_PROBE_URL" >/dev/null 2>&1 || _probe_failed=true
-  else
-    _io_curl_probe "$NIX_ENV_TLS_PROBE_URL" || _probe_failed=true
-  fi
-  if [[ "$_probe_failed" == "true" ]] && command -v openssl &>/dev/null; then
-    warn "SSL verification failed - MITM proxy detected, intercepting certificates..."
-    # shellcheck source=../../../.assets/config/bash_cfg/functions.sh
-    source "$SCRIPT_ROOT/.assets/config/bash_cfg/functions.sh"
-    cert_intercept
+
+  # On macOS, build_ca_bundle exports from Keychain (no MITM probe needed).
+  # On Linux, it requires ca-custom.crt so we only call it after cert_intercept.
+  if [[ "$(uname -s)" == "Darwin" ]]; then
     build_ca_bundle
-    local ca_bundle="$HOME/.config/certs/ca-bundle.crt"
-    if [[ -f "$ca_bundle" ]]; then
-      export NIX_SSL_CERT_FILE="$ca_bundle"
-      export SSL_CERT_FILE="$ca_bundle"
-      git config --global http.sslCAInfo "$ca_bundle"
-      ok "set NIX_SSL_CERT_FILE, SSL_CERT_FILE, and git http.sslCAInfo to merged CA bundle"
+  fi
+
+  # MITM probe (Linux, or macOS if Keychain export missed something).
+  # Use nix curl - system curl on macOS uses Keychain and passes behind
+  # MITM proxies that nix tools (isolated OpenSSL) reject.
+  local ca_bundle="$HOME/.config/certs/ca-bundle.crt"
+  if [[ ! -f "$ca_bundle" ]]; then
+    local _probe_failed=false
+    if [[ -x "$HOME/.nix-profile/bin/curl" ]]; then
+      "$HOME/.nix-profile/bin/curl" -sS "$NIX_ENV_TLS_PROBE_URL" >/dev/null 2>&1 || _probe_failed=true
+    else
+      _io_curl_probe "$NIX_ENV_TLS_PROBE_URL" || _probe_failed=true
     fi
+    if [[ "$_probe_failed" == "true" ]] && command -v openssl &>/dev/null; then
+      warn "SSL verification failed - MITM proxy detected, intercepting certificates..."
+      # shellcheck source=../../../.assets/config/bash_cfg/functions.sh
+      source "$SCRIPT_ROOT/.assets/config/bash_cfg/functions.sh"
+      cert_intercept
+      build_ca_bundle
+    fi
+  fi
+
+  # Configure env vars and git for all nix-built tools
+  if [[ -f "$ca_bundle" ]]; then
+    export NIX_SSL_CERT_FILE="$ca_bundle"
+    export SSL_CERT_FILE="$ca_bundle"
+    git config --global http.sslCAInfo "$ca_bundle"
+    ok "configured CA bundle for nix tools ($ca_bundle)"
   fi
 }
