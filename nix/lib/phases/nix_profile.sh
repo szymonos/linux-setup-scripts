@@ -57,7 +57,15 @@ phase_nix_profile_apply() {
 phase_nix_profile_mitm_probe() {
   # shellcheck source=../../../.assets/lib/certs.sh
   source "$SCRIPT_ROOT/.assets/lib/certs.sh"
-  if ! _io_curl_probe "$NIX_ENV_TLS_PROBE_URL" && command -v openssl &>/dev/null; then
+  # Use nix curl for the probe - system curl on macOS uses Keychain and
+  # passes behind MITM proxies that nix tools (isolated OpenSSL) reject.
+  local _probe_failed=false
+  if [[ -x "$HOME/.nix-profile/bin/curl" ]]; then
+    "$HOME/.nix-profile/bin/curl" -sS "$NIX_ENV_TLS_PROBE_URL" >/dev/null 2>&1 || _probe_failed=true
+  else
+    _io_curl_probe "$NIX_ENV_TLS_PROBE_URL" || _probe_failed=true
+  fi
+  if [[ "$_probe_failed" == "true" ]] && command -v openssl &>/dev/null; then
     warn "SSL verification failed - MITM proxy detected, intercepting certificates..."
     # shellcheck source=../../../.assets/config/bash_cfg/functions.sh
     source "$SCRIPT_ROOT/.assets/config/bash_cfg/functions.sh"
