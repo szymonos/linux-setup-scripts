@@ -40,10 +40,28 @@ build_ca_bundle() {
     done
     ;;
   Darwin)
-    local nix_bundle="$HOME/.nix-profile/etc/ssl/certs/ca-bundle.crt"
-    if [ -f "$nix_bundle" ]; then
+    local nix_bundle=""
+    for _candidate in \
+      "$HOME/.nix-profile/etc/ssl/certs/ca-bundle.crt" \
+      /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt; do
+      if [ -f "$_candidate" ]; then
+        nix_bundle="$_candidate"
+        break
+      fi
+    done
+    if [ -n "$nix_bundle" ]; then
       cat "$nix_bundle" "$custom_certs" >"$bundle_link"
       ok "  created merged ca-bundle.crt (nix CAs + custom certs)"
+    else
+      # Fallback: export system root CAs from macOS Keychain
+      security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain >"$bundle_link" 2>/dev/null
+      if [ -s "$bundle_link" ]; then
+        cat "$custom_certs" >>"$bundle_link"
+        ok "  created merged ca-bundle.crt (macOS Keychain CAs + custom certs)"
+      else
+        rm -f "$bundle_link"
+        warn "  could not create ca-bundle.crt (no nix or system CA bundle found)"
+      fi
     fi
     ;;
   esac
