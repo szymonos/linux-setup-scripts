@@ -67,7 +67,8 @@ phase_nix_profile_mitm_probe() {
     if [[ -f "$ca_bundle" ]]; then
       export NIX_SSL_CERT_FILE="$ca_bundle"
       export SSL_CERT_FILE="$ca_bundle"
-      ok "set NIX_SSL_CERT_FILE and SSL_CERT_FILE to merged CA bundle"
+      git config --global http.sslCAInfo "$ca_bundle"
+      ok "set NIX_SSL_CERT_FILE, SSL_CERT_FILE, and git http.sslCAInfo to merged CA bundle"
     fi
   fi
 }
