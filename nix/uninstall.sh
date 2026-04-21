@@ -305,63 +305,19 @@ run_phase2() {
       sudo /nix/nix-installer uninstall
     fi
   else
-    # Upstream installer (--no-daemon single-user install)
-    info "detected upstream Nix installer (single-user / --no-daemon)"
-
-    if systemctl is-active nix-daemon &>/dev/null; then
+    # Single-user install (--no-daemon / upstream Nix installer).
+    # Remove /nix only when the user has root access (they installed it
+    # themselves). In pre-installed environments (Coder, CI) sudo is
+    # unavailable and /nix must be left in place.
+    info "detected single-user Nix install (no Determinate installer)"
+    if [[ -d /nix ]] && sudo -n true 2>/dev/null; then
       if [[ "$DRY_RUN" == "true" ]]; then
-        printf "\e[90m  would run: sudo systemctl stop nix-daemon\e[0m\n"
+        printf "\e[90m  would remove /nix\e[0m\n"
       else
-        warn "nix-daemon is running - stopping..."
-        sudo systemctl stop nix-daemon 2>/dev/null || true
-        sudo systemctl disable nix-daemon 2>/dev/null || true
+        sudo rm -rf /nix && removed "/nix"
       fi
-    fi
-
-    info "removing /nix and user nix files..."
-    if [[ "$DRY_RUN" == "true" ]]; then
-      printf "\e[90m  would run: sudo rm -rf /nix\e[0m\n"
-      printf "\e[90m  would remove ~/.nix-defexpr\e[0m\n"
-      printf "\e[90m  would remove ~/.nix-channels\e[0m\n"
-      printf "\e[90m  would remove ~/.config/nix\e[0m\n"
-    else
-      info "removing /nix (requires sudo)..."
-      sudo rm -rf /nix
-      _rm "$HOME/.nix-defexpr"
-      _rm "$HOME/.nix-channels"
-      _rm "$HOME/.config/nix"
-    fi
-
-    if [[ -f /etc/profile.d/nix.sh ]]; then
-      if [[ "$DRY_RUN" == "true" ]]; then
-        printf "\e[90m  would run: sudo rm -f /etc/profile.d/nix.sh\e[0m\n"
-      else
-        sudo rm -f /etc/profile.d/nix.sh && removed "/etc/profile.d/nix.sh"
-      fi
-    fi
-
-    for backup in /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix; do
-      original="${backup%.backup-before-nix}"
-      if [[ -f "$backup" ]]; then
-        if [[ "$DRY_RUN" == "true" ]]; then
-          printf "\e[90m  would restore %s from %s\e[0m\n" "$original" "$backup"
-        else
-          sudo mv -f "$backup" "$original" && ok "  restored $original"
-        fi
-      fi
-    done
-
-    if getent group nixbld &>/dev/null; then
-      if [[ "$DRY_RUN" == "true" ]]; then
-        printf "\e[90m  would remove nixbld group and users\e[0m\n"
-      else
-        info "removing nixbld users and group..."
-        for i in $(seq 1 32); do
-          sudo userdel "nixbld$i" 2>/dev/null || true
-        done
-        sudo groupdel nixbld 2>/dev/null || true
-        ok "  removed nixbld users and group"
-      fi
+    elif [[ -d /nix ]]; then
+      info "/nix left in place (no root access - pre-installed environment)"
     fi
   fi
 

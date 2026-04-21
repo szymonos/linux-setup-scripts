@@ -26,26 +26,92 @@ phase_bootstrap_resolve_paths() {
   CONFIG_NIX="$ENV_DIR/config.nix"
 }
 
+_source_nix_profile() {
+  for nix_profile in \
+    "$HOME/.nix-profile/etc/profile.d/nix.sh" \
+    /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; do
+    if [ -f "$nix_profile" ]; then
+      # shellcheck source=/dev/null
+      . "$nix_profile"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Check whether a GID and UID range [base, base+32) are all unassigned on macOS.
+_darwin_id_range_free() {
+  local base=$1
+  local end=$((base + 31))
+  dscl . -list /Groups PrimaryGroupID 2>/dev/null \
+    | awk -v id="$base" '$NF == id {exit 1}' || return 1
+  dscl . -list /Users UniqueID 2>/dev/null \
+    | awk -v lo="$base" -v hi="$end" '$NF >= lo && $NF <= hi {exit 1}' || return 1
+  return 0
+}
+
+_install_nix_darwin() {
+  info "Nix is not installed. Attempting automatic installation on macOS..."
+
+  local id_base=""
+  local candidate
+  # prefer < 500 (macOS system band - hidden from login screen by default)
+  for candidate in 350 300 400 450 4000; do
+    if _darwin_id_range_free "$candidate"; then
+      id_base=$candidate
+      break
+    fi
+    warn "GID/UID range $candidate is already in use, trying next..."
+  done
+
+  if [ -z "$id_base" ]; then
+    _ir_error="Nix install failed: no free GID/UID range found"
+    err "Could not find a free GID/UID range for Nix build users."
+    err "Install Nix manually with a free range, e.g.:"
+    err "  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | \\"
+    err "    sh -s -- install --nix-build-group-id <GID> --nix-build-user-id-base <UID_BASE>"
+    exit 1
+  fi
+
+  local install_args=(install)
+  if [ "$id_base" -ne 350 ]; then
+    install_args+=(--nix-build-group-id "$id_base" --nix-build-user-id-base "$id_base")
+    info "using custom GID $id_base and UID base $id_base"
+  fi
+
+  _io_run curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+    | sh -s -- "${install_args[@]}"
+
+  _source_nix_profile
+  if ! command -v nix &>/dev/null && [ -x "$HOME/.nix-profile/bin/nix" ]; then
+    export PATH="$HOME/.nix-profile/bin:$PATH"
+  fi
+
+  if ! command -v nix &>/dev/null; then
+    _ir_error="Nix installation completed but nix command not found"
+    err "Nix installation completed but 'nix' command is not available."
+    err "Open a new terminal and run setup.sh again."
+    exit 1
+  fi
+  ok "Nix installed successfully"
+}
+
 phase_bootstrap_detect_nix() {
   if ! command -v nix &>/dev/null; then
-    for nix_profile in \
-      "$HOME/.nix-profile/etc/profile.d/nix.sh" \
-      /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; do
-      if [[ -f "$nix_profile" ]]; then
-        # shellcheck source=/dev/null
-        . "$nix_profile"
-        break
-      fi
-    done
+    _source_nix_profile || true
   fi
-  if ! command -v nix &>/dev/null && [[ -x "$HOME/.nix-profile/bin/nix" ]]; then
+  if ! command -v nix &>/dev/null && [ -x "$HOME/.nix-profile/bin/nix" ]; then
     export PATH="$HOME/.nix-profile/bin:$PATH"
   fi
   if ! command -v nix &>/dev/null; then
-    _ir_error="Nix is not installed"
-    err "Nix is not installed. Install it first (requires root, one-time):"
-    err "  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install"
-    exit 1
+    if [ "$(uname -s)" = "Darwin" ]; then
+      _install_nix_darwin
+    else
+      _ir_error="Nix is not installed"
+      err "Nix is not installed. Install it first (requires root, one-time):"
+      err "  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install"
+      exit 1
+    fi
   fi
 }
 

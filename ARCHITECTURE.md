@@ -101,35 +101,47 @@ Scripts that only run on Linux where bash 5.x is the standard.
 
 ## Nix-path call tree
 
-```text
-nix/setup.sh                                      (orchestrator, ~110 lines)
-  sources nix/lib/io.sh                            (output helpers + side-effect wrappers)
-  sources nix/lib/phases/bootstrap.sh              (root guard, paths, nix/jq detect, arg parse)
-  sources nix/lib/phases/platform.sh               (OS detect, overlay, hooks)
-  sources nix/lib/phases/scopes.sh                 (load/merge/resolve scopes, write config.nix)
-  sources nix/lib/phases/nix_profile.sh            (flake update, profile upgrade, MITM probe)
-  sources nix/lib/phases/configure.sh              (gh/git/per-scope configure dispatch)
-  sources nix/lib/phases/profiles.sh               (bash/zsh/pwsh profile setup)
-  sources nix/lib/phases/post_install.sh           (setup_common.sh + nix GC)
-  sources nix/lib/phases/summary.sh                (mode detect + final output)
-  sources .assets/lib/install_record.sh            (EXIT trap provenance)
-  sources .assets/lib/scopes.sh -> reads .assets/lib/scopes.json
-  calls (via _io_run):
-    nix/configure/gh.sh
-    nix/configure/git.sh
-    nix/configure/docker.sh      (if scope: docker)
-    nix/configure/conda.sh       -> sources functions.sh
-    nix/configure/az.sh          -> calls install_azurecli_uv.sh
-    nix/configure/omp.sh         -> reads .assets/config/omp_cfg/
-    nix/configure/starship.sh    -> reads .assets/config/starship_cfg/
-    nix/configure/profiles.sh    -> sources profile_block.sh + env_block.sh + certs.sh, copies bash_cfg/
-    nix/configure/profiles.zsh   -> sources profile_block.sh + env_block.sh + certs.sh, copies bash_cfg/
-    nix/configure/profiles.ps1   -> copies pwsh_cfg/ to ~/.config/powershell/
-    .assets/setup/setup_common.sh
-      calls install_copilot.sh
-      calls setup_profile_user.zsh     (if scope: zsh)
-      calls setup_profile_user.ps1     (if pwsh available, writes devenv + certs + local-path)
-```
+Entry point: `nix/setup.sh` (orchestrator, ~110 lines).
+
+**Phase libraries** (sourced at startup, executed in order):
+
+| File                             | Role                                             |
+| -------------------------------- | ------------------------------------------------ |
+| `nix/lib/io.sh`                  | Output helpers + side-effect wrappers            |
+| `nix/lib/phases/bootstrap.sh`    | Root guard, paths, nix detect/install, arg parse |
+| `nix/lib/phases/platform.sh`     | OS detect, overlay, hooks                        |
+| `nix/lib/phases/scopes.sh`       | Load/merge/resolve scopes, write `config.nix`    |
+| `nix/lib/phases/nix_profile.sh`  | Flake update, profile upgrade, MITM probe        |
+| `nix/lib/phases/configure.sh`    | gh/git/per-scope configure dispatch              |
+| `nix/lib/phases/profiles.sh`     | bash/zsh/pwsh profile setup                      |
+| `nix/lib/phases/post_install.sh` | `setup_common.sh` + nix GC                       |
+| `nix/lib/phases/summary.sh`      | Mode detect + final output                       |
+| `.assets/lib/install_record.sh`  | EXIT trap provenance                             |
+| `.assets/lib/scopes.sh`          | Scope helpers (reads `.assets/lib/scopes.json`)  |
+
+**Configure scripts** (dispatched by `configure.sh` via [`_io_run`](nix/lib/io.sh)):
+
+| File                         | Condition         | Dependencies                                                               |
+| ---------------------------- | ----------------- | -------------------------------------------------------------------------- |
+| `nix/configure/gh.sh`        | always            | -                                                                          |
+| `nix/configure/git.sh`       | always            | -                                                                          |
+| `nix/configure/docker.sh`    | scope: docker     | -                                                                          |
+| `nix/configure/conda.sh`     | scope: conda      | sources `functions.sh`                                                     |
+| `nix/configure/az.sh`        | scope: az         | calls `install_azurecli_uv.sh`                                             |
+| `nix/configure/omp.sh`       | scope: oh_my_posh | reads `.assets/config/omp_cfg/`                                            |
+| `nix/configure/starship.sh`  | scope: starship   | reads `.assets/config/starship_cfg/`                                       |
+| `nix/configure/profiles.sh`  | always            | sources `profile_block.sh`, `env_block.sh`, `certs.sh`; copies `bash_cfg/` |
+| `nix/configure/profiles.zsh` | scope: zsh        | sources `profile_block.sh`, `env_block.sh`, `certs.sh`; copies `bash_cfg/` |
+| `nix/configure/profiles.ps1` | scope: pwsh       | copies `pwsh_cfg/` to `~/.config/powershell/`                              |
+
+**Post-install dispatch** (dispatched by `post_install.sh` via [`_io_run`](nix/lib/io.sh)):
+
+| File                                   | Condition       | Purpose                          |
+| -------------------------------------- | --------------- | -------------------------------- |
+| `.assets/setup/setup_common.sh`        | always          | Copilot, zsh plugins, PS modules |
+| `.assets/provision/install_copilot.sh` | called by above | GitHub Copilot CLI               |
+| `.assets/setup/setup_profile_user.zsh` | scope: zsh      | Zsh profile setup                |
+| `.assets/setup/setup_profile_user.ps1` | pwsh available  | devenv + certs + local-path      |
 
 ## Runtime file locations
 
@@ -526,7 +538,7 @@ Alias files are assigned to the correct block based on how the tool was installe
 - `aliases_kubectl.sh` - same logic: nix block if kubectl is from nix, otherwise generic.
 - `aliases_nix.sh` - always in `nix-env managed` (nix-specific by definition).
 
-```text
+```bash
 # >>> nix-env managed >>>
 # :path
 export PATH="$HOME/.nix-profile/bin:$PATH"
@@ -551,7 +563,7 @@ export NODE_EXTRA_CA_CERTS="$HOME/.config/certs/ca-custom.crt"
 Nix-managed regions use the `nix:` prefix. Generic regions (certs, conda, make completer) use unprefixed names and
 are written by `setup_profile_user.ps1`. The uninstaller only removes `nix:`-prefixed regions.
 
-```text
+```powershell
 #region nix:base
 . "$HOME/.config/nix-env/profile_base.ps1"
 #endregion
