@@ -65,9 +65,8 @@ phase_nix_profile_mitm_probe() {
     build_ca_bundle
     local ca_bundle="$HOME/.config/certs/ca-bundle.crt"
     if [[ -f "$ca_bundle" ]]; then
-      export GIT_SSL_CAINFO="$ca_bundle"
-      git config --global http.sslCAInfo "$ca_bundle"
-      ok "configured git to use custom CA bundle"
+      export NIX_SSL_CERT_FILE="$ca_bundle"
+      ok "set NIX_SSL_CERT_FILE to merged CA bundle (covers all nix tools)"
     fi
   fi
 }

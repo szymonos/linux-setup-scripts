@@ -155,6 +155,20 @@ if (Update-ProfileRegion -Lines $profileContent -RegionName 'nix:path' -Content 
     Write-Host "`e[32mupdated nix:path in PowerShell profile`e[0m"
 }
 
+# -- nix:certs - override NIX_SSL_CERT_FILE with merged CA bundle -----------
+$caBundlePath = [IO.Path]::Combine([Environment]::GetFolderPath('UserProfile'), '.config/certs/ca-bundle.crt')
+if ([IO.File]::Exists($caBundlePath)) {
+    $certsRegion = [string[]]@(
+        '#region nix:certs'
+        '$caBundlePath = [IO.Path]::Combine([Environment]::GetFolderPath(''UserProfile''), ''.config/certs/ca-bundle.crt'')'
+        'if ([IO.File]::Exists($caBundlePath)) { $env:NIX_SSL_CERT_FILE = $caBundlePath }'
+        '#endregion'
+    )
+    if (Update-ProfileRegion -Lines $profileContent -RegionName 'nix:certs' -Content $certsRegion) {
+        Write-Host "`e[32mupdated nix:certs in PowerShell profile`e[0m"
+    }
+}
+
 # -- nix:starship - starship prompt ------------------------------------------
 $nixBinStarship = [IO.Path]::Combine($nixBin, 'starship')
 if ([IO.File]::Exists($nixBinStarship)) {

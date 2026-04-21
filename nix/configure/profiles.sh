@@ -83,6 +83,11 @@ _render_bash_block() {
     printf 'export PATH="$HOME/.nix-profile/bin:$PATH"\n'
   fi
 
+  # 3. Override NIX_SSL_CERT_FILE with merged CA bundle (MITM proxy support)
+  if [ -f "$HOME/.config/certs/ca-bundle.crt" ]; then
+    printf 'export NIX_SSL_CERT_FILE="$HOME/.config/certs/ca-bundle.crt"\n'
+  fi
+
   # 4. Nix aliases (generic aliases moved to managed env block)
   if [ -f "$HOME/.config/bash/aliases_nix.sh" ] && command -v nix &>/dev/null; then
     printf '\n# :aliases\n'

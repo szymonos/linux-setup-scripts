@@ -132,7 +132,7 @@ Entry point: `nix/setup.sh` (orchestrator, ~110 lines).
 | `nix/configure/starship.sh`  | scope: starship   | reads `.assets/config/starship_cfg/`                                       |
 | `nix/configure/profiles.sh`  | always            | sources `profile_block.sh`, `env_block.sh`, `certs.sh`; copies `bash_cfg/` |
 | `nix/configure/profiles.zsh` | scope: zsh        | sources `profile_block.sh`, `env_block.sh`, `certs.sh`; copies `bash_cfg/` |
-| `nix/configure/profiles.ps1` | scope: pwsh       | copies `pwsh_cfg/` to `~/.config/powershell/`                              |
+| `nix/configure/profiles.ps1` | scope: pwsh       | copies `pwsh_cfg/`; writes `nix:base`, `nix:path`, `nix:certs` regions     |
 
 **Post-install dispatch** (dispatched by `post_install.sh` via [`_io_run`](nix/lib/io.sh)):
 
@@ -254,11 +254,12 @@ details.
 
 Variables exported by `nix/setup.sh` for use by hooks, downstream scripts, and diagnostic tools (`nx doctor`).
 
-| Variable                | Set by     | When                         | Purpose                                      |
-| ----------------------- | ---------- | ---------------------------- | -------------------------------------------- |
-| `NIX_ENV_VERSION`       | `setup.sh` | After script root resolution | Tool version (git tag/tarball)               |
-| `NIX_ENV_SCOPES`        | `setup.sh` | After scope resolution       | Space-separated resolved scopes              |
-| `NIX_ENV_TLS_PROBE_URL` | `certs.sh` | On source                    | TLS probe URL for MITM detection (see below) |
+| Variable                | Set by     | When                             | Purpose                                      |
+| ----------------------- | ---------- | -------------------------------- | -------------------------------------------- |
+| `NIX_ENV_VERSION`       | `setup.sh` | After script root resolution     | Tool version (git tag/tarball)               |
+| `NIX_ENV_SCOPES`        | `setup.sh` | After scope resolution           | Space-separated resolved scopes              |
+| `NIX_SSL_CERT_FILE`     | profiles   | Shell startup (if bundle exists) | Merged CA bundle for all nix-built tools     |
+| `NIX_ENV_TLS_PROBE_URL` | `certs.sh` | On source                        | TLS probe URL for MITM detection (see below) |
 
 `NIX_ENV_VERSION` uses a three-step fallback: `git describe --tags --dirty`, then a `VERSION` file (present in
 release tarballs, absent in the repo), then `"unknown"`. The same chain is used by `install_record.sh` for
@@ -314,8 +315,9 @@ scenario.
 
 **Test-per-run assertions** (both integration workflows):
 
-- `setup.sh` completes with requested scope flags (defaults include `--shell --python --pwsh --k8s-dev --terraform`
-  plus a prompt engine: `--omp-theme base` on daemon/macOS, `--starship-theme base` on no-daemon).
+- `setup.sh` completes with requested scope flags. Label-triggered runs use a fast smoke test (`--shell` plus a
+  prompt theme); `workflow_dispatch` defaults to the full scope set (`--shell --python --pwsh --k8s-dev --terraform`
+  plus a prompt engine) with an input override for custom scopes.
 - Core binaries (`git`, `gh`, `jq`, `curl`, `openssl`) resolve on PATH.
 - Scope-specific binaries resolve (mapped from scope flags).
 - `nx doctor --strict` passes (warnings and failures both break the build).
@@ -398,8 +400,16 @@ Linux-only scripts may use `set -euo pipefail` since they run bash 5.x where emp
 ### Corporate proxy and SSL inspection
 
 Many enterprise environments use MITM TLS inspection proxies that replace upstream certificates. The solution
-intercepts proxy certificates at setup time and configures tools via environment variables (`NODE_EXTRA_CA_CERTS`,
-`REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`, `UV_SYSTEM_CERTS`). See `docs/corporate_proxy.md` for operational details.
+intercepts proxy certificates at setup time and configures tools via environment variables (`NIX_SSL_CERT_FILE`,
+`NODE_EXTRA_CA_CERTS`, `REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`, `UV_SYSTEM_CERTS`). See `docs/corporate_proxy.md` for
+operational details.
+
+**Why nix tools need special handling:** Nix-installed binaries (git, curl, etc.) are built against nix's own OpenSSL
+and ship with an isolated Mozilla CA bundle. They do not use the macOS Keychain or the Linux system CA store. This
+means a MITM proxy cert trusted by the OS is invisible to nix tools. `NIX_SSL_CERT_FILE` overrides the default CA
+bundle for all nix-built tools with a merged bundle (nix CAs + intercepted proxy certs). It is set during setup
+(`phase_nix_profile_mitm_probe`) and persisted in shell profiles (bash/zsh managed block, PowerShell `nix:certs`
+region).
 
 **TLS probe URL** (`NIX_ENV_TLS_PROBE_URL`, default `https://www.google.com`): used by MITM detection
 (`phase_nix_profile_mitm_probe`), SSL connectivity checks (`check_ssl.sh`), and certificate interception
@@ -544,7 +554,9 @@ Alias files are assigned to the correct block based on how the tool was installe
 ```bash
 # >>> nix-env managed >>>
 # :path
+. $HOME/.nix-profile/etc/profile.d/nix.sh
 export PATH="$HOME/.nix-profile/bin:$PATH"
+export NIX_SSL_CERT_FILE="$HOME/.config/certs/ca-bundle.crt"
 # :aliases
 . "$HOME/.config/bash/aliases_nix.sh"
 # :oh-my-posh
@@ -573,6 +585,11 @@ are written by `setup_profile_user.ps1`. The uninstaller only removes `nix:`-pre
 
 #region nix:path
 ...
+#endregion
+
+#region nix:certs
+$caBundlePath = ...
+if ([IO.File]::Exists($caBundlePath)) { $env:NIX_SSL_CERT_FILE = $caBundlePath }
 #endregion
 
 #region certs

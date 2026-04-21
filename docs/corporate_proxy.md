@@ -17,12 +17,18 @@ nix/setup.sh
   -> calls cert_intercept
   -> extracts intermediate/root certs from TLS chain
   -> saves to ~/.config/certs/ca-custom.crt
+  -> calls build_ca_bundle
+  -> merges nix CAs + custom certs into ~/.config/certs/ca-bundle.crt
+  -> exports NIX_SSL_CERT_FILE=~/.config/certs/ca-bundle.crt (immediate, covers remaining setup steps)
 ```
 
 After interception, the profile setup scripts (`nix/configure/profiles.sh`, `profiles.zsh`, `profiles.ps1`) automatically:
 
 1. Create `~/.config/certs/ca-bundle.crt` - a full CA bundle (symlink to system bundle on Linux, merged nix CAs + custom certs on macOS)
-2. Add environment variable exports to shell profiles so downstream tools trust the custom certificates
+2. Set `NIX_SSL_CERT_FILE` to the merged CA bundle so all nix-built tools (git, curl, etc.) trust proxy certificates
+3. Add environment variable exports to shell profiles so downstream tools trust the custom certificates
+
+**Why nix tools need `NIX_SSL_CERT_FILE`:** Nix-installed binaries are built against nix's own OpenSSL and ship with an isolated Mozilla CA bundle. They do not consult the macOS Keychain or the Linux system CA store. A MITM proxy cert trusted by the OS is invisible to nix tools unless `NIX_SSL_CERT_FILE` points to a bundle that includes both the standard CAs and the intercepted proxy certs. This is the root cause of "unable to get local issuer certificate" errors from nix-installed git, curl, etc. even when the system-provided versions of those tools work fine.
 
 ### WSL path
 
@@ -45,12 +51,12 @@ make test-legacy # same
 
 ## Certificate storage
 
-| Location                                 | Purpose                                                              | Created by                  |
-| ---------------------------------------- | -------------------------------------------------------------------- | --------------------------- |
-| `~/.config/certs/ca-custom.crt`          | User-scope PEM bundle of intercepted proxy certs only                | `cert_intercept`            |
-| `~/.config/certs/ca-bundle.crt`          | Full CA bundle (system CAs + custom certs) for tools needing a chain | `nix/configure/profiles.sh` |
-| `/usr/local/share/ca-certificates/*.crt` | System CA store (Debian/Ubuntu)                                      | WSL setup or manual         |
-| `/etc/pki/ca-trust/source/anchors/*.crt` | System CA store (Fedora/RHEL)                                        | WSL setup or manual         |
+| Location                                 | Purpose                                                              | Created by                   |
+| ---------------------------------------- | -------------------------------------------------------------------- | ---------------------------- |
+| `~/.config/certs/ca-custom.crt`          | User-scope PEM bundle of intercepted proxy certs only                | `cert_intercept`             |
+| `~/.config/certs/ca-bundle.crt`          | Full CA bundle (system CAs + custom certs) for tools needing a chain | `build_ca_bundle` (certs.sh) |
+| `/usr/local/share/ca-certificates/*.crt` | System CA store (Debian/Ubuntu)                                      | WSL setup or manual          |
+| `/etc/pki/ca-trust/source/anchors/*.crt` | System CA store (Fedora/RHEL)                                        | WSL setup or manual          |
 
 On Linux, `ca-bundle.crt` is a symlink to the system bundle (e.g. `/etc/ssl/certs/ca-certificates.crt`), which already includes any custom certs added via `update-ca-certificates`. On macOS, it is a merged file combining the nix-provided CA bundle with the intercepted proxy certs.
 
@@ -90,6 +96,7 @@ The profile setup scripts automatically export environment variables into bash, 
 
 | Variable                             | Used by              | Cert file       | Added when                        | Shells                    |
 | ------------------------------------ | -------------------- | --------------- | --------------------------------- | ------------------------- |
+| `NIX_SSL_CERT_FILE`                  | All nix-built tools  | `ca-bundle.crt` | `ca-bundle.crt` exists            | bash, zsh, PowerShell     |
 | `NODE_EXTRA_CA_CERTS`                | Node.js, npm         | `ca-custom.crt` | `ca-custom.crt` exists            | bash, zsh, PowerShell     |
 | `REQUESTS_CA_BUNDLE`                 | Python requests, pip | `ca-bundle.crt` | `ca-bundle.crt` exists            | bash, zsh, PowerShell     |
 | `SSL_CERT_FILE`                      | OpenSSL-based tools  | `ca-bundle.crt` | `ca-bundle.crt` exists            | bash, zsh, PowerShell     |
@@ -97,7 +104,7 @@ The profile setup scripts automatically export environment variables into bash, 
 | `CLOUDSDK_CORE_CUSTOM_CA_CERTS_FILE` | Google Cloud CLI     | `ca-bundle.crt` | `ca-bundle.crt` exists + `gcloud` | bash, zsh, PowerShell     |
 | `PREK_NATIVE_TLS`                    | prek (pre-commit)    | n/a             | always                            | Makefile only (not shell) |
 
-`NODE_EXTRA_CA_CERTS` points at `ca-custom.crt` (proxy certs only) because Node.js already trusts system CAs and only needs the additional proxy certs. `REQUESTS_CA_BUNDLE` and `SSL_CERT_FILE` point at `ca-bundle.crt` (the full bundle) because Python and OpenSSL-based tools replace - rather than extend - their default trust store with the value of these variables. `UV_SYSTEM_CERTS` tells uv/uvx to load TLS certificates from the platform's native certificate store, so it automatically trusts any certificates in the system CA store.
+`NIX_SSL_CERT_FILE` points at `ca-bundle.crt` (the full bundle) because nix-built tools use nix's isolated OpenSSL and ignore the OS CA store entirely - they need a complete replacement bundle. `NODE_EXTRA_CA_CERTS` points at `ca-custom.crt` (proxy certs only) because Node.js already trusts system CAs and only needs the additional proxy certs. `REQUESTS_CA_BUNDLE` and `SSL_CERT_FILE` point at `ca-bundle.crt` (the full bundle) because Python and OpenSSL-based tools replace - rather than extend - their default trust store with the value of these variables. `UV_SYSTEM_CERTS` tells uv/uvx to load TLS certificates from the platform's native certificate store, so it automatically trusts any certificates in the system CA store.
 
 All exports are guarded at runtime: the variables are only set if the cert file still exists when the shell starts.
 
