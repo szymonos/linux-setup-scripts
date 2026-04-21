@@ -1,0 +1,70 @@
+/*
+  Wide-screen layout adjustments for Material for MkDocs.
+
+  Material constrains the page using `.md-grid` (in `rem`) and increases the root
+  font size on very wide screens (>= 100em and >= 125em).
+
+  The rules below:
+  - widen the grid container on large screens
+  - prevent breakpoint-based font-size scaling
+*/
+
+html {
+  /* Prevent Material's breakpoint-based root font resizing */
+  font-size: 125% !important;
+
+  /* Prevent browser text autosizing (notably Safari/iOS) */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-grid {
+    max-width: 1600px;
+  }
+
+  .md-sidebar--primary {
+    left: 32px;
+  }
+
+  .md-sidebar--secondary {
+    right: 0;
+    margin-left: 32px;
+    -webkit-transform: none;
+    transform: none;
+  }
+}
+
+@media screen and (min-width: 100em) {
+  .md-grid {
+    max-width: 1600px;
+  }
+
+  .md-sidebar--primary {
+    left: 32px;
+  }
+
+  .md-sidebar--secondary {
+    right: 0;
+    margin-left: 32px;
+    -webkit-transform: none;
+    transform: none;
+  }
+}
+
+@media screen and (min-width: 125em) {
+  .md-grid {
+    max-width: min(1600px, calc(100vw - 64px));
+  }
+
+  .md-sidebar--primary {
+    left: 32px;
+  }
+
+  .md-sidebar--secondary {
+    right: 0;
+    margin-left: 32px;
+    -webkit-transform: none;
+    transform: none;
+  }
+}

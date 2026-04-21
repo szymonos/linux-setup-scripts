@@ -1,0 +1,84 @@
+site_name: Dev Environment Setup
+site_url: https://szymonos.github.io/linux-setup-scripts/
+site_description: Universal, cross-platform developer environment provisioning with Nix
+repo_url: https://github.com/szymonos/linux-setup-scripts
+repo_name: szymonos/linux-setup-scripts
+
+docs_dir: "docs/"
+
+plugins:
+  - search
+  - mermaid2:
+      arguments:
+        startOnLoad: true
+        theme: "dark"
+        securityLevel: "loose"
+        themeVariables:
+          clusterBkg: "#263238"
+          darkMode: true
+          edgeLabelBackground: "#263238"
+          fontFamily: "Roboto, sans-serif"
+          lineColor: "#90a4ae"
+          mainBkg: "#2c3e50"
+          nodeBorder: "#5c6bc0"
+          secondBkg: "#34495e"
+          tertiaryColor: "#455a64"
+          useMaxWidth: true
+          htmlLabels: true
+          curve: basis
+        sequence:
+          useMaxWidth: true
+        gantt:
+          useMaxWidth: true
+        flowchart:
+          useMaxWidth: true
+          htmlLabels: true
+          curve: basis
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    scheme: slate
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.indexes
+    - navigation.sections
+    - content.code.copy
+    - content.tabs.link
+
+extra_css:
+  - assets/stylesheets/layout-wide-screen.css
+  - assets/stylesheets/mermaid-lightbox.css
+
+extra_javascript:
+  - assets/javascripts/diagram-zoom.js
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.magiclink
+  - pymdownx.tasklist
+  - toc:
+      permalink: "¤"
+  - meta
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Customization: customization.md
+  - Corporate Proxy: corporate_proxy.md
+  - WSL Setup: wsl_setup.md
