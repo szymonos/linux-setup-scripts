@@ -18,6 +18,11 @@ if [[ "$unattended" == "true" ]]; then
   exit 0
 fi
 
+if ! command -v gh &>/dev/null; then
+  warn "gh CLI not found - skipping GitHub authentication setup."
+  exit 0
+fi
+
 # authenticate
 info "setting up GitHub authentication..."
 if gh auth status -h github.com &>/dev/null; then
