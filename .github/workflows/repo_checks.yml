@@ -6,7 +6,7 @@ on:
 jobs:
   preflight_checks:
     name: "pre-commit hooks"
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -25,6 +25,16 @@ jobs:
       - name: Sync uv virtual environment
         run: |
           uv sync --frozen --extra docs --compile-bytecode
+
+      - name: Install Pester module
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -RequiredVersion 5.6.0 -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
 
       - name: Build mkdocs documentation
         run: |
