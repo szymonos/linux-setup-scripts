@@ -11,11 +11,23 @@ ok()    { printf "\e[32m%s\e[0m\n" "$*"; }
 info "configuring git..."
 
 if ! git config --global --get user.name >/dev/null 2>&1; then
-  read -rp "provide git user name: " git_user
+  git_user=""
+  if command -v gh &>/dev/null && gh auth status -h github.com &>/dev/null; then
+    git_user="$(gh api user --jq '.name // empty' 2>/dev/null)"
+  fi
+  while [[ -z "$git_user" ]]; do
+    read -rp "provide git user name: " git_user
+  done
   git config --global user.name "$git_user"
 fi
 if ! git config --global --get user.email >/dev/null 2>&1; then
-  read -rp "provide git user email: " git_email
+  git_email=""
+  if command -v gh &>/dev/null && gh auth status -h github.com &>/dev/null; then
+    git_email="$(gh api user --jq '.email // empty' 2>/dev/null)"
+  fi
+  while [[ -z "$git_email" ]]; do
+    read -rp "provide git user email: " git_email
+  done
   git config --global user.email "$git_email"
 fi
 
