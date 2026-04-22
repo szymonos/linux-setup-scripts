@@ -648,7 +648,7 @@
 <li><code>nix/setup.sh</code> provisions the environment (one command, idempotent)</li>
 <li><code>nx upgrade</code> / <code>nx rollback</code> manage package versions</li>
 <li><code>nx doctor --strict</code> validates environment health</li>
-<li><code>nix/uninstall.sh</code> cleanly removes everything (two-phase: environment-only or full Nix removal)</li>
+<li><code>nix/uninstall.sh</code> cleanly removes everything (two-phase: environment-only or full Nix removal, with <code>--dry-run</code> preview). CI-validated on every PR - assertions verify that nix-specific config is removed while generic config is preserved</li>
 </ul>
 <h3 id="organizational-customization-without-forking">Organizational customization without forking<a class="headerlink" href="#organizational-customization-without-forking" title="Permanent link">¤</a></h3>
 <p>The overlay system supports three levels of customization:</p>

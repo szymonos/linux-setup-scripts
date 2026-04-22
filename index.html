@@ -206,10 +206,10 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#safe-upgrades-and-rollback">
+<a class="md-nav__link" href="#safe-upgrades-rollback-and-clean-uninstall">
 <span class="md-ellipsis">
       
-        Safe upgrades and rollback
+        Safe upgrades, rollback, and clean uninstall
       
     </span>
 </a>
@@ -407,10 +407,10 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#safe-upgrades-and-rollback">
+<a class="md-nav__link" href="#safe-upgrades-rollback-and-clean-uninstall">
 <span class="md-ellipsis">
       
-        Safe upgrades and rollback
+        Safe upgrades, rollback, and clean uninstall
       
     </span>
 </a>
@@ -471,7 +471,8 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="dev-environment-setup">Dev Environment Setup<a class="headerlink" href="#dev-environment-setup" title="Permanent link">¤</a></h1>
-<p><strong>One command to go from a bare machine to a fully configured, standards-compliant development workstation - on macOS, Linux, WSL, or Coder.</strong></p>
+<p>Your development environment works today. It will break the day you switch to a new machine, connect to a different network, rotate a certificate, or onboard a teammate who needs the same setup you spent a week assembling from memory. The tools are installed - but are they reproducible? Can you roll them back? Can you prove to anyone what version of what is running where?</p>
+<p>This tool turns a developer workstation into managed infrastructure. One command provisions a complete, standards-compliant environment across macOS, Linux, WSL, and Coder. Everything is declarative, versioned, upgradeable, and cleanly uninstallable - with rollback when upgrades break. Corporate proxy certificates are detected and resolved automatically - across Nix, Python, Node.js, and every other framework that has its own trust store.</p>
 <div class="highlight"><pre><span></span><code>nix/setup.sh<span class="w"> </span>--shell<span class="w"> </span>--python<span class="w"> </span>--pwsh<span class="w"> </span>--k8s-base
 </code></pre></div>
 <p>After setup, the repository clone is disposable. All state lives in <code>~/.config/nix-env/</code>, managed by the built-in <code>nx</code> CLI:</p>
@@ -541,8 +542,8 @@ nx<span class="w"> </span>doctor<span class="w">               </span><span clas
 </table>
 <h3 id="declarative-and-reproducible">Declarative and reproducible<a class="headerlink" href="#declarative-and-reproducible" title="Permanent link">¤</a></h3>
 <p>The entire environment is defined in Nix scope files - plain text that can be version-controlled, code-reviewed, and audited. <code>nx pin</code> coordinates package versions across a team by locking to a specific nixpkgs commit. Every installation writes provenance metadata to <code>install.json</code>, enabling fleet-wide visibility into what is deployed where.</p>
-<h3 id="safe-upgrades-and-rollback">Safe upgrades and rollback<a class="headerlink" href="#safe-upgrades-and-rollback" title="Permanent link">¤</a></h3>
-<p><code>nx upgrade</code> pulls the latest packages. <code>nx rollback</code> reverts to the previous generation if something breaks. <code>nix profile diff-closures</code> shows exactly what changed. The entire lifecycle is explicit, auditable, and reversible.</p>
+<h3 id="safe-upgrades-rollback-and-clean-uninstall">Safe upgrades, rollback, and clean uninstall<a class="headerlink" href="#safe-upgrades-rollback-and-clean-uninstall" title="Permanent link">¤</a></h3>
+<p><code>nx upgrade</code> pulls the latest packages. <code>nx rollback</code> reverts to the previous generation if something breaks. <code>nix profile diff-closures</code> shows exactly what changed. When the tool is no longer needed, <code>nix/uninstall.sh</code> cleanly removes everything it created - nix-specific shell config, aliases, plugins, state directories - while preserving generic configuration (certificates, local PATH) that other tools may depend on. A <code>--dry-run</code> flag previews all changes before committing. The entire lifecycle - install, upgrade, rollback, uninstall - is explicit, auditable, and reversible.</p>
 <h2 id="scope-system">Scope system<a class="headerlink" href="#scope-system" title="Permanent link">¤</a></h2>
 <p>Packages are organized into <strong>scopes</strong> - curated groups that can be composed to match a team's technology stack. Scopes are additive: adding a new scope never removes existing tools. Dependencies are resolved automatically (e.g., <code>k8s-dev</code> pulls in <code>k8s-base</code>).</p>
 <table>

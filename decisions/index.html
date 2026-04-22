@@ -253,6 +253,15 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#why-a-two-phase-uninstaller">
+<span class="md-ellipsis">
+      
+        Why a two-phase uninstaller
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#why-phase-based-orchestration-with-side-effect-stubs">
 <span class="md-ellipsis">
       
@@ -411,6 +420,15 @@
 <span class="md-ellipsis">
       
         Why managed blocks, not append-style profile injection
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#why-a-two-phase-uninstaller">
+<span class="md-ellipsis">
+      
+        Why a two-phase uninstaller
       
     </span>
 </a>
@@ -618,6 +636,22 @@
 <li><strong>Diagnosable</strong> - <code>nx doctor</code> detects duplicate or missing blocks</li>
 </ul>
 <p>The same pattern is implemented for PowerShell via <code>#region</code>/<code>#endregion</code> markers and <code>Update-ProfileRegion</code>. Two block types separate nix-specific config (removed on uninstall) from generic config (certs, local PATH - preserved after uninstall).</p>
+<h3 id="why-a-two-phase-uninstaller">Why a two-phase uninstaller<a class="headerlink" href="#why-a-two-phase-uninstaller" title="Permanent link">¤</a></h3>
+<p><strong>The objection:</strong> "If you want to remove it, just delete the folder."</p>
+<p>Most developer tools that modify shell profiles leave debris behind - orphaned PATH entries, stale aliases, broken completions. Users discover this when their terminal starts throwing errors after removal. The common advice is "edit your <code>.bashrc</code> manually", which is precisely the kind of friction that erodes trust in tooling.</p>
+<p>This tool ships a purpose-built uninstaller (<code>nix/uninstall.sh</code>) with two distinct phases:</p>
+<p><strong>Phase 1 (environment-only)</strong> removes everything this tool created while preserving what it did not:</p>
+<ul>
+<li>Nix-specific managed blocks removed from <code>.bashrc</code>, <code>.zshrc</code> - generic blocks (certs, local PATH) preserved</li>
+<li>Nix-prefixed <code>#region</code> blocks removed from PowerShell profiles - generic regions preserved</li>
+<li><code>~/.config/nix-env/</code> directory, nix-specific aliases, zsh plugins, miniforge - all removed</li>
+<li>Nix profile entry removed (after file operations, so tools remain available during cleanup)</li>
+<li>Legacy prompt init lines and conda init blocks cleaned up</li>
+<li>Trailing blank lines normalized using bash builtins only (external tools may already be gone at this point)</li>
+</ul>
+<p><strong>Phase 2 (optional)</strong> removes Nix itself, detecting whether the Determinate Systems installer or upstream single-user install was used and calling the appropriate removal method.</p>
+<p>The uninstaller supports three modes: interactive (prompts before each phase), <code>--env-only</code> (scripted, keeps Nix), and <code>--all</code> (scripted, removes everything). A <code>--dry-run</code> flag previews all changes without touching anything.</p>
+<p>Every CI run validates the uninstaller: after <code>nix/uninstall.sh --env-only</code>, the pipeline asserts that the nix-env managed block is gone, the managed-env block is preserved, <code>~/.config/nix-env/</code> is removed, nix-specific aliases are removed, generic config files are preserved, and Nix itself is still installed. The uninstaller is not an afterthought - it is a tested, CI-validated part of the lifecycle.</p>
 <h3 id="why-phase-based-orchestration-with-side-effect-stubs">Why phase-based orchestration with side-effect stubs<a class="headerlink" href="#why-phase-based-orchestration-with-side-effect-stubs" title="Permanent link">¤</a></h3>
 <p><strong>The objection:</strong> "It's a setup script - just write it top to bottom."</p>
 <p>A 600-line bash script written top-to-bottom is untestable by definition. Functions cannot be sourced in isolation, side effects execute on import, and tests resort to brittle <code>sed</code> extraction to test individual functions.</p>
