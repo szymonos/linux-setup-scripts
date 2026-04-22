@@ -18,7 +18,7 @@ jobs:
       - name: Install Pester module
         shell: pwsh
         run: |
-          Install-Module -Name Pester -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module -Name Pester -RequiredVersion 5.6.0 -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck
 
       - name: Run pre-commit hooks
         uses: j178/prek-action@v2
