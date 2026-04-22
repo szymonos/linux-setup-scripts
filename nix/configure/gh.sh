@@ -23,15 +23,18 @@ if ! command -v gh &>/dev/null; then
   exit 0
 fi
 
-# authenticate
+# authenticate (request admin:public_key upfront for SSH key registration)
 info "setting up GitHub authentication..."
 if gh auth status -h github.com &>/dev/null; then
   ok "already authenticated to GitHub"
 elif gh auth token -h github.com &>/dev/null; then
   ok "GitHub device already authorized"
 else
-  gh auth login
+  gh auth login --scopes admin:public_key
 fi
+
+# register gh as git credential helper (idempotent)
+gh auth setup-git
 
 # SSH key
 SSH_KEY="$HOME/.ssh/id_ed25519"
@@ -59,7 +62,8 @@ pub_key_fp=$(awk '{print $2}' "$SSH_KEY.pub")
 if ! gh ssh-key list 2>/dev/null | grep -q "$pub_key_fp"; then
   info "adding SSH key to GitHub..."
   if ! gh ssh-key add "$SSH_KEY.pub" --title "$host_label $(date +%Y-%m-%d)"; then
-    warn "SSH key add failed; attempting to refresh admin:public_key scope..."
+    # existing token may lack admin:public_key scope (pre-scoped auth)
+    warn "SSH key add failed; upgrading token scope..."
     if gh auth refresh -h github.com -s admin:public_key; then
       gh ssh-key add "$SSH_KEY.pub" --title "$host_label $(date +%Y-%m-%d)" || warn "could not add SSH key after refresh"
     else
