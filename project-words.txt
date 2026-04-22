@@ -42,6 +42,8 @@ readarray
 resolv
 ryanoasis
 sileshn
+sourceable
+stdlib
 tflint
 vagranfile
 vagrantfiles
