@@ -604,10 +604,6 @@
 </thead>
 <tbody>
 <tr>
-<td><code>mkdocs-build</code></td>
-<td>Documentation builds without errors</td>
-</tr>
-<tr>
 <td><code>gremlins-check</code></td>
 <td>No unwanted Unicode characters (zero-width spaces, smart quotes, en-dashes) - auto-fixes common substitutions</td>
 </tr>
@@ -633,6 +629,7 @@
 </tr>
 </tbody>
 </table>
+<p>Documentation build validation (<code>mkdocs build --strict</code>) runs in the CI pipeline rather than as a pre-commit hook, since it requires the full docs dependency set.</p>
 <p>External hooks add standard checks: ShellCheck (shell static analysis), markdownlint, cspell (spell checking on docs and commit messages), ruff (Python lint and format), executable/shebang validation, line ending normalization.</p>
 <h2 id="enforced-constraints">Enforced constraints<a class="headerlink" href="#enforced-constraints" title="Permanent link">¤</a></h2>
 <h3 id="bash-32-compatibility">Bash 3.2 compatibility<a class="headerlink" href="#bash-32-compatibility" title="Permanent link">¤</a></h3>
