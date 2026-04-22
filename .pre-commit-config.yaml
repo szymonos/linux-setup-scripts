@@ -1,12 +1,6 @@
 repos:
   - repo: local
     hooks:
-      - id: mkdocs-build
-        name: build mkdocs
-        entry: uv run --extra docs mkdocs build
-        language: system
-        files: (^docs/|^mkdocs\.yml$)
-        pass_filenames: false
       - id: gremlins-check
         name: Detect gremlins / unwanted Unicode characters
         entry: python3 -m tests.hooks.gremlins
@@ -74,7 +68,7 @@ repos:
         files: \.md$
         exclude: /copilot-instructions\.md
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.7.0
+    rev: v10.0.0
     hooks:
       - id: cspell
         files: (README|docs/.+)\.md$
