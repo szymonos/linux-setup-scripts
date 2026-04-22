@@ -52,9 +52,9 @@ The same tool, the same scopes, and the same `nx` commands work identically acro
 
 The entire environment is defined in Nix scope files - plain text that can be version-controlled, code-reviewed, and audited. `nx pin` coordinates package versions across a team by locking to a specific nixpkgs commit. Every installation writes provenance metadata to `install.json`, enabling fleet-wide visibility into what is deployed where.
 
-### Safe upgrades and rollback
+### Safe upgrades, rollback, and clean uninstall
 
-`nx upgrade` pulls the latest packages. `nx rollback` reverts to the previous generation if something breaks. `nix profile diff-closures` shows exactly what changed. The entire lifecycle is explicit, auditable, and reversible.
+`nx upgrade` pulls the latest packages. `nx rollback` reverts to the previous generation if something breaks. `nix profile diff-closures` shows exactly what changed. When the tool is no longer needed, `nix/uninstall.sh` cleanly removes everything it created - nix-specific shell config, aliases, plugins, state directories - while preserving generic configuration (certificates, local PATH) that other tools may depend on. A `--dry-run` flag previews all changes before committing. The entire lifecycle - install, upgrade, rollback, uninstall - is explicit, auditable, and reversible.
 
 ## Scope system
 

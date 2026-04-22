@@ -26,7 +26,7 @@ The complete install → configure → upgrade → rollback → uninstall lifecy
 - `nix/setup.sh` provisions the environment (one command, idempotent)
 - `nx upgrade` / `nx rollback` manage package versions
 - `nx doctor --strict` validates environment health
-- `nix/uninstall.sh` cleanly removes everything (two-phase: environment-only or full Nix removal)
+- `nix/uninstall.sh` cleanly removes everything (two-phase: environment-only or full Nix removal, with `--dry-run` preview). CI-validated on every PR - assertions verify that nix-specific config is removed while generic config is preserved
 
 ### Organizational customization without forking
 

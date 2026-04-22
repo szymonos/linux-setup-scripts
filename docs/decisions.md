@@ -134,6 +134,29 @@ This tool uses a **managed block** pattern instead. Configuration is written bet
 
 The same pattern is implemented for PowerShell via `#region`/`#endregion` markers and `Update-ProfileRegion`. Two block types separate nix-specific config (removed on uninstall) from generic config (certs, local PATH - preserved after uninstall).
 
+### Why a two-phase uninstaller
+
+**The objection:** "If you want to remove it, just delete the folder."
+
+Most developer tools that modify shell profiles leave debris behind - orphaned PATH entries, stale aliases, broken completions. Users discover this when their terminal starts throwing errors after removal. The common advice is "edit your `.bashrc` manually", which is precisely the kind of friction that erodes trust in tooling.
+
+This tool ships a purpose-built uninstaller (`nix/uninstall.sh`) with two distinct phases:
+
+**Phase 1 (environment-only)** removes everything this tool created while preserving what it did not:
+
+- Nix-specific managed blocks removed from `.bashrc`, `.zshrc` - generic blocks (certs, local PATH) preserved
+- Nix-prefixed `#region` blocks removed from PowerShell profiles - generic regions preserved
+- `~/.config/nix-env/` directory, nix-specific aliases, zsh plugins, miniforge - all removed
+- Nix profile entry removed (after file operations, so tools remain available during cleanup)
+- Legacy prompt init lines and conda init blocks cleaned up
+- Trailing blank lines normalized using bash builtins only (external tools may already be gone at this point)
+
+**Phase 2 (optional)** removes Nix itself, detecting whether the Determinate Systems installer or upstream single-user install was used and calling the appropriate removal method.
+
+The uninstaller supports three modes: interactive (prompts before each phase), `--env-only` (scripted, keeps Nix), and `--all` (scripted, removes everything). A `--dry-run` flag previews all changes without touching anything.
+
+Every CI run validates the uninstaller: after `nix/uninstall.sh --env-only`, the pipeline asserts that the nix-env managed block is gone, the managed-env block is preserved, `~/.config/nix-env/` is removed, nix-specific aliases are removed, generic config files are preserved, and Nix itself is still installed. The uninstaller is not an afterthought - it is a tested, CI-validated part of the lifecycle.
+
 ### Why phase-based orchestration with side-effect stubs
 
 **The objection:** "It's a setup script - just write it top to bottom."
