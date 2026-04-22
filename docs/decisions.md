@@ -21,6 +21,8 @@ Homebrew is an excellent macOS package manager. It is not a cross-platform envir
 
 Beyond the feature comparison, Nix provides a structural advantage: **store-based isolation**. Every package is installed into a content-addressed path (`/nix/store/<hash>-<name>-<version>/`), so multiple versions of the same tool coexist without conflict and upgrades never leave the system in a half-updated state. Homebrew mutates shared prefixes in-place - an interrupted `brew upgrade` can leave broken symlinks that require manual cleanup. Nix's immutable store makes rollback a pointer swap, not a repair job.
 
+The runtime characteristics reflect the architectural gap. Nix's core is C++ with a purpose-built functional evaluation language - every invocation resolves a dependency graph declaratively and applies the result atomically. Homebrew is a cohesive Ruby codebase, but every `brew` invocation pays Ruby interpreter startup cost, formula evaluation is interpreted, and `brew upgrade` processes packages sequentially with per-package overhead. At scale - dozens of packages across scopes - the difference compounds.
+
 Homebrew installs packages. Nix provisions environments - declaratively, atomically, and reproducibly.
 
 **The enterprise off-ramp:** Nix adoption carries organizational risk. [Determinate Systems](https://determinate.systems/nix/macos/mdm/) provides a commercially supported Nix installer with MDM integration (Jamf, Intune), enterprise support contracts, and managed fleet deployment. If the organization decides to formalize Nix adoption, the transition from the open-source installer to the enterprise offering is a configuration change, not a rewrite. The tool is already built on the Determinate Systems installer as its recommended installation method.
