@@ -1,6 +1,6 @@
 # Design Decisions
 
-Every tool makes architectural choices that shape what it can and cannot do. This page explains the four most consequential decisions in this project - not just what was chosen, but why the obvious alternatives were rejected.
+Every tool makes architectural choices that shape what it can and cannot do. This page explains the three most consequential decisions in this project - not just what was chosen, but why the obvious alternatives were rejected.
 
 ## Why Nix, not Homebrew
 
@@ -16,6 +16,8 @@ Homebrew is an excellent macOS package manager. It is not a cross-platform envir
 | User-scope after install | Requires sudo for updates        | No root after initial install             |
 | Package composition      | Flat list, no grouping           | `buildEnv` merges scopes atomically       |
 | Binary cache             | Bottles (limited arch coverage)  | 100k+ cached packages, multi-arch         |
+
+Beyond the feature comparison, Nix provides a structural advantage: **store-based isolation**. Every package is installed into a content-addressed path (`/nix/store/<hash>-<name>-<version>/`), so multiple versions of the same tool coexist without conflict and upgrades never leave the system in a half-updated state. Homebrew mutates shared prefixes in-place - an interrupted `brew upgrade` can leave broken symlinks that require manual cleanup. Nix's immutable store makes rollback a pointer swap, not a repair job.
 
 Homebrew installs packages. Nix provisions environments - declaratively, atomically, and reproducibly.
 
@@ -38,26 +40,6 @@ Golden images are the default enterprise answer to environment standardization. 
 **Images are all-or-nothing.** A data scientist and a platform engineer need different toolchains. Golden images either ship everything (bloated, slow to distribute) or require multiple image variants (multiplied maintenance). Scopes solve this: `--shell --python` for the data scientist, `--shell --k8s-dev --terraform` for the platform engineer, from the same base.
 
 This tool takes the opposite approach: a lightweight bootstrapper that runs on the developer's actual machine, detects the actual network environment, installs exactly what's needed, and stays current via `nx upgrade`. It works on every platform - including WSL - because it provisions rather than snapshots.
-
-## Why bash 3.2 compatibility
-
-**The objection:** "It's 2026. Just require bash 5 and use modern features."
-
-macOS ships bash 3.2 as the system default. Apple will not update it due to GPLv3 licensing. This creates a bootstrapping paradox: **the tool that sets up your environment cannot require you to already have a setup environment.**
-
-If the setup script required bash 5, users would need to install it first - via Homebrew, Nix, or manual compilation. That prerequisite defeats the purpose of a one-command setup tool. The script must work with what the operating system provides out of the box.
-
-The constraint is real and affects daily development:
-
-- No `mapfile` or `readarray` - use `while IFS= read -r` loops
-- No associative arrays (`declare -A`) - use space-delimited strings with helper functions
-- No case modification (`${var,,}`) - use `tr`
-- No namerefs (`declare -n`) - pass variable names as strings
-- BSD `sed` and `grep` - no GNU extensions (`\s`, `\w`, `-P`, `-r`)
-
-This is not enforced by convention. A custom pre-commit hook (`check_bash32.py`) scans every nix-path file for bash 4+ constructs and blocks the commit if any are found. The macOS CI workflow validates the constraint on every pull request by running the full setup on a macOS runner with the system bash.
-
-Linux-only scripts (provisioning, system checks) use bash 5 features freely - the constraint applies only to files that run on macOS.
 
 ## Why a bootstrapper, not a configuration management agent
 

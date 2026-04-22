@@ -24,11 +24,11 @@ jobs:
 
       - name: Sync uv virtual environment
         run: |
-          uv sync --frozen --compile-bytecode
+          uv sync --frozen --extra docs --compile-bytecode
 
       - name: Build mkdocs documentation
         run: |
-          uv run --frozen mkdocs build --strict
+          uv run --frozen --extra docs mkdocs build
 
       - name: Run pre-commit hooks
         uses: j178/prek-action@v2

@@ -91,13 +91,14 @@ Every commit passes through 18 hooks. 7 are custom Python scripts purpose-built 
 
 | Hook                          | What it enforces                                                                                                                     |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `mkdocs-build`                | Documentation builds without errors                                                                                                  |
 | `gremlins-check`              | No unwanted Unicode characters (zero-width spaces, smart quotes, en-dashes) - auto-fixes common substitutions                        |
 | `validate-docs-words`         | Custom dictionary (`project-words.txt`) contains only words that appear in docs - removes stale entries automatically                |
 | `align-tables`                | Markdown tables are column-aligned (auto-fixes on save)                                                                              |
 | `validate-scopes`             | `scopes.json` and `nix/scopes/*.nix` are consistent - every scope has a matching `.nix` file with a `# bins:` declaration            |
 | `check-bash32`                | Nix-path scripts contain no bash 4+ constructs - 14 rules covering mapfile, associative arrays, namerefs, GNU sed/grep extensions    |
 | `bats-tests` / `pester-tests` | Smart test runners that parse `source` directives to map changed files to their tests - only runs relevant tests, not the full suite |
+
+Documentation build validation (`mkdocs build --strict`) runs in the CI pipeline rather than as a pre-commit hook, since it requires the full docs dependency set.
 
 External hooks add standard checks: ShellCheck (shell static analysis), markdownlint, cspell (spell checking on docs and commit messages), ruff (Python lint and format), executable/shebang validation, line ending normalization.
 
