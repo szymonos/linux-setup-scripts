@@ -1,6 +1,8 @@
 # Dev Environment Setup
 
-**One command to go from a bare machine to a fully configured, standards-compliant development workstation - on macOS, Linux, WSL, or Coder.**
+Your development environment works today. It will break the day you switch to a new machine, connect to a different network, rotate a certificate, or onboard a teammate who needs the same setup you spent a week assembling from memory. The tools are installed - but are they reproducible? Can you roll them back? Can you prove to anyone what version of what is running where?
+
+This tool turns a developer workstation into managed infrastructure. One command provisions a complete, standards-compliant environment across macOS, Linux, WSL, and Coder. Everything is declarative, versioned, upgradeable, and cleanly uninstallable - with rollback when upgrades break. Corporate proxy certificates are detected and resolved automatically - across Nix, Python, Node.js, and every other framework that has its own trust store.
 
 ```bash
 nix/setup.sh --shell --python --pwsh --k8s-base
