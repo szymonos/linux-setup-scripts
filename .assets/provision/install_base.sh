@@ -64,7 +64,7 @@ alpine)
   # update package index
   apk update 2>/dev/null || true
   # install base packages
-  pkgs="bash bind-tools build-base ca-certificates curl fd gawk git iputils jq less lsb-release-minimal mandoc nmap openssh-client shfmt openssl sudo tar tig tree unzip vim which whois"
+  pkgs="bash bats bind-tools build-base ca-certificates curl fd gawk git iputils jq less lsb-release-minimal mandoc nmap openssh-client shfmt openssl sudo tar tig tree unzip vim which whois"
   install_pkgs apk "$pkgs"
   ;;
 arch)
@@ -73,7 +73,7 @@ arch)
   # refresh package database and install archlinux-keyring
   pacman -Sy --needed --noconfirm --color=auto archlinux-keyring
   # install base packages
-  pkgs="base-devel bash-completion curl dnsutils fd gawk git jq lsb-release man-db nmap openssh shfmt openssl tar tig tree unzip vim wget which whois"
+  pkgs="base-devel bash-completion bats curl dnsutils fd gawk git jq lsb-release man-db nmap openssh shfmt openssl tar tig tree unzip vim wget which whois"
   install_pkgs pacman "$pkgs"
   # install paru
   if ! pacman -Qqe paru >/dev/null 2>&1; then
@@ -97,9 +97,9 @@ fedora)
   rpm -q patch >/dev/null 2>&1 || dnf group install -y development-tools 2>/dev/null || true
   # install base packages
   if [ "$(readlink "$(which dnf)")" = 'dnf5' ]; then
-    pkgs="bash-completion bind-utils curl dnf5-plugins fd gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+    pkgs="bash-completion bats bind-utils curl dnf5-plugins fd gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
   else
-    pkgs="bash-completion bind-utils curl dnf-plugins-core fd gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+    pkgs="bash-completion bats bind-utils curl dnf-plugins-core fd gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
   fi
   install_pkgs dnf "$pkgs"
   ;;
@@ -108,7 +108,7 @@ debian | ubuntu)
   # refresh package index
   apt-get update 2>/dev/null
   # install base packages
-  pkgs="build-essential bash-completion ca-certificates curl fd gawk gnupg dnsutils git iputils-tracepath jq lsb-release man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+  pkgs="build-essential bash-completion bats ca-certificates curl fd gawk gnupg dnsutils git iputils-tracepath jq lsb-release man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
   install_pkgs apt "$pkgs"
   # autoremove unnecessary packages and clean up apt cache
   apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
@@ -119,7 +119,7 @@ opensuse)
   # install development tools pattern
   rpm -q patch >/dev/null 2>&1 || zypper --non-interactive --no-refresh in -yt pattern devel_basis 2>/dev/null || true
   # install base packages
-  pkgs="bash-completion bind-utils curl fd gawk git jq lsb-release nmap shfmt openssl tar tig tree unzip vim wget which whois"
+  pkgs="bash-completion bats bind-utils curl fd gawk git jq lsb-release nmap shfmt openssl tar tig tree unzip vim wget which whois"
   install_pkgs zypper "$pkgs"
   ;;
 esac

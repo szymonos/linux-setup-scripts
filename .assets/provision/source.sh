@@ -110,15 +110,14 @@ login_gh_user() {
 
 # *Function to download file from specified uri
 download_file() {
-  # initialize local variables used as named parameters
   local uri=''
   local target_dir=''
   # parse named parameters
   while [ $# -gt 0 ]; do
-    if [[ $1 == *"--"* ]]; then
-      param="${1/--/}"
-      declare $param="${2:-}"
-    fi
+    case "$1" in
+    --uri) uri="${2:-}"; shift ;;
+    --target_dir) target_dir="${2:-}"; shift ;;
+    esac
     shift
   done
 
@@ -164,17 +163,18 @@ download_file() {
 
 # *Function to get the latest release from the specified GitHub repo
 get_gh_release_latest() {
-  # initialize local variables used as named parameters
   local owner=''
   local repo=''
   local asset=''
   local regex=''
   # parse named parameters
   while [ $# -gt 0 ]; do
-    if [[ $1 == *"--"* ]]; then
-      param="${1/--/}"
-      declare $param="${2:-}"
-    fi
+    case "$1" in
+    --owner) owner="${2:-}"; shift ;;
+    --repo) repo="${2:-}"; shift ;;
+    --asset) asset="${2:-}"; shift ;;
+    --regex) regex="${2:-}"; shift ;;
+    esac
     shift
   done
 
@@ -205,9 +205,9 @@ get_gh_release_latest() {
   api_uri="https://api.github.com/repos/$owner/$repo/releases"
   # get the latest release if asset or regex is not specified
   [ -z "$asset" ] && [ -z "$regex" ] && api_uri+="/latest" || true
-  cmnd="curl -sk $api_uri -H 'Accept: application/vnd.github+json'"
-  # set the header with the token
-  [ -n "$token" ] && cmnd+=" -H 'Authorization: Bearer ${token}'"
+  # build curl arguments as an array (avoids eval)
+  local curl_args=(-sk "$api_uri" -H 'Accept: application/vnd.github+json')
+  [ -n "$token" ] && curl_args+=(-H "Authorization: Bearer ${token}")
   # send API request to GitHub
   while [ $retry_count -le $max_retries ]; do
     if echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "API rate limit exceeded"; then
@@ -215,7 +215,7 @@ get_gh_release_latest() {
       return 1
     fi
     # get the latest release
-    api_response="$(eval $cmnd)"
+    api_response="$(curl "${curl_args[@]}")"
 
     # check for exceeded API rate limit
     if [ -n "$token" ] && echo "$api_response" | jq -r 'try .message catch empty' | grep -wq "API rate limit exceeded"; then
@@ -297,7 +297,7 @@ find_file() {
 # *Function to download and install GitHub releases into user directory
 install_github_release_user() {
   local gh_owner gh_repo file_name binary_name current_version
-  local auth_header retry_count latest_release response http_code body file url binary_path
+  local retry_count latest_release response http_code body file url binary_path
   local tmp_dir cleanup saved_return saved_exit
 
   # Parse arguments
@@ -341,9 +341,9 @@ install_github_release_user() {
   [ -z "$binary_name" ] && binary_name="$gh_repo"
 
   # check for GITHUB_TOKEN environment variable (should start with 'ghp_' or 'gho_' and be ~40 chars)
-  auth_header=""
+  local curl_auth_args=()
   if [ -n "$GITHUB_TOKEN" ] && echo "$GITHUB_TOKEN" | grep -qE "^gh[po]_" && [ ${#GITHUB_TOKEN} -ge 36 ]; then
-    auth_header="-H \"Authorization: Bearer $GITHUB_TOKEN\""
+    curl_auth_args=(-H "Authorization: Bearer $GITHUB_TOKEN")
   fi
 
   # create temporary directory and set cleanup trap
@@ -366,7 +366,7 @@ install_github_release_user() {
   retry_count=0
   latest_release=""
   while :; do
-    response=$(eval curl -skw "\"\\n%{http_code}\"" $auth_header "\"https://api.github.com/repos/${gh_owner}/${gh_repo}/releases/latest\"" 2>/dev/null)
+    response=$(curl -skw $'\n%{http_code}' "${curl_auth_args[@]}" "https://api.github.com/repos/${gh_owner}/${gh_repo}/releases/latest" 2>/dev/null)
     http_code=$(echo "$response" | tail -n1)
     body=$(echo "$response" | sed '$d')
 

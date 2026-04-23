@@ -1,0 +1,95 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+# Starship port of omp_base theme.
+# Matches oh-my-posh base.omp.json: colors, segment order, and text-only indicators.
+# Right prompt (right_format) requires zsh, fish, or bash+ble.sh.
+
+format = """\
+$python\
+$cmd_duration\
+$character\
+$username\
+$directory\
+$git_branch\
+$git_status\
+$shell"""
+
+right_format = '$kubernetes'
+
+add_newline = false
+
+# -- Arrow prompt symbol (green on success, red on error) ----------------------
+[character]
+success_symbol = '[→](bold fg:#23D18B)'
+error_symbol   = '[→](bold fg:#F14C4C)'
+
+# -- Execution time: [123ms] ---------------------------------------------------
+# OMP threshold: 1ms; gray brackets, yellow value
+[cmd_duration]
+min_time          = 1
+show_milliseconds = true
+format            = '[\[](fg:#CCCCCC)[$duration](fg:#F5F543)[\]](fg:#CCCCCC) '
+
+# -- Path: bold cyan, agnoster-short style, / separator -----------------------
+[directory]
+style             = 'bold fg:#56B6C2'
+format            = '[$path]($style) '
+truncation_length = 1
+truncate_to_repo  = false
+
+# -- Git: gold parens, purple branch; orange status indicators ----------------
+# OMP changes branch color when dirty/ahead/behind; starship approximates this
+# with orange indicators after the branch name.
+[git_branch]
+style  = 'fg:#D4AAFC'
+symbol = ''
+format = '[\(](fg:#E8CC97)[**$branch**]($style)[\)](fg:#E8CC97) '
+
+[git_status]
+style    = 'fg:#FF9248'
+format   = '[$all_status$ahead_behind]($style) '
+modified = '!'
+staged   = '+'
+deleted  = '-'
+renamed  = '»'
+untracked = '?'
+conflicted = '~'
+ahead    = '↑${count}'
+behind   = '↓${count}'
+diverged = '↕'
+
+# -- Kubernetes (right prompt): context::namespace ----------------------------
+[kubernetes]
+style    = 'fg:#2E6CE6'
+symbol   = ''
+format   = '[$context([::$namespace](italic $style))]($style)'
+disabled = false
+
+# -- Python: venv name in green (no version, matches omp fetch_version:false) -
+[python]
+style  = 'fg:#23D18B'
+format = '([$virtualenv]($style)) '
+
+# -- Shell indicator: $/%/> in cyan -------------------------------------------
+[shell]
+style                = 'fg:#29B8DB'
+bash_indicator       = '\$'
+zsh_indicator        = '%'
+powershell_indicator = '❭'
+fish_indicator       = '❭'
+format               = '[$indicator ]($style)'
+disabled             = false
+
+# -- SSH / root: yellow username on SSH, bold red when root -------------------
+# OMP base shows literal "ssh " / "# "; starship shows username instead.
+[username]
+style_root  = 'bold fg:#FF6666'
+style_user  = 'fg:#FFE082'
+format      = '[$user ]($style)'
+show_always = false
+
+# -- Suppress unused default modules ------------------------------------------
+[hostname]
+disabled = true
+
+[sudo]
+disabled = true

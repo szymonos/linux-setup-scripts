@@ -1,0 +1,102 @@
+FROM ubuntu:24.04
+
+# avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# copy repo into the container
+COPY . /home/ubuntu/source/lss
+
+# Stage 1: system dependencies and /nix prep (as root)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        bash ca-certificates curl sudo xz-utils \
+    # install intercepted MITM root cert if present
+    && if [ -f /home/ubuntu/source/lss/.assets/certs/ca-cert-root.crt ]; then \
+        cp /home/ubuntu/source/lss/.assets/certs/ca-cert-root.crt /usr/local/share/ca-certificates/ \
+        && update-ca-certificates; \
+    fi \
+    # change ownership to the ubuntu user
+    && chown -R ubuntu:ubuntu /home/ubuntu/source \
+    # prepare /nix for single-user install
+    && mkdir -p /nix \
+    && chown ubuntu:ubuntu /nix \
+    # enable flakes and disable sandbox
+    && mkdir -p /home/ubuntu/.config/nix \
+    && printf 'experimental-features = nix-command flakes\nsandbox = false\n' \
+        > /home/ubuntu/.config/nix/nix.conf \
+    && chown -R ubuntu:ubuntu /home/ubuntu/.config \
+    #
+    # clean up
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Stage 2: install Nix + run setup (as user, no su needed)
+USER ubuntu
+WORKDIR /home/ubuntu/source/lss
+SHELL ["/bin/bash", "-c"]
+
+RUN curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon
+
+RUN nix/setup.sh --shell --rice --python --unattended
+
+# Verify key binaries are in the nix profile
+RUN set -e \
+    && export PATH="$HOME/.nix-profile/bin:$PATH" \
+    && echo "=== Verifying nix setup ===" \
+    && command -v git \
+    && command -v jq \
+    && command -v rg \
+    && command -v eza \
+    && command -v bat \
+    && command -v fastfetch \
+    && command -v uv \
+    && echo "=== All nix checks passed ===" \
+    #
+    # Verify nx CLI helpers (source aliases_nix.sh to get nx function)
+    && echo "=== Verifying nx CLI ===" \
+    && source "$HOME/.config/bash/aliases_nix.sh" \
+    && nx list \
+    && nx scope list \
+    && nx scope tree \
+    && echo "=== nx CLI checks passed ===" \
+    #
+    # Verify install provenance record
+    && echo "=== Verifying install.json ===" \
+    && test -f "$HOME/.config/dev-env/install.json" \
+    && jq -e '.status == "success"' "$HOME/.config/dev-env/install.json" \
+    && echo "=== install.json checks passed ==="
+
+# Verify uninstaller (env-only: keeps Nix, removes nix-env state)
+RUN set -e \
+    && export PATH="$HOME/.nix-profile/bin:$PATH" \
+    && echo "=== Running nix/uninstall.sh --env-only ===" \
+    && nix/uninstall.sh --env-only \
+    #
+    # nix-env managed block must be gone
+    && echo "--- Checking nix-env managed block removed ---" \
+    && ! grep -qF '# >>> nix-env managed >>>' "$HOME/.bashrc" \
+    #
+    # managed env block must survive
+    && echo "--- Checking managed env block preserved ---" \
+    && grep -qF '# >>> managed env >>>' "$HOME/.bashrc" \
+    #
+    # nix-env config dir must be gone
+    && echo "--- Checking nix-env config removed ---" \
+    && test ! -d "$HOME/.config/nix-env" \
+    #
+    # nix-specific alias file must be gone
+    && echo "--- Checking nix-specific aliases removed ---" \
+    && test ! -f "$HOME/.config/bash/aliases_nix.sh" \
+    #
+    # generic files must survive
+    && echo "--- Checking generic config files preserved ---" \
+    && test -f "$HOME/.config/bash/functions.sh" \
+    #
+    # nix itself must still be installed (not on PATH after ~/.nix-profile
+    # removal, but the nix store must exist)
+    && echo "--- Checking Nix still installed ---" \
+    && test -d /nix/store \
+    && echo "=== Uninstall checks passed ==="
+
+ENTRYPOINT [ "/bin/bash" ]

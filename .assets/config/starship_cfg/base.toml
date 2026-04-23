@@ -1,0 +1,44 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# custom
+[cmd_duration]
+min_time = 200
+show_milliseconds = true
+
+[directory]
+style = 'bold blue'
+
+[git_branch]
+symbol = ''
+
+[hostname]
+disabled = false
+
+[kubernetes]
+disabled = false
+
+[shell]
+disabled = false
+
+# base
+[battery]
+full_symbol = "• "
+charging_symbol = "⇡ "
+discharging_symbol = "⇣ "
+unknown_symbol = "❓ "
+empty_symbol = "❗ "
+
+[erlang]
+symbol = "ⓔ "
+
+[fortran]
+symbol = "F "
+
+[nodejs]
+symbol = "[⬢](bold green) "
+
+[pulumi]
+symbol = "🧊 "
+
+[typst]
+symbol = "t "

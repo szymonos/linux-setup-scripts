@@ -6,6 +6,42 @@ repos:
         entry: python3 -m tests.hooks.gremlins
         language: system
         types: [text]
+      - id: validate-docs-words
+        name: validate docs words
+        entry: python3 -m tests.hooks.validate_docs_words
+        language: system
+        pass_filenames: false
+        files: (README|docs/.+)\.md$
+      - id: align-tables
+        name: align markdown tables
+        entry: python3 -m tests.hooks.align_tables
+        language: system
+        files: \.md$
+        exclude: /copilot-instructions\.md
+      - id: validate-scopes
+        name: Validate scope definitions consistency
+        entry: python3 -m tests.hooks.validate_scopes
+        language: system
+        files: (\.assets/lib/scopes\.json|nix/scopes/.*\.nix)
+        pass_filenames: false
+      - id: check-bash32
+        name: Check nix-path scripts for bash 3.2 / BSD compatibility
+        entry: python3 -m tests.hooks.check_bash32
+        language: system
+        files: (nix/.*\.sh$|\.assets/lib/(scopes|profile_block|nx_doctor)\.sh$|\.assets/config/bash_cfg/(aliases_nix|aliases_git|aliases_kubectl|functions)\.sh$|\.assets/setup/setup_common\.sh$|\.assets/provision/install_copilot\.sh$)
+        types: [file]
+      - id: bats-tests
+        name: Run bats unit tests
+        entry: python3 -m tests.hooks.run_bats
+        language: system
+        types: [file]
+        pass_filenames: true
+      - id: pester-tests
+        name: Run Pester unit tests
+        entry: python3 -m tests.hooks.run_pester
+        language: system
+        types: [file]
+        pass_filenames: true
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -15,12 +51,34 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
         exclude: \.md$
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.11
+    hooks:
+      - id: ruff-check
+        types_or: [python, pyi]
+        args: [--fix]
+        files: ^tests/
+      - id: ruff-format
+        types_or: [python, pyi]
+        files: ^tests/
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.22.0
     hooks:
       - id: markdownlint-cli2
         files: \.md$
         exclude: /copilot-instructions\.md
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v10.0.0
+    hooks:
+      - id: cspell
+        files: (README|docs/.+)\.md$
+      - id: cspell
+        name: check commit message spelling
+        args:
+          - --no-must-find-files
+          - --no-progress
+          - --no-summary
+        stages: [commit-msg]
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.11.0
     hooks:

@@ -5,13 +5,25 @@ Automation scripts for provisioning Linux systems, primarily **WSL** (Windows Su
 - **Languages**: Bash 5.0+ (`.sh`), PowerShell 7.4+ (`.ps1`)
 - **Supported distros**: Fedora/RHEL, Debian/Ubuntu, Arch, OpenSUSE, Alpine
 - **Targets**: WSL (primary), VMs/bare-metal/distroboxes (secondary)
+- **Architecture**: See `ARCHITECTURE.md` for file classification, dependency tree, and runtime layout
+
+## Bash Portability
+
+Scripts in the **Nix setup path** (`nix/setup.sh`, `.assets/lib/scopes.sh`, `.assets/config/bash_cfg/`) must be compatible with **bash 3.2** (macOS system default). This means:
+
+- **No `mapfile`/`readarray`** - use `while IFS= read -r line; do arr+=("$line"); done < <(...)` instead
+- **No `declare -A`** (associative arrays) - use space-delimited strings with helper functions (`scope_has`, `scope_add`, `scope_del` in `scopes.sh`)
+- **No `${var,,}`/`${var^^}`** (case modification) - use `tr '[:upper:]' '[:lower:]'` instead
+- **No `declare -n`** (namerefs), **no negative array indices** (`${arr[-1]}`)
+
+Linux-only scripts (`.assets/scripts/linux_setup.sh`, `.assets/check/`, `.assets/provision/`, WSL scripts) may use bash 4+ features since they run on Linux where bash 5.x is standard.
 
 ## Key Entry Points
 
 - `wsl/wsl_setup.ps1` - main orchestration script, runs on Windows host, calls `.assets/provision/` scripts inside WSL
 - `.assets/scripts/linux_setup.sh` - provisioning from Linux host (bare-metal, VMs, WSL)
 - `.assets/provision/install_*.sh` - individual tool installers (most require root)
-- `.assets/provision/setup_*.sh` - configuration scripts (typically run as user)
+- `.assets/setup/setup_*.sh` - configuration scripts (typically run as user)
 - `.assets/provision/source.sh` - shared functions (dotsourced by other scripts)
 
 ## Tooling
@@ -22,7 +34,12 @@ Automation scripts for provisioning Linux systems, primarily **WSL** (Windows Su
 
 ## Before Committing
 
-Run `make lint` and fix any failures. Pre-commit hooks are configured in `.pre-commit-config.yaml`.
+**IMPORTANT**: Always run `make lint` before every commit and fix any failures. Do not skip this step. Pre-commit hooks are configured in `.pre-commit-config.yaml`.
+
+## Writing Style
+
+- Never use em-dashes (U+2014) or double dashes (`--`) as punctuation; use a single dash (`-`) instead.
+- The gremlins pre-commit hook rejects Unicode characters like em-dashes.
 
 ## Bash Style (`.sh`)
 
@@ -35,6 +52,25 @@ Run `make lint` and fix any failures. Pre-commit hooks are configured in `.pre-c
 - Variables: `snake_case` locals, `UPPERCASE` constants/env
 - PowerShell local variables use `camelCase` (see below)
 - Color output: `\e[31;1m` red/error, `\e[32m` green, `\e[92m` bright green, `\e[96m` cyan/info
+
+### Runnable examples block
+
+Every executable `.sh` and `.zsh` script must have a `: '...'` block immediately after the shebang. This lets the user run any example with the IDE "run current line" shortcut. Rules:
+
+- Use `# comment` lines to describe what the next example does
+- The following line must be the bare runnable command - no `Usage:`, `Example:`, or any other prefix
+- Never put prose descriptions or text with embedded single quotes inside the block (single quotes cannot be escaped inside `'...'`; move such text to `#` comments before the block)
+
+```bash
+#!/usr/bin/env bash
+: '
+# run as current user
+.assets/setup/setup_foo.sh
+# run with a specific option
+.assets/setup/setup_foo.sh --option value
+'
+set -euo pipefail
+```
 
 ### Common Bash Patterns
 
