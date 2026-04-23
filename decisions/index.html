@@ -226,6 +226,15 @@
 <nav aria-label="Implementation decisions" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
+<a class="md-nav__link" href="#why-nixpkgs-unstable-not-a-stable-channel">
+<span class="md-ellipsis">
+      
+        Why nixpkgs-unstable, not a stable channel
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#why-bash-32-compatibility">
 <span class="md-ellipsis">
       
@@ -248,15 +257,6 @@
 <span class="md-ellipsis">
       
         Why managed blocks, not append-style profile injection
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#why-a-two-phase-uninstaller">
-<span class="md-ellipsis">
-      
-        Why a two-phase uninstaller
       
     </span>
 </a>
@@ -398,6 +398,15 @@
 <nav aria-label="Implementation decisions" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
+<a class="md-nav__link" href="#why-nixpkgs-unstable-not-a-stable-channel">
+<span class="md-ellipsis">
+      
+        Why nixpkgs-unstable, not a stable channel
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#why-bash-32-compatibility">
 <span class="md-ellipsis">
       
@@ -420,15 +429,6 @@
 <span class="md-ellipsis">
       
         Why managed blocks, not append-style profile injection
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#why-a-two-phase-uninstaller">
-<span class="md-ellipsis">
-      
-        Why a two-phase uninstaller
       
     </span>
 </a>
@@ -564,6 +564,12 @@
 </ul>
 <p>The bootstrapper model means zero operational overhead: no agent to monitor, no server to maintain, no network dependency for day-to-day use. The tool provisions the environment and gets out of the way. From there, developers can continue using the repo individually to manage their environment, or teams and organizations can distribute overlays to extend and customize capabilities - without contributing to the upstream repository.</p>
 <h2 id="implementation-decisions">Implementation decisions<a class="headerlink" href="#implementation-decisions" title="Permanent link">¤</a></h2>
+<h3 id="why-nixpkgs-unstable-not-a-stable-channel">Why nixpkgs-unstable, not a stable channel<a class="headerlink" href="#why-nixpkgs-unstable-not-a-stable-channel" title="Permanent link">¤</a></h3>
+<p><strong>The objection:</strong> "The word 'unstable' is right there in the name. Use a stable release for production tooling."</p>
+<p>The name is misleading. <code>nixpkgs-unstable</code> is not raw <code>main</code> - every commit is validated by Hydra (NixOS's CI system) through build tests before being promoted to the channel. It is a rolling release with quality gates, not a bleeding-edge feed. Compared to Arch Linux (daily builds, minimal testing) or Fedora Rawhide (nightly composes), nixpkgs-unstable is more conservative - updates land days after upstream release, not hours.</p>
+<p>Stable nixpkgs channels (e.g., <code>nixos-24.11</code>) exist but serve a different purpose: they hold back major version updates and apply only security and critical bug fixes. For developer workstations, this creates a maintenance problem. Developers expect reasonably current versions of kubectl, terraform, ripgrep, and Node.js - not versions frozen six months ago. A stable channel means either accepting outdated tools or manually overriding package versions, which defeats the purpose of a curated package set.</p>
+<p>Using <code>nixpkgs-unstable</code> eliminates this version chasing entirely. The channel tracks upstream releases through a validated pipeline of 120,000+ packages, so <code>nx upgrade</code> pulls current, CI-tested versions without per-package version management. The trade-off is explicit: upgrades are never automatic. <code>nix/setup.sh</code> without <code>--upgrade</code> re-applies configuration using existing package versions. <code>nx upgrade</code> is the deliberate action that pulls new versions, and <code>nx rollback</code> reverts if something breaks.</p>
+<p>For teams that need coordinated versions, <code>nx pin set</code> locks the entire nixpkgs input to a specific commit SHA. Everyone on the team resolves the same package versions until the pin is updated. This provides reproducibility without the staleness of a stable channel - the team controls when to advance, and the pin is a single value rather than per-package version overrides.</p>
 <h3 id="why-bash-32-compatibility">Why bash 3.2 compatibility<a class="headerlink" href="#why-bash-32-compatibility" title="Permanent link">¤</a></h3>
 <p><strong>The objection:</strong> "It's 2026. Just require bash 5 and use modern features."</p>
 <p>macOS ships bash 3.2 as the system default. Apple will not update it due to GPLv3 licensing. This creates a bootstrapping paradox: <strong>the tool that sets up your environment cannot require you to already have a setup environment.</strong></p>
@@ -636,22 +642,6 @@
 <li><strong>Diagnosable</strong> - <code>nx doctor</code> detects duplicate or missing blocks</li>
 </ul>
 <p>The same pattern is implemented for PowerShell via <code>#region</code>/<code>#endregion</code> markers and <code>Update-ProfileRegion</code>. Two block types separate nix-specific config (removed on uninstall) from generic config (certs, local PATH - preserved after uninstall).</p>
-<h3 id="why-a-two-phase-uninstaller">Why a two-phase uninstaller<a class="headerlink" href="#why-a-two-phase-uninstaller" title="Permanent link">¤</a></h3>
-<p><strong>The objection:</strong> "If you want to remove it, just delete the folder."</p>
-<p>Most developer tools that modify shell profiles leave debris behind - orphaned PATH entries, stale aliases, broken completions. Users discover this when their terminal starts throwing errors after removal. The common advice is "edit your <code>.bashrc</code> manually", which is precisely the kind of friction that erodes trust in tooling.</p>
-<p>This tool ships a purpose-built uninstaller (<code>nix/uninstall.sh</code>) with two distinct phases:</p>
-<p><strong>Phase 1 (environment-only)</strong> removes everything this tool created while preserving what it did not:</p>
-<ul>
-<li>Nix-specific managed blocks removed from <code>.bashrc</code>, <code>.zshrc</code> - generic blocks (certs, local PATH) preserved</li>
-<li>Nix-prefixed <code>#region</code> blocks removed from PowerShell profiles - generic regions preserved</li>
-<li><code>~/.config/nix-env/</code> directory, nix-specific aliases, zsh plugins, miniforge - all removed</li>
-<li>Nix profile entry removed (after file operations, so tools remain available during cleanup)</li>
-<li>Legacy prompt init lines and conda init blocks cleaned up</li>
-<li>Trailing blank lines normalized using bash builtins only (external tools may already be gone at this point)</li>
-</ul>
-<p><strong>Phase 2 (optional)</strong> removes Nix itself, detecting whether the Determinate Systems installer or upstream single-user install was used and calling the appropriate removal method.</p>
-<p>The uninstaller supports three modes: interactive (prompts before each phase), <code>--env-only</code> (scripted, keeps Nix), and <code>--all</code> (scripted, removes everything). A <code>--dry-run</code> flag previews all changes without touching anything.</p>
-<p>Every CI run validates the uninstaller: after <code>nix/uninstall.sh --env-only</code>, the pipeline asserts that the nix-env managed block is gone, the managed-env block is preserved, <code>~/.config/nix-env/</code> is removed, nix-specific aliases are removed, generic config files are preserved, and Nix itself is still installed. The uninstaller is not an afterthought - it is a tested, CI-validated part of the lifecycle.</p>
 <h3 id="why-phase-based-orchestration-with-side-effect-stubs">Why phase-based orchestration with side-effect stubs<a class="headerlink" href="#why-phase-based-orchestration-with-side-effect-stubs" title="Permanent link">¤</a></h3>
 <p><strong>The objection:</strong> "It's a setup script - just write it top to bottom."</p>
 <p>A 600-line bash script written top-to-bottom is untestable by definition. Functions cannot be sourced in isolation, side effects execute on import, and tests resort to brittle <code>sed</code> extraction to test individual functions.</p>

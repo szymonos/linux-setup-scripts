@@ -227,6 +227,15 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#uninstaller">
+<span class="md-ellipsis">
+      
+        Uninstaller
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#ci-validation-matrix">
 <span class="md-ellipsis">
       
@@ -380,6 +389,15 @@
 <span class="md-ellipsis">
       
         Shell profile management
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#uninstaller">
+<span class="md-ellipsis">
+      
+        Uninstaller
       
     </span>
 </a>
@@ -594,6 +612,20 @@
 <li><strong><code>managed env</code></strong> - generic environment (local PATH, cert env vars, shared functions). Survives uninstall.</li>
 </ul>
 <p><code>nx profile doctor</code> detects issues (missing blocks, duplicates, legacy injections). <code>nx profile migrate</code> converts legacy append-style configurations to managed blocks.</p>
+<h2 id="uninstaller">Uninstaller<a class="headerlink" href="#uninstaller" title="Permanent link">¤</a></h2>
+<p><code>nix/uninstall.sh</code> provides a complete, two-phase removal that restores the system to its pre-setup state.</p>
+<p><strong>Phase 1 (environment-only)</strong> removes everything this tool created while preserving what it did not:</p>
+<ul>
+<li>Nix-specific managed blocks removed from <code>.bashrc</code>, <code>.zshrc</code> - generic blocks (certs, local PATH) preserved</li>
+<li>Nix-prefixed <code>#region</code> blocks removed from PowerShell profiles - generic regions preserved</li>
+<li><code>~/.config/nix-env/</code> directory, nix-specific aliases, zsh plugins, miniforge - all removed</li>
+<li>Nix profile entry removed (after file operations, so tools remain available during cleanup)</li>
+<li>Legacy prompt init lines and conda init blocks cleaned up</li>
+<li>Trailing blank lines normalized using bash builtins only (external tools may already be gone at this point)</li>
+</ul>
+<p><strong>Phase 2 (optional)</strong> removes Nix itself, detecting whether the Determinate Systems installer or upstream single-user install was used and calling the appropriate removal method.</p>
+<p>Three modes are available: interactive (prompts before each phase), <code>--env-only</code> (scripted, keeps Nix), and <code>--all</code> (scripted, removes everything). A <code>--dry-run</code> flag previews all changes without touching anything.</p>
+<p>Every CI run validates the uninstaller: after <code>nix/uninstall.sh --env-only</code>, the pipeline asserts that the nix-env managed block is gone, the managed-env block is preserved, <code>~/.config/nix-env/</code> is removed, nix-specific aliases are removed, generic config files are preserved, and Nix itself is still installed.</p>
 <h2 id="ci-validation-matrix">CI validation matrix<a class="headerlink" href="#ci-validation-matrix" title="Permanent link">¤</a></h2>
 <table>
 <thead>
