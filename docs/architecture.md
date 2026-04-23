@@ -136,6 +136,25 @@ Two blocks are written to each file:
 
 `nx profile doctor` detects issues (missing blocks, duplicates, legacy injections). `nx profile migrate` converts legacy append-style configurations to managed blocks.
 
+## Uninstaller
+
+`nix/uninstall.sh` provides a complete, two-phase removal that restores the system to its pre-setup state.
+
+**Phase 1 (environment-only)** removes everything this tool created while preserving what it did not:
+
+- Nix-specific managed blocks removed from `.bashrc`, `.zshrc` - generic blocks (certs, local PATH) preserved
+- Nix-prefixed `#region` blocks removed from PowerShell profiles - generic regions preserved
+- `~/.config/nix-env/` directory, nix-specific aliases, zsh plugins, miniforge - all removed
+- Nix profile entry removed (after file operations, so tools remain available during cleanup)
+- Legacy prompt init lines and conda init blocks cleaned up
+- Trailing blank lines normalized using bash builtins only (external tools may already be gone at this point)
+
+**Phase 2 (optional)** removes Nix itself, detecting whether the Determinate Systems installer or upstream single-user install was used and calling the appropriate removal method.
+
+Three modes are available: interactive (prompts before each phase), `--env-only` (scripted, keeps Nix), and `--all` (scripted, removes everything). A `--dry-run` flag previews all changes without touching anything.
+
+Every CI run validates the uninstaller: after `nix/uninstall.sh --env-only`, the pipeline asserts that the nix-env managed block is gone, the managed-env block is preserved, `~/.config/nix-env/` is removed, nix-specific aliases are removed, generic config files are preserved, and Nix itself is still installed.
+
 ## CI validation matrix
 
 | Workflow          | Runner             | Scenario                             |

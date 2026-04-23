@@ -72,6 +72,18 @@ The bootstrapper model means zero operational overhead: no agent to monitor, no 
 
 ## Implementation decisions
 
+### Why nixpkgs-unstable, not a stable channel
+
+**The objection:** "The word 'unstable' is right there in the name. Use a stable release for production tooling."
+
+The name is misleading. `nixpkgs-unstable` is not raw `main` - every commit is validated by Hydra (NixOS's CI system) through build tests before being promoted to the channel. It is a rolling release with quality gates, not a bleeding-edge feed. Compared to Arch Linux (daily builds, minimal testing) or Fedora Rawhide (nightly composes), nixpkgs-unstable is more conservative - updates land days after upstream release, not hours.
+
+Stable nixpkgs channels (e.g., `nixos-24.11`) exist but serve a different purpose: they hold back major version updates and apply only security and critical bug fixes. For developer workstations, this creates a maintenance problem. Developers expect reasonably current versions of kubectl, terraform, ripgrep, and Node.js - not versions frozen six months ago. A stable channel means either accepting outdated tools or manually overriding package versions, which defeats the purpose of a curated package set.
+
+Using `nixpkgs-unstable` eliminates this version chasing entirely. The channel tracks upstream releases through a validated pipeline of 120,000+ packages, so `nx upgrade` pulls current, CI-tested versions without per-package version management. The trade-off is explicit: upgrades are never automatic. `nix/setup.sh` without `--upgrade` re-applies configuration using existing package versions. `nx upgrade` is the deliberate action that pulls new versions, and `nx rollback` reverts if something breaks.
+
+For teams that need coordinated versions, `nx pin set` locks the entire nixpkgs input to a specific commit SHA. Everyone on the team resolves the same package versions until the pin is updated. This provides reproducibility without the staleness of a stable channel - the team controls when to advance, and the pin is a single value rather than per-package version overrides.
+
 ### Why bash 3.2 compatibility
 
 **The objection:** "It's 2026. Just require bash 5 and use modern features."
@@ -133,29 +145,6 @@ This tool uses a **managed block** pattern instead. Configuration is written bet
 - **Diagnosable** - `nx doctor` detects duplicate or missing blocks
 
 The same pattern is implemented for PowerShell via `#region`/`#endregion` markers and `Update-ProfileRegion`. Two block types separate nix-specific config (removed on uninstall) from generic config (certs, local PATH - preserved after uninstall).
-
-### Why a two-phase uninstaller
-
-**The objection:** "If you want to remove it, just delete the folder."
-
-Most developer tools that modify shell profiles leave debris behind - orphaned PATH entries, stale aliases, broken completions. Users discover this when their terminal starts throwing errors after removal. The common advice is "edit your `.bashrc` manually", which is precisely the kind of friction that erodes trust in tooling.
-
-This tool ships a purpose-built uninstaller (`nix/uninstall.sh`) with two distinct phases:
-
-**Phase 1 (environment-only)** removes everything this tool created while preserving what it did not:
-
-- Nix-specific managed blocks removed from `.bashrc`, `.zshrc` - generic blocks (certs, local PATH) preserved
-- Nix-prefixed `#region` blocks removed from PowerShell profiles - generic regions preserved
-- `~/.config/nix-env/` directory, nix-specific aliases, zsh plugins, miniforge - all removed
-- Nix profile entry removed (after file operations, so tools remain available during cleanup)
-- Legacy prompt init lines and conda init blocks cleaned up
-- Trailing blank lines normalized using bash builtins only (external tools may already be gone at this point)
-
-**Phase 2 (optional)** removes Nix itself, detecting whether the Determinate Systems installer or upstream single-user install was used and calling the appropriate removal method.
-
-The uninstaller supports three modes: interactive (prompts before each phase), `--env-only` (scripted, keeps Nix), and `--all` (scripted, removes everything). A `--dry-run` flag previews all changes without touching anything.
-
-Every CI run validates the uninstaller: after `nix/uninstall.sh --env-only`, the pipeline asserts that the nix-env managed block is gone, the managed-env block is preserved, `~/.config/nix-env/` is removed, nix-specific aliases are removed, generic config files are preserved, and Nix itself is still installed. The uninstaller is not an afterthought - it is a tested, CI-validated part of the lifecycle.
 
 ### Why phase-based orchestration with side-effect stubs
 
