@@ -16,9 +16,9 @@ against the rules below.
 ## Last ported through
 
 ```text
-envy-nx commit: <SHA>      # bump on each backport PR; agent reads CHANGELOG entries newer than this
-envy-nx tag:    <TAG>      # nearest released tag for human readability
-ported on:      <YYYY-MM-DD>
+envy-nx commit: c859bba    # bump on each backport PR; agent reads CHANGELOG entries newer than this
+envy-nx tag:    v1.4.0     # nearest released tag for human readability
+ported on:      2026-05-01
 ```
 
 When you finish a backport PR, update all three lines and include the bump in
