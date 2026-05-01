@@ -27,6 +27,12 @@ function Invoke-GhRepoClone {
         $org, $repo = $OrgRepo.Split('/')
         # command for getting the remote url
         $getOrigin = { git config --get remote.origin.url; if (-not $?) { 'https://github.com/' } }
+        # determine clone protocol: prefer SSH if key is configured, fallback to HTTPS
+        $gitProtocol = if (ssh -T git@github.com 2>&1 | Select-String -Quiet 'successfully authenticated') {
+            'git@github.com:'
+        } else {
+            $(Invoke-Command $getOrigin) -replace '(^.+github\.com[:/]).*', '$1'
+        }
         # calculate destination path
         $destPath = Join-Path $Path -ChildPath $repo
     }
@@ -52,16 +58,23 @@ function Invoke-GhRepoClone {
             }
             Pop-Location
         } catch {
-            # determine GitHub protocol used (https/ssl)
-            $gitProtocol = $(Invoke-Command $getOrigin) -replace '(^.+github\.com[:/]).*', '$1'
-            # clone target repository
-            git clone "${gitProtocol}${org}/${repo}.git" "$destPath" --quiet
-            # determine state of cloning the repository
+            # clone target repository - try SSH first, fall back to HTTPS
+            $cloneUrl = "${gitProtocol}${org}/${repo}.git"
+            $cloneErr = $null
+            git clone $cloneUrl "$destPath" --quiet 2>&1 | ForEach-Object { $cloneErr += "$_`n" }
+            if (-not $?) {
+                if ($gitProtocol -eq 'git@github.com:') {
+                    Write-Warning "SSH clone failed, retrying with HTTPS: $($cloneErr?.Trim())"
+                    $cloneUrl = "https://github.com/${org}/${repo}.git"
+                    $cloneErr = $null
+                    git clone $cloneUrl "$destPath" --quiet 2>&1 | ForEach-Object { $cloneErr += "$_`n" }
+                }
+            }
             $status = if ($?) {
                 Write-Verbose "Repository `"$OrgRepo`" cloned successfully."
                 Write-Output 1
             } else {
-                Write-Warning "Cloning of the `"$OrgRepo`" repository failed."
+                Write-Warning "Cloning `"$OrgRepo`" failed ($cloneUrl): $($cloneErr?.Trim())"
                 Write-Output 0
             }
         }
@@ -79,35 +92,59 @@ Function for updating current git branch from remote.
 function Update-GitRepository {
     [CmdletBinding()]
     param ()
-    # perform check if the repository has remote
-    $remote = git remote 2>$null
-    if ($remote) {
-        # fetch updates from remote
-        Write-Verbose "fetching $remote..."
-        for ($i = 1; $i -le 10; $i++) {
-            Write-Verbose "attempt No. $i..."
-            git fetch --tags --prune --prune-tags --force $remote 2>$null
-            if ($?) {
-                $fetched = $true
-                break
-            }
-        }
-        if (-not $fetched) {
-            Write-Warning 'Fetching from remote failed.'
+    # resolve upstream tracking ref in a single call (e.g. "origin/main");
+    # fall back to first remote + current branch when no upstream is configured
+    $upstream = git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>$null
+    if ($upstream) {
+        $remote, $branch = $upstream -split '/', 2
+    } else {
+        $remote = git remote 2>$null | Select-Object -First 1
+        if (-not $remote) {
+            Write-Warning 'Not a git repository.'
             return 0
         }
-        # check if current branch is behind remote
         $branch = git branch --show-current
-        if ((git rev-parse HEAD) -ne (git rev-parse "$remote/$branch")) {
-            Write-Verbose "$branch branch is behind the $remote, performing hard reset"
-            git reset --hard "$remote/$branch"
-            return 2
-        } else {
-            Write-Verbose "$branch branch is up to date"
+        $upstream = "$remote/$branch"
+    }
+
+    # cheap pre-check: `ls-remote` is a single small network round-trip with no local writes.
+    # if the remote tip already matches our tracking ref, the previous fetch is still current
+    # and we can skip the heavy `git fetch --tags --prune --prune-tags --force` (the dominant
+    # IO cost on slow disks - it always rewrites FETCH_HEAD, packed-refs, etc. even on no-op)
+    $remoteSha = ((git ls-remote --heads $remote $branch 2>$null) -split '\s+', 2)[0]
+    $localUpstreamSha = git rev-parse $upstream 2>$null
+    if ($remoteSha -and $localUpstreamSha -and $remoteSha -eq $localUpstreamSha) {
+        if ((git rev-parse HEAD) -eq $localUpstreamSha) {
+            Write-Verbose "$branch branch is up to date (skipped fetch)"
             return 1
         }
-    } else {
-        Write-Warning 'Not a git repository.'
+        Write-Verbose "$branch behind $upstream (skipped fetch, performing hard reset)"
+        git reset --hard $upstream
+        return 2
+    }
+
+    # full fetch path: remote moved, ls-remote was unreachable, or no local tracking ref yet
+    Write-Verbose "fetching $remote..."
+    $fetched = $false
+    for ($i = 1; $i -le 10; $i++) {
+        Write-Verbose "attempt No. $i..."
+        git fetch --tags --prune --prune-tags --force $remote 2>$null
+        if ($?) {
+            $fetched = $true
+            break
+        }
+    }
+    if (-not $fetched) {
+        Write-Warning 'Fetching from remote failed.'
         return 0
     }
+    # single rev-parse for both refs
+    $shas = git rev-parse HEAD $upstream
+    if ($shas[0] -ne $shas[1]) {
+        Write-Verbose "$branch branch is behind the $remote, performing hard reset"
+        git reset --hard $upstream
+        return 2
+    }
+    Write-Verbose "$branch branch is up to date"
+    return 1
 }
