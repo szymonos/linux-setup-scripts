@@ -500,6 +500,19 @@ process {
                 $sshStatus.sshKey = 'missing'
             }
         }
+
+        # *whitelist Windows-mount repo paths as git safe.directory
+        # On /mnt/c/ paths the .git dir owner UID (from the Windows side)
+        # doesn't match the WSL user's UID, so git refuses operations with a
+        # "dubious ownership" warning. Two globs cover the typical layouts:
+        #   ~/source/repos/<repo>           - flat
+        #   ~/source/repos/<org>/<repo>     - org-scoped (the convention here)
+        # Per-user (writes ~/.gitconfig in the WSL user's home), idempotent.
+        $mntRepos = "/mnt/c/Users/$env:USERNAME/source/repos"
+        foreach ($glob in "$mntRepos/*", "$mntRepos/*/*") {
+            $cmnd = "git config --global --get-all safe.directory 2>/dev/null | grep -qFx '$glob' || git config --global --add safe.directory '$glob'"
+            wsl.exe --distribution $Distro --exec bash -c $cmnd | Out-Null
+        }
         #endregion
 
         #region install scopes
