@@ -243,8 +243,7 @@ begin {
         Show-LogContext 'getting GitHub authentication config from the default distro'
         $defDistro = $lxss.Where({ $_.Default }).Name
         if ($defDistro -ne $Distro) {
-            $cmdArgs = @('-u', (wsl.exe --distribution $defDistro -- id -un), '-k')
-            $gh_cfg = wsl.exe --distribution $defDistro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
+            $gh_cfg = wsl.exe --distribution $defDistro -- cat "`$HOME/.config/gh/hosts.yml" 2>$null
         }
         # get installed distro details
         $lxss = Get-WslDistro -FromRegistry | Where-Object Name -EQ $Distro

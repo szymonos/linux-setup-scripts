@@ -28,7 +28,7 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update && apt-get dist-upgrade -qy --allow-downgrades --allow-remove-essential --allow-change-held-packages
+  apt-get update -qq && apt-get dist-upgrade -qqy --allow-downgrades --allow-remove-essential --allow-change-held-packages
   ;;
 opensuse)
   zypper --gpg-auto-import-keys refresh && zypper --non-interactive dup -y

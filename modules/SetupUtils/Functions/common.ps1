@@ -111,7 +111,7 @@ function ConvertTo-Cfg {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, Position = 0, ValueFromPipeline)]
-        [System.Collections.Specialized.OrderedDictionary]$OrderedDict,
+        [System.Collections.IDictionary]$OrderedDict,
 
         [string]$Path,
 
