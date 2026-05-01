@@ -1,3 +1,8 @@
+# This file uses bash/zsh syntax (function keyword); skip under POSIX sh (dash)
+# when sourced from /etc/profile.d/ by a non-bash login shell - e.g. the
+# `sh -lc` self-test that the Determinate Nix installer runs.
+[ -n "${BASH_VERSION:-}${ZSH_VERSION:-}" ] || return 0
+
 #region functions
 function git_current_branch {
   git branch --show-current

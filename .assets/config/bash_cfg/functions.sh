@@ -2,6 +2,11 @@
 . .assets/config/bash_cfg/functions.sh
 '
 
+# This file uses bash/zsh syntax (function keyword, [[ ]], local); skip under
+# POSIX sh (dash) when sourced from /etc/profile.d/ by a non-bash login shell -
+# e.g. the `sh -lc` self-test that the Determinate Nix installer runs.
+[ -n "${BASH_VERSION:-}${ZSH_VERSION:-}" ] || return 0
+
 # *Function to display system information in a user-friendly format
 function sysinfo() {
   # dot-source os-release file
