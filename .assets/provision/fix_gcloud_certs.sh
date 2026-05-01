@@ -23,6 +23,7 @@ debian | ubuntu)
   ;;
 opensuse)
   CERT_PATH='/usr/share/pki/trust/anchors'
+  ;;
 esac
 
 mapfile -t cert_files < <(find "$CERT_PATH" -maxdepth 1 -name '*.crt' 2>/dev/null || true)

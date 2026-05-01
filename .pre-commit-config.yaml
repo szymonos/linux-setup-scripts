@@ -45,6 +45,11 @@ repos:
       - id: markdownlint-cli2
         files: \.md$
         exclude: /copilot-instructions\.md
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.13.1-1
+    hooks:
+      - id: shfmt
+        exclude: \.zsh$
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.11.0
     hooks:

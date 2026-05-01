@@ -7,7 +7,6 @@
 '
 set -euo pipefail
 
-
 # prepare clean $HOME/.ssh directory
 if [ -d "$HOME/.ssh" ]; then
   if [ -f "$HOME/.ssh/id_ed25519" ] && [ -f "$HOME/.ssh/id_ed25519.pub" ]; then
