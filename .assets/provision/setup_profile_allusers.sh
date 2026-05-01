@@ -52,6 +52,10 @@ if [ -d "$CFG_PATH" ]; then
   fi
   # custom functions
   install -m 0644 "$CFG_PATH/functions.sh" "$PROFILE_PATH"
+  # cert env vars (sourced when ~/.config/certs/ca-*.crt exists)
+  if [ -f "$CFG_PATH/certs.sh" ]; then
+    install -m 0644 "$CFG_PATH/certs.sh" "$PROFILE_PATH"
+  fi
   # clean config folder
   rm -fr "$CFG_PATH"
 fi

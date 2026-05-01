@@ -45,7 +45,7 @@ function Invoke-CommandRetry {
 }
 
 function Join-Str {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'None')]
     [OutputType([string])]
     param (
         [Parameter(Mandatory, ValueFromPipeline = $true)]

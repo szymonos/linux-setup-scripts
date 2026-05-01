@@ -24,6 +24,14 @@ if [ -f "$PROFILE_PATH/aliases.sh" ]; then
 fi
 EOF
 
+# *cert env vars (NODE_EXTRA_CA_CERTS, REQUESTS_CA_BUNDLE, etc. - sourced when ~/.config/certs/ca-*.crt exists)
+grep -qw 'd/certs.sh' $HOME/.bashrc 2>/dev/null || cat <<EOF >>$HOME/.bashrc
+# cert env vars
+if [ -f "$PROFILE_PATH/certs.sh" ]; then
+  source "$PROFILE_PATH/certs.sh"
+fi
+EOF
+
 # add git aliases
 if ! grep -qw 'd/aliases_git.sh' $HOME/.bashrc 2>/dev/null && type git &>/dev/null; then
   cat <<EOF >>$HOME/.bashrc
@@ -104,4 +112,18 @@ EOF
 elif grep -qw 'oh-my-posh --init' $HOME/.bashrc 2>/dev/null; then
   # convert oh-my-posh initialization to the new API
   sed -i 's/oh-my-posh --init --shell bash/oh-my-posh init bash/' $HOME/.bashrc
+fi
+
+# *VS Code Server env: extensions don't source ~/.bashrc, so re-export
+# cert env vars via ~/.vscode-server/server-env-setup which the server
+# sources at launch (only relevant on remote-SSH / WSL VS Code sessions)
+if [ -f "$PROFILE_PATH/certs.sh" ]; then
+  mkdir -p "$HOME/.vscode-server"
+  ENV_SETUP="$HOME/.vscode-server/server-env-setup"
+  if ! grep -qw 'd/certs.sh' "$ENV_SETUP" 2>/dev/null; then
+    cat <<EOF >>"$ENV_SETUP"
+# cert env vars (managed by setup_profile_user.sh)
+[ -f "$PROFILE_PATH/certs.sh" ] && . "$PROFILE_PATH/certs.sh"
+EOF
+  fi
 fi

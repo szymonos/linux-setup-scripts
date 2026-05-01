@@ -3,6 +3,14 @@ SHELL := /bin/bash
 # Default target
 .DEFAULT_GOAL := help
 
+# MITM proxy support: use native TLS (OpenSSL) in prek to trust system CA certificates
+export PREK_NATIVE_TLS := 1
+# tell Node.js/npm to trust custom MITM proxy certificates (for prek-managed node hooks)
+CA_CUSTOM := $(wildcard $(HOME)/.config/certs/ca-custom.crt)
+ifdef CA_CUSTOM
+export NODE_EXTRA_CA_CERTS := $(CA_CUSTOM)
+endif
+
 .PHONY: help
 help: ## Show this help message
 	@printf 'Usage: make [target]\n\n'
@@ -18,13 +26,31 @@ upgrade: ## Upgrade prek and hooks versions
 	prek self update
 	prek auto-update
 
+.PHONY: hooks
+hooks: ## List available pre-commit hook IDs
+	@awk '/- id:/ {print "  " $$3}' .pre-commit-config.yaml | sort -u
+
 .PHONY: lint lint-diff lint-all
-lint: ## Run pre-commit hooks for changed files
+lint: ## Run pre-commit hooks for changed files (HOOK=id to run one hook)
 	@printf "🧭 Running pre-commit hooks for changed files...\n\n"
-	git add --all && prek run
-lint-diff: ## Run pre-commit hooks for files changed in this diff
+	git add --all && prek run $(HOOK)
+lint-diff: ## Run pre-commit hooks for files changed in this diff (HOOK=id to run one hook)
 	@printf "🧭 Running pre-commit hooks for files changed in this diff...\n\n"
-	@[ "$$(git branch --show-current)" = "main" ] && printf "⚠️  You are on the main branch. Skipping lint-diff.\n" || prek run --from-ref main --to-ref HEAD
-lint-all: ## Run pre-commit hooks for all files
+	@if [ "$$(git branch --show-current)" = "main" ]; then \
+		printf "⚠️  You are on the main branch. Skipping lint-diff.\n"; \
+	else \
+		git add --all && prek run $(HOOK) --from-ref main --to-ref HEAD; \
+	fi
+lint-all: ## Run pre-commit hooks for all files (HOOK=id to run one hook)
 	@printf "🧭 Running pre-commit hooks for all files...\n\n"
-	prek run --all-files
+	prek run $(HOOK) --all-files
+
+.PHONY: test test-unit test-bats test-pester
+test: test-unit ## Run all unit tests
+test-unit: test-bats test-pester ## Run bats and Pester unit tests
+test-bats: ## Run bats unit tests
+	@printf "\n\033[95;1m== bats ==\033[0m\n\n"
+	@bats tests/bats/
+test-pester: ## Run Pester unit tests
+	@printf "\n\033[95;1m== Pester ==\033[0m\n\n"
+	@pwsh -nop -c '$$cfg = New-PesterConfiguration; $$cfg.Run.Path = "tests/pester/"; $$cfg.Run.Exit = $$true; $$cfg.Output.Verbosity = "Detailed"; Invoke-Pester -Configuration $$cfg'

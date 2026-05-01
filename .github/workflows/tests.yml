@@ -1,0 +1,46 @@
+name: Unit Tests
+
+# Runs on every PR and on push to main.
+# Bats + Pester are fast (~2 min total) so no label gating needed; they catch
+# regressions in module functions (logs.ps1, common.ps1, certs.ps1) and the
+# shell helpers (sysinfo, fixcertpy, cert_intercept).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-unit:
+    name: bats + Pester
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install bats
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq bats
+
+      - name: Ensure Pester 5+ available
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.0' })) {
+            Install-Module Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck -Scope CurrentUser
+          }
+
+      - name: Show versions
+        run: |
+          bats --version
+          pwsh --version
+          pwsh -nop -c "Get-Module -ListAvailable Pester | Select-Object -First 1 | Format-Table Name, Version"
+
+      - name: Run unit tests
+        run: make test

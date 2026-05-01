@@ -1,0 +1,149 @@
+name: Linux Integration Test
+
+# Builds the Ubuntu Dockerfile end-to-end (which runs linux_setup.sh) and runs
+# verification commands against the resulting image. ~10 min runtime.
+#
+# Triggers:
+#   1. Manual: Actions tab -> "Run workflow" button.
+#   2. PR label: add "test:integration" label to a PR.
+#   3. Push to PR: runs on push if the PR already has the "test:integration" label.
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    types: [labeled, synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event.label.name || 'push' }}
+  cancel-in-progress: true
+
+jobs:
+  test-linux:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'test:integration') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'test:integration'))
+
+    name: linux_setup.sh (Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (runs linux_setup.sh end-to-end)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: .assets/docker/Dockerfile
+          load: true
+          tags: lss-test:latest
+          push: false
+
+      # ---- verification (continue-on-error so summary shows full picture) ----
+      - name: Verify pwsh on PATH
+        id: pwsh
+        continue-on-error: true
+        run: docker run --rm --entrypoint bash lss-test:latest -c 'command -v pwsh && pwsh --version'
+
+      - name: Verify oh-my-posh on PATH
+        id: omp
+        continue-on-error: true
+        run: docker run --rm --entrypoint bash lss-test:latest -c 'command -v oh-my-posh && oh-my-posh --version'
+
+      - name: Verify /etc/profile.d/ files source cleanly under dash
+        # Regression check for the POSIX-guard fix on aliases_git.sh and
+        # functions.sh - the Determinate Nix installer's `sh -lc` self-test
+        # used to break here on Debian/Ubuntu (where /bin/sh is dash).
+        id: dash
+        continue-on-error: true
+        run: |
+          docker run --rm --entrypoint bash lss-test:latest -c '
+            set -e
+            failed=0
+            for f in /etc/profile.d/aliases.sh /etc/profile.d/aliases_git.sh \
+                     /etc/profile.d/aliases_kubectl.sh /etc/profile.d/functions.sh \
+                     /etc/profile.d/certs.sh; do
+              if [ -f "$f" ]; then
+                if dash -c ". \"$f\""; then
+                  printf "  \e[32mok\e[0m   : %s\n" "$f"
+                else
+                  printf "  \e[31mFAIL\e[0m : %s\n" "$f"
+                  failed=1
+                fi
+              fi
+            done
+            [ "$failed" -eq 0 ]
+          '
+
+      - name: Verify bash sources /etc/profile.d/ and exposes functions
+        id: bash
+        continue-on-error: true
+        run: |
+          docker run --rm --entrypoint bash lss-test:latest -lc '
+            set -e
+            for fn in sysinfo fixcertpy cert_intercept git_current_branch git_resolve_branch; do
+              if declare -F "$fn" >/dev/null; then
+                printf "  \e[32mok\e[0m   : %s defined\n" "$fn"
+              else
+                printf "  \e[31mFAIL\e[0m : %s NOT defined\n" "$fn"
+                exit 1
+              fi
+            done
+          '
+
+      # ---- summary -----------------------------------------------------------
+      - name: Show verification summary
+        if: always()
+        run: |
+          set -euo pipefail
+
+          gh_to_emoji() {
+            case "$1" in
+              success) echo "✅" ;;
+              failure) echo "❌" ;;
+              skipped) echo "⏭️" ;;
+              *) echo "❓" ;;
+            esac
+          }
+
+          echo ""
+          echo "Verification results:"
+          any_failed=false
+
+          while IFS= read -r entry; do
+            entry="${entry#"${entry%%[![:space:]]*}"}"
+            [ -z "$entry" ] && continue
+            id="${entry%%:*}"
+            label="${entry#*:}"
+            case "$id" in
+              pwsh) outcome="${{ steps.pwsh.outcome }}" ;;
+              omp)  outcome="${{ steps.omp.outcome }}" ;;
+              dash) outcome="${{ steps.dash.outcome }}" ;;
+              bash) outcome="${{ steps.bash.outcome }}" ;;
+              *)    outcome="unknown" ;;
+            esac
+            echo "$(gh_to_emoji "$outcome") $label : $outcome"
+            [ "$outcome" = "failure" ] && any_failed=true
+          done <<'STEPS'
+            pwsh:pwsh on PATH
+            omp:oh-my-posh on PATH
+            dash:/etc/profile.d/ sources under dash
+            bash:bash login shell exposes functions
+          STEPS
+
+          echo ""
+          if [ "$any_failed" = "true" ]; then
+            echo "❌ Some verification steps failed"
+            exit 1
+          else
+            echo "✅ All verification steps passed"
+          fi

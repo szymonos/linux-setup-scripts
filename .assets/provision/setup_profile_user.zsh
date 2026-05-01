@@ -67,6 +67,14 @@ if [ -f "$PROFILE_PATH/aliases.sh" ]; then
 fi
 EOF
 
+# *cert env vars (NODE_EXTRA_CA_CERTS, REQUESTS_CA_BUNDLE, etc. - sourced when ~/.config/certs/ca-*.crt exists)
+grep -qw 'd/certs.sh' "$HOME/.zshrc" 2>/dev/null || cat <<EOF >>"$HOME/.zshrc"
+# cert env vars
+if [ -f "$PROFILE_PATH/certs.sh" ]; then
+  source "$PROFILE_PATH/certs.sh"
+fi
+EOF
+
 # add git aliases
 if ! grep -qw 'd/aliases_git.sh' "$HOME/.zshrc" 2>/dev/null && type git &>/dev/null; then
   cat <<EOF >>"$HOME/.zshrc"
