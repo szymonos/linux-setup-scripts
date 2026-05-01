@@ -1,5 +1,12 @@
 """
-Scan staged text files for unwanted Unicode characters and fail if found.
+Scan staged text files for unwanted Unicode characters.
+
+Auto-fixes characters with obvious ASCII replacements (dashes, smart quotes,
+fancy spaces, etc.) and reports any remaining unfixable gremlins.
+
+When auto-fixes are applied the hook prints what changed and exits 0;
+pre-commit detects the modified file and blocks the commit so the user
+can review, re-stage, and commit again.
 
 # :example
 python3 -m tests.hooks.gremlins wsl/wsl_setup.ps1
@@ -9,65 +16,48 @@ import os
 import sys
 import unicodedata
 from collections.abc import Iterable
-from typing import Tuple
 
-FORBIDDEN_CHARS: Tuple[str, ...] = (
-    # Zero-width / joiner
-    "\u200b",  # U+200B ZERO WIDTH SPACE
-    "\u200c",  # U+200C ZERO WIDTH NON-JOINER
-    "\u200d",  # U+200D ZERO WIDTH JOINER
-    # Spaces / breaks
-    "\u00a0",  # U+00A0 NO-BREAK SPACE
-    "\u202f",  # U+202F NARROW NO-BREAK SPACE
-    "\u2009",  # U+2009 THIN SPACE
-    "\u200a",  # U+200A HAIR SPACE
-    # Control / formatting
-    "\u000c",  # U+000C FORM FEED
-    "\u00ad",  # U+00AD SOFT HYPHEN
-    # Dashes / hyphens
-    "\u2013",  # U+2013 EN DASH
-    "\u2014",  # U+2014 EM DASH
-    "\u2010",  # U+2010 HYPHEN
-    # Quotes / punctuation that look like ASCII
-    "\u2018",  # U+2018 LEFT SINGLE QUOTATION MARK
-    "\u2019",  # U+2019 RIGHT SINGLE QUOTATION MARK
-    "\u201c",  # U+201C LEFT DOUBLE QUOTATION MARK
-    "\u201d",  # U+201D RIGHT DOUBLE QUOTATION MARK
-    "\u2026",  # U+2026 HORIZONTAL ELLIPSIS
-    # Misc common problematic characters
-    "\u00b7",  # U+00B7 MIDDLE DOT
+# Characters with a clear ASCII replacement -- auto-fixed in place.
+AUTO_FIX: dict[str, str] = {
+    # Dashes / hyphens -> ASCII hyphen-minus
+    "\u2010": "-",  # HYPHEN
+    "\u2013": "-",  # EN DASH
+    "\u2014": "-",  # EM DASH
+    # Fancy spaces -> regular space
+    "\u00a0": " ",  # NO-BREAK SPACE
+    "\u202f": " ",  # NARROW NO-BREAK SPACE
+    "\u2009": " ",  # THIN SPACE
+    "\u200a": " ",  # HAIR SPACE
+    # Smart quotes -> ASCII quotes
+    "\u2018": "'",  # LEFT SINGLE QUOTATION MARK
+    "\u2019": "'",  # RIGHT SINGLE QUOTATION MARK
+    "\u201c": '"',  # LEFT DOUBLE QUOTATION MARK
+    "\u201d": '"',  # RIGHT DOUBLE QUOTATION MARK
+    # Ellipsis -> three dots
+    "\u2026": "...",  # HORIZONTAL ELLIPSIS
+    # Invisible / zero-width -> remove
+    "\u200b": "",  # ZERO WIDTH SPACE
+    "\u200c": "",  # ZERO WIDTH NON-JOINER
+    "\u200d": "",  # ZERO WIDTH JOINER
+    "\u00ad": "",  # SOFT HYPHEN
+    "\u000c": "",  # FORM FEED
+}
+
+# Characters that cannot be auto-fixed -- always reported for manual review.
+REPORT_ONLY: tuple[str, ...] = (
+    "\u00b7",  # MIDDLE DOT
 )
 
+ALL_FORBIDDEN = set(AUTO_FIX) | set(REPORT_ONLY)
 
-def find_forbidden_in_text(content: str, filename: str) -> list[str]:
-    """
-    Scan the given text for forbidden Unicode characters and report their locations.
 
-    Parameters
-    ----------
-    content : str
-        The text content to scan for forbidden characters.
-    filename : str
-        The name of the file being scanned, used in the report output.
-
-    Returns
-    -------
-    list[str]
-        A list of human-readable report strings. Each string is formatted as:
-        "filename:lineno: contains <Unicode name> (<Unicode codepoint>)"
-        For example: "example.py:10: contains ZERO WIDTH SPACE (U+200B)"
-    """
-    reports: list[str] = []
-    for lineno, line in enumerate(content.splitlines(), start=1):
-        for ch in FORBIDDEN_CHARS:
-            if ch in line:
-                code = f"U+{ord(ch):04X}"
-                try:
-                    name = unicodedata.name(ch)
-                except ValueError:
-                    name = "<unknown>"
-                reports.append(f"{filename}:{lineno}: contains {name} ({code})")
-    return reports
+def _char_label(ch: str) -> str:
+    code = f"U+{ord(ch):04X}"
+    try:
+        name = unicodedata.name(ch)
+    except ValueError:
+        name = "<unknown>"
+    return f"{name} ({code})"
 
 
 def is_text_file(path: str) -> bool:
@@ -75,41 +65,70 @@ def is_text_file(path: str) -> bool:
     try:
         with open(path, "rb") as fh:
             chunk = fh.read(4096)
-            # if NUL bytes present it's likely binary
             return b"\x00" not in chunk
     except OSError:
         return False
 
 
+def fix_and_report(path: str) -> tuple[list[str], list[str]]:
+    """Auto-fix what we can, report what we cannot.
+
+    Returns (fixed_reports, unfixable_reports).
+    """
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            content = fh.read()
+    except OSError:
+        return [], []
+
+    fixed_chars: set[str] = set()
+    new_content = content
+    for ch, replacement in AUTO_FIX.items():
+        if ch in new_content:
+            fixed_chars.add(ch)
+            new_content = new_content.replace(ch, replacement)
+
+    if fixed_chars:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(new_content)
+
+    fixed_reports = []
+    if fixed_chars:
+        labels = ", ".join(sorted(_char_label(ch) for ch in fixed_chars))
+        fixed_reports.append(f"{path}: fixed {labels}")
+
+    unfixable_reports = []
+    for lineno, line in enumerate(new_content.splitlines(), start=1):
+        for ch in REPORT_ONLY:
+            if ch in line:
+                unfixable_reports.append(f"{path}:{lineno}: contains {_char_label(ch)}")
+
+    return fixed_reports, unfixable_reports
+
+
 def check_gremlins(argv: Iterable[str]) -> int:
-    """
-    Check a list of text files for forbidden Unicode characters.
-
-    Args:
-        argv (Iterable[str]): An iterable of file path strings to check.
-
-    Returns:
-        int: Returns 0 if no forbidden characters are found in any file,
-        or 1 if at least one forbidden character is found.
-    """
     files = list(argv)
-    problems: list[str] = []
+    all_fixed: list[str] = []
+    all_unfixable: list[str] = []
+
     for path in files:
         if not os.path.exists(path) or not is_text_file(path):
             continue
-        try:
-            with open(path, "r", encoding="utf-8", errors="replace") as fh:
-                content = fh.read()
-        except OSError:
-            continue
-        problems.extend(find_forbidden_in_text(content, path))
+        fixed, unfixable = fix_and_report(path)
+        all_fixed.extend(fixed)
+        all_unfixable.extend(unfixable)
 
-    if problems:
-        print("Gremlin characters found:", file=sys.stderr)
-        for p in problems:
-            print(p, file=sys.stderr)
-        print("Remove or replace gremlin characters", file=sys.stderr)
+    if all_fixed:
+        print("Gremlin characters auto-fixed:", file=sys.stderr)
+        for r in all_fixed:
+            print(f"  {r}", file=sys.stderr)
+
+    if all_unfixable:
+        print("Gremlin characters found (manual fix required):", file=sys.stderr)
+        for r in all_unfixable:
+            print(f"  {r}", file=sys.stderr)
         return 1
+
     return 0
 
 

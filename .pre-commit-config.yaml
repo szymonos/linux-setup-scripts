@@ -6,6 +6,12 @@ repos:
         entry: python3 -m tests.hooks.gremlins
         language: system
         types: [text]
+      - id: align-tables
+        name: align markdown tables
+        entry: python3 -m tests.hooks.align_tables
+        language: system
+        files: \.md$
+        exclude: /copilot-instructions\.md
       - id: check-zsh-compat
         name: Check shell-sourced scripts for zsh compatibility
         entry: python3 -m tests.hooks.check_zsh_compat
