@@ -27,8 +27,10 @@ function Invoke-GhRepoClone {
         $org, $repo = $OrgRepo.Split('/')
         # command for getting the remote url
         $getOrigin = { git config --get remote.origin.url; if (-not $?) { 'https://github.com/' } }
-        # determine clone protocol: prefer SSH if key is configured, fallback to HTTPS
-        $gitProtocol = if (ssh -T git@github.com 2>&1 | Select-String -Quiet 'successfully authenticated') {
+        # determine clone protocol: prefer SSH if key is configured, fallback to HTTPS.
+        # the Get-Command guard matters on Windows PowerShell hosts (e.g. wsl_setup.ps1) where
+        # OpenSSH may not be on PATH; without it the bare `ssh` call throws under ErrorAction=Stop.
+        $gitProtocol = if ((Get-Command ssh -ErrorAction SilentlyContinue) -and (ssh -T git@github.com 2>&1 | Select-String -Quiet 'successfully authenticated')) {
             'git@github.com:'
         } else {
             $(Invoke-Command $getOrigin) -replace '(^.+github\.com[:/]).*', '$1'
