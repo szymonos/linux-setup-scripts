@@ -28,3 +28,13 @@ lint-diff: ## Run pre-commit hooks for files changed in this diff
 lint-all: ## Run pre-commit hooks for all files
 	@printf "🧭 Running pre-commit hooks for all files...\n\n"
 	prek run --all-files
+
+.PHONY: test test-unit test-bats test-pester
+test: test-unit ## Run all unit tests
+test-unit: test-bats test-pester ## Run bats and Pester unit tests
+test-bats: ## Run bats unit tests
+	@printf "\n\033[95;1m== bats ==\033[0m\n\n"
+	@bats tests/bats/
+test-pester: ## Run Pester unit tests
+	@printf "\n\033[95;1m== Pester ==\033[0m\n\n"
+	@pwsh -nop -c '$$cfg = New-PesterConfiguration; $$cfg.Run.Path = "tests/pester/"; $$cfg.Run.Exit = $$true; $$cfg.Output.Verbosity = "Detailed"; Invoke-Pester -Configuration $$cfg'

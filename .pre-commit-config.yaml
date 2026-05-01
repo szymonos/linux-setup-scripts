@@ -6,6 +6,24 @@ repos:
         entry: python3 -m tests.hooks.gremlins
         language: system
         types: [text]
+      - id: check-zsh-compat
+        name: Check shell-sourced scripts for zsh compatibility
+        entry: python3 -m tests.hooks.check_zsh_compat
+        language: system
+        files: \.assets/config/bash_cfg/.*\.sh$
+        types: [file]
+      - id: bats-tests
+        name: Run bats unit tests for changed files
+        entry: python3 -m tests.hooks.run_bats
+        language: system
+        types: [file]
+        pass_filenames: true
+      - id: pester-tests
+        name: Run Pester unit tests for changed files
+        entry: python3 -m tests.hooks.run_pester
+        language: system
+        types: [file]
+        pass_filenames: true
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
