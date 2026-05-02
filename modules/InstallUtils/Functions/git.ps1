@@ -27,14 +27,13 @@ function Invoke-GhRepoClone {
         $org, $repo = $OrgRepo.Split('/')
         # command for getting the remote url
         $getOrigin = { git config --get remote.origin.url; if (-not $?) { 'https://github.com/' } }
-        # determine clone protocol: prefer SSH if key is configured, fallback to HTTPS.
-        # the Get-Command guard matters on Windows PowerShell hosts (e.g. wsl_setup.ps1) where
-        # OpenSSH may not be on PATH; without it the bare `ssh` call throws under ErrorAction=Stop.
-        $gitProtocol = if ((Get-Command ssh -ErrorAction SilentlyContinue) -and (ssh -T git@github.com 2>&1 | Select-String -Quiet 'successfully authenticated')) {
-            'git@github.com:'
-        } else {
-            $(Invoke-Command $getOrigin) -replace '(^.+github\.com[:/]).*', '$1'
-        }
+        # derive clone protocol from the parent repo's remote URL. The previous
+        # version did an `ssh -T git@github.com` probe to force SSH-first when
+        # ssh was available; that was removed because the probe blocks on
+        # host-key prompts, slow DNS, and firewall holes - and the catch block
+        # below already retries SSH failures over HTTPS, so the probe was
+        # redundant defensive-ness.
+        $gitProtocol = $(Invoke-Command $getOrigin) -replace '(^.+github\.com[:/]).*', '$1'
         # calculate destination path
         $destPath = Join-Path $Path -ChildPath $repo
     }
@@ -60,23 +59,24 @@ function Invoke-GhRepoClone {
             }
             Pop-Location
         } catch {
-            # clone target repository - try SSH first, fall back to HTTPS
+            # clone target repository. Capture combined stdout+stderr and check
+            # $LASTEXITCODE - the previous `git clone ... | ForEach-Object {...}`
+            # made $? reflect the pipeline's tail (ForEach-Object, always true),
+            # masking clone failures and skipping the HTTPS fallback.
             $cloneUrl = "${gitProtocol}${org}/${repo}.git"
-            $cloneErr = $null
-            git clone $cloneUrl "$destPath" --quiet 2>&1 | ForEach-Object { $cloneErr += "$_`n" }
-            if (-not $?) {
-                if ($gitProtocol -eq 'git@github.com:') {
-                    Write-Warning "SSH clone failed, retrying with HTTPS: $($cloneErr?.Trim())"
-                    $cloneUrl = "https://github.com/${org}/${repo}.git"
-                    $cloneErr = $null
-                    git clone $cloneUrl "$destPath" --quiet 2>&1 | ForEach-Object { $cloneErr += "$_`n" }
-                }
+            $cloneOut = git clone $cloneUrl "$destPath" --quiet 2>&1
+            $cloneOk = $LASTEXITCODE -eq 0
+            if (-not $cloneOk -and $gitProtocol -eq 'git@github.com:') {
+                Write-Warning "SSH clone failed, retrying with HTTPS: $(($cloneOut | Out-String).Trim())"
+                $cloneUrl = "https://github.com/${org}/${repo}.git"
+                $cloneOut = git clone $cloneUrl "$destPath" --quiet 2>&1
+                $cloneOk = $LASTEXITCODE -eq 0
             }
-            $status = if ($?) {
+            $status = if ($cloneOk) {
                 Write-Verbose "Repository `"$OrgRepo`" cloned successfully."
                 Write-Output 1
             } else {
-                Write-Warning "Cloning `"$OrgRepo`" failed ($cloneUrl): $($cloneErr?.Trim())"
+                Write-Warning "Cloning `"$OrgRepo`" failed ($cloneUrl): $(($cloneOut | Out-String).Trim())"
                 Write-Output 0
             }
         }
