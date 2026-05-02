@@ -502,16 +502,26 @@ process {
         }
 
         # *whitelist Windows-mount repo paths as git safe.directory
-        # On /mnt/c/ paths the .git dir owner UID (from the Windows side)
-        # doesn't match the WSL user's UID, so git refuses operations with a
-        # "dubious ownership" warning. Two globs cover the typical layouts:
-        #   ~/source/repos/<repo>           - flat
-        #   ~/source/repos/<org>/<repo>     - org-scoped (the convention here)
-        # Per-user (writes ~/.gitconfig in the WSL user's home), idempotent.
-        $mntRepos = "/mnt/c/Users/$env:USERNAME/source/repos"
-        foreach ($glob in "$mntRepos/*", "$mntRepos/*/*") {
-            $cmnd = "git config --global --get-all safe.directory 2>/dev/null | grep -qFx '$glob' || git config --global --add safe.directory '$glob'"
-            wsl.exe --distribution $Distro --exec bash -c $cmnd | Out-Null
+        $reposRoot = Join-Path $env:USERPROFILE 'source\repos'
+        if (Test-Path $reposRoot -PathType Container) {
+            $repoRootDirectories = Get-ChildItem -Path $reposRoot -Directory -ErrorAction SilentlyContinue
+            $candidates = @(
+                $repoRootDirectories
+                $repoRootDirectories |
+                ForEach-Object { Get-ChildItem -Path $_.FullName -Directory -ErrorAction SilentlyContinue }
+            )
+            $wslPaths = $candidates |
+            Where-Object { Test-Path (Join-Path $_.FullName '.git') } |
+            ForEach-Object {
+                # C:\Users\foo\... -> /mnt/c/Users/foo/...
+                $w = $_.FullName
+                "/mnt/$([char]::ToLower($w[0]))$($w.Substring(2).Replace('\', '/'))"
+            }
+            if ($wslPaths) {
+                $pathsArg = ($wslPaths | ForEach-Object { "'" + $_.Replace("'", "'\''") + "'" }) -join ' '
+                $bashScript = 'existing=$(git config --global --get-all safe.directory 2>/dev/null); for p in ' + $pathsArg + '; do printf %s "$existing" | grep -qFx "$p" || git config --global --add safe.directory "$p"; done'
+                wsl.exe --distribution $Distro --exec bash -c $bashScript | Out-Null
+            }
         }
         #endregion
 
