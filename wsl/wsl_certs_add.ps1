@@ -143,7 +143,8 @@ process {
     $cmnd = "mkdir -p $($crt.path) && install -m 0644 $($tmpFolder.Name)/*.crt $($crt.path) && $($crt.cmnd)"
     wsl -d $Distro -u root --exec bash -c $cmnd
 
-    # write ca-custom.crt with MITM proxy certificates only
+    # user-level cert bundle for tools that bypass system trust (uv/npm/pip via
+    # NODE_EXTRA_CA_CERTS / REQUESTS_CA_BUNDLE / etc. exported by /etc/profile.d/certs.sh).
     $bundleBuilder = [System.Text.StringBuilder]::new()
     foreach ($cert in $certSet) {
         $bundleBuilder.Append(($cert | ConvertTo-PEM -AddHeader)) | Out-Null
@@ -154,7 +155,7 @@ process {
     $cmndCustom = "mkdir -p $userCertDir && install -m 0644 $($tmpFolder.Name)/ca-custom.crt $userCertDir/"
     wsl -d $Distro --exec bash -c $cmndCustom
 
-    # create ca-bundle.crt - symlink to system CA bundle (which already includes custom certs)
+    # ca-bundle.crt symlinks to the system bundle (which already includes the intercepted certs).
     $cmndBundle = @(
         "cd $userCertDir"
         'for f in /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt'
