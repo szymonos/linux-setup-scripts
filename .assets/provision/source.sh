@@ -195,11 +195,13 @@ get_gh_release_latest() {
     return 1
   fi
 
-  # try to retrieve gh-cli token
+  # try to retrieve a token: prefer gh CLI auth (interactive use), fall back to
+  # the GITHUB_TOKEN env var (CI / containerized installs - avoids the public
+  # 60/hr api.github.com rate limit on shared runner IPs).
   if [ -x /usr/bin/gh ]; then
-    # get the token from the gh command
     token="$(gh auth token 2>/dev/null)"
   fi
+  [ -z "$token" ] && token="${GITHUB_TOKEN:-}"
 
   # calculate the API URI
   api_uri="https://api.github.com/repos/$owner/$repo/releases"
@@ -340,9 +342,15 @@ install_github_release_user() {
   # set binary_name to gh_repo if not provided
   [ -z "$binary_name" ] && binary_name="$gh_repo"
 
-  # check for GITHUB_TOKEN environment variable (should start with 'ghp_' or 'gho_' and be ~40 chars)
+  # check for GITHUB_TOKEN environment variable. accepts the documented prefixes:
+  #   ghp_  personal access token (classic)
+  #   gho_  OAuth token
+  #   ghu_  user-to-server (GitHub App)
+  #   ghs_  server-to-server (the auto-provided GITHUB_TOKEN inside GitHub Actions)
+  #   ghr_  refresh token
+  #   github_pat_  fine-grained personal access token
   auth_header=""
-  if [ -n "$GITHUB_TOKEN" ] && echo "$GITHUB_TOKEN" | grep -qE "^gh[po]_" && [ ${#GITHUB_TOKEN} -ge 36 ]; then
+  if [ -n "$GITHUB_TOKEN" ] && echo "$GITHUB_TOKEN" | grep -qE "^(gh[a-z]_|github_pat_)" && [ ${#GITHUB_TOKEN} -ge 36 ]; then
     auth_header="-H \"Authorization: Bearer $GITHUB_TOKEN\""
   fi
 

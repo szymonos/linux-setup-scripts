@@ -3,6 +3,12 @@ FROM ubuntu:24.04
 # avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
 
+# optional GitHub token build-arg. forwarded to linux_setup.sh below so the
+# get_gh_release_latest helper in source.sh can authenticate against
+# api.github.com - shared CI runner IPs routinely exhaust the 60/hr public
+# rate limit. CI passes secrets.GITHUB_TOKEN; local builds work without it.
+ARG GITHUB_TOKEN=""
+
 # copy the entire .assets folder into the container
 COPY .assets /home/ubuntu/source/lss/.assets
 COPY modules /home/ubuntu/source/lss/modules
@@ -15,8 +21,9 @@ RUN apt-get update \
     && chmod 0440 /etc/sudoers.d/ubuntu-nopasswd \
     # change ownership to the ubuntu user
     && chown -R ubuntu:ubuntu /home/ubuntu/source \
-    # setup the container for the ubuntu user
-    && su - ubuntu -c 'cd "$HOME/source/lss" && .assets/scripts/linux_setup.sh --skip_gh_auth true --scope "pwsh" --omp_theme base' \
+    # setup the container for the ubuntu user. su -c clears env, so inject
+    # GITHUB_TOKEN as a command-prefix env var (the build-arg expands here).
+    && su - ubuntu -c 'cd "$HOME/source/lss" && GITHUB_TOKEN='"'$GITHUB_TOKEN'"' .assets/scripts/linux_setup.sh --skip_gh_auth true --scope "pwsh" --omp_theme base' \
     #
     # clean up
     && apt-get autoremove -y \

@@ -47,6 +47,13 @@ jobs:
           load: true
           tags: lss-test:latest
           push: false
+          # forward the auto-provided runner token so get_gh_release_latest
+          # in source.sh can authenticate to api.github.com - shared GHA
+          # runner IPs routinely exhaust the 60/hr unauthenticated quota,
+          # which surfaces as "API rate limit exceeded" during oh-my-posh
+          # release lookup.
+          build-args: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
       # ---- verification (continue-on-error so summary shows full picture) ----
       - name: Verify pwsh on PATH
