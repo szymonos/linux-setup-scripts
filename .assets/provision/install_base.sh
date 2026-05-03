@@ -97,9 +97,9 @@ fedora)
   rpm -q patch >/dev/null 2>&1 || dnf group install -y development-tools 2>/dev/null || true
   # install base packages
   if [ "$(readlink "$(which dnf)")" = 'dnf5' ]; then
-    pkgs="bash-completion bind-utils curl dnf5-plugins fd gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+    pkgs="bash-completion bind-utils curl dnf5-plugins fd-find gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
   else
-    pkgs="bash-completion bind-utils curl dnf-plugins-core fd gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+    pkgs="bash-completion bind-utils curl dnf-plugins-core fd-find gawk git iputils jq man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
   fi
   install_pkgs dnf "$pkgs"
   ;;
@@ -108,7 +108,7 @@ debian | ubuntu)
   # refresh package index
   apt-get update 2>/dev/null
   # install base packages
-  pkgs="build-essential bash-completion ca-certificates curl fd gawk gnupg dnsutils git iputils-tracepath jq lsb-release man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
+  pkgs="build-essential bash-completion ca-certificates curl fd-find gawk gnupg dnsutils git iputils-tracepath jq lsb-release man-db nmap shfmt openssl tar tig tree unzip vim wget which whois"
   install_pkgs apt "$pkgs"
   # autoremove unnecessary packages and clean up apt cache
   apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
