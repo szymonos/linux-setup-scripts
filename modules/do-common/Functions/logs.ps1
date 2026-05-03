@@ -1,5 +1,37 @@
 <#
 .SYNOPSIS
+Function to set the log file and return the path.
+
+.PARAMETER Path
+The path to the log file.
+.PARAMETER Append
+Switch, whether to append to the existing log file.
+#>
+function Set-LogFile {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param (
+        [ValidateScript({ $_ -match '\.log$|' }, ErrorMessage = 'Specified file should have .log extension.')]
+        [string]$Path = "logs/$(Get-Date -Format 'yyyyMMddTHHmmss').log",
+
+        [switch]$Append
+    )
+
+    # *ensure that the log file exists
+    if (-not (Test-Path $Path -PathType Leaf)) {
+        New-Item -Path $Path -ItemType File -Force -ErrorAction Stop | Out-Null
+    } elseif (-not $Append) {
+        # clean the existing logfile if it exists
+        Set-Content -Path $Path -Value $null
+    }
+
+    # return PowerShell provider path
+    return Convert-Path $Path
+}
+
+
+<#
+.SYNOPSIS
 Function to get the log context from the caller.
 
 .PARAMETER Caller
@@ -113,7 +145,7 @@ function Get-LogLine {
 
             # build the log line to show
             [string]::Join('|',
-                "`e[36m$($LogContext.TimeStamp.ToString('yyyy-MM-dd HH:mm:ss'))`e[0m",
+                "`e[32m$($LogContext.TimeStamp.ToString('yyyy-MM-dd HH:mm:ss'))`e[0m",
                 "${lvlColor}${Level}`e[0m",
                 "`e[90m$($LogContext.Invocation)`e[0m",
                 "`e[90m$($LogContext.Function)`e[0m: $Message"
@@ -213,6 +245,111 @@ function Show-LogContext {
     }
 
     end {
+        if ($ShowLog) {
+            Write-Host $showLine
+        }
+    }
+}
+
+
+<#
+.SYNOPSIS
+Function to log messages to a log file.
+
+.PARAMETER Path
+The path to the log file.
+.PARAMETER Message
+The message to log.
+.PARAMETER Level
+The level of the log message.
+.PARAMETER ErrorStackTrace
+The error stack trace.
+.PARAMETER ShowLog
+Switch, whether to show the log message in the console.
+#>
+function Write-LogContext {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory, Position = 0, ParameterSetName = 'Message')]
+        [string]$Message,
+
+        [Parameter(Mandatory, Position = 0, ParameterSetName = 'ErrorRecord')]
+        [System.Management.Automation.ErrorRecord]$ErrorRecord,
+
+        [ValidateSet('INFO', 'ERROR', 'WARNING', 'VERBOSE', 'DEBUG')]
+        [string]$Level = 'INFO',
+
+        [string]$ErrorStackTrace,
+
+        [ValidateScript({ $_ -match '\.log$' }, ErrorMessage = 'Specified file should have .log extension.')]
+        [string]$Path,
+
+        [switch]$ShowLog,
+
+        [switch]$FailOnError
+    )
+
+    begin {
+        # check if error record was passed
+        if ($PSCmdlet.ParameterSetName -eq 'ErrorRecord') {
+            $Level = 'ERROR'
+            $Message = "$ErrorRecord"
+        }
+
+
+        # *fail on error if specified
+        if ($Level -eq 'ERROR' -and $PSBoundParameters.FailOnError) {
+            throw $Message
+        } else {
+            # *capitalize the Type
+            $Level = $Level.ToUpper()
+            # *remove new lines from the message
+            $Message = $Message -replace "`r?`n", ' '
+
+            # *create the log file if it doesn't exist
+            if (-not (Test-Path $Path -PathType Leaf)) {
+                Set-LogFile -Path $Path | Out-Null
+            }
+
+            # *get the function caller context
+            $callerParam = @{
+                Caller = (Get-PSCallStack)[1]
+            }
+            if ($Level -eq 'ERROR') {
+                if ($PSCmdlet.ParameterSetName -eq 'ErrorRecord') {
+                    $callerParam.ErrorStackTrace = $ErrorRecord.ScriptStackTrace
+                } elseif ($PSBoundParameters.ErrorStackTrace -match '\sline\s(\d+)') {
+                    $callerParam.ErrorStackTrace = $PSBoundParameters.ErrorStackTrace
+                }
+            }
+            $ctx = Get-LogContext @callerParam
+
+            # *determine Debug/Verbose preference
+            if ($ShowLog) {
+                $isVerbose = $ctx.isVerbose -or $VerbosePreference -ge 'Continue'
+                $isDebug = $ctx.isDebug -or $DebugPreference -ge 'Continue'
+                # calculate if the message should be displayed
+                if (($Level -eq 'VERBOSE' -and -not $isVerbose) -or ($Level -eq 'DEBUG' -and -not $isDebug)) {
+                    $ShowLog = $false
+                }
+            }
+        }
+    }
+
+    process {
+        # get the log line to write
+        [string[]]$writeLine = Get-LogLine -LogContext $ctx -Message $Message -Level $Level -LineType 'Write'
+
+        if ($ShowLog) {
+            # get the log line to show
+            $showLine = Get-LogLine -LogContext $ctx -Message $Message -Level $Level -LineType 'Show'
+        }
+    }
+
+    end {
+        # write the log line to the log file
+        [System.IO.File]::AppendAllLines($Path, $writeLine)
+        # show the log line in the console
         if ($ShowLog) {
             Write-Host $showLine
         }

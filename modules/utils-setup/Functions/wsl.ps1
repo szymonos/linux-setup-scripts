@@ -142,7 +142,7 @@ https://learn.microsoft.com/en-us/windows/wsl/wsl-config#wslconf
 .PARAMETER Distro
 Name of the WSL distro to set wsl.conf.
 .PARAMETER ConfDict
-Input ordered dictionary consisting configuration to be saved into wsl.conf.
+Input dictionary consisting configuration to be saved into wsl.conf.
 .PARAMETER ShowConf
 Print current wsl.conf after setting the configuration.
 #>
@@ -152,7 +152,7 @@ function Set-WslConf {
         [Parameter(Mandatory, Position = 0)]
         [string]$Distro,
 
-        [System.Collections.Specialized.OrderedDictionary]$ConfDict,
+        [System.Collections.IDictionary]$ConfDict,
 
         [switch]$ShowConf
     )

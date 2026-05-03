@@ -137,16 +137,16 @@ A blank "this repo" cell means **no equivalent - skip**.
 
 | envy-nx                                                    | this repo                                                                                                                                              |
 | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `modules/InstallUtils/Functions/git.ps1`                   | `modules/InstallUtils/Functions/git.ps1`                                                                                                               |
-| `modules/do-common/Functions/common.ps1`                   | `modules/SetupUtils/Functions/common.ps1`                                                                                                              |
-| `modules/do-common/Functions/logs.ps1`                     | `modules/SetupUtils/Functions/logs.ps1`                                                                                                                |
-| `modules/do-common/Functions/certs.ps1`                    | `modules/SetupUtils/Functions/certs.ps1`                                                                                                               |
+| `modules/utils-install/Functions/git.ps1`                  | `modules/utils-install/Functions/git.ps1`                                                                                                              |
+| `modules/do-common/Functions/common.ps1`                   | `modules/utils-setup/Functions/common.ps1`                                                                                                             |
+| `modules/do-common/Functions/logs.ps1`                     | `modules/do-common/Functions/logs.ps1`                                                                                                                 |
+| `modules/do-common/Functions/certs.ps1`                    | `modules/do-common/Functions/certs.ps1`                                                                                                                |
 | `modules/do-common/Functions/cli.ps1`                      | (no equivalent - evaluate on demand)                                                                                                                   |
 | `modules/do-common/Functions/python.ps1`                   | (no equivalent)                                                                                                                                        |
 | `modules/do-common/Functions/dotnet.ps1`                   | (no equivalent)                                                                                                                                        |
 | `modules/do-common/Functions/net.ps1`                      | (no equivalent)                                                                                                                                        |
-| `modules/psm-windows/Functions/common.ps1`                 | `modules/InstallUtils/Functions/common.ps1` (`Invoke-CommandRetry`, `Join-Str`, `Test-IsAdmin`, `Update-SessionEnvironmentPath`)                       |
-| `modules/SetupUtils/Functions/wsl.ps1`                     | `modules/SetupUtils/Functions/wsl.ps1` (only `Get-WslDistro`, `Set-WslConf` - scope helpers are nix-only)                                              |
+| `modules/psm-windows/Functions/common.ps1`                 | `modules/do-common/Functions/common.ps1` (`Invoke-CommandRetry`, `Join-Str`, `Test-IsAdmin`, `Update-SessionEnvironmentPath`)                          |
+| `modules/utils-setup/Functions/wsl.ps1`                    | `modules/utils-setup/Functions/wsl.ps1` (only `Get-WslDistro`, `Set-WslConf` - scope helpers are nix-only)                                             |
 | `modules/{do-az,do-linux,aliases-git,aliases-kubectl}/...` | (no equivalent - these are vendored in envy-nx; this repo clones `szymonos/ps-modules` at runtime in `linux_setup.sh`. See *Module layout difference*) |
 
 ### Shell config
@@ -251,7 +251,7 @@ When porting Pester tests, adapt the dot-source path:
 
 ```text
 envy-nx:    . $PSScriptRoot/../../modules/do-common/Functions/common.ps1
-this repo:  . $PSScriptRoot/../../modules/SetupUtils/Functions/common.ps1
+this repo:  . $PSScriptRoot/../../modules/utils-setup/Functions/common.ps1
 ```
 
 When porting bats tests, adapt the source directive:
@@ -331,8 +331,8 @@ Practical implication: when envy-nx changes a function in `modules/do-common/`,
 the actual fix lives upstream in `szymonos/ps-modules`. envy-nx's vendored
 copy is a snapshot. To port the fix to this repo:
 
-1. Apply it to the corresponding function in `modules/SetupUtils/` or
-   `modules/InstallUtils/` (the module names this repo uses pre-clone), AND
+1. Apply it to the corresponding function in `modules/utils-setup/` or
+   `modules/utils-install/` (the module names this repo uses pre-clone), AND
 2. Optionally raise the same fix in `szymonos/ps-modules` (out of scope for
    this doc; mention in the PR body if relevant)
 
@@ -347,7 +347,7 @@ envy-nx CHANGELOG entry: *added Pester tests for `Get-LogLine` covering the
 2. Copy to `tests/pester/GetLogLine.Tests.ps1`
 3. Change the dot-source line:
    `. $PSScriptRoot/../../modules/do-common/Functions/logs.ps1`
-   → `. $PSScriptRoot/../../modules/SetupUtils/Functions/logs.ps1`
+   → `. $PSScriptRoot/../../modules/do-common/Functions/logs.ps1`
 4. Run `pwsh -nop -c 'Invoke-Pester tests/pester/GetLogLine.Tests.ps1'`
 5. Commit
 

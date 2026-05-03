@@ -35,8 +35,8 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # import SetupUtils module
-    Import-Module (Resolve-Path './modules/SetupUtils')
+    # import utils-setup module
+    Import-Module (Resolve-Path './modules/utils-setup')
 }
 
 process {

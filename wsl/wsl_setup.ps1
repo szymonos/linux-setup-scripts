@@ -145,10 +145,10 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # import InstallUtils for the Invoke-GhRepoClone function
-    Import-Module (Convert-Path './modules/InstallUtils') -Force
-    # import SetupUtils for the Set-WslConf function
-    Import-Module (Convert-Path './modules/SetupUtils') -Force
+    # import utils-install for the Invoke-GhRepoClone function
+    Import-Module (Convert-Path './modules/utils-install') -Force
+    # import utils-setup for the Set-WslConf function
+    Import-Module (Convert-Path './modules/utils-setup') -Force
 
     if (-not $SkipRepoUpdate) {
         Show-LogContext 'checking if the repository is up to date'

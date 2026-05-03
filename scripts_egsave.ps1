@@ -37,7 +37,7 @@ begin {
     try {
         Get-Command Invoke-ExampleScriptSave -CommandType Function | Out-Null
     } catch {
-        Import-Module (Resolve-Path './modules/SetupUtils')
+        Import-Module (Resolve-Path './modules/utils-setup')
     }
 
     # rewrite PSBoundParameters to the param variable

@@ -253,7 +253,7 @@ printf "\e[96msetting up profile for current user...\e[0m\n"
 .assets/provision/setup_profile_user.sh
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
-  cmnd="Import-Module (Resolve-Path './modules/InstallUtils'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -WarningAction SilentlyContinue"
+  cmnd="Import-Module (Resolve-Path './modules/utils-install'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -WarningAction SilentlyContinue"
   cloned=$(pwsh -nop -c "$cmnd")
   if [ $cloned -gt 0 ]; then
     printf "\e[96minstalling ps-modules...\e[0m\n"

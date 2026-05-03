@@ -21,8 +21,8 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # import InstallUtils for the Invoke-GhRepoClone function
-    Import-Module (Resolve-Path './modules/InstallUtils')
+    # import utils-install for the Invoke-GhRepoClone function
+    Import-Module (Resolve-Path './modules/utils-install')
 
     # clone/refresh szymonos/powershell-scripts repository
     if (Invoke-GhRepoClone -OrgRepo 'szymonos/powershell-scripts' -Path '..') {
