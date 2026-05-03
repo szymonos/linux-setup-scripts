@@ -1,8 +1,8 @@
 #Requires -Modules Pester
-# Unit tests for Invoke-CommandRetry in InstallUtils module
+# Unit tests for Invoke-CommandRetry in do-common module
 
 BeforeAll {
-    . $PSScriptRoot/../../modules/InstallUtils/Functions/common.ps1
+    . $PSScriptRoot/../../modules/do-common/Functions/common.ps1
 }
 
 Describe 'Invoke-CommandRetry' {

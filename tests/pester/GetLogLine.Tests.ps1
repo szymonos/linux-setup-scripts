@@ -1,8 +1,8 @@
 #Requires -Modules Pester
-# Unit tests for Get-LogLine in SetupUtils module
+# Unit tests for Get-LogLine in do-common module
 
 BeforeAll {
-    . $PSScriptRoot/../../modules/SetupUtils/Functions/logs.ps1
+    . $PSScriptRoot/../../modules/do-common/Functions/logs.ps1
 }
 
 Describe 'Get-LogLine' {

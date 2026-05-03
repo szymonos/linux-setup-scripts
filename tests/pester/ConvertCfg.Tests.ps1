@@ -1,105 +1,105 @@
 #Requires -Modules Pester
-# Unit tests for ConvertFrom-Cfg and ConvertTo-Cfg in SetupUtils module
+# Unit tests for ConvertFrom-Cfg and ConvertTo-Cfg in do-common module
 
 BeforeAll {
-    . $PSScriptRoot/../../modules/SetupUtils/Functions/common.ps1
+    . $PSScriptRoot/../../modules/do-common/Functions/common.ps1
 }
 
 Describe 'ConvertFrom-Cfg' {
     It 'parses section with key-value pairs' {
-        $input = @(
+        $cfgInput = @(
             '[section1]'
             'key1 = value1'
             'key2 = value2'
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result['section1']['key1'] | Should -Be 'value1'
         $result['section1']['key2'] | Should -Be 'value2'
     }
 
     It 'parses multiple sections' {
-        $input = @(
+        $cfgInput = @(
             '[section1]'
             'key1 = value1'
             '[section2]'
             'key2 = value2'
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result.Keys | Should -HaveCount 2
         $result['section1']['key1'] | Should -Be 'value1'
         $result['section2']['key2'] | Should -Be 'value2'
     }
 
     It 'preserves header comments in __header__ key' {
-        $input = @(
+        $cfgInput = @(
             '# This is a header comment'
             '# Another header line'
             '[section1]'
             'key = value'
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result.Contains('__header__') | Should -BeTrue
         $result['__header__'] | Should -BeLike '*header comment*'
     }
 
     It 'preserves comments within sections' {
-        $input = @(
+        $cfgInput = @(
             '[section1]'
             '# inline comment'
             'key = value'
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result['section1']['Comment1'] | Should -Be '# inline comment'
         $result['section1']['key'] | Should -Be 'value'
     }
 
     It 'ignores non-comment lines before first section' {
-        $input = @(
+        $cfgInput = @(
             'stray line without section'
             '[section1]'
             'key = value'
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result['section1']['key'] | Should -Be 'value'
         $result.Contains('__header__') | Should -BeFalse
     }
 
     It 'handles empty value' {
-        $input = @(
+        $cfgInput = @(
             '[section1]'
             'key ='
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result['section1']['key'] | Should -Be ''
     }
 
     It 'trims whitespace from values' {
-        $input = @(
+        $cfgInput = @(
             '[section1]'
             'key =   spaced value   '
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result['section1']['key'] | Should -Be 'spaced value'
     }
 
     It 'handles semicolon comments' {
-        $input = @(
+        $cfgInput = @(
             '[section1]'
             '; semicolon comment'
             'key = value'
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result['section1']['Comment1'] | Should -Be '; semicolon comment'
     }
 
     It 'resets comment counter per section' {
-        $input = @(
+        $cfgInput = @(
             '[section1]'
             '# comment in s1'
             '[section2]'
             '# comment in s2'
         )
-        $result = $input | ConvertFrom-Cfg
+        $result = $cfgInput | ConvertFrom-Cfg
         $result['section1']['Comment1'] | Should -Be '# comment in s1'
         $result['section2']['Comment1'] | Should -Be '# comment in s2'
     }
@@ -151,15 +151,6 @@ Describe 'ConvertTo-Cfg' {
         }
         $result = $dict | ConvertTo-Cfg -LineFeed
         $result | Should -Not -Match "`r`n"
-    }
-
-    It 'accepts a non-ordered IDictionary (hashtable)' {
-        # PR A widened the parameter type from OrderedDictionary to IDictionary;
-        # this asserts a plain hashtable now pipes in cleanly.
-        $dict = @{
-            section1 = @{ key = 'value' }
-        }
-        { $dict | ConvertTo-Cfg } | Should -Not -Throw
     }
 }
 

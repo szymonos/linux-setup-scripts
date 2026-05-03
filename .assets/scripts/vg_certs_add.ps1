@@ -33,8 +33,8 @@ $ErrorActionPreference = 'Stop'
 # set location to workspace folder
 Push-Location "$PSScriptRoot/../.."
 
-# import SetupUtils for the Set-WslConf function
-Import-Module (Convert-Path './modules/SetupUtils') -Force
+# import utils-setup for the Set-WslConf function
+Import-Module (Convert-Path './modules/utils-setup') -Force
 
 function Get-SshInstallScript ([string]$CertSaveStr) {
     $script = [string]::Join("`n",

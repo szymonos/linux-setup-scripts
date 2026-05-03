@@ -33,11 +33,11 @@ begin {
     # set location to workspace folder
     Push-Location $PSScriptRoot
 
-    # check if the Invoke-ExampleScriptSave function is available, otherwise clone ps-modules repo
+    # check if the Invoke-ExampleScriptSave function is available, otherwise import do-common module
     try {
         Get-Command Invoke-ExampleScriptSave -CommandType Function | Out-Null
     } catch {
-        Import-Module (Resolve-Path './modules/SetupUtils')
+        Import-Module (Resolve-Path './modules/do-common')
     }
 
     # rewrite PSBoundParameters to the param variable

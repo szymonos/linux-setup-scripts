@@ -56,7 +56,12 @@ script_configure_static_ip = <<~SCRIPT
 SCRIPT
 
 script_install_psmodules = <<~SCRIPT
-  pwsh -nop -c "@('aliases-git', 'do-common', 'do-linux') | ~/source/repos/szymonos/ps-modules/module_manage.ps1 -CleanUp" || true
+  cd ~/source/repos/szymonos/linux-setup-scripts || exit 0
+  mkdir -p ~/.local/share/powershell/Modules
+  for module in aliases-git do-common do-linux; do
+    rm -rf ~/.local/share/powershell/Modules/$module
+    cp -rf modules/$module ~/.local/share/powershell/Modules/
+  done
 SCRIPT
 
 # *VM provisioning
@@ -159,7 +164,7 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "install pwsh...", path: "../../../.assets/provision/install_pwsh.sh", :args => '>/dev/null'
       node.vm.provision "shell", name: "set up pwsh for all users...", path: "../../../.assets/provision/setup_profile_allusers.ps1"
       node.vm.provision "shell", name: "set up pwsh for current user...", path: "../../../.assets/provision/setup_profile_user.ps1", privileged: false
-      node.vm.provision "shell", name: "clone ps-modules repo...", path: "../../../.assets/provision/setup_gh_repos.sh", :args => ['--repos', 'szymonos/linux-setup-scripts szymonos/ps-modules'], privileged: false
+      node.vm.provision "shell", name: "clone repos...", path: "../../../.assets/provision/setup_gh_repos.sh", :args => ['--repos', 'szymonos/linux-setup-scripts'], privileged: false
       node.vm.provision "shell", name: "install ps-modules...", inline: script_install_psmodules, privileged: false
     end
     if copy_ssh_key

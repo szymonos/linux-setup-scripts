@@ -1,4 +1,4 @@
-#!/usr/bin/pwsh -nop
+#!/usr/bin/env pwsh
 #Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
@@ -13,11 +13,11 @@ Check if repository is up to date and reset to origin if necessary.
 
 .NOTES
 # :save script example
-./scripts_egsave.ps1 .assets/scripts/modules_update.ps1
+.assets/scripts/scripts_egsave.ps1 .assets/scripts/modules_update.ps1
 # :override the existing script example if exists
-./scripts_egsave.ps1 .assets/scripts/modules_update.ps1 -Force
+.assets/scripts/scripts_egsave.ps1 .assets/scripts/modules_update.ps1 -Force
 # :open the example script in VSCode
-code -r (./scripts_egsave.ps1 .assets/scripts/modules_update.ps1 -WriteOutput)
+code -r (.assets/scripts/scripts_egsave.ps1 .assets/scripts/modules_update.ps1 -WriteOutput)
 #>
 [CmdletBinding()]
 param (
@@ -41,38 +41,8 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/../.."
-    # import InstallUtils for the Invoke-GhRepoClone function
-    Import-Module (Resolve-Path './modules/InstallUtils')
-
-    # specify update functions structure
-    $import = @{
-        'do-common'   = @{
-            SetupUtils = @{
-                certs  = @(
-                    'ConvertFrom-PEM'
-                    'ConvertTo-PEM'
-                    'Get-Certificate'
-                )
-                common = @(
-                    'Get-LogMessage'
-                    'ConvertFrom-Cfg'
-                    'ConvertTo-Cfg'
-                    'Get-ArrayIndexMenu'
-                    'Invoke-ExampleScriptSave'
-                )
-            }
-        }
-        'psm-windows' = @{
-            InstallUtils = @{
-                common = @(
-                    'Invoke-CommandRetry'
-                    'Join-Str'
-                    'Test-IsAdmin'
-                    'Update-SessionEnvironmentPath'
-                )
-            }
-        }
-    }
+    # import utils-install for the Invoke-GhRepoClone function
+    Import-Module (Resolve-Path './modules/utils-install')
 }
 
 process {
@@ -84,25 +54,20 @@ process {
 
     # *perform update
     Write-Host 'perform modules update..' -ForegroundColor Cyan
-    foreach ($srcModule in $import.GetEnumerator()) {
-        Import-Module (Resolve-Path "../ps-modules/modules/$($srcModule.Key)")
-        Write-Host "`n$($srcModule.Key)" -ForegroundColor Green
-        foreach ($dstModule in $srcModule.Value.GetEnumerator()) {
-            Write-Host $dstModule.Key
-            foreach ($destFile in $dstModule.Value.GetEnumerator()) {
-                Write-Host "  - $($destFile.Key).ps1"
-                $filePath = "./modules/$($dstModule.Key)/Functions/$($destFile.Key).ps1"
-                Set-Content -Value $null -Path $filePath
-                $builder = [System.Text.StringBuilder]::new()
-                foreach ($function in $destFile.Value) {
-                    Write-Host "    • $function"
-                    $def = "    $((Get-Command $function -CommandType Function).Definition.Trim())"
-                    $builder.AppendLine("function $function {") | Out-Null
-                    $builder.AppendLine($def) | Out-Null
-                    $builder.AppendLine("}`n") | Out-Null
-                }
-                Set-Content -Value $builder.ToString().Trim().Replace("`r`n", "`n") -Path $filePath -Encoding utf8
-            }
+    $modules = @(
+        'aliases-git'
+        'aliases-kubectl'
+        'do-az'
+        'do-common'
+        'do-linux'
+        'psm-windows'
+    )
+    foreach ($module in $modules) {
+        try {
+            Remove-Item -Path "./modules/$module" -Recurse -Force -ErrorAction SilentlyContinue
+            Copy-Item -Path "../ps-modules/modules/$module" -Destination "./modules" -Recurse
+        } catch {
+            Write-Warning "Failed to update module ${module}: $_"
         }
     }
 }

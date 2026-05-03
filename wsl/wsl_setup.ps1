@@ -49,6 +49,9 @@ Intercept and add certificates from chain into selected distro.
 Set network settings from the selected network interface in Windows.
 .PARAMETER SkipRepoUpdate
 Skip updating current repository before running the setup.
+.PARAMETER WebDownload
+Switch, whether to use web download for WSL distro installation instead of Microsoft Store.
+This is useful when the Store download is very slow or unavailable.
 
 .EXAMPLE
 $Distro = 'Ubuntu'
@@ -69,7 +72,7 @@ $OmpTheme = 'nerd'
 wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
 wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme -AddCertificate
 # :set up WSL distro and clone specified GitHub repositories
-$Repos = @('szymonos/linux-setup-scripts', 'szymonos/ps-modules')
+$Repos = @('szymonos/linux-setup-scripts')
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
 # :update all existing WSL distros
@@ -127,7 +130,9 @@ param (
     [Parameter(ParameterSetName = 'GitHub')]
     [switch]$FixNetwork,
 
-    [switch]$SkipRepoUpdate
+    [switch]$SkipRepoUpdate,
+
+    [switch]$WebDownload
 )
 
 begin {
@@ -140,10 +145,12 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # import InstallUtils for the Invoke-GhRepoClone function
-    Import-Module (Convert-Path './modules/InstallUtils') -Force
-    # import SetupUtils for the Set-WslConf function
-    Import-Module (Convert-Path './modules/SetupUtils') -Force
+    # import utils-install for the Update-GitRepository function
+    Import-Module (Convert-Path './modules/utils-install') -Force
+    # import utils-setup for the Get-WslDistro and Set-WslConf functions
+    Import-Module (Convert-Path './modules/utils-setup') -Force
+    # import do-common for the Show-LogContext, Test-IsAdmin, and Get-ArrayIndexMenu functions
+    Import-Module (Convert-Path './modules/do-common') -Force
 
     if (-not $SkipRepoUpdate) {
         Show-LogContext 'checking if the repository is up to date'
@@ -156,6 +163,10 @@ begin {
     # *get list of distros
     $lxss = Get-WslDistro | Where-Object Name -NotMatch '^docker-desktop'
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
+        $installArgs = [System.Collections.Generic.List[string]]::new([string[]]@('--install', '--distribution', $Distro))
+        if ($PSBoundParameters.WebDownload) {
+            $installArgs.Add('--web-download')
+        }
         if ($Distro -notin $lxss.Name) {
             for ($i = 0; $i -lt 5; $i++) {
                 if ($onlineDistros = Get-WslDistro -Online) { break }
@@ -165,10 +176,10 @@ begin {
                 Show-LogContext "specified distribution not found ($Distro), proceeding to install"
                 try {
                     Get-Service WSLService | Out-Null
-                    wsl.exe --install --distribution $Distro --no-launch
+                    wsl.exe @installArgs --no-launch
                     if ($? -and $Distro -notin (Get-WslDistro -FromRegistry).Name) {
                         Write-Host "`nSetting up user profile in WSL distro. Type 'exit' when finished to proceed with WSL setup!`n" -ForegroundColor Yellow
-                        wsl.exe --install --distribution $Distro
+                        wsl.exe @installArgs
                     }
                     if (-not $?) {
                         Show-LogContext "`"$Distro`" distro installation failed." -Level ERROR
@@ -176,7 +187,7 @@ begin {
                     }
                 } catch {
                     if (Test-IsAdmin) {
-                        wsl.exe --install --distribution $Distro
+                        wsl.exe @installArgs
                         if ($?) {
                             Show-LogContext 'WSL service installation finished.'
                             Show-LogContext "`nRestart the system and run the script again to install the specified WSL distro!`n" -Level WARNING
@@ -186,7 +197,7 @@ begin {
                         }
                     } else {
                         Show-LogContext "`nInstalling WSL service. Wait for the process to finish and restart the system!`n" -Level WARNING
-                        Start-Process pwsh.exe "-NoProfile -Command `"wsl.exe --install --distribution $Distro`"" -Verb RunAs
+                        Start-Process pwsh.exe "-NoProfile -Command `"wsl.exe $($installArgs -join ' ')`"" -Verb RunAs
                         if ($?) {
                             Show-LogContext 'WSL service installation finished.'
                             Show-LogContext "`nRestart the system and run the script again to install the specified WSL distro!`n" -Level WARNING
@@ -237,7 +248,7 @@ begin {
                         break
                     }
                 }
-                wsl.exe --install --distribution $Distro --no-launch
+                wsl.exe @installArgs --no-launch
             }
         }
         Show-LogContext 'getting GitHub authentication config from the default distro'
@@ -500,19 +511,6 @@ process {
                 $sshStatus.sshKey = 'missing'
             }
         }
-
-        # *whitelist Windows-mount repo paths as git safe.directory
-        # On /mnt/c/ paths the .git dir owner UID (from the Windows side)
-        # doesn't match the WSL user's UID, so git refuses operations with a
-        # "dubious ownership" warning. Two globs cover the typical layouts:
-        #   ~/source/repos/<repo>           - flat
-        #   ~/source/repos/<org>/<repo>     - org-scoped (the convention here)
-        # Per-user (writes ~/.gitconfig in the WSL user's home), idempotent.
-        $mntRepos = "/mnt/c/Users/$env:USERNAME/source/repos"
-        foreach ($glob in "$mntRepos/*", "$mntRepos/*/*") {
-            $cmnd = "git config --global --get-all safe.directory 2>/dev/null | grep -qFx '$glob' || git config --global --add safe.directory '$glob'"
-            wsl.exe --distribution $Distro --exec bash -c $cmnd | Out-Null
-        }
         #endregion
 
         #region install scopes
@@ -613,31 +611,27 @@ process {
                 Show-LogContext 'setting up profile for current user'
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
 
-                # *install PowerShell modules from ps-modules repository
-                # clone/refresh szymonos/ps-modules repository
-                $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'
-                if ($repoClone) {
-                    Write-Verbose "Repository `"ps-modules`" $($repoClone -eq 1 ? 'cloned': 'refreshed') successfully."
-                } else {
-                    Write-Error 'Cloning ps-modules repository failed.'
-                }
+                # *install PowerShell modules from local modules directory
                 Show-LogContext 'installing ps-modules'
                 Write-Host "`e[32mAllUsers    :`e[0;90m do-common`e[0m"
-                wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+                $allUsersCmd = 'mkdir -p /usr/local/share/powershell/Modules && rm -rf /usr/local/share/powershell/Modules/do-common && cp -rf modules/do-common /usr/local/share/powershell/Modules/'
+                wsl.exe --distribution $Distro --user root --exec sh -c $allUsersCmd
                 # instantiate psmodules generic lists
                 $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
                 # determine modules to install
                 if ('az' -in $scopes) {
                     $modules.Add('do-az') | Out-Null
-                    Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
+                    Write-Verbose "Added `e[3mdo-az`e[23m to be installed."
                 }
                 if ('k8s_base' -in $scopes) {
                     $modules.Add('aliases-kubectl') | Out-Null
-                    Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
+                    Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed."
                 }
                 Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
-                $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
-                wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+                $srcs = ($modules.ForEach({ "modules/$_" })) -join ' '
+                $rms = ($modules.ForEach({ "`$HOME/.local/share/powershell/Modules/$_" })) -join ' '
+                $userCmd = "mkdir -p `$HOME/.local/share/powershell/Modules && rm -rf $rms && cp -rf $srcs `$HOME/.local/share/powershell/Modules/"
+                wsl.exe --distribution $Distro --exec sh -c $userCmd
                 # *install PowerShell Az modules
                 if ('az' -in $scopes) {
                     $cmd = [string]::Join("`n",

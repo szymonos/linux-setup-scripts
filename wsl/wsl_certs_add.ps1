@@ -46,11 +46,17 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # check if the required functions are available, otherwise import SetupUtils module
+    # check if the required functions are available, otherwise import utils-setup module
     try {
         Get-Command Get-WslDistro -CommandType Function | Out-Null
     } catch {
-        Import-Module (Resolve-Path './modules/SetupUtils')
+        Import-Module (Resolve-Path './modules/utils-setup')
+    }
+    # import do-common for the Get-Certificate and ConvertTo-PEM functions
+    try {
+        Get-Command Get-Certificate -CommandType Function | Out-Null
+    } catch {
+        Import-Module (Resolve-Path './modules/do-common')
     }
 
     # check if distro exist

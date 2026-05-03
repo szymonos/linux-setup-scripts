@@ -253,29 +253,24 @@ printf "\e[96msetting up profile for current user...\e[0m\n"
 .assets/provision/setup_profile_user.sh
 # install powershell modules
 if [ -f /usr/bin/pwsh ]; then
-  cmnd="Import-Module (Resolve-Path './modules/InstallUtils'); Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -WarningAction SilentlyContinue"
-  cloned=$(pwsh -nop -c "$cmnd")
-  if [ $cloned -gt 0 ]; then
-    printf "\e[96minstalling ps-modules...\e[0m\n"
-    # install do-common module for all users
-    printf "\e[3;32mAllUsers\e[23m    : do-common\e[0m\n"
-    sudo ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+  printf "\e[96minstalling ps-modules...\e[0m\n"
+  # install do-common module for all users
+  printf "\e[3;32mAllUsers\e[23m    : do-common\e[0m\n"
+  sudo mkdir -p /usr/local/share/powershell/Modules
+  sudo rm -rf /usr/local/share/powershell/Modules/do-common
+  sudo cp -rf modules/do-common /usr/local/share/powershell/Modules/
 
-    # determine current user scope modules to install
-    modules=('do-linux')
-    grep -qw 'az' <<<$scope && modules+=(do-az) || true
-    [ -f /usr/bin/git ] && modules+=(aliases-git) || true
-    [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true
-    # Convert the modules array to a comma-separated string with quoted elements
-    printf "\e[3;32mCurrentUser\e[23m : ${modules[*]}\e[0m\n"
-    mods=''
-    for element in "${modules[@]}"; do
-      mods="$mods'$element',"
-    done
-    pwsh -nop -c "@(${mods%,}) | ../ps-modules/module_manage.ps1 -CleanUp"
-  else
-    printf '\e[33mps-modules repository cloning failed\e[0m.\n'
-  fi
+  # determine current user scope modules to install
+  modules=('do-linux')
+  grep -qw 'az' <<<$scope && modules+=(do-az) || true
+  [ -f /usr/bin/git ] && modules+=(aliases-git) || true
+  [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true
+  printf "\e[3;32mCurrentUser\e[23m : ${modules[*]}\e[0m\n"
+  mkdir -p "$HOME/.local/share/powershell/Modules"
+  for module in "${modules[@]}"; do
+    rm -rf "$HOME/.local/share/powershell/Modules/$module"
+    cp -rf "modules/$module" "$HOME/.local/share/powershell/Modules/"
+  done
 fi
 
 # restore working directory

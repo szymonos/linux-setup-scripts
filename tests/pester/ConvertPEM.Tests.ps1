@@ -1,8 +1,8 @@
 #Requires -Modules Pester
-# Unit tests for ConvertFrom-PEM and ConvertTo-PEM in SetupUtils module
+# Unit tests for ConvertFrom-PEM and ConvertTo-PEM in do-common module
 
 BeforeAll {
-    . $PSScriptRoot/../../modules/SetupUtils/Functions/certs.ps1
+    . $PSScriptRoot/../../modules/do-common/Functions/certs.ps1
 }
 
 Describe 'ConvertFrom-PEM' {

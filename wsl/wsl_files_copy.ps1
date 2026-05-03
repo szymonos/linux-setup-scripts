@@ -65,8 +65,10 @@ begin {
         exit 0
     }
 
-    # import SetupUtils for the Get-WslDistro function
-    Import-Module (Convert-Path './modules/SetupUtils')
+    # import utils-setup for the Get-WslDistro function
+    Import-Module (Convert-Path './modules/utils-setup')
+    # import do-common for the Get-ArrayIndexMenu function
+    Import-Module (Convert-Path './modules/do-common')
 
     # get list of existing WSL distros
     $distros = Get-WslDistro -FromRegistry
