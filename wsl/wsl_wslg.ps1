@@ -35,8 +35,8 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # import utils-setup module
-    Import-Module (Resolve-Path './modules/utils-setup')
+    # import do-common for the ConvertFrom-Cfg and ConvertTo-Cfg functions
+    Import-Module (Resolve-Path './modules/do-common')
 }
 
 process {

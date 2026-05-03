@@ -52,6 +52,12 @@ begin {
     } catch {
         Import-Module (Resolve-Path './modules/utils-setup')
     }
+    # import do-common for the Get-Certificate and ConvertTo-PEM functions
+    try {
+        Get-Command Get-Certificate -CommandType Function | Out-Null
+    } catch {
+        Import-Module (Resolve-Path './modules/do-common')
+    }
 
     # check if distro exist
     $distros = Get-WslDistro | Where-Object Name -NotMatch '^docker-desktop'

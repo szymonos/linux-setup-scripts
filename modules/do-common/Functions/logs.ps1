@@ -11,7 +11,7 @@ function Set-LogFile {
     [CmdletBinding()]
     [OutputType([string])]
     param (
-        [ValidateScript({ $_ -match '\.log$|' }, ErrorMessage = 'Specified file should have .log extension.')]
+        [ValidateScript({ $_ -match '\.log$' }, ErrorMessage = 'Specified file should have .log extension.')]
         [string]$Path = "logs/$(Get-Date -Format 'yyyyMMddTHHmmss').log",
 
         [switch]$Append
@@ -19,6 +19,10 @@ function Set-LogFile {
 
     # *ensure that the log file exists
     if (-not (Test-Path $Path -PathType Leaf)) {
+        $parent = Split-Path $Path -Parent
+        if ($parent -and -not (Test-Path $parent -PathType Container)) {
+            New-Item -Path $parent -ItemType Directory -Force -ErrorAction Stop | Out-Null
+        }
         New-Item -Path $Path -ItemType File -Force -ErrorAction Stop | Out-Null
     } elseif (-not $Append) {
         # clean the existing logfile if it exists

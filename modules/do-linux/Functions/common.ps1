@@ -82,7 +82,7 @@ function Invoke-SudoPS {
         }
     }
     # run sudo command with resolved commands
-    & /usr/bin/env sudo $params pwsh -NoProfile -NonInteractive -Command "$args"
+    & /usr/bin/env sudo pwsh -NoProfile -NonInteractive -Command "$args"
 }
 
 Set-Alias -Name sps -Value Invoke-SudoPS

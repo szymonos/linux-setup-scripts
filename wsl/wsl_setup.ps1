@@ -72,7 +72,7 @@ $OmpTheme = 'nerd'
 wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
 wsl/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme -AddCertificate
 # :set up WSL distro and clone specified GitHub repositories
-$Repos = @('szymonos/linux-setup-scripts', 'szymonos/ps-modules')
+$Repos = @('szymonos/linux-setup-scripts')
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
 wsl/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
 # :update all existing WSL distros
@@ -145,10 +145,12 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # import utils-install for the Invoke-GhRepoClone function
+    # import utils-install for the Update-GitRepository function
     Import-Module (Convert-Path './modules/utils-install') -Force
-    # import utils-setup for the Set-WslConf function
+    # import utils-setup for the Get-WslDistro and Set-WslConf functions
     Import-Module (Convert-Path './modules/utils-setup') -Force
+    # import do-common for the Show-LogContext, Test-IsAdmin, and Get-ArrayIndexMenu functions
+    Import-Module (Convert-Path './modules/do-common') -Force
 
     if (-not $SkipRepoUpdate) {
         Show-LogContext 'checking if the repository is up to date'
@@ -509,28 +511,6 @@ process {
                 $sshStatus.sshKey = 'missing'
             }
         }
-
-        # *whitelist Windows-mount repo paths as git safe.directory
-        $reposRoot = "$PSScriptRoot\..\.."
-        if (Test-Path $reposRoot -PathType Container) {
-            $repoRootDirectories = Get-ChildItem -Path $reposRoot -Directory -ErrorAction SilentlyContinue
-            $wslPaths = $repoRootDirectories | Where-Object {
-                Test-Path ([System.IO.Path]::Combine($_.FullName, '.git'))
-            } | ForEach-Object {
-                $w = $_.FullName
-                "/mnt/$([char]::ToLower($w[0]))$($w.Substring(2).Replace('\', '/'))"
-            }
-            if ($wslPaths) {
-                $pathsArg = $wslPaths | Join-String -Separator ' ' -SingleQuote
-                $cmnd = [string]::Join('; ',
-                    'existing=$(git config --global --get-all safe.directory 2>/dev/null)',
-                    "for p in $pathsArg",
-                    'do printf %s "$existing" | grep -qFx "$p" || git config --global --add safe.directory "$p"',
-                    'done'
-                )
-                wsl.exe --distribution $Distro --exec bash -c $cmnd | Out-Null
-            }
-        }
         #endregion
 
         #region install scopes
@@ -631,31 +611,27 @@ process {
                 Show-LogContext 'setting up profile for current user'
                 wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
 
-                # *install PowerShell modules from ps-modules repository
-                # clone/refresh szymonos/ps-modules repository
-                $repoClone = Invoke-GhRepoClone -OrgRepo 'szymonos/ps-modules' -Path '..'
-                if ($repoClone) {
-                    Write-Verbose "Repository `"ps-modules`" $($repoClone -eq 1 ? 'cloned': 'refreshed') successfully."
-                } else {
-                    Write-Error 'Cloning ps-modules repository failed.'
-                }
+                # *install PowerShell modules from local modules directory
                 Show-LogContext 'installing ps-modules'
                 Write-Host "`e[32mAllUsers    :`e[0;90m do-common`e[0m"
-                wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+                $allUsersCmd = 'mkdir -p /usr/local/share/powershell/Modules && rm -rf /usr/local/share/powershell/Modules/do-common && cp -rf modules/do-common /usr/local/share/powershell/Modules/'
+                wsl.exe --distribution $Distro --user root --exec sh -c $allUsersCmd
                 # instantiate psmodules generic lists
                 $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
                 # determine modules to install
                 if ('az' -in $scopes) {
                     $modules.Add('do-az') | Out-Null
-                    Write-Verbose "Added `e[3mdo-az`e[23m to be installed from ps-modules."
+                    Write-Verbose "Added `e[3mdo-az`e[23m to be installed."
                 }
                 if ('k8s_base' -in $scopes) {
                     $modules.Add('aliases-kubectl') | Out-Null
-                    Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed from ps-modules."
+                    Write-Verbose "Added `e[3maliases-kubectl`e[23m to be installed."
                 }
                 Write-Host "`e[32mCurrentUser :`e[0;90m $($modules -join ', ')`e[0m"
-                $cmd = "@($($modules | Join-String -SingleQuote -Separator ',')) | ../ps-modules/module_manage.ps1 -CleanUp"
-                wsl.exe --distribution $Distro --exec pwsh -nop -c $cmd
+                $srcs = ($modules.ForEach({ "modules/$_" })) -join ' '
+                $rms = ($modules.ForEach({ "`$HOME/.local/share/powershell/Modules/$_" })) -join ' '
+                $userCmd = "mkdir -p `$HOME/.local/share/powershell/Modules && rm -rf $rms && cp -rf $srcs `$HOME/.local/share/powershell/Modules/"
+                wsl.exe --distribution $Distro --exec sh -c $userCmd
                 # *install PowerShell Az modules
                 if ('az' -in $scopes) {
                     $cmd = [string]::Join("`n",

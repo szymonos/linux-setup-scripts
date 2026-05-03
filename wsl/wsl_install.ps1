@@ -96,8 +96,10 @@ begin {
 
     # set location to workspace folder
     Push-Location "$PSScriptRoot/.."
-    # import utils-install for the Update-SessionEnvironmentPath function
+    # import utils-install for the Update-GitRepository function
     Import-Module (Resolve-Path './modules/utils-install') -Force
+    # import psm-windows for the Update-SessionEnvironmentPath and Join-Str functions
+    Import-Module (Resolve-Path './modules/psm-windows') -Force
 
     if (-not $SkipRepoUpdate) {
         Write-Host 'checking if the repository is up to date...' -ForegroundColor Cyan

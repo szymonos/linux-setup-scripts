@@ -52,7 +52,7 @@ function Invoke-WriteExecKubectl {
 
     if (-not $PsBoundParameters.WhatIf) {
         # write debug information
-        Write-Debug "Invoke-WriteExecKubectl.Command`n`e[22m$cmnd`n"
+        Write-Debug "Invoke-WriteExecKubectl.Command`n`e[22m$Command`n"
         if ($PSBoundParameters.Xargs) {
             Write-Debug "Invoke-WriteExecKubectl.Xargs`n`e[22m$Xargs`n"
         }

@@ -18,36 +18,38 @@ function ConvertFrom-CIDR {
     }
 
     process {
-        $addr, $maskLength = $InputObject -split '/'
-        [int]$maskLen = 0
-        if (-not [int32]::TryParse($maskLength, [ref] $maskLen)) {
-            throw "Cannot parse CIDR mask length string: '$maskLen'"
-        }
-        if (0 -gt $maskLen -or $maskLen -gt 32) {
-            throw 'CIDR mask length must be between 0 and 32'
-        }
-        $ipAddr = [Net.IPAddress]::Parse($addr)
-        if ($ipAddr -eq $null) {
-            throw "Cannot parse IP address: $addr"
-        }
-        if ($ipAddr.AddressFamily -ne [Net.Sockets.AddressFamily]::InterNetwork) {
-            throw 'Can only process CIDR for IPv4'
-        }
-
-        $shiftCnt = 32 - $maskLen
-        $mask = -bnot ((1 -shl $shiftCnt) - 1)
-        $ipNum = [Net.IPAddress]::NetworkToHostOrder([BitConverter]::ToInt32($ipAddr.GetAddressBytes(), 0))
-        $ipStart = ($ipNum -band $mask)
-        $ipEnd = ($ipNum -bor (-bnot $mask))
-
-        # return as tuple of strings:
-        $ranges.Add([PSCustomObject]@{
-                CidrRange  = $InputObject[0]
-                StartIP    = [BitConverter]::GetBytes([Net.IPAddress]::HostToNetworkOrder($ipStart)) -join '.'
-                EndIP      = [BitConverter]::GetBytes([Net.IPAddress]::HostToNetworkOrder($ipEnd)) -join '.'
-                TotalHosts = $ipEnd - $ipStart + 1
+        foreach ($cidr in $InputObject) {
+            $addr, $maskLength = $cidr -split '/'
+            [int]$maskLen = 0
+            if (-not [int32]::TryParse($maskLength, [ref] $maskLen)) {
+                throw "Cannot parse CIDR mask length string: '$maskLength'"
             }
-        )
+            if (0 -gt $maskLen -or $maskLen -gt 32) {
+                throw 'CIDR mask length must be between 0 and 32'
+            }
+            $ipAddr = [Net.IPAddress]::Parse($addr)
+            if ($ipAddr -eq $null) {
+                throw "Cannot parse IP address: $addr"
+            }
+            if ($ipAddr.AddressFamily -ne [Net.Sockets.AddressFamily]::InterNetwork) {
+                throw 'Can only process CIDR for IPv4'
+            }
+
+            $shiftCnt = 32 - $maskLen
+            $mask = -bnot ((1 -shl $shiftCnt) - 1)
+            $ipNum = [Net.IPAddress]::NetworkToHostOrder([BitConverter]::ToInt32($ipAddr.GetAddressBytes(), 0))
+            $ipStart = ($ipNum -band $mask)
+            $ipEnd = ($ipNum -bor (-bnot $mask))
+
+            # return as tuple of strings:
+            $ranges.Add([PSCustomObject]@{
+                    CidrRange  = $cidr
+                    StartIP    = [BitConverter]::GetBytes([Net.IPAddress]::HostToNetworkOrder($ipStart)) -join '.'
+                    EndIP      = [BitConverter]::GetBytes([Net.IPAddress]::HostToNetworkOrder($ipEnd)) -join '.'
+                    TotalHosts = $ipEnd - $ipStart + 1
+                }
+            )
+        }
     }
 
     end {
@@ -76,27 +78,37 @@ function Invoke-DownloadFile {
     )
 
     $client = [Net.Http.HttpClient]::new()
-    $client.DefaultRequestHeaders.UserAgent.ParseAdd('PowerShell')
+    try {
+        $client.DefaultRequestHeaders.UserAgent.ParseAdd('PowerShell')
 
-    $response = $client.GetAsync($Uri).Result
+        $response = $client.GetAsync($Uri).Result
+        try {
+            if ($response.IsSuccessStatusCode) {
+                $contentDisposition = $response.Content.Headers.ContentDisposition
+                $fileName = if ($null -ne $contentDisposition) {
+                    $contentDisposition.FileName
+                } else {
+                    [IO.Path]::GetFileName($Uri)
+                }
+            } else {
+                throw "Failed to download file. Status code: $($response.StatusCode)"
+            }
 
-    if ($response.IsSuccessStatusCode) {
-        $contentDisposition = $response.Content.Headers.ContentDisposition
-        $fileName = if ($null -ne $contentDisposition) {
-            $contentDisposition.FileName
-        } else {
-            [IO.Path]::GetFileName($Uri)
+            $folderPath = [IO.Path]::GetFullPath($Destination)
+            $destinationPath = [IO.Path]::Combine($folderPath, $fileName)
+
+            $stream = [IO.FileStream]::new($destinationPath, [IO.FileMode]::Create)
+            try {
+                $response.Content.CopyToAsync($stream).Wait()
+            } finally {
+                $stream.Dispose()
+            }
+        } finally {
+            $response.Dispose()
         }
-    } else {
-        throw "Failed to download file. Status code: $($response.StatusCode)"
+    } finally {
+        $client.Dispose()
     }
-
-    $folderPath = [IO.Path]::GetFullPath($Destination)
-    $destinationPath = [IO.Path]::Combine($folderPath, $fileName)
-
-    $stream = [IO.FileStream]::new($destinationPath, [IO.FileMode]::Create)
-    $response.Content.CopyToAsync($stream).Wait()
-    $stream.Close()
 
     Write-Host "File downloaded to: $destinationPath"
 }

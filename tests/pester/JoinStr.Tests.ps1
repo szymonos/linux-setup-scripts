@@ -1,5 +1,5 @@
 #Requires -Modules Pester
-# Unit tests for Join-Str in utils-install module
+# Unit tests for Join-Str in psm-windows module
 
 BeforeAll {
     . $PSScriptRoot/../../modules/psm-windows/Functions/common.ps1
