@@ -38,7 +38,7 @@ if [ -x "$HOME/.local/bin/uv" ]; then
     retry_count=0
     max_retries=5
     while [ $retry_count -le $max_retries ]; do
-      $HOME/.local/bin/uv self update --native-tls >&2
+      $HOME/.local/bin/uv self update --system-certs >&2
       [ $? -eq 0 ] && break || true
       ((retry_count++)) || true
       echo "retrying... $retry_count/$max_retries" >&2
