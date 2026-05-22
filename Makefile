@@ -23,7 +23,6 @@ install: ## Install pre-commit hooks
 	prek install --overwrite
 upgrade: ## Upgrade prek and hooks versions
 	@printf "\n✅ All dependencies upgraded\n\n"
-	prek self update
 	prek auto-update
 
 .PHONY: hooks
