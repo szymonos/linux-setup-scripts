@@ -73,7 +73,7 @@ if ! grep -qw "$COMPLETION_CMD" $HOME/.bashrc 2>/dev/null && [ -x "$HOME/$UV_PAT
 
 # initialize uv autocompletion
 if [ -x "\$HOME/$UV_PATH/uv" ]; then
-  export UV_NATIVE_TLS=true
+  export UV_SYSTEM_CERTS=true
   eval "\$(\$HOME/$UV_PATH/$COMPLETION_CMD)"
 fi
 EOF

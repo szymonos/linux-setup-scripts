@@ -113,13 +113,13 @@ if (Test-Path "$HOME/$condaCli" -PathType Leaf) {
 # set up uv
 $uvCli = '.local/bin/uv'
 if (Test-Path "$HOME/$uvCli" -PathType Leaf) {
-    if (-not ($profileContent | Select-String 'UV_NATIVE_TLS' -SimpleMatch -Quiet)) {
+    if (-not ($profileContent | Select-String 'UV_SYSTEM_CERTS' -SimpleMatch -Quiet)) {
         Write-Verbose 'adding uv autocompletion...'
         $profileContent.AddRange(
             [string[]]@(
                 "`n#region uv"
                 '# use system certificates'
-                '[System.Environment]::SetEnvironmentVariable("UV_NATIVE_TLS", $true)'
+                '[System.Environment]::SetEnvironmentVariable("UV_SYSTEM_CERTS", $true)'
             )
         )
         $isProfileModified = $true
