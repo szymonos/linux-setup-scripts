@@ -268,9 +268,14 @@ begin {
 
     # determine GTK theme if not provided, based on system theme
     if (-not $GtkTheme) {
-        $systemUsesLightTheme = Get-ItemPropertyValue -ErrorAction SilentlyContinue `
-            -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' `
-            -Name 'SystemUsesLightTheme'
+        $systemUsesLightTheme = try {
+            Get-ItemPropertyValue -ErrorAction Stop `
+                -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' `
+                -Name 'SystemUsesLightTheme'
+        } catch {
+            # default to light theme if the value cannot be read for any reason
+            1
+        }
         $GtkTheme = $systemUsesLightTheme ? 'light' : 'dark'
     }
 
