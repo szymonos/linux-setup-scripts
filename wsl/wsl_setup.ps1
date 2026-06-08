@@ -443,78 +443,83 @@ process {
         #endregion
 
         #region setup GitHub
-        # *setup GitHub CLI
-        wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-        $cmdArgs = [System.Collections.Generic.List[string]]::new([string[]]@('-u', $chk.user))
-        if ($sshStatus.sshKey -eq 'missing') {
-            $cmdArgs.Add('-k')
-        }
-        if ($Script:gh_cfg -match 'github\.com') {
-            $cmdArgs.AddRange([string[]]@('-c', ($gh_cfg -join "`n")))
-        }
-        $gh_cfg = wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
-        if (-not $?) {
-            Write-Host "`nRun the script again to reconfigure GitHub authentication!`n" -ForegroundColor Yellow
-            exit 1
-        }
-
-        # *check SSH keys and create if necessary
-        $sshKey = 'id_ed25519'
-        $winKey = "$HOME\.ssh\$sshKey"
-        $winKeyPub = "$HOME\.ssh\$sshKey.pub"
-        $sshWinPath = "/mnt/$($env:HOMEDRIVE.Replace(':', '').ToLower())$($env:HOMEPATH.Replace('\', '/'))/.ssh"
-
-        $winKeyExists = (Test-Path $winKey) -and (Test-Path $winKeyPub)
-        if (-not $chk.ssh_key -and $winKeyExists) {
-            # copy Windows SSH keys to WSL
-            $cmnd = [string]::Join("`n",
-                'mkdir -p $HOME/.ssh',
-                "install -m 0600 '$sshWinPath/$sshKey' `$HOME/.ssh",
-                "install -m 0644 '$sshWinPath/$sshKey.pub' `$HOME/.ssh"
-            )
-            wsl.exe --distribution $Distro --exec sh -c $cmnd
-        } elseif (-not $winKeyExists) {
-            # copy WSL SSH keys to Windows
-            if (Test-Path "$HOME\.ssh") {
-                Remove-Item $winKey, $winKeyPub -ErrorAction SilentlyContinue
-            } else {
-                New-Item "$HOME\.ssh" -ItemType Directory | Out-Null
+        try {
+            # *setup GitHub CLI
+            wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
+            $cmdArgs = [System.Collections.Generic.List[string]]::new([string[]]@('-u', $chk.user))
+            if ($sshStatus.sshKey -eq 'missing') {
+                $cmdArgs.Add('-k')
             }
-            # build bash command to generate SSH key if needed and copy to Windows
-            $cmnd = [string]::Join("`n",
-                '# copy SSH key to Windows',
-                "cp `"`$HOME/.ssh/id_ed25519`" $sshWinPath/id_ed25519",
-                "cp `"`$HOME/.ssh/id_ed25519.pub`" $sshWinPath/id_ed25519.pub"
-            )
-            if (-not $chk.ssh_key) {
-                # generate new SSH key inside WSL if it does not exist
+            if ($Script:gh_cfg -match 'github\.com') {
+                $cmdArgs.AddRange([string[]]@('-c', ($gh_cfg -join "`n")))
+            }
+            $gh_cfg = wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_gh_https.sh @cmdArgs
+            if (-not $?) {
+                Write-Host "`nRun the script again to reconfigure GitHub authentication!`n" -ForegroundColor Yellow
+                exit 1
+            }
+
+            # *check SSH keys and create if necessary
+            $sshKey = 'id_ed25519'
+            $winKey = "$HOME\.ssh\$sshKey"
+            $winKeyPub = "$HOME\.ssh\$sshKey.pub"
+            $sshWinPath = "/mnt/$($HOME.Replace(':', '').Replace('\', '/').ToLower())/.ssh"
+
+            $winKeyExists = (Test-Path $winKey) -and (Test-Path $winKeyPub)
+            if (-not $chk.ssh_key -and $winKeyExists) {
+                # copy Windows SSH keys to WSL
                 $cmnd = [string]::Join("`n",
-                    '# generate SSH key if missing',
-                    '.assets/provision/setup_ssh.sh',
-                    $cmnd
+                    'mkdir -p $HOME/.ssh',
+                    "install -m 0600 '$sshWinPath/$sshKey' `$HOME/.ssh",
+                    "install -m 0644 '$sshWinPath/$sshKey.pub' `$HOME/.ssh"
                 )
-            }
-            wsl.exe --distribution $Distro --exec sh -c $cmnd
-        }
-
-        # *add SSH key to GitHub if needed
-        if ($sshStatus.sshKey -eq 'missing') {
-            try {
-                $sshStatus = wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh | ConvertFrom-Json -AsHashtable -ErrorAction Stop
-                if ($sshStatus.sshKey -eq 'added') {
-                    Clear-Host
-                    # display message asking to authorize the SSH key
-                    $msg = [string]::Join("`n",
-                        "`e[97;1mSSH key added to GitHub:`e[0;90m $($sshStatus.title)`e[0m`n",
-                        "`e[97mTo finish setting up SSH authentication, open `e[34;4mhttps://github.com/settings/ssh`e[97;24m",
-                        "and authorize the newly added key for your organization (enable SSO if required).`e[0m",
-                        "`npress Enter to continue"
-                    )
-                    Read-Host $msg
+                wsl.exe --distribution $Distro --exec sh -c $cmnd
+            } elseif (-not $winKeyExists) {
+                # copy WSL SSH keys to Windows
+                if (Test-Path "$HOME\.ssh") {
+                    Remove-Item $winKey, $winKeyPub -ErrorAction SilentlyContinue
+                } else {
+                    New-Item "$HOME\.ssh" -ItemType Directory | Out-Null
                 }
-            } catch {
-                $sshStatus.sshKey = 'missing'
+                # build bash command to generate SSH key if needed and copy to Windows
+                $cmnd = [string]::Join("`n",
+                    '# copy SSH key to Windows',
+                    "cp `"`$HOME/.ssh/id_ed25519`" $sshWinPath/id_ed25519",
+                    "cp `"`$HOME/.ssh/id_ed25519.pub`" $sshWinPath/id_ed25519.pub"
+                )
+                if (-not $chk.ssh_key) {
+                    # generate new SSH key inside WSL if it does not exist
+                    $cmnd = [string]::Join("`n",
+                        '# generate SSH key if missing',
+                        '.assets/provision/setup_ssh.sh',
+                        $cmnd
+                    )
+                }
+                wsl.exe --distribution $Distro --exec sh -c $cmnd
             }
+
+            # *add SSH key to GitHub if needed
+            if ($sshStatus.sshKey -eq 'missing') {
+                try {
+                    $sshStatus = wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_ssh.sh | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+                    if ($sshStatus.sshKey -eq 'added') {
+                        Clear-Host
+                        # display message asking to authorize the SSH key
+                        $msg = [string]::Join("`n",
+                            "`e[97;1mSSH key added to GitHub:`e[0;90m $($sshStatus.title)`e[0m`n",
+                            "`e[97mTo finish setting up SSH authentication, open `e[34;4mhttps://github.com/settings/ssh`e[97;24m",
+                            "and authorize the newly added key for your organization (enable SSO if required).`e[0m",
+                            "`npress Enter to continue"
+                        )
+                        Read-Host $msg
+                    }
+                } catch {
+                    $sshStatus.sshKey = 'missing'
+                }
+            }
+        } catch {
+            Show-LogContext $_
+            exit 1
         }
         #endregion
 
