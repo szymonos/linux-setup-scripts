@@ -15,6 +15,14 @@
 /tmp.*/
 /logs/*.log
 
+# local settings
+settings.local.json
+/.claude/rules/openwolf.md
+/.claude/settings.json
+/.claude/worktrees/
+/.wolf
+/CLAUDE.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
