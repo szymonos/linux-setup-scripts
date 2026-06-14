@@ -11,6 +11,17 @@ ifdef CA_CUSTOM
 export NODE_EXTRA_CA_CERTS := $(CA_CUSTOM)
 endif
 
+# Stage all changes, run prek, then restore previously staged file paths.
+# Note: only path-level staging is preserved; partially-staged hunks become fully
+# staged after the round-trip. Auto-fixes from hooks land in the working tree.
+define PREK_RUN
+sf=$$(mktemp); git diff --cached --name-only -z >$$sf; \
+git add --all && prek run $(HOOK) $(1); rc=$$?; \
+git reset -q HEAD; \
+if [ -s $$sf ]; then xargs -0 git add -- <$$sf 2>/dev/null; fi; \
+rm -f $$sf; exit $$rc
+endef
+
 .PHONY: help
 help: ## Show this help message
 	@printf 'Usage: make [target]\n\n'
@@ -29,20 +40,20 @@ upgrade: ## Upgrade prek and hooks versions
 hooks: ## List available pre-commit hook IDs
 	@awk '/- id:/ {print "  " $$3}' .pre-commit-config.yaml | sort -u
 
-.PHONY: lint lint-diff lint-all
+.PHONY: hooks lint lint-diff lint-all
 lint: ## Run pre-commit hooks for changed files (HOOK=id to run one hook)
 	@printf "🧭 Running pre-commit hooks for changed files...\n\n"
-	git add --all && prek run $(HOOK)
+	@$(call PREK_RUN)
 lint-diff: ## Run pre-commit hooks for files changed in this diff (HOOK=id to run one hook)
 	@printf "🧭 Running pre-commit hooks for files changed in this diff...\n\n"
 	@if [ "$$(git branch --show-current)" = "main" ]; then \
 		printf "⚠️  You are on the main branch. Skipping lint-diff.\n"; \
 	else \
-		git add --all && prek run $(HOOK) --from-ref main --to-ref HEAD; \
+		$(call PREK_RUN,--from-ref main --to-ref HEAD); \
 	fi
 lint-all: ## Run pre-commit hooks for all files (HOOK=id to run one hook)
 	@printf "🧭 Running pre-commit hooks for all files...\n\n"
-	prek run $(HOOK) --all-files
+	@$(call PREK_RUN,--all-files)
 
 .PHONY: test test-unit test-bats test-pester
 test: test-unit ## Run all unit tests
