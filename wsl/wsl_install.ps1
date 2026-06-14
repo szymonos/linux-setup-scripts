@@ -23,7 +23,7 @@ List of installation scopes. Valid values:
 - docker: (WSL2 only) - docker, containerd buildx docker-compose
 - gcloud: google-cloud-cli
 - k8s_base: kubectl, kubelogin, k9s, kubecolor, kubectx, kubens
-- k8s_dev: argorollouts, cilium, hubble, helm, flux, kustomize and trivy cli tools; autoselects k8s_base scope
+- k8s_dev: argorollouts, cilium, hubble, helm, flux, humioctl, kustomize and trivy cli tools; autoselects k8s_base scope
 - k8s_ext: (WSL2 only) - minikube, k3d, kind local kubernetes tools; autoselects docker, k8s_base and k8s_dev scopes
 - nodejs: Node.js JavaScript runtime environment using V8 engine
 - pwsh: PowerShell Core and corresponding PS modules; autoselects shell scope
