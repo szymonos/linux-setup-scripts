@@ -1,40 +1,76 @@
 <#
 .SYNOPSIS
-Returns system information from /etc/os-release.
+Returns system information for Linux (/etc/os-release, /proc) or macOS (sw_vers, sysctl).
 #>
 function Get-SysInfo {
-    # get os-release properties
-    $osr = Get-DotEnv '/etc/os-release'
-    # get cpu info
-    $cpu = @{}
-    (Select-String '^model name|^cpu cores|^siblings' '/proc/cpuinfo' -Raw | Select-Object -Unique).ForEach({
-            $key, $value = $_.Split(':').Trim()
-            $cpu[$key] = $value
-        }
-    )
-    # calculate memory usage
-    $mem = @{}
-    (Select-String '^MemTotal|^MemAvailable' '/proc/meminfo' -Raw).ForEach({
-            $key, $value = $_.Split(':')
-            $mem[$key] = ($value -replace '[^0-9]') / 1MB
-        }
-    )
-    $mem['MemUsed'] = $mem.MemTotal - $mem.MemAvailable
+    if ($IsLinux) {
+        # get os-release properties
+        $osr = Get-DotEnv '/etc/os-release'
+        # get cpu info
+        $cpu = @{}
+        (Select-String '^model name|^cpu cores|^siblings' '/proc/cpuinfo' -Raw | Select-Object -Unique).ForEach({
+                $key, $value = $_.Split(':').Trim()
+                $cpu[$key] = $value
+            }
+        )
+        # calculate memory usage
+        $mem = @{}
+        (Select-String '^MemTotal|^MemAvailable' '/proc/meminfo' -Raw).ForEach({
+                $key, $value = $_.Split(':')
+                $mem[$key] = ($value -replace '[^0-9]') / 1MB
+            }
+        )
+        $mem['MemUsed'] = $mem.MemTotal - $mem.MemAvailable
 
-    # build system properties
-    $sysProp = [ordered]@{
-        UserHost = "`e[1;34m$(id -un)`e[0m@`e[1;34m$([System.IO.File]::ReadAllLines('/proc/sys/kernel/hostname'))`e[0m"
-        OS       = "`e[1;37m$($osr.NAME) $($osr.BUILD_ID ?? $osr.VERSION ?? $osr.VERSION_ID) $(uname -m)`e[0m"
-        Kernel   = uname -r
-        Uptime   = "$(Get-Uptime)"
+        # build system properties
+        $sysProp = [ordered]@{
+            UserHost = "`e[1;34m$(id -un)`e[0m@`e[1;34m$([System.IO.File]::ReadAllLines('/proc/sys/kernel/hostname'))`e[0m"
+            OS       = "`e[1;37m$($osr.NAME) $($osr.BUILD_ID ?? $osr.VERSION ?? $osr.VERSION_ID) $(uname -m)`e[0m"
+            Kernel   = uname -r
+            Uptime   = "$(Get-Uptime)"
+        }
+        if ($env:WSL_DISTRO_NAME) { $sysProp['OS Host'] = 'Windows Subsystem for Linux' }
+        if ($env:WSL_DISTRO_NAME) { $sysProp['WSL Distro'] = $env:WSL_DISTRO_NAME }
+        if ($env:CONTAINER_ID) { $sysProp['DistroBox'] = $env:CONTAINER_ID }
+    } elseif ($IsMacOS) {
+        # get macOS version info
+        $productName = (sw_vers -productName)
+        $productVersion = (sw_vers -productVersion)
+        $buildVersion = (sw_vers -buildVersion)
+        # get cpu info
+        $cpuBrand = (sysctl -n machdep.cpu.brand_string)
+        $physCores = (sysctl -n hw.physicalcpu)
+        $logCores = (sysctl -n hw.logicalcpu)
+        # calculate memory usage (free + inactive + speculative = available)
+        $memTotal = [long](sysctl -n hw.memsize) / 1GB
+        $vmStat = vm_stat
+        $pageSize = if ($vmStat[0] -match 'page size of (\d+)') { [long]$Matches[1] } else { 16384 }
+        $pagesFree = if ($vmStat -match 'Pages free:\s+([\d]+)') { [long]$Matches[1] } else { 0 }
+        $pagesInactive = if ($vmStat -match 'Pages inactive:\s+([\d]+)') { [long]$Matches[1] } else { 0 }
+        $pagesSpeculative = if ($vmStat -match 'Pages speculative:\s+([\d]+)') { [long]$Matches[1] } else { 0 }
+        $memAvailable = ($pagesFree + $pagesInactive + $pagesSpeculative) * $pageSize / 1GB
+        $memUsed = $memTotal - $memAvailable
+
+        # build system properties
+        $sysProp = [ordered]@{
+            UserHost = "`e[1;34m$(id -un)`e[0m@`e[1;34m$([System.Net.Dns]::GetHostName())`e[0m"
+            OS       = "`e[1;37m$productName $productVersion ($buildVersion) $(uname -m)`e[0m"
+            Kernel   = uname -r
+            Uptime   = "$(Get-Uptime)"
+        }
     }
-    if ($env:WSL_DISTRO_NAME) { $sysProp['OS Host'] = 'Windows Subsystem for Linux' }
-    if ($env:WSL_DISTRO_NAME) { $sysProp['WSL Distro'] = $env:WSL_DISTRO_NAME }
-    if ($env:CONTAINER_ID) { $sysProp['DistroBox'] = $env:CONTAINER_ID }
+
     if ($env:TERM_PROGRAM) { $sysProp['Terminal'] = $env:TERM_PROGRAM }
     $sysProp['Shell'] = "PowerShell $($PSVersionTable.PSVersion)"
-    $sysProp['CPU'] = "$($cpu['model name']) ($($cpu['cpu cores'])/$($cpu['siblings']))"
-    $sysProp['Memory'] = '{0:n2} GiB / {1:n2} GiB ({2:p0})' -f $mem['MemUsed'], $mem['MemTotal'], ($mem['MemUsed'] / $mem['MemTotal'])
+
+    if ($IsLinux) {
+        $sysProp['CPU'] = "$($cpu['model name']) ($($cpu['cpu cores'])/$($cpu['siblings']))"
+        $sysProp['Memory'] = '{0:n2} GiB / {1:n2} GiB ({2:p0})' -f $mem['MemUsed'], $mem['MemTotal'], ($mem['MemUsed'] / $mem['MemTotal'])
+    } elseif ($IsMacOS) {
+        $sysProp['CPU'] = "$cpuBrand ($physCores/$logCores)"
+        $sysProp['Memory'] = '{0:n2} GiB / {1:n2} GiB ({2:p0})' -f $memUsed, $memTotal, ($memUsed / $memTotal)
+    }
+
     if ($env:LANG) { $sysProp['Locale'] = $env:LANG }
 
     return [PSCustomObject]$sysProp
