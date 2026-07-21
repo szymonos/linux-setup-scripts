@@ -59,7 +59,7 @@ process {
         'aliases-kubectl'
         'do-az'
         'do-common'
-        'do-linux'
+        'do-unix'
         'psm-windows'
     )
     foreach ($module in $modules) {
