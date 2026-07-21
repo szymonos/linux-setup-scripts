@@ -11,13 +11,15 @@ function Invoke-CertifiFixFromChain {
         $cacertPaths = [System.Collections.Generic.HashSet[string]]::new()
         # get certifi/cacert.pem file path
         foreach ($package in @('certifi', 'pip')) {
+            # reset per package so a previous iteration's result never carries over
+            $showFiles = $null
             if (Get-Command 'uv' -CommandType Application -ErrorAction SilentlyContinue) {
                 [string[]]$showFiles = uv pip show -f $package 2>$null
             }
-            if (-not $showFiles) {
+            if (-not $showFiles -and (Get-Command 'pip' -CommandType Application -ErrorAction SilentlyContinue)) {
                 [string[]]$showFiles = pip show -f $package 2>$null
             }
-            if ($location = ($showFiles | Select-String '(?<=^Location: ).+$').Matches.Value) {
+            if ($showFiles -and ($location = ($showFiles | Select-String '(?<=^Location: ).+$').Matches.Value)) {
                 if ($cacert = ($showFiles | Select-String '\S*\bcacert\.pem$').Matches.Value) {
                     $cacert.ForEach({ $cacertPaths.Add(([IO.Path]::Combine($location, $_))) | Out-Null })
                 }
@@ -28,34 +30,55 @@ function Invoke-CertifiFixFromChain {
     process {
         if ($cacertPaths) {
             # get intermediate and root certificates
-            $chain = Invoke-CommandRetry {
-                Get-Certificate 'www.python.org' -BuildChain | Select-Object -Skip 1
+            $chain = @(Invoke-CommandRetry {
+                    Get-Certificate 'www.python.org' -PresentedChain | Select-Object -Skip 1
+                })
+            # bail out if the endpoint presented only a leaf (nothing left after -Skip 1);
+            # Write-Error terminates under $ErrorActionPreference = 'Stop'
+            if (-not $chain) {
+                Write-Error 'No intermediate/root certificates presented by the TLS endpoint.'
             }
-            # check if root certificate from chain is installed in the system
-            $rootCrts = Get-RootCertificates
-            if ($chain[-1].Thumbprint -in $rootCrts.Thumbprint) {
+            # check if the chain's root certificate is trusted by the system; build the
+            # chain natively against the OS trust store (incl. the macOS keychain) with
+            # revocation and AIA downloads off, so it's an OS-trust-only check with no
+            # surprise network access
+            $rootChain = [System.Security.Cryptography.X509Certificates.X509Chain]::new()
+            $rootChain.ChainPolicy.RevocationMode = [System.Security.Cryptography.X509Certificates.X509RevocationMode]::NoCheck
+            $rootChain.ChainPolicy.DisableCertificateDownloads = $true
+            try {
+                $isRootTrusted = $rootChain.Build($chain[-1])
+            } finally {
+                $rootChain.Dispose()
+            }
+            if ($isRootTrusted) {
                 foreach ($path in $cacertPaths) {
                     Write-Verbose $path.Replace($HOME, '~')
-                    $certifiCerts = ConvertFrom-PEM $path
-                    # check if certs already added to cacert.pem
-                    if ($certsToAdd = $chain.ForEach({ $_.Where({ $_.Thumbprint -notin $certifiCerts.Thumbprint }) })) {
-                        # add certificates from chain to the certifi/cacert.pem
-                        foreach ($cert in $certsToAdd) {
-                            $msg = [string]::Join("`n",
-                                "`e[1;92mThumbprint :`e[0m $($cert.Thumbprint)",
-                                "`e[1;92mSubject    :`e[0m $($cert.Subject)",
-                                "`e[1;92mIssuer     :`e[0m $($cert.Issuer)`n"
-                            )
-                            Write-Host $msg
-                            $pem = "`n$(ConvertTo-PEM $cert -AddHeader)"
-                            if ($IsLinux -and (Get-ChildItem $path).User -eq 'root') {
-                                sudo pwsh -nop -noni -c "[IO.File]::AppendAllText('$path', '$pem')"
-                            } else {
-                                [IO.File]::AppendAllText($path, $pem)
+                    # a single unwritable cacert (e.g. a system-owned pip _vendor bundle)
+                    # must not abort fixing the remaining, writable paths
+                    try {
+                        $certifiCerts = ConvertFrom-PEM $path
+                        # check if certs already added to cacert.pem
+                        if ($certsToAdd = $chain.Where({ $_.Thumbprint -notin $certifiCerts.Thumbprint })) {
+                            # add certificates from chain to the certifi/cacert.pem
+                            foreach ($cert in $certsToAdd) {
+                                $msg = [string]::Join("`n",
+                                    "`e[1;92mThumbprint :`e[0m $($cert.Thumbprint)",
+                                    "`e[1;92mSubject    :`e[0m $($cert.Subject)",
+                                    "`e[1;92mIssuer     :`e[0m $($cert.Issuer)`n"
+                                )
+                                Write-Host $msg
+                                $pem = "`n$(ConvertTo-PEM $cert -AddHeader)"
+                                if ($IsLinux -and (Get-ChildItem $path).User -eq 'root') {
+                                    sudo pwsh -nop -noni -c "[IO.File]::AppendAllText('$path', '$pem')"
+                                } else {
+                                    [IO.File]::AppendAllText($path, $pem)
+                                }
                             }
+                        } else {
+                            Write-Verbose 'All certificates from TLS chain already added to the file.'
                         }
-                    } else {
-                        Write-Verbose 'All certificates from TLS chain already added to the file.'
+                    } catch {
+                        Write-Warning "Skipped '$($path.Replace($HOME, '~'))': $($_.Exception.Message)"
                     }
                 }
             } else {
