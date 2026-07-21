@@ -43,7 +43,7 @@ process {
     }
 
     # intercept certificates from chain and filter out existing ones
-    $chain = Get-Certificate -Uri 'gems.hashicorp.com' -BuildChain | Select-Object -Skip 1 | Where-Object {
+    $chain = Get-Certificate -Uri 'gems.hashicorp.com' -PresentedChain | Select-Object -Skip 1 | Where-Object {
         $_.Thumbprint -notin $cacert.Thumbprint
     }
 

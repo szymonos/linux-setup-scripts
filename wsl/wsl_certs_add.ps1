@@ -121,7 +121,7 @@ process {
     # intercept certificates from all uris
     foreach ($uri in $Uris) {
         try {
-            Get-Certificate -Uri $Uri -BuildChain | Select-Object -Skip 1 | ForEach-Object {
+            Get-Certificate -Uri $Uri -PresentedChain | Select-Object -Skip 1 | ForEach-Object {
                 $certSet.Add($_) | Out-Null
             }
         } catch [System.Management.Automation.MethodInvocationException] {
