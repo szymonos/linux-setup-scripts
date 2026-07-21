@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --frozen python
 """
 Review brief management for the /second-opinion skill.
 
@@ -8,10 +8,10 @@ Three subcommands:
   parse    - parse Copilot's raw output into structured JSON findings
 
 Usage:
-    python3 scripts/review_brief.py check
-    python3 scripts/review_brief.py discover
-    python3 scripts/review_brief.py parse <raw-output-file>
-    echo "<copilot output>" | python3 scripts/review_brief.py parse -
+    uv run --frozen python scripts/review_brief.py check
+    uv run --frozen python scripts/review_brief.py discover
+    uv run --frozen python scripts/review_brief.py parse <raw-output-file>
+    echo "<copilot output>" | uv run --frozen python scripts/review_brief.py parse -
 """
 
 from __future__ import annotations
@@ -25,7 +25,8 @@ from pathlib import Path
 
 BRIEF_FILENAME = "REVIEW-BRIEF.md"
 CONTEXT_FILES = [
-    ("claude_md", "CLAUDE.md"),
+    ("claude_md", ".claude/CLAUDE.md"),
+    ("claude_md_root", "CLAUDE.md"),
     ("agents_md", "AGENTS.md"),
     ("architecture_md", "ARCHITECTURE.md"),
     ("readme", "README.md"),
@@ -104,6 +105,38 @@ def _read_head(path: Path, max_lines: int = MAX_CONTEXT_LINES) -> str | None:
         return None
 
 
+def _walk_pruned(root: Path):
+    """
+    Recursively yield paths under root, skipping SKIP_DIRS subtrees.
+
+    Plain Path.rglob() descends into vendored trees (.venv, node_modules, ...),
+    which can mean tens of thousands of irrelevant files on a stack probe. This
+    prunes those directories in place so discovery stays fast in real repos.
+    """
+    stack = [root]
+    while stack:
+        current = stack.pop()
+        try:
+            entries = list(current.iterdir())
+        except OSError:
+            continue
+        for entry in entries:
+            # Recurse into real subdirectories only. Skipping symlinked dirs (rather
+            # than following them) avoids accidental traversal of external trees and
+            # symlink cycles. is_dir() + not is_symlink() is the 3.12-compatible form
+            # of is_dir(follow_symlinks=False) (that kwarg is 3.13+).
+            if entry.is_dir() and not entry.is_symlink():
+                if entry.name in SKIP_DIRS:
+                    continue
+                stack.append(entry)
+            yield entry
+
+
+def _any_match(root: Path, suffix: str) -> bool:
+    """True if any non-pruned file under root ends with suffix."""
+    return any(p.name.endswith(suffix) and p.is_file() for p in _walk_pruned(root))
+
+
 def _detect_stacks(root: Path) -> list[str]:
     """Quick stack detection (subset of bootstrap-hooks/detect_stack.py)."""
     stacks: list[str] = []
@@ -124,15 +157,16 @@ def _detect_stacks(root: Path) -> list[str]:
                 stacks.append(stack)
                 break
 
-    if any(root.rglob("*.tf")):
+    if _any_match(root, ".tf"):
         stacks.append("terraform")
-    if any(root.rglob("*.sh")):
+    if _any_match(root, ".sh"):
         stacks.append("shell")
-    if (root / ".obsidian").exists() or any(
-        (root / "docs").rglob(".obsidian") if (root / "docs").exists() else []
+    docs = root / "docs"
+    if (root / ".obsidian").exists() or (
+        docs.exists() and any(p.name == ".obsidian" for p in _walk_pruned(docs))
     ):
         stacks.append("obsidian")
-    if (root / "docs").exists() and any((root / "docs").rglob("*.md")):
+    if docs.exists() and _any_match(docs, ".md"):
         stacks.append("markdown-docs")
     if (root / ".github" / "workflows").exists():
         stacks.append("github-actions")
@@ -187,7 +221,10 @@ def cmd_check(args: argparse.Namespace) -> int:
 
     json.dump(result, sys.stdout, indent=2)
     print()
-    return 0 if result["match"] else 1
+    # Fail only when the brief genuinely needs updating (missing tag or a real
+    # mismatch). The indeterminate case - current repo can't be determined, e.g.
+    # gh CLI unavailable - sets needs_update: false and must not fail the check.
+    return 1 if result["needs_update"] else 0
 
 
 def cmd_discover(args: argparse.Namespace) -> int:
