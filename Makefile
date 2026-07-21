@@ -11,15 +11,13 @@ ifdef CA_CUSTOM
 export NODE_EXTRA_CA_CERTS := $(CA_CUSTOM)
 endif
 
-# Stage all changes, run prek, then restore previously staged file paths.
-# Note: only path-level staging is preserved; partially-staged hunks become fully
-# staged after the round-trip. Auto-fixes from hooks land in the working tree.
+# Run prek over the whole working tree without touching the user's staging:
+# stage into a disposable scratch index (GIT_INDEX_FILE) so the real index is
+# never modified. Auto-fixes land in the working tree for review.
 define PREK_RUN
-sf=$$(mktemp); git diff --cached --name-only -z >$$sf; \
-git add --all && prek run $(HOOK) $(1); rc=$$?; \
-git reset -q HEAD; \
-if [ -s $$sf ]; then xargs -0 git add -- <$$sf 2>/dev/null; fi; \
-rm -f $$sf; exit $$rc
+export GIT_INDEX_FILE="$$(git rev-parse --git-path index).prek"; \
+trap 'rm -f "$$GIT_INDEX_FILE" "$$GIT_INDEX_FILE.lock"' EXIT; \
+git read-tree HEAD && git add --all && prek run $(HOOK) $(1)
 endef
 
 .PHONY: help
