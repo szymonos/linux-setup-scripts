@@ -135,3 +135,39 @@ For functions installed system-wide via `/etc/profile.d/`, the file MUST start w
 ```
 
 See `design/lessons.md` for the incident this guard prevents.
+
+## 6. PowerShell modules
+
+`modules/` holds the PowerShell modules installed into the guest's module path during provisioning. Each is a standard module directory (`<name>/<name>.psd1` manifest + `<name>.psm1` root + `Functions/*.ps1`) with a `ModuleVersion`.
+
+### 6.1 Synced vs. repo-local
+
+Most modules are **not authored here** - they are mirrored from the upstream [`szymonos/ps-modules`](https://github.com/szymonos/ps-modules) repo. `.assets/scripts/modules_update.ps1` clones/refreshes `../ps-modules` (via `Invoke-GhRepoClone`) and copies a fixed list into `modules/`, overwriting the local copies. **Edit synced modules upstream, not here** - a local edit is silently clobbered on the next `modules_update.ps1` run.
+
+| Module            | Origin     | Notes                                                                       |
+| ----------------- | ---------- | --------------------------------------------------------------------------- |
+| `do-common`       | synced     | Shared functions; installed **AllUsers** (system-wide), not per-user        |
+| `do-unix`         | synced     | Cross-platform (Linux + macOS) shell helpers; supersedes the old `do-linux` |
+| `do-az`           | synced     | Azure helpers; installed only when the `az` scope is selected               |
+| `psm-windows`     | synced     | Windows-side helpers                                                        |
+| `aliases-git`     | synced     | git aliases                                                                 |
+| `aliases-kubectl` | synced     | kubectl aliases; installed only when the `k8s_base` scope is selected       |
+| `utils-install`   | repo-local | Provisioning-time helpers (e.g. `Invoke-GhRepoClone`) - authored here       |
+| `utils-setup`     | repo-local | Setup helpers - authored here                                               |
+
+The synced list is the `$modules` array in `modules_update.ps1`; keep it in sync with what upstream ships. `do-unix` replaced `do-linux` (same module GUID, cross-platform `Get-SysInfo`); when adding or renaming a synced module, update **both** the sync list and every install site (see § 6.2).
+
+### 6.2 Install sites
+
+Provisioning copies modules into the guest's PowerShell module path from four places. All four must agree on the module name set - a rename (like `do-linux` → `do-unix`) touches every one:
+
+| Site                                       | Context            | Which modules                                                                                                                                                        |
+| ------------------------------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.assets/scripts/linux_setup.sh`           | Linux host / guest | `do-common` AllUsers; `do-unix` + scoped extras CurrentUser                                                                                                          |
+| `wsl/wsl_setup.ps1`                        | Windows host → WSL | same split, driven by the `$scopes` selected                                                                                                                         |
+| `vagrant/*/*/Vagrantfile`                  | Vagrant VMs        | `aliases-git do-common do-unix` (12 files, one per box)                                                                                                              |
+| `.assets/provision/setup_profile_user.ps1` | user profile setup | references `do-unix` for the `Register-MakeCompleter` completer; also removes the obsolete user-scope `do-linux` module so a rename doesn't leave duplicate commands |
+
+### 6.3 Add a module function
+
+See § 5.2. For a **synced** module, make the change in the upstream `ps-modules` repo and re-run `modules_update.ps1`; only `utils-install` / `utils-setup` are edited directly in this repo.
