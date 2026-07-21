@@ -15,6 +15,13 @@ jobs:
       - name: Fetch base branch
         run: git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
 
+      - name: Ensure Pester 6+ available
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '6.0' })) {
+            Install-Module Pester -MinimumVersion 6.0 -Repository PSGallery -Force -SkipPublisherCheck -Scope CurrentUser
+          }
+
       - name: Run pre-commit hooks
         uses: j178/prek-action@v2
         with:
