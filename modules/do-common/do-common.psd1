@@ -4,7 +4,7 @@
     RootModule           = 'do-common.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.8.3'
+    ModuleVersion        = '2.0.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -42,6 +42,7 @@
         'Show-Certificate'
         'Show-CertificateChain'
         'Show-ConvertedPem'
+        'Split-UriHostPort'
         # cli
         'Invoke-DigColored'
         # common

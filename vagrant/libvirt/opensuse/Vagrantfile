@@ -44,7 +44,7 @@ SCRIPT
 script_install_psmodules = <<~SCRIPT
   cd ~/source/repos/szymonos/linux-setup-scripts || exit 0
   mkdir -p ~/.local/share/powershell/Modules
-  for module in aliases-git do-common do-linux; do
+  for module in aliases-git do-common do-unix; do
     rm -rf ~/.local/share/powershell/Modules/$module
     cp -rf modules/$module ~/.local/share/powershell/Modules/
   done

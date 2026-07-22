@@ -262,7 +262,7 @@ if [ -f /usr/bin/pwsh ]; then
   sudo cp -rf modules/do-common /usr/local/share/powershell/Modules/
 
   # determine current user scope modules to install
-  modules=('do-linux')
+  modules=('do-unix')
   grep -qw 'az' <<<$scope && modules+=(do-az) || true
   [ -f /usr/bin/git ] && modules+=(aliases-git) || true
   [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true

@@ -28,7 +28,7 @@ The bias-control mechanism is **the process boundary itself**. Copilot runs as a
 Run the bundled check script to verify `REVIEW-BRIEF.md` targets this repo:
 
 ```bash
-python3 <skill-path>/scripts/review_brief.py check
+uv run --frozen python <skill-path>/scripts/review_brief.py check
 ```
 
 Returns JSON with `match`, `brief_repo`, `current_repo`, `needs_update`.
@@ -37,7 +37,7 @@ Returns JSON with `match`, `brief_repo`, `current_repo`, `needs_update`.
 - **Mismatch or missing `repo:` tag** → run discovery and offer a one-time rewrite:
 
   ```bash
-  python3 <skill-path>/scripts/review_brief.py discover
+  uv run --frozen python <skill-path>/scripts/review_brief.py discover
   ```
 
   The discovery output includes detected stacks, context from `CLAUDE.md`/`AGENTS.md`/`README.md`, and the existing brief content. Use this context to rewrite `REVIEW-BRIEF.md` with:
@@ -115,7 +115,7 @@ If Copilot exits non-zero, capture the error and surface to the user. Don't retr
 Save Copilot's raw output to a temp file and parse it with the bundled script:
 
 ```bash
-python3 <skill-path>/scripts/review_brief.py parse /tmp/copilot-review.md
+uv run --frozen python <skill-path>/scripts/review_brief.py parse /tmp/copilot-review.md
 ```
 
 Returns JSON: `{"findings": [{id, severity, file, line, description, suggestion}, ...], "count": N}`. If count is 0, announce "No findings." and exit.

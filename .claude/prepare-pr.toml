@@ -1,0 +1,28 @@
+# prepare-pr per-repo config
+#
+# Consumed by .claude/skills/prepare-pr/scripts/extract_signals.py. Keeps the
+# skill's script portable: repo-specific layout lives here, not in the script.
+# Absent/partial config degrades to a safe no-op (the ARCHITECTURE staleness
+# check simply finds nothing). See ARCHITECTURE.md and the skill's SKILL.md.
+
+# Doc scanned for staleness by the `architecture` subcommand (Phase 1.5c).
+architecture_doc = "ARCHITECTURE.md"
+
+# Where extracted operational lessons are written (Phase 1.5b).
+lessons_path = "design/lessons.md"
+
+# Maps an ARCHITECTURE.md section identifier -> path prefixes that, when touched
+# by the branch diff, mark that section potentially stale. Keys are section names
+# the skill echoes back in `stale_sections`; the agent then finds the matching
+# heading in ARCHITECTURE.md (this repo's headings are numbered, e.g.
+# `## 1. Host vs guest split`, and carry no parenthesized IDs). Only the doc's
+# concrete inventories (tables/trees) are mapped - they are what actually drifts:
+#   host_guest_split  -> § 1 (host/guest split table)
+#   hook_inventory    -> § 3 (pre-commit hook inventory table)
+#   test_layout       -> § 4 (test layout tree)
+#   powershell_modules-> § 6 (module inventory + sync list / install sites)
+[architecture_sections]
+host_guest_split   = ["wsl/", ".assets/scripts/", ".assets/provision/", ".assets/trigger/"]
+hook_inventory     = [".pre-commit-config.yaml", "tests/hooks/"]
+test_layout        = ["tests/"]
+powershell_modules = ["modules/", ".assets/scripts/modules_update.ps1"]

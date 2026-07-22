@@ -75,7 +75,7 @@ $Path = Resolve-Path $Path
 $content = [IO.File]::ReadAllLines($Path)
 
 # intercept certificates from chain and filter out existing ones
-$chain = Get-Certificate -Uri 'gems.hashicorp.com' -BuildChain | Select-Object -Skip 1
+$chain = Get-Certificate -Uri 'gems.hashicorp.com' -PresentedChain | Select-Object -Skip 1
 
 # create installation script
 New-Item (Split-Path $scriptInstallRootCA) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null

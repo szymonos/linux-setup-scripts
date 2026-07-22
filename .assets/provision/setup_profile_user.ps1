@@ -15,6 +15,18 @@ $profileDir = [IO.Path]::GetDirectoryName($PROFILE)
 if (-not (Test-Path $profileDir -PathType Container)) {
     New-Item $profileDir -ItemType Directory | Out-Null
 }
+
+# *clean up obsolete modules superseded by a rename
+# do-linux was renamed to do-unix; both export the same function/alias names, so a
+# stale do-linux left in the user module path would shadow do-unix with duplicate
+# commands. Remove it before the new module is installed. Only user scope is needed -
+# do-linux was never installed AllUsers (do-common is the only system-wide module).
+$staleModule = "$HOME/.local/share/powershell/Modules/do-linux"
+if (Test-Path $staleModule -PathType Container) {
+    Write-Host 'removing obsolete do-linux module...'
+    Remove-Module -Name 'do-linux' -Force -ErrorAction SilentlyContinue
+    Remove-Item $staleModule -Recurse -Force
+}
 # set up Microsoft.PowerShell.PSResourceGet and update installed modules
 if (Get-Module -Name Microsoft.PowerShell.PSResourceGet -ListAvailable) {
     if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) {
@@ -142,7 +154,7 @@ if (Test-Path "$HOME/$uvCli" -PathType Leaf) {
 
 # set up make completer
 $completerFunction = 'Register-MakeCompleter'
-if (Get-Command $completerFunction -Module 'do-linux' -CommandType Function -ErrorAction SilentlyContinue) {
+if (Get-Command $completerFunction -Module 'do-unix' -CommandType Function -ErrorAction SilentlyContinue) {
     if (-not ($profileContent | Select-String $completerFunction -SimpleMatch -Quiet)) {
         Write-Host 'adding make auto-completion...'
         $profileContent.AddRange(

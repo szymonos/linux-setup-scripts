@@ -628,7 +628,7 @@ process {
                 $allUsersCmd = 'mkdir -p /usr/local/share/powershell/Modules && rm -rf /usr/local/share/powershell/Modules/do-common && cp -rf modules/do-common /usr/local/share/powershell/Modules/'
                 wsl.exe --distribution $Distro --user root --exec sh -c $allUsersCmd
                 # instantiate psmodules generic lists
-                $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-linux'))
+                $modules = [System.Collections.Generic.SortedSet[String]]::new([string[]]@('aliases-git', 'do-unix'))
                 # determine modules to install
                 if ('az' -in $scopes) {
                     $modules.Add('do-az') | Out-Null

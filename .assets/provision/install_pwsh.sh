@@ -79,7 +79,13 @@ fedora)
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
-  [ "$SYS_ID" = 'debian' ] && apt-get update >&2 && apt-get install -y libicu76 >&2 2>/dev/null || true
+  . /etc/os-release
+  case "${VERSION_CODENAME:-}" in
+  trixie) libicu='libicu76' ;;
+  resolute) libicu='libicu78' ;;
+  *) libicu='' ;;
+  esac
+  [ -n "$libicu" ] && apt-get update >&2 2>/dev/null && apt-get install -y "$libicu" >&2 2>/dev/null || true
   # create temporary dir for the downloaded binary
   TMP_DIR=$(mktemp -d -p "$HOME")
   trap 'rm -fr "$TMP_DIR"' EXIT

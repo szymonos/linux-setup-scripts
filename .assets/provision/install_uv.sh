@@ -34,11 +34,21 @@ if [ -x "$HOME/.local/bin/uv" ]; then
   else
     # update uv using the self update command
     printf "\e[92mupdating \e[1m$APP\e[22m\n" >&2
+    # build the env for self update: UV_SYSTEM_CERTS (uv 0.11.0+) supersedes the
+    # deprecated UV_NATIVE_TLS. Only add UV_NATIVE_TLS for legacy uv (< 0.11.0),
+    # which predates UV_SYSTEM_CERTS and still needs it for the TLS-verified update.
+    # An empty/unparseable VER means uv's output format changed - i.e. a newer uv -
+    # so treat it as new and skip the deprecated var to avoid the warning.
+    uv_env=(UV_SYSTEM_CERTS=true)
+    if [ -n "$VER" ] && [ "$VER" != '0.11.0' ] &&
+      [ "$(printf '%s\n0.11.0\n' "$VER" | sort -V | head -n1)" = "$VER" ]; then
+      uv_env+=(UV_NATIVE_TLS=true)
+    fi
     # retry uv self update up to 5 times if it fails
     retry_count=0
     max_retries=5
     while [ $retry_count -le $max_retries ]; do
-      UV_SYSTEM_CERTS=true UV_NATIVE_TLS=true "$HOME/.local/bin/uv" self update >&2
+      env "${uv_env[@]}" "$HOME/.local/bin/uv" self update >&2
       [ $? -eq 0 ] && break || true
       ((retry_count++)) || true
       echo "retrying... $retry_count/$max_retries" >&2
