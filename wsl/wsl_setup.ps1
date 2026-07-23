@@ -619,8 +619,6 @@ process {
                 # setup profiles
                 Show-LogContext 'setting up profile for all users'
                 wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1 -UserName $chk.user
-                Show-LogContext 'setting up profile for current user'
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
 
                 # *install PowerShell modules from local modules directory
                 Show-LogContext 'installing ps-modules'
@@ -643,6 +641,10 @@ process {
                 $rms = ($modules.ForEach({ "`$HOME/.local/share/powershell/Modules/$_" })) -join ' '
                 $userCmd = "mkdir -p `$HOME/.local/share/powershell/Modules && rm -rf $rms && cp -rf $srcs `$HOME/.local/share/powershell/Modules/"
                 wsl.exe --distribution $Distro --exec sh -c $userCmd
+                # setup current user profile after modules are installed, so completers
+                # gated on module functions (e.g. Register-MakeCompleter in do-unix) resolve
+                Show-LogContext 'setting up profile for current user'
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
                 # *install PowerShell Az modules
                 if ('az' -in $scopes) {
                     $cmd = [string]::Join("`n",

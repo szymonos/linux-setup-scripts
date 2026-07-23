@@ -217,6 +217,10 @@ Command arguments to be passed to the provided command.
 Do not execute the command.
 .PARAMETER Quiet
 Do not print the command string.
+.PARAMETER NoVerify
+Append --no-verify after all arguments to skip git hooks (pre-commit/pre-push).
+Not compatible with a '--' pathspec on commit (git treats trailing args as
+pathspecs); in that rare case pass --no-verify manually before the '--'.
 #>
 function Invoke-WriteExecCommand {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -231,7 +235,9 @@ function Invoke-WriteExecCommand {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     begin {
@@ -242,6 +248,10 @@ function Invoke-WriteExecCommand {
                 $arg = $_ -match '\s|@' ? "'$_'" : $_
                 $sb.Append(" $arg") | Out-Null
             }
+        }
+        # append --no-verify after all arguments (correct position for both push and -m commit)
+        if ($NoVerify) {
+            $sb.Append(' --no-verify') | Out-Null
         }
         # get command string
         $cmnd = $sb.ToString()
