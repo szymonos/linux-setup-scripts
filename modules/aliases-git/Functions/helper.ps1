@@ -59,15 +59,18 @@ function gbdo {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     # calculate command strings
     if ($remote = @(git remote)[0]) {
         $commands = [System.Collections.Generic.List[string]]::new()
         $commands.Add("git branch --delete $Branch")
-        $commands.Add("git push --delete $remote $Branch")
+        $commands.Add("git push --delete $remote $Branch$($NoVerify ? ' --no-verify' : '')")
         $PSBoundParameters.Remove('Branch') | Out-Null
+        $PSBoundParameters.Remove('NoVerify') | Out-Null
     } else {
         Write-Host 'fatal: Remote repository not set.'
         return
@@ -92,15 +95,18 @@ function gbdo! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     # calculate command strings
     if ($remote = @(git remote)[0]) {
         $commands = [System.Collections.Generic.List[string]]::new()
         $commands.Add("git branch -D $Branch")
-        $commands.Add("git push --delete $remote $Branch")
+        $commands.Add("git push --delete $remote $Branch$($NoVerify ? ' --no-verify' : '')")
         $PSBoundParameters.Remove('Branch') | Out-Null
+        $PSBoundParameters.Remove('NoVerify') | Out-Null
     } else {
         Write-Host 'fatal: Remote repository not set.'
         return
@@ -153,7 +159,9 @@ function gpushd {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     if ($remote = @(git remote)[0]) {
@@ -210,7 +218,9 @@ function gmgo {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     # calculate command strings
@@ -219,7 +229,9 @@ function gmgo {
         $currentBranch = git branch --show-current
         # resolve provided branch
         $resolvedBranch = Get-GitResolvedBranch $Branch
+        $nv = $NoVerify ? ' --no-verify' : ''
         $PSBoundParameters.Remove('Branch') | Out-Null
+        $PSBoundParameters.Remove('NoVerify') | Out-Null
         # build list of commands to execute
         Invoke-WriteExecCommand -Command "git fetch $remote --prune" @PSBoundParameters
         if ($currentBranch -ne $resolvedBranch) {
@@ -227,7 +239,7 @@ function gmgo {
         }
         Invoke-WriteExecCommand -Command "git merge ${remote}/${resolvedBranch}" @PSBoundParameters | Tee-Object -Variable merge
         if ($merge | Select-String 'Fast-forward' -Quiet) {
-            Invoke-WriteExecCommand -Command "git push ${remote}" @PSBoundParameters
+            Invoke-WriteExecCommand -Command "git push ${remote}${nv}" @PSBoundParameters
         }
     } else {
         Write-Host 'fatal: Remote repository not set.'
@@ -273,7 +285,9 @@ function grbo {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     # calculate command strings
@@ -282,7 +296,9 @@ function grbo {
         $currentBranch = git branch --show-current
         # resolve provided branch
         $resolvedBranch = Get-GitResolvedBranch $Branch
+        $nv = $NoVerify ? ' --no-verify' : ''
         $PSBoundParameters.Remove('Branch') | Out-Null
+        $PSBoundParameters.Remove('NoVerify') | Out-Null
         # build list of commands to execute
         $commands = [System.Collections.Generic.List[string]]::new()
         $commands.Add("git fetch $remote --prune")
@@ -302,7 +318,7 @@ function grbo {
     # check if rebase was successful and push changes
     $behind, $ahead = (git rev-list --count --left-right '@{u}...HEAD') -split "`t"
     if ($? -and $behind -eq 0 -and $ahead -gt 0) {
-        Invoke-WriteExecCommand -Command "git push ${remote}" @PSBoundParameters
+        Invoke-WriteExecCommand -Command "git push ${remote}${nv}" @PSBoundParameters
     }
 }
 function gmb {

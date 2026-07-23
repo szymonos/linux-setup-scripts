@@ -241,7 +241,9 @@ function gcv {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --verbose' @PSBoundParameters
@@ -256,7 +258,9 @@ function gc! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --verbose --amend' @PSBoundParameters
@@ -271,7 +275,9 @@ function gca {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --verbose --all' @PSBoundParameters
@@ -286,13 +292,16 @@ function gcap {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     gca @PSBoundParameters
 
     $PSBoundParameters.Remove('Xargs') | Out-Null
-    gpush @PSBoundParameters
+    gpush @PSBoundParameters -NoVerify:$NoVerify
 }
 function gac {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -304,13 +313,16 @@ function gac {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     $PSBoundParameters.Remove('Xargs') | Out-Null
     gaa @PSBoundParameters
 
-    gcv -Xargs $Xargs @PSBoundParameters
+    gcv -Xargs $Xargs @PSBoundParameters -NoVerify:$NoVerify
 }
 function gacp {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -322,13 +334,16 @@ function gacp {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     gac @PSBoundParameters
 
     $PSBoundParameters.Remove('Xargs') | Out-Null
-    gpush @PSBoundParameters
+    gpush @PSBoundParameters -NoVerify:$NoVerify
 }
 function gca! {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -340,7 +355,9 @@ function gca! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --verbose --all --amend' @PSBoundParameters
@@ -355,13 +372,16 @@ function gac! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     $PSBoundParameters.Remove('Xargs') | Out-Null
     gaa @PSBoundParameters
 
-    gca! -Xargs $Xargs @PSBoundParameters
+    gca! -Xargs $Xargs @PSBoundParameters -NoVerify:$NoVerify
 }
 function gcam {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -373,7 +393,9 @@ function gcam {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --all -m' @PSBoundParameters
@@ -388,13 +410,16 @@ function gcamp {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     gcam @PSBoundParameters
 
     $PSBoundParameters.Remove('Xargs') | Out-Null
-    gpush @PSBoundParameters
+    gpush @PSBoundParameters -NoVerify:$NoVerify
 }
 function gacm {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -406,13 +431,16 @@ function gacm {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     $PSBoundParameters.Remove('Xargs') | Out-Null
     gaa @PSBoundParameters
 
-    gcmsg -Xargs $Xargs @PSBoundParameters
+    gcmsg -Xargs $Xargs @PSBoundParameters -NoVerify:$NoVerify
 }
 function gacmp {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -424,13 +452,16 @@ function gacmp {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     gacm @PSBoundParameters
 
     $PSBoundParameters.Remove('Xargs') | Out-Null
-    gpush @PSBoundParameters
+    gpush @PSBoundParameters -NoVerify:$NoVerify
 }
 function gcan! {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -442,7 +473,9 @@ function gcan! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --verbose --all --no-edit --amend' @PSBoundParameters
@@ -457,13 +490,16 @@ function gcanp! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     gcan! @PSBoundParameters
 
     $PSBoundParameters.Remove('Xargs') | Out-Null
-    gpush! @PSBoundParameters
+    gpush! @PSBoundParameters -NoVerify:$NoVerify
 }
 function gcempty {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -475,7 +511,9 @@ function gcempty {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand 'git commit --allow-empty -m' @PSBoundParameters
@@ -490,13 +528,16 @@ function gacn! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     $PSBoundParameters.Remove('Xargs') | Out-Null
     gaa @PSBoundParameters
 
-    gcn! -Xargs $Xargs @PSBoundParameters
+    gcn! -Xargs $Xargs @PSBoundParameters -NoVerify:$NoVerify
 }
 function gacnp! {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -508,13 +549,16 @@ function gacnp! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     gacn! @PSBoundParameters
 
     $PSBoundParameters.Remove('Xargs') | Out-Null
-    gpush! @PSBoundParameters
+    gpush! @PSBoundParameters -NoVerify:$NoVerify
 }
 function gcns! {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -526,7 +570,9 @@ function gcns! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --verbose --signoff --no-edit --amend' @PSBoundParameters
@@ -541,7 +587,9 @@ function gcans! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --verbose --all --signoff --no-edit --amend' @PSBoundParameters
@@ -556,13 +604,16 @@ function gacns! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     $PSBoundParameters.Remove('Xargs') | Out-Null
     gaa @PSBoundParameters
 
-    gcns! -Xargs $Xargs @PSBoundParameters
+    gcns! -Xargs $Xargs @PSBoundParameters -NoVerify:$NoVerify
 }
 function gcmsg {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -574,7 +625,9 @@ function gcmsg {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit -m' @PSBoundParameters
@@ -589,13 +642,16 @@ function gcmsgp {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     gcmsg @PSBoundParameters
 
     $PSBoundParameters.Remove('Xargs') | Out-Null
-    gpush @PSBoundParameters
+    gpush @PSBoundParameters -NoVerify:$NoVerify
 }
 function gcn! {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -607,7 +663,9 @@ function gcn! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --verbose --no-edit --amend' @PSBoundParameters
@@ -622,13 +680,16 @@ function gcnp! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
+    $PSBoundParameters.Remove('NoVerify') | Out-Null
     gcn! @PSBoundParameters
 
     $PSBoundParameters.Remove('Xargs') | Out-Null
-    gpush! @PSBoundParameters
+    gpush! @PSBoundParameters -NoVerify:$NoVerify
 }
 function gcsm {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -640,7 +701,9 @@ function gcsm {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git commit --signoff -m' @PSBoundParameters
@@ -1554,7 +1617,9 @@ function gpush {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git push' @PSBoundParameters
@@ -1569,7 +1634,9 @@ function gpush! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git push --force-with-lease' @PSBoundParameters
@@ -1584,7 +1651,9 @@ function gpushdr {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git push --dry-run' @PSBoundParameters
@@ -1603,12 +1672,16 @@ function gpushoat {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     if ($remote = @(git remote)[0]) {
         # calculate command string
-        $cmnd = "git push $remote --all && git push $remote --tags"
+        $nv = $NoVerify ? ' --no-verify' : ''
+        $cmnd = "git push $remote --all$nv && git push $remote --tags$nv"
+        $PSBoundParameters.Remove('NoVerify') | Out-Null
         # run command
         Invoke-WriteExecCommand -Command $cmnd @PSBoundParameters
     } else {
@@ -1625,7 +1698,9 @@ function gpushsup {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command "git push --set-upstream origin $(Get-GitCurrentBranch)" @PSBoundParameters
@@ -1640,7 +1715,9 @@ function gpusht {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git push --tags' @PSBoundParameters
@@ -1655,7 +1732,9 @@ function gpusht! {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git push --tags --force' @PSBoundParameters
@@ -1670,7 +1749,9 @@ function gpushv {
         [switch]$WhatIf,
 
         [Parameter(ParameterSetName = 'quiet')]
-        [switch]$Quiet
+        [switch]$Quiet,
+
+        [switch]$NoVerify
     )
 
     Invoke-WriteExecCommand -Command 'git push --verbose' @PSBoundParameters
