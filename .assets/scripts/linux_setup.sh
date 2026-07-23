@@ -288,6 +288,15 @@ if [ -f /usr/bin/pwsh ]; then
         Write-Host 'installing Az.ResourceGraph...'
         Invoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }
       }
+      # disable the WAM broker: it is a Windows feature, non-functional on Linux, so
+      # interactive login must fall through to the browser auth-code flow (wslview
+      # shim). Runs here, after Az.Accounts exists. Idempotent - skip if already off.
+      # Avoid \$false (bash would expand it inside this double-quoted string); a truthy
+      # test and numeric 0 for the [bool] param are unambiguous with no escaping.
+      if ((Get-AzConfig -EnableLoginByWam).Value) {
+        Write-Host 'disabling WAM login for Az PowerShell...'
+        Set-AzConfig -EnableLoginByWam 0 -Scope CurrentUser | Out-Null
+      }
     "
   fi
 fi

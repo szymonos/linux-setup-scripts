@@ -653,7 +653,16 @@ process {
                         "`tInvoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }`n}",
                         'if (-not (Get-Module -ListAvailable "Az.ResourceGraph")) {',
                         "`tWrite-Host 'installing Az.ResourceGraph...'",
-                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}"
+                        "`tInvoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }`n}",
+                        # disable the WAM broker: a Windows feature, non-functional on Linux, so
+                        # interactive login falls through to the browser auth-code flow (wslview
+                        # shim). Runs after Az.Accounts exists. Idempotent - skip if already off.
+                        # Avoid $false in this string: it is re-parsed by `pwsh -c` after crossing
+                        # wsl.exe and evaluates to empty (-> "-ne )" ParserError). Use a truthy
+                        # test and the numeric 0 for the [bool] param instead.
+                        'if ((Get-AzConfig -EnableLoginByWam).Value) {',
+                        "`tWrite-Host 'disabling WAM login for Az PowerShell...'",
+                        "`tSet-AzConfig -EnableLoginByWam 0 -Scope CurrentUser | Out-Null`n}"
                     )
                     wsl.exe --distribution $Distro -- pwsh -nop -c $cmd
                 }

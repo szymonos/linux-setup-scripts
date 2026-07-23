@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# MSAL browser auth shim - emulate `az login` clickable-link behavior for
+# Connect-AzAccount / Connect-MgGraph on headless Linux without a browser opener.
+#
+# Az/Graph PowerShell start the browser auth-code flow by exec'ing the first opener
+# found on PATH from a list hardcoded in MSAL.NET (NetCorePlatformProxy.cs): default
+# order xdg-open, gnome-open, kfmclient, microsoft-edge, wslview. `wslview` is the
+# last-resort slot - reliably empty on non-desktop Linux (WSL, devcontainers, SSH
+# VMs) - so filling it lets MSAL reach a browser instead of falling back to device
+# code flow, now blocked by the Entra Conditional Access policy. It is only a PATH
+# binary name to MSAL, not a wslu dependency (wslu archived 2025-03), so this shim
+# stands regardless of wslu's status. MSAL execs `wslview <AUTH_URL>`;
+# we print the URL instead so it can be CTRL+Clicked, and MSAL keeps its localhost
+# listener open to catch the post-auth redirect.
+#
+# Caveat: the redirect only completes where the browser's localhost reaches that
+# listener - native on WSL (shared loopback), but over SSH it needs the redirect
+# port forwarded, and in VS Code devcontainers MSAL must bind IPv4 (see the
+# DOTNET_SYSTEM_NET_DISABLEIPV6 block in setup_profile_user.ps1).
+#
+# Installed to ~/.local/bin/wslview by setup_profile_user.ps1, only when no real
+# MSAL opener (incl. wslu's wslview on Debian-based distros) is already present.
+url=$1
+# %s consumes the URL as an argument so percent-encoded chars are not reparsed.
+template='\n\e[96mTo sign in, CTRL+Click (or copy) this URL and authenticate in your browser:\e[0m\n\e[4m%s\e[0m\n\n'
+# Write straight to the controlling terminal - MSAL swallows child stdout/stderr;
+# fall back to stdout when no tty is attached (e.g. non-interactive test runs).
+printf "$template" "$url" >/dev/tty 2>/dev/null || printf "$template" "$url"
+exit 0
