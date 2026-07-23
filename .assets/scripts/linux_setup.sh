@@ -207,8 +207,6 @@ for sc in "${scope_arr[@]}"; do
     sudo .assets/provision/install_pwsh.sh >/dev/null
     printf "\e[96msetting up profile for all users...\e[0m\n"
     sudo .assets/provision/setup_profile_allusers.ps1 -UserName $user
-    printf "\e[96msetting up profile for current user...\e[0m\n"
-    .assets/provision/setup_profile_user.ps1
     ;;
   python)
     printf "\e[96minstalling python tools...\e[0m\n"
@@ -272,6 +270,26 @@ if [ -f /usr/bin/pwsh ]; then
     rm -rf "$HOME/.local/share/powershell/Modules/$module"
     cp -rf "modules/$module" "$HOME/.local/share/powershell/Modules/"
   done
+  # setup current user profile after modules are installed, so completers gated on
+  # module functions (e.g. Register-MakeCompleter in do-unix) resolve
+  printf "\e[96msetting up pwsh profile for current user...\e[0m\n"
+  .assets/provision/setup_profile_user.ps1
+
+  # install PowerShell Az modules required by do-az; runs after setup_profile_user.ps1
+  # so PSGallery is trusted, and after do-common is installed for Invoke-CommandRetry
+  if grep -qw 'az' <<<$scope; then
+    printf "\e[3;32mCurrentUser\e[23m : Az, Az.ResourceGraph\e[0m\n"
+    pwsh -nop -c "
+      if (-not (Get-Module -ListAvailable 'Az')) {
+        Write-Host 'installing Az...'
+        Invoke-CommandRetry { Install-PSResource Az -WarningAction SilentlyContinue -ErrorAction Stop }
+      }
+      if (-not (Get-Module -ListAvailable 'Az.ResourceGraph')) {
+        Write-Host 'installing Az.ResourceGraph...'
+        Invoke-CommandRetry { Install-PSResource Az.ResourceGraph -ErrorAction Stop }
+      }
+    "
+  fi
 fi
 
 # restore working directory
