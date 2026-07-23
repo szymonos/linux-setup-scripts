@@ -39,6 +39,9 @@ fi
 
 # *clone repositories and add them to workspace file
 cd ~/source/repos
+# track whether any repo was newly cloned; stays false on a rerun where all repos
+# already exist (git clone fails, the && chain is skipped) - init so `set -u` is safe
+cloned=false
 for repo in "${gh_repos[@]}"; do
   IFS='/' read -ra gh_path <<<"$repo"
   mkdir -p "${gh_path[0]}"
@@ -51,6 +54,6 @@ for repo in "${gh_repos[@]}"; do
   popd >/dev/null
 done
 
-if [ -z "$cloned" ]; then
+if [ "$cloned" = false ]; then
   printf "\e[32mall repos already cloned\e[0m\n"
 fi
