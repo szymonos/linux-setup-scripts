@@ -15,11 +15,16 @@
 /tmp.*/
 /logs/*.log
 
+# macOS
+.DS_Store
+
 # local settings
 settings.local.json
+/.claude/commands/
 /.claude/rules/openwolf.md
-/.claude/settings.json
+/.claude/skills/openwolf
 /.claude/worktrees/
+/.claude/settings.json
 /.wolf
 /CLAUDE.md
 
