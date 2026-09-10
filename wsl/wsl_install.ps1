@@ -213,14 +213,21 @@ process {
             $setupParams[$param] = $true
         }
     }
-    # pass the parameters as JSON in an environment variable, to splat them in the
-    # child process without building and escaping a command line string
-    [System.Environment]::SetEnvironmentVariable($paramsEnvVar, ($setupParams | ConvertTo-Json -Compress))
-    # run the wsl_setup script
-    pwsh.exe -NoProfile -Command "`$setupParams = `$env:$paramsEnvVar | ConvertFrom-Json -AsHashtable; wsl/wsl_setup.ps1 @setupParams"
+    # try/finally: guarantee the process-scoped env var never outlives this script,
+    # even if a terminating error strikes between setting and consuming it - which
+    # would otherwise leak it into the caller's session, since a terminating error
+    # here skips the `end` block rather than falling through to it.
+    try {
+        # pass the parameters as JSON in an environment variable, to splat them in the
+        # child process without building and escaping a command line string
+        [System.Environment]::SetEnvironmentVariable($paramsEnvVar, ($setupParams | ConvertTo-Json -Compress))
+        # run the wsl_setup script
+        pwsh.exe -NoProfile -Command "`$setupParams = `$env:$paramsEnvVar | ConvertFrom-Json -AsHashtable; wsl/wsl_setup.ps1 @setupParams"
+    } finally {
+        [System.Environment]::SetEnvironmentVariable($paramsEnvVar, $null)
+    }
 }
 
 end {
-    [System.Environment]::SetEnvironmentVariable($paramsEnvVar, $null)
     Pop-Location
 }
