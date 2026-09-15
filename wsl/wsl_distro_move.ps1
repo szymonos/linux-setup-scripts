@@ -1,3 +1,4 @@
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Move/Copy (and optionally rename) existing WSL2 distro.

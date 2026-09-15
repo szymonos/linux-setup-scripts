@@ -1,4 +1,4 @@
-#Requires -PSEdition Core
+#Requires -PSEdition Core -Version 7.3
 <#
 .SYNOPSIS
 Enables systemd in specified WSL distro.
