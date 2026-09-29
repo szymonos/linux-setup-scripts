@@ -7,7 +7,6 @@ Restart WSL.
 Running the script fixes issues with unresponsive WSL or user permissions issues.
 The script stops all running wsl processes and then restarts the following services:
 - LxssManagerUser: Linux Subsystem User Manager
-- WSLService: WSL Service
 - vmcompute: Hyper-V Host Compute Service
 
 .PARAMETER StopDockerDesktop
@@ -46,4 +45,4 @@ if ($StopDockerDesktop) {
 Get-Process wsl* | Stop-Process -Force
 
 # restart services related to WSL
-Get-Service LxssManagerUser*, WSLService, vmcompute | Restart-Service -Force
+Get-Service LxssManagerUser*, vmcompute | Restart-Service -Force
