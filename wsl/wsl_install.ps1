@@ -91,10 +91,11 @@ param (
     [string]$Distro,
 
     [Alias('s')]
-    [ValidateScript(
-        { $_.ForEach({ $_ -in @('az', 'bun', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false },
-        ErrorMessage = 'Wrong scope provided. Valid values: az bun conda distrobox docker gcloud k8s_base k8s_dev k8s_ext nodejs oh_my_posh pwsh python rice shell terraform zsh')
-    ]
+    # throw instead of ErrorMessage - the script must run on Windows PowerShell 5.1
+    [ValidateScript({
+            if ($_.ForEach({ $_ -in @('az', 'bun', 'conda', 'distrobox', 'docker', 'gcloud', 'k8s_base', 'k8s_dev', 'k8s_ext', 'nodejs', 'oh_my_posh', 'pwsh', 'python', 'rice', 'shell', 'terraform', 'zsh') }) -notcontains $false) { $true }
+            else { throw 'Wrong scope provided. Valid values: az bun conda distrobox docker gcloud k8s_base k8s_dev k8s_ext nodejs oh_my_posh pwsh python rice shell terraform zsh' }
+        })]
     [string[]]$Scope,
 
     [ValidateNotNullOrEmpty()]
@@ -103,10 +104,10 @@ param (
     [ValidateSet('light', 'dark')]
     [string]$GtkTheme,
 
-    [ValidateScript(
-        { $_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false },
-        ErrorMessage = 'Repos should be provided in "Owner/RepoName" format.')
-    ]
+    [ValidateScript({
+            if ($_.ForEach({ $_ -match '^[\w-]+/[\w-]+$' }) -notcontains $false) { $true }
+            else { throw 'Repos should be provided in "Owner/RepoName" format.' }
+        })]
     [string[]]$Repos,
 
     [switch]$AddCertificate,
