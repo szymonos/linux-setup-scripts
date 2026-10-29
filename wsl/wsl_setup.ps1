@@ -38,6 +38,7 @@ List of installation scopes. Valid values:
 Specify to install oh-my-posh prompt theme engine and name of the theme to be used.
 You can specify one of the three included profiles: base, powerline, nerd,
 or use any theme available on the page: https://ohmyposh.dev/docs/themes/
+otherwise create and use your own theme added in the .assets/config/omp_cfg/own.omp.json
 .PARAMETER GtkTheme
 Specify gtk theme for wslg. Available values: light, dark.
 Default: automatically detects based on the system theme.
